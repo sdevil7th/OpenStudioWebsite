@@ -4,7 +4,15 @@ const siteReleasePath = "/releases";
 
 const getPlatform = (request: Request) => {
   const url = new URL(request.url);
-  const platform = url.searchParams.get("platform");
+  const pathname = url.pathname.toLowerCase();
+  const pathSegments = pathname.split("/").filter(Boolean);
+  const trailingSegment = pathSegments[pathSegments.length - 1];
+
+  if (trailingSegment === "windows" || trailingSegment === "macos") {
+    return trailingSegment;
+  }
+
+  const platform = url.searchParams.get("platform")?.toLowerCase();
 
   if (platform === "windows" || platform === "macos") {
     return platform;
@@ -17,7 +25,7 @@ export default async (request: Request) => {
   const platform = getPlatform(request);
 
   if (!platform) {
-    return new Response("Missing or invalid platform query parameter.", { status: 400 });
+    return new Response("Missing or invalid platform in request path.", { status: 400 });
   }
 
   try {

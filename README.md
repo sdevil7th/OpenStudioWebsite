@@ -27,7 +27,67 @@ npm run preview
 - `/download/windows/latest`
 - `/download/macos/latest`
 
-Both routes now resolve through a Netlify function that checks the latest GitHub Release for the right asset and falls back to the release surfaces when no matching asset exists yet.
+Both routes now rewrite to path-based Netlify function endpoints:
+
+- `/.netlify/functions/download-latest/windows`
+- `/.netlify/functions/download-latest/macos`
+
+The function checks the latest GitHub Release for `sdevil7th/OpenStudio`, finds the best matching asset for the requested platform, and falls back to the release surfaces when no matching asset exists yet.
+
+## Environment Variables
+
+- `GITHUB_TOKEN`
+
+`GITHUB_TOKEN` is optional for local testing, but recommended for Netlify production deploys to reduce the risk of GitHub API rate limits. If it is not set, the download lookup and GitHub snapshot functions fall back to unauthenticated GitHub API requests.
+
+## Local Redirect Testing
+
+Start the local dev server:
+
+```bash
+npm install
+npm run dev
+```
+
+Then verify these URLs locally:
+
+```bash
+curl -I http://localhost:8080/download/windows/latest
+curl -I http://localhost:8080/download/macos/latest
+curl -I http://localhost:8080/.netlify/functions/download-latest/windows
+curl -I http://localhost:8080/.netlify/functions/download-latest/macos
+curl http://localhost:8080/.netlify/functions/github-repo
+```
+
+The two download URLs should respond with `302` and a `Location` header pointing to the latest matching GitHub release asset, or to the release page fallback if no matching asset exists.
+
+## Netlify Deployment
+
+1. Connect the repo to Netlify or push the branch already connected to the Netlify site.
+2. In the Netlify site settings, set:
+   - Build command: `npm run build`
+   - Publish directory: `dist`
+   - Environment variable: `GITHUB_TOKEN` (recommended)
+3. Deploy the updated branch.
+
+## Post-Deploy Verification
+
+After Netlify finishes deploying, verify:
+
+```bash
+curl -I https://openstudiowebsite.netlify.app/download/windows/latest
+curl -I https://openstudiowebsite.netlify.app/download/macos/latest
+curl -I https://openstudiowebsite.netlify.app/.netlify/functions/download-latest/windows
+curl -I https://openstudiowebsite.netlify.app/.netlify/functions/download-latest/macos
+curl https://openstudiowebsite.netlify.app/.netlify/functions/github-repo
+```
+
+Check that:
+
+- `/download/windows/latest` returns `302`
+- `/download/macos/latest` returns `302`
+- the `Location` header points to the latest GitHub release asset for the matching platform
+- the GitHub snapshot function returns JSON successfully
 
 ## Assets
 
