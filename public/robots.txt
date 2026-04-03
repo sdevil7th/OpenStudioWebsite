@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://openstudio.org.in/sitemap.xml

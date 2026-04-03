@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Orbitron:wght@400;500;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed-variant": "#005321",
+                    "error-container": "#93000a",
+                    "background": "#0A0A0A",
+                    "on-surface-variant": "#cbc3d7",
+                    "outline": "#958ea0",
+                    "on-error": "#690005",
+                    "on-tertiary-container": "#372700",
+                    "primary": "#d0bcff",
+                    "on-tertiary-fixed-variant": "#5a4300",
+                    "on-primary": "#3c0091",
+                    "primary-fixed-dim": "#d0bcff",
+                    "secondary-fixed-dim": "#4ae176",
+                    "secondary-container": "#00b954",
+                    "inverse-surface": "#e5e2e1",
+                    "surface-dim": "#131313",
+                    "surface-variant": "#353534",
+                    "on-tertiary": "#3f2e00",
+                    "tertiary": "#f7be1d",
+                    "surface-bright": "#3a3939",
+                    "surface": "#0E0E0E",
+                    "secondary": "#4ae176",
+                    "secondary-fixed": "#6bff8f",
+                    "tertiary-container": "#b68a00",
+                    "surface-tint": "#d0bcff",
+                    "on-surface": "#e5e2e1",
+                    "on-secondary-container": "#004119",
+                    "error": "#ffb4ab",
+                    "on-primary-fixed-variant": "#5516be",
+                    "tertiary-fixed-dim": "#f7be1d",
+                    "on-background": "#e5e2e1",
+                    "primary-container": "#a078ff",
+                    "surface-container-highest": "#353534",
+                    "on-tertiary-fixed": "#251a00",
+                    "surface-container": "#201f1f",
+                    "tertiary-fixed": "#ffdf9a",
+                    "outline-variant": "#494454",
+                    "surface-container-low": "#1c1b1b",
+                    "on-error-container": "#ffdad6",
+                    "on-secondary-fixed": "#002109",
+                    "inverse-primary": "#6d3bd7",
+                    "on-primary-container": "#340080",
+                    "surface-container-high": "#2a2a2a",
+                    "inverse-on-surface": "#313030",
+                    "on-secondary": "#003915",
+                    "surface-container-lowest": "#0e0e0e",
+                    "on-primary-fixed": "#23005c",
+                    "primary-fixed": "#e9ddff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk"],
+                    "body": ["Inter"],
+                    "label": ["Inter"],
+                    "display": ["Orbitron"],
+                    "mono": ["JetBrains Mono"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(14, 14, 14, 0.7);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .neon-glow-primary {
+            box-shadow: 0 0 20px rgba(208, 188, 255, 0.15);
+        }
+        .neon-border-primary {
+            border: 1px solid rgba(208, 188, 255, 0.3);
+        }
+        .waveform-gradient {
+            background: linear-gradient(90deg, #d0bcff 0%, #a078ff 100%);
+        }
+        .hero-mask {
+            mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-primary selection:text-on-primary overflow-x-hidden">
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 w-full z-50 bg-background/60 backdrop-blur-xl flex justify-between items-center px-8 h-20 shadow-[0px_24px_48px_rgba(0,0,0,0.5)] border-b border-white/5">
+<div class="text-2xl font-bold tracking-tighter text-white uppercase font-['Space_Grotesk'] flex items-center gap-2">
+<span class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-on-primary text-xs">OS</span>
+        OpenStudio
+    </div>
+<div class="hidden md:flex items-center gap-8 font-['Space_Grotesk'] tracking-tight">
+<a class="text-[#e5e2e1]/70 hover:text-white transition-colors hover:bg-white/5 px-3 py-1 rounded-md" href="#">Features</a>
+<a class="text-[#D0BCFF] border-b-2 border-[#D0BCFF] pb-1" href="#">AI Engine</a>
+<a class="text-[#e5e2e1]/70 hover:text-white transition-colors hover:bg-white/5 px-3 py-1 rounded-md" href="#">GitHub</a>
+<a class="text-[#e5e2e1]/70 hover:text-white transition-colors hover:bg-white/5 px-3 py-1 rounded-md" href="#">Download</a>
+</div>
+<button class="bg-gradient-to-br from-primary to-primary-container text-on-primary-container px-6 py-2.5 rounded-xl font-medium hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-primary/20">
+        Get Started
+    </button>
+</nav>
+<!-- SideNavBar -->
+<aside class="fixed inset-y-0 left-0 z-40 hidden lg:flex flex-col h-full w-64 border-r border-white/5 bg-[#0E0E0E] gap-4">
+<div class="p-8 mt-20 flex items-center gap-3">
+<div>
+<h2 class="text-xl font-bold text-[#D0BCFF] font-headline tracking-tighter">OpenStudio</h2>
+<p class="text-[10px] text-on-surface/50 uppercase font-mono tracking-widest leading-none">Sonic Obsidian v3.0</p>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1 font-['JetBrains_Mono'] text-sm uppercase tracking-widest">
+<a class="text-[#e5e2e1]/50 px-4 py-3 flex items-center gap-3 hover:bg-[#353534]/30 transition-all rounded-md group" href="#">
+<span class="material-symbols-outlined text-lg">home</span>
+<span>Home</span>
+</a>
+<a class="text-[#e5e2e1]/50 px-4 py-3 flex items-center gap-3 hover:bg-[#353534]/30 transition-all rounded-md group" href="#">
+<span class="material-symbols-outlined text-lg">settings_input_component</span>
+<span>Features</span>
+</a>
+<a class="bg-primary/10 text-primary border border-primary/20 rounded-md px-4 py-3 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">psychology</span>
+<span>AI Separation</span>
+</a>
+<a class="text-[#e5e2e1]/50 px-4 py-3 flex items-center gap-3 hover:bg-[#353534]/30 transition-all rounded-md group" href="#">
+<span class="material-symbols-outlined text-lg">code</span>
+<span>GitHub</span>
+</a>
+<a class="text-[#e5e2e1]/50 px-4 py-3 flex items-center gap-3 hover:bg-[#353534]/30 transition-all rounded-md group" href="#">
+<span class="material-symbols-outlined text-lg">download</span>
+<span>Assets</span>
+</a>
+</nav>
+<div class="p-4 mb-8">
+<button class="w-full py-4 bg-surface-container-highest/50 text-primary font-bold rounded-xl border border-primary/20 hover:bg-primary/10 transition-colors">
+            Join Beta
+        </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="lg:pl-64 pt-20 min-h-screen relative">
+<!-- Immersive Background Image -->
+<div class="absolute inset-0 top-0 left-0 w-full h-[800px] -z-10 opacity-30 pointer-events-none">
+<img alt="Hero Timeline Background" class="w-full h-full object-cover hero-mask object-top" src="https://lh3.googleusercontent.com/aida/ADBb0uiFFA4xSbjBvnHsidxgn2KV7xaYe6tF4ukC5g1xARl_Ja9Z_Y5dAAYR_q2f_TRm_a41lgltU3iUvOeAF_4mysYXiGMJ4kNjh5kq6mpZzEkTAAq3VaFtm3xSSvbKXRjkJSf_5R5qDWDXD4DVqK9T6o0t1tLCRGVUFiFo-qxzdXrTQB22kHhKK7L8FSxenosIr07aQOEqxnaYIAx8x9Tpi28WXgcYQBmSgIjcCsDuFRdRm_IKoIIP855aLqf11g1584PIqaUyOAJ4"/>
+<div class="absolute inset-0 bg-gradient-to-b from-background/40 via-background/80 to-background"></div>
+</div>
+<section class="max-w-7xl mx-auto px-8 py-16 relative z-10">
+<!-- Hero Header Section -->
+<div class="mb-24 text-center lg:text-left">
+<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-primary font-mono text-[10px] uppercase tracking-widest mb-8 neon-glow-primary">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse shadow-[0_0_8px_#4ae176]"></span>
+                BS Roformer 6-Track Separation Active
+            </div>
+<h1 class="text-7xl md:text-9xl font-black font-headline tracking-tighter leading-[0.85] mb-8 text-white">
+                Sonic <span class="text-transparent bg-clip-text bg-gradient-to-br from-primary via-secondary to-primary">Obsidian</span>
+</h1>
+<p class="max-w-3xl text-xl md:text-2xl text-on-surface/80 font-light leading-relaxed mb-10">
+                Deconstruct any audio into its fundamental components with clinical precision. OpenStudio utilizes the industry-leading <span class="text-primary font-medium">BS Roformer</span> 6-track separation model to liberate your creativity.
+            </p>
+<div class="flex flex-wrap gap-4 justify-center lg:justify-start">
+<button class="px-8 py-4 bg-primary text-on-primary font-bold rounded-full hover:scale-105 transition-transform flex items-center gap-2 shadow-2xl shadow-primary/20">
+<span class="material-symbols-outlined">rocket_launch</span>
+                    Process Audio
+                </button>
+<button class="px-8 py-4 bg-white/5 border border-white/10 text-white font-bold rounded-full hover:bg-white/10 transition-colors">
+                    View Benchmarks
+                </button>
+</div>
+</div>
+<!-- Bento Grid Interface Simulation -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Stem Separation Visualizer (Large Panel) -->
+<div class="lg:col-span-8 glass-panel rounded-3xl p-8 relative overflow-hidden neon-border-primary">
+<div class="flex justify-between items-center mb-10">
+<div class="flex items-center gap-4">
+<div class="p-3 bg-primary/10 rounded-xl border border-primary/20">
+<span class="material-symbols-outlined text-primary">analytics</span>
+</div>
+<div>
+<h3 class="text-sm font-bold uppercase tracking-widest font-mono text-white">Input: MASTER_MIX_FINAL.wav</h3>
+<p class="text-[10px] text-on-surface/40 font-mono">192kHz / 32-bit Float</p>
+</div>
+</div>
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-surface-container-highest rounded-lg text-[10px] font-mono border border-white/10 text-white/60">6-STEM MODE</span>
+<span class="px-3 py-1 bg-secondary/10 text-secondary rounded-lg text-[10px] font-mono border border-secondary/20 animate-pulse">EXTRACTING...</span>
+</div>
+</div>
+<!-- Waveform Decomposition Display -->
+<div class="space-y-4">
+<!-- Vocal Stem -->
+<div class="group h-16 bg-white/5 hover:bg-white/10 transition-colors rounded-2xl flex items-center px-6 gap-6 border border-white/5">
+<div class="w-24 text-xs font-mono uppercase tracking-tighter text-primary">Vocals</div>
+<div class="flex-1 h-6 flex items-center gap-[3px]">
+<div class="w-1.5 h-3 bg-primary/40 rounded-full"></div>
+<div class="w-1.5 h-5 bg-primary/60 rounded-full"></div>
+<div class="w-1.5 h-8 bg-primary rounded-full neon-glow-primary"></div>
+<div class="w-1.5 h-4 bg-primary/40 rounded-full"></div>
+<div class="w-1.5 h-2 bg-primary/20 rounded-full"></div>
+<div class="w-1.5 h-7 bg-primary/70 rounded-full"></div>
+<div class="w-1.5 h-3 bg-primary/40 rounded-full"></div>
+<div class="w-1.5 h-6 bg-primary/60 rounded-full"></div>
+<div class="w-1.5 h-9 bg-primary rounded-full neon-glow-primary"></div>
+<div class="w-1.5 h-5 bg-primary/50 rounded-full"></div>
+</div>
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-sm opacity-30 group-hover:opacity-100 cursor-pointer hover:text-primary transition-colors">graphic_eq</span>
+<span class="material-symbols-outlined text-sm opacity-30 group-hover:opacity-100 cursor-pointer hover:text-primary transition-colors">volume_up</span>
+</div>
+</div>
+<!-- Drums Stem -->
+<div class="group h-16 bg-white/5 hover:bg-white/10 transition-colors rounded-2xl flex items-center px-6 gap-6 border border-white/5">
+<div class="w-24 text-xs font-mono uppercase tracking-tighter text-secondary">Drums</div>
+<div class="flex-1 h-6 flex items-center gap-[3px]">
+<div class="w-2 h-6 bg-secondary/80 rounded-full"></div>
+<div class="w-2 h-1 bg-secondary/20 rounded-full"></div>
+<div class="w-2 h-7 bg-secondary rounded-full shadow-[0_0_10px_rgba(74,225,118,0.3)]"></div>
+<div class="w-2 h-2 bg-secondary/20 rounded-full"></div>
+<div class="w-2 h-5 bg-secondary/60 rounded-full"></div>
+</div>
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-sm opacity-30 group-hover:opacity-100 cursor-pointer hover:text-secondary transition-colors">graphic_eq</span>
+<span class="material-symbols-outlined text-sm opacity-30 group-hover:opacity-100 cursor-pointer hover:text-secondary transition-colors">volume_up</span>
+</div>
+</div>
+<!-- Bass Stem -->
+<div class="group h-16 bg-white/5 hover:bg-white/10 transition-colors rounded-2xl flex items-center px-6 gap-6 border border-white/5">
+<div class="w-24 text-xs font-mono uppercase tracking-tighter text-tertiary">Bass</div>
+<div class="flex-1 h-6 flex items-center px-2">
+<div class="w-full h-1 bg-tertiary/20 rounded-full relative overflow-hidden">
+<div class="absolute inset-y-0 left-0 w-2/3 bg-tertiary shadow-[0_0_10px_#f7be1d]"></div>
+</div>
+</div>
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-sm opacity-30 group-hover:opacity-100 cursor-pointer hover:text-tertiary transition-colors">graphic_eq</span>
+<span class="material-symbols-outlined text-sm opacity-30 group-hover:opacity-100 cursor-pointer hover:text-tertiary transition-colors">volume_up</span>
+</div>
+</div>
+<!-- Other Stems -->
+<div class="grid grid-cols-3 gap-4">
+<div class="h-16 bg-white/5 rounded-2xl flex items-center justify-center border border-white/5 text-[10px] font-mono text-white/40 uppercase hover:border-primary/30 transition-colors cursor-pointer group">
+<span class="group-hover:text-primary transition-colors">Piano</span>
+</div>
+<div class="h-16 bg-white/5 rounded-2xl flex items-center justify-center border border-white/5 text-[10px] font-mono text-white/40 uppercase hover:border-primary/30 transition-colors cursor-pointer group">
+<span class="group-hover:text-primary transition-colors">Guitar</span>
+</div>
+<div class="h-16 bg-white/5 rounded-2xl flex items-center justify-center border border-white/5 text-[10px] font-mono text-white/40 uppercase hover:border-primary/30 transition-colors cursor-pointer group">
+<span class="group-hover:text-primary transition-colors">Ambience</span>
+</div>
+</div>
+</div>
+<!-- Export Workflow Context -->
+<div class="mt-12 p-6 bg-black/40 rounded-2xl border border-white/5">
+<div class="flex items-center gap-4 mb-6">
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+<h4 class="text-sm font-bold uppercase tracking-widest font-mono text-white">Extraction Complete</h4>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+<div class="relative rounded-xl overflow-hidden shadow-2xl border border-white/10 group">
+<img alt="Render Dialog" class="w-full h-auto transform transition-transform duration-700 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida/ADBb0uhzUhJb6edQK3xcBc-bJKL6tzO0JSfjh_lFszR7szc8HwhLY54jE1xWlklHvZXeMb6t9_kE7YnVzysnPy1tMCD5obzVaOWNBp6fw1-e-7km0Shsx51tNmfK2_kQ3SvCnEi_nmRZ9gm_jn52AIhzchhAJre0AlSVxBIkCz6zAGgx9ivE9wBo4JlOiobizIXEvZeYXL1sGipxj9pgamDc8knZZzn_k-iuS5zxEEQhhaj6jSUTHbh1rfwxWFzzmev7CP_-ENeaj3I"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
+<p class="text-[10px] font-mono text-secondary">RENDER ENGINE READY</p>
+</div>
+</div>
+<div class="space-y-4">
+<h5 class="text-lg font-bold font-headline text-white">Commit to Disk</h5>
+<p class="text-xs text-white/60 leading-relaxed">
+                                Once separated, use the integrated 'Render to File' workflow to export high-fidelity stems. OpenStudio supports multi-track concurrent rendering with zero phase shift.
+                            </p>
+<button class="w-full py-3 bg-secondary/10 hover:bg-secondary/20 text-secondary border border-secondary/30 rounded-xl font-mono text-xs uppercase tracking-widest transition-all">
+                                Open Export Dialog
+                            </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Side Information Column -->
+<div class="lg:col-span-4 space-y-8">
+<!-- Tech Specs Card -->
+<div class="glass-panel rounded-3xl p-8 border border-primary/20 bg-gradient-to-br from-[#1A1A1A] to-[#0A0A0A]">
+<div class="flex items-center gap-3 mb-8">
+<span class="material-symbols-outlined text-primary" data-weight="fill">hub</span>
+<h3 class="text-lg font-bold font-headline tracking-tight text-white">BS Roformer Core</h3>
+</div>
+<p class="text-sm text-on-surface/70 mb-8 leading-relaxed">
+                        The gold standard in source separation. Experience zero-artifact extraction with <span class="text-secondary font-bold">192kHz high-frequency</span> clarity preservation.
+                    </p>
+<div class="space-y-4">
+<div class="flex justify-between items-center text-[10px] font-mono">
+<span class="text-on-surface/40 uppercase">Architecture</span>
+<span class="text-secondary">Band-Split Transformer</span>
+</div>
+<div class="flex justify-between items-center text-[10px] font-mono">
+<span class="text-on-surface/40 uppercase">Latency</span>
+<span class="text-primary">&lt;15ms (RTX 4090)</span>
+</div>
+<div class="flex justify-between items-center text-[10px] font-mono">
+<span class="text-on-surface/40 uppercase">Isolation</span>
+<span class="text-on-surface">98.4% SDR Score</span>
+</div>
+</div>
+</div>
+<!-- Export Workflow Mini Note -->
+<div class="bg-surface-container-high/30 rounded-3xl p-8 border border-white/5 backdrop-blur-md">
+<span class="material-symbols-outlined text-tertiary mb-4">folder_zip</span>
+<h4 class="text-sm font-bold uppercase tracking-widest font-mono mb-3 text-white">Multi-Stem Export</h4>
+<p class="text-xs text-on-surface/50 leading-relaxed mb-6">
+                        Quickly bounce your extracted stems to 32-bit WAV or FLAC using the native workflow. 
+                    </p>
+<button class="w-full py-4 bg-white/5 hover:bg-white/10 text-white/80 rounded-xl font-bold text-sm flex items-center justify-center gap-2 border border-white/10 transition-all">
+<span class="material-symbols-outlined text-sm">settings</span>
+                        Configure Export
+                    </button>
+</div>
+<!-- CTA Section -->
+<button class="w-full py-6 bg-gradient-to-br from-primary to-primary-container text-on-primary-container rounded-3xl font-black text-xl flex items-center justify-center gap-3 shadow-[0px_20px_40px_rgba(208,188,255,0.2)] hover:scale-[1.02] active:scale-95 transition-all">
+<span class="material-symbols-outlined font-black">download</span>
+                    Download Models
+                </button>
+</div>
+</div>
+<!-- Deep Dive Feature Section -->
+<div class="mt-40 grid grid-cols-1 md:grid-cols-3 gap-16 border-t border-white/5 pt-20">
+<div class="space-y-6">
+<div class="text-5xl font-display text-primary/10">01</div>
+<h5 class="text-2xl font-bold font-headline text-white">Hybrid Transformers</h5>
+<p class="text-base text-on-surface/60 leading-relaxed">Utilizing Band-Split Roformer architecture for superior temporal coherence and spectral resolution across 6 distinct tracks.</p>
+</div>
+<div class="space-y-6">
+<div class="text-5xl font-display text-secondary/10">02</div>
+<h5 class="text-2xl font-bold font-headline text-white">Phase Preservation</h5>
+<p class="text-base text-on-surface/60 leading-relaxed">Maintaining absolute phase alignment across all extracted stems for perfect re-summing without destructive cancellation.</p>
+</div>
+<div class="space-y-6">
+<div class="text-5xl font-display text-tertiary/10">03</div>
+<h5 class="text-2xl font-bold font-headline text-white">Edge Processing</h5>
+<p class="text-base text-on-surface/60 leading-relaxed">No subscriptions. No cloud processing. Run the BS Roformer model locally on your hardware for total privacy and speed.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-background w-full py-16 border-t border-white/5 mt-32 relative z-10">
+<div class="flex flex-col md:flex-row justify-between items-center px-12 w-full max-w-7xl mx-auto">
+<div class="font-['JetBrains_Mono'] text-[10px] uppercase text-[#e5e2e1]/40 mb-8 md:mb-0 tracking-[0.2em]">
+            © 2024 OpenStudio. Built on BS Roformer V3.
+        </div>
+<div class="flex flex-wrap justify-center gap-10 font-['JetBrains_Mono'] text-[10px] uppercase tracking-widest">
+<a class="text-[#e5e2e1]/40 hover:text-[#D0BCFF] transition-colors" href="#">Docs</a>
+<a class="text-[#e5e2e1]/40 hover:text-[#D0BCFF] transition-colors" href="#">Privacy</a>
+<a class="text-[#e5e2e1]/40 hover:text-[#D0BCFF] transition-colors" href="#">Security</a>
+<a class="text-[#e5e2e1]/40 hover:text-[#D0BCFF] transition-colors" href="#">Terms</a>
+</div>
+</div>
+</footer>
+<!-- Background Decoration Nodes -->
+<div class="fixed top-0 left-0 w-full h-full pointer-events-none -z-20 overflow-hidden">
+<div class="absolute top-[20%] left-[-10%] w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px]"></div>
+<div class="absolute bottom-[10%] right-[-5%] w-[500px] h-[500px] bg-secondary/5 rounded-full blur-[150px]"></div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-10">
+<div class="w-full h-full" style="background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 40px 40px;"></div>
+</div>
+</div>
+</body></html>

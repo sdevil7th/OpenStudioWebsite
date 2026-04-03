@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;family=Inter:wght@100..900&amp;family=JetBrains+Mono:wght@100..800&amp;family=Orbitron:wght@400..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed-variant": "#005321",
+                    "error-container": "#93000a",
+                    "background": "#131313",
+                    "on-surface-variant": "#cbc3d7",
+                    "outline": "#958ea0",
+                    "on-error": "#690005",
+                    "on-tertiary-container": "#372700",
+                    "primary": "#d0bcff",
+                    "on-tertiary-fixed-variant": "#5a4300",
+                    "on-primary": "#3c0091",
+                    "primary-fixed-dim": "#d0bcff",
+                    "secondary-fixed-dim": "#4ae176",
+                    "secondary-container": "#00b954",
+                    "inverse-surface": "#e5e2e1",
+                    "surface-dim": "#131313",
+                    "surface-variant": "#353534",
+                    "on-tertiary": "#3f2e00",
+                    "tertiary": "#f7be1d",
+                    "surface-bright": "#3a3939",
+                    "surface": "#131313",
+                    "secondary": "#4ae176",
+                    "secondary-fixed": "#6bff8f",
+                    "tertiary-container": "#b68a00",
+                    "surface-tint": "#d0bcff",
+                    "on-surface": "#e5e2e1",
+                    "on-secondary-container": "#004119",
+                    "error": "#ffb4ab",
+                    "on-primary-fixed-variant": "#5516be",
+                    "tertiary-fixed-dim": "#f7be1d",
+                    "on-background": "#e5e2e1",
+                    "primary-container": "#a078ff",
+                    "surface-container-highest": "#353534",
+                    "on-tertiary-fixed": "#251a00",
+                    "surface-container": "#201f1f",
+                    "tertiary-fixed": "#ffdf9a",
+                    "outline-variant": "#494454",
+                    "surface-container-low": "#1c1b1b",
+                    "on-error-container": "#ffdad6",
+                    "on-secondary-fixed": "#002109",
+                    "inverse-primary": "#6d3bd7",
+                    "on-primary-container": "#340080",
+                    "surface-container-high": "#2a2a2a",
+                    "inverse-on-surface": "#313030",
+                    "on-secondary": "#003915",
+                    "surface-container-lowest": "#0e0e0e",
+                    "on-primary-fixed": "#23005c",
+                    "primary-fixed": "#e9ddff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk"],
+                    "body": ["Inter"],
+                    "label": ["Inter"],
+                    "mono": ["JetBrains Mono"],
+                    "display": ["Orbitron"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-audio-node {
+            background: radial-gradient(circle, rgba(208, 188, 255, 0.15) 0%, rgba(19, 19, 19, 0) 70%);
+        }
+        .glass-panel {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary/30 selection:text-primary overflow-x-hidden">
+<!-- Background Elements -->
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+<div class="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-audio-node rounded-full blur-[100px]"></div>
+<div class="absolute bottom-[-10%] right-[-5%] w-[50%] h-[50%] bg-audio-node rounded-full blur-[120px] opacity-50"></div>
+<div class="absolute top-[30%] right-[10%] w-[30%] h-[30%] bg-secondary/5 rounded-full blur-[80px]"></div>
+</div>
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 w-full z-50 bg-surface/60 backdrop-blur-xl dark:bg-[#131313]/60 shadow-[0px_24px_48px_rgba(0,0,0,0.5)]">
+<div class="flex justify-between items-center px-8 h-20 w-full max-w-full mx-auto">
+<div class="flex items-center gap-2">
+<span class="text-2xl font-bold tracking-tighter text-white dark:text-[#e5e2e1] uppercase font-headline">OpenStudio</span>
+</div>
+<div class="hidden md:flex items-center gap-8 font-headline tracking-tight">
+<a class="text-[#e5e2e1]/70 hover:text-white transition-colors" href="#">Features</a>
+<a class="text-[#e5e2e1]/70 hover:text-white transition-colors" href="#">AI</a>
+<a class="text-[#e5e2e1]/70 hover:text-white transition-colors" href="#">GitHub</a>
+<a class="text-[#e5e2e1]/70 hover:text-white transition-colors" href="#">Download</a>
+</div>
+<div class="flex items-center gap-4">
+<a class="bg-primary-container text-on-primary-container px-6 py-2.5 rounded-full font-bold text-sm hover:scale-95 active:scale-90 transition-transform shadow-lg shadow-primary/20" href="https://sourav-das.in">
+                    Get Started
+                </a>
+</div>
+</div>
+</nav>
+<!-- SideNavBar (Hidden on Mobile, Desk Only) -->
+<aside class="fixed inset-y-0 left-0 z-40 hidden lg:flex flex-col h-full w-64 border-r border-[#353534]/20 bg-[#0E0E0E] dark:bg-[#0E0E0E] gap-4">
+<div class="p-8 flex flex-col items-start gap-2">
+<div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">graphic_eq</span>
+</div>
+<h2 class="text-xl font-bold text-[#D0BCFF] font-headline">OpenStudio</h2>
+<p class="text-[10px] uppercase tracking-widest text-on-surface/40 font-mono">AI-Native DAW</p>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="text-[#e5e2e1]/50 px-4 py-3 flex items-center gap-3 font-mono text-sm uppercase tracking-widest hover:bg-[#353534]/50 transition-all rounded-md" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span>Home</span>
+</a>
+<a class="text-[#e5e2e1]/50 px-4 py-3 flex items-center gap-3 font-mono text-sm uppercase tracking-widest hover:bg-[#353534]/50 transition-all rounded-md" href="#">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+<span>Features</span>
+</a>
+<a class="text-[#e5e2e1]/50 px-4 py-3 flex items-center gap-3 font-mono text-sm uppercase tracking-widest hover:bg-[#353534]/50 transition-all rounded-md" href="#">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+<span>AI</span>
+</a>
+<a class="bg-[#353534] text-[#D0BCFF] rounded-md px-4 py-3 flex items-center gap-3 font-mono text-sm uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined" data-icon="mail">mail</span>
+<span>Contact</span>
+</a>
+</nav>
+<div class="p-6 mt-auto">
+<div class="bg-surface-variant/30 p-4 rounded-xl border border-outline-variant/20">
+<p class="text-[10px] text-on-surface/40 font-mono mb-3">SYSTEM STATUS</p>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary animate-pulse"></div>
+<span class="text-xs font-mono text-secondary">SIGNAL ACTIVE</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="relative z-10 min-h-screen pt-32 pb-20 px-6 lg:pl-72 flex items-center justify-center">
+<div class="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+<!-- Left: Hero/Identity -->
+<div class="lg:col-span-5 space-y-8">
+<div>
+<h4 class="font-mono text-primary text-sm tracking-[0.3em] uppercase mb-4">The Synthetic Atmosphere</h4>
+<h1 class="font-headline text-6xl lg:text-7xl font-bold tracking-tighter leading-none text-white">Let's <br/><span class="text-secondary">Connect</span>.</h1>
+</div>
+<p class="text-on-surface/60 text-lg leading-relaxed max-w-sm">
+                    OpenStudio is a vision by Sourav Das. We're reshaping audio production through AI-native workflows.
+                </p>
+<div class="flex flex-col gap-6">
+<div class="flex items-center gap-4 group">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center group-hover:bg-primary/20 transition-colors border border-outline-variant/10">
+<span class="material-symbols-outlined text-on-surface/70 group-hover:text-primary transition-colors">alternate_email</span>
+</div>
+<div>
+<p class="text-[10px] font-mono text-on-surface/40 uppercase tracking-widest">Email</p>
+<a class="text-on-surface hover:text-primary transition-colors font-headline text-lg" href="mailto:sdevil7th@gmail.com">sdevil7th@gmail.com</a>
+</div>
+</div>
+<div class="flex items-center gap-4 group">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center group-hover:bg-secondary/20 transition-colors border border-outline-variant/10">
+<span class="material-symbols-outlined text-on-surface/70 group-hover:text-secondary transition-colors">language</span>
+</div>
+<div>
+<p class="text-[10px] font-mono text-on-surface/40 uppercase tracking-widest">Website</p>
+<a class="text-on-surface hover:text-secondary transition-colors font-headline text-lg" href="https://sourav-das.in" target="_blank">sourav-das.in</a>
+</div>
+</div>
+</div>
+</div>
+<!-- Right: Interactive Glass Card -->
+<div class="lg:col-span-7">
+<div class="relative group">
+<!-- Glow effect behind card -->
+<div class="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-[2rem] blur opacity-20 group-hover:opacity-30 transition duration-1000"></div>
+<div class="relative glass-panel bg-surface-container-highest/60 border border-outline-variant/20 rounded-[2rem] p-10 shadow-2xl overflow-hidden">
+<!-- Card Noise Texture Overlay -->
+<div class="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+<div class="relative z-10 space-y-10">
+<div class="flex justify-between items-start">
+<div class="space-y-1">
+<div class="text-[40px] font-display text-white/90">OS-ID</div>
+<div class="font-mono text-[10px] tracking-[0.2em] text-primary">AUTHORIZED PERSONNEL ONLY</div>
+</div>
+<div class="w-16 h-16 rounded-2xl overflow-hidden border border-primary/30">
+<img class="w-full h-full object-cover" data-alt="close-up artistic portrait of a creative developer with subtle neon lighting and digital audio workspace reflections" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJ3RJ4PwTxrWif4qEugTssUBRtACp8Kybp3f1hDl-GQ-JKG3zSSr4N8r3_dHTdesJGhzuXcZC-dRCs5zEd8H4lZ0jhmMQZ8E-BeTisk1KZgK0BXmOg7Pg7F6uyBMJZ-zleAukbvF9i6f1Xw3RuPiEkdMdjd1bEtPxAHpAH5jJ4G8izXQ1SMZCyuEwlJ5Bgy7cX5wx3mHKw1L5KfcsYdmqefJen1lmATHI8AxSAhG543ZLxfATte7vI7cgQ2MWXNovW9bZsgW-q5w"/>
+</div>
+</div>
+<div class="space-y-4">
+<div class="grid grid-cols-2 gap-4">
+<div class="p-4 bg-black/40 rounded-xl border border-white/5">
+<p class="text-[9px] font-mono text-on-surface/30 uppercase mb-1">Status</p>
+<p class="text-xs font-mono text-secondary">ACTIVE COMPOSER</p>
+</div>
+<div class="p-4 bg-black/40 rounded-xl border border-white/5">
+<p class="text-[9px] font-mono text-on-surface/30 uppercase mb-1">Location</p>
+<p class="text-xs font-mono text-on-surface">DIGITAL_ETHER</p>
+</div>
+</div>
+<div class="p-6 bg-primary/10 rounded-2xl border border-primary/20 flex items-center justify-between group/cta cursor-pointer hover:bg-primary/15 transition-all">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary text-3xl">chat_bubble</span>
+<div>
+<p class="font-headline text-white font-bold">Send Message</p>
+<p class="text-xs text-primary/70">Average response: 4h</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary group-hover/cta:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+</div>
+<div class="pt-6 border-t border-white/5 flex justify-between items-center">
+<div class="flex gap-4">
+<a class="p-2 hover:bg-white/5 rounded-lg transition-colors text-on-surface/60 hover:text-white" href="#">
+<span class="material-symbols-outlined">terminal</span>
+</a>
+<a class="p-2 hover:bg-white/5 rounded-lg transition-colors text-on-surface/60 hover:text-white" href="#">
+<span class="material-symbols-outlined">link</span>
+</a>
+</div>
+<div class="font-display text-[10px] text-on-surface/20">©2024 OPENSTUDIO LABS</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-[#0E0E0E] dark:bg-[#0E0E0E] w-full py-12 border-t border-[#353534]/15">
+<div class="flex flex-col md:flex-row justify-between items-center px-12 w-full gap-8">
+<div class="flex flex-col items-center md:items-start gap-2">
+<p class="font-mono text-[10px] uppercase text-[#e5e2e1]/40">© 2024 OpenStudio. The Synthetic Atmosphere.</p>
+</div>
+<div class="flex gap-8 font-mono text-[10px] uppercase">
+<a class="text-[#e5e2e1]/40 hover:text-[#D0BCFF] transition-colors" href="#">Documentation</a>
+<a class="text-[#e5e2e1]/40 hover:text-[#D0BCFF] transition-colors" href="#">Privacy</a>
+<a class="text-[#e5e2e1]/40 hover:text-[#D0BCFF] transition-colors" href="#">Security</a>
+<a class="text-[#e5e2e1]/40 hover:text-[#D0BCFF] transition-colors" href="#">Terms</a>
+</div>
+<div class="flex items-center gap-6">
+<a class="text-[#e5e2e1]/40 hover:text-[#4AE176] transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">code</span>
+</a>
+<a class="text-[#e5e2e1]/40 hover:text-[#4AE176] transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">account_circle</span>
+</a>
+</div>
+</div>
+</footer>
+</body></html>

@@ -1,0 +1,97 @@
+import path from "path";
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react-swc";
+import { GITHUB_RELEASES_URL, fetchGithubRepoSnapshot, resolveLatestReleaseAssetUrl } from "./shared/github-api";
+
+const githubDevBridge = () => ({
+  name: "openstudio-github-dev-bridge",
+  configureServer(server: {
+    middlewares: {
+      use: (
+        handler: (
+          req: { url?: string },
+          res: {
+            statusCode: number;
+            setHeader: (name: string, value: string) => void;
+            end: (body?: string) => void;
+          },
+          next: () => void,
+        ) => void,
+      ) => void;
+    };
+  }) {
+    server.middlewares.use(async (req, res, next) => {
+      const requestUrl = req.url ?? "";
+
+      if (requestUrl === "/.netlify/functions/github-repo") {
+        try {
+          const snapshot = await fetchGithubRepoSnapshot(process.env.GITHUB_TOKEN);
+
+          res.statusCode = 200;
+          res.setHeader("Cache-Control", "no-store");
+          res.setHeader("Content-Type", "application/json; charset=utf-8");
+          res.end(JSON.stringify(snapshot));
+          return;
+        } catch (error) {
+          res.statusCode = 500;
+          res.setHeader("Content-Type", "application/json; charset=utf-8");
+          res.end(
+            JSON.stringify({
+              error: error instanceof Error ? error.message : "Unknown GitHub proxy error",
+            }),
+          );
+          return;
+        }
+      }
+
+      if (requestUrl === "/download/windows/latest" || requestUrl === "/download/macos/latest") {
+        const platform = requestUrl.includes("/windows/") ? "windows" : "macos";
+
+        try {
+          const snapshot = await fetchGithubRepoSnapshot(process.env.GITHUB_TOKEN);
+          const assetUrl = resolveLatestReleaseAssetUrl(snapshot.latestRelease, platform);
+          const redirectTarget = assetUrl ?? snapshot.latestRelease?.htmlUrl ?? "/releases";
+
+          res.statusCode = 302;
+          res.setHeader("Location", redirectTarget);
+          res.end();
+          return;
+        } catch {
+          res.statusCode = 302;
+          res.setHeader("Location", GITHUB_RELEASES_URL);
+          res.end();
+          return;
+        }
+      }
+
+      next();
+    });
+  },
+});
+
+export default defineConfig({
+  server: {
+    host: "::",
+    port: 8080,
+  },
+  plugins: [react(), githubDevBridge()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "react-vendor": ["react", "react-dom", "react-router-dom"],
+          "animation-vendor": ["framer-motion"],
+          "ui-vendor": [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-aspect-ratio",
+          ],
+        },
+      },
+    },
+  },
+});

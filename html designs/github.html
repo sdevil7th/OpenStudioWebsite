@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@300;400;500;600&amp;family=Orbitron:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed-variant": "#005321",
+                    "error-container": "#93000a",
+                    "background": "#131313",
+                    "on-surface-variant": "#cbc3d7",
+                    "outline": "#958ea0",
+                    "on-error": "#690005",
+                    "on-tertiary-container": "#372700",
+                    "primary": "#d0bcff",
+                    "on-tertiary-fixed-variant": "#5a4300",
+                    "on-primary": "#3c0091",
+                    "primary-fixed-dim": "#d0bcff",
+                    "secondary-fixed-dim": "#4ae176",
+                    "secondary-container": "#00b954",
+                    "inverse-surface": "#e5e2e1",
+                    "surface-dim": "#131313",
+                    "surface-variant": "#353534",
+                    "on-tertiary": "#3f2e00",
+                    "tertiary": "#f7be1d",
+                    "surface-bright": "#3a3939",
+                    "surface": "#131313",
+                    "secondary": "#4ae176",
+                    "secondary-fixed": "#6bff8f",
+                    "tertiary-container": "#b68a00",
+                    "surface-tint": "#d0bcff",
+                    "on-surface": "#e5e2e1",
+                    "on-secondary-container": "#004119",
+                    "error": "#ffb4ab",
+                    "on-primary-fixed-variant": "#5516be",
+                    "tertiary-fixed-dim": "#f7be1d",
+                    "on-background": "#e5e2e1",
+                    "primary-container": "#a078ff",
+                    "surface-container-highest": "#353534",
+                    "on-tertiary-fixed": "#251a00",
+                    "surface-container": "#201f1f",
+                    "tertiary-fixed": "#ffdf9a",
+                    "outline-variant": "#494454",
+                    "surface-container-low": "#1c1b1b",
+                    "on-error-container": "#ffdad6",
+                    "on-secondary-fixed": "#002109",
+                    "inverse-primary": "#6d3bd7",
+                    "on-primary-container": "#340080",
+                    "surface-container-high": "#2a2a2a",
+                    "inverse-on-surface": "#313030",
+                    "on-secondary": "#003915",
+                    "surface-container-lowest": "#0e0e0e",
+                    "on-primary-fixed": "#23005c",
+                    "primary-fixed": "#e9ddff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk"],
+                    "body": ["Inter"],
+                    "label": ["Inter"],
+                    "mono": ["JetBrains Mono"],
+                    "display": ["Orbitron"]
+            }
+          },
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .glass-panel {
+            background: rgba(53, 53, 52, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .neon-glow-primary {
+            box-shadow: 0 0 20px rgba(208, 188, 255, 0.15);
+        }
+        .noise-texture {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.05;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary selection:text-on-primary-container">
+<!-- Top Navigation -->
+<nav class="fixed top-0 left-0 w-full z-50 bg-surface/60 backdrop-blur-xl dark:bg-[#131313]/60 flex justify-between items-center px-8 h-20 w-full max-w-full mx-auto shadow-[0px_24px_48px_rgba(0,0,0,0.5)]">
+<div class="text-2xl font-bold tracking-tighter text-white dark:text-[#e5e2e1] uppercase font-['Space_Grotesk']">
+            OpenStudio
+        </div>
+<div class="hidden md:flex items-center gap-8 font-['Space_Grotesk'] tracking-tight">
+<a class="text-[#e5e2e1]/70 hover:text-white transition-colors" href="#">Features</a>
+<a class="text-[#e5e2e1]/70 hover:text-white transition-colors" href="#">AI</a>
+<a class="text-[#D0BCFF] border-b-2 border-[#D0BCFF] pb-1" href="#">GitHub</a>
+<a class="text-[#e5e2e1]/70 hover:text-white transition-colors" href="#">Download</a>
+</div>
+<button class="bg-primary-container text-on-primary-container px-6 py-2.5 rounded-full font-medium hover:scale-95 active:scale-90 transition-transform shadow-lg neon-glow-primary">
+            Get Started
+        </button>
+</nav>
+<!-- Sidebar Navigation (Desktop Only) -->
+<aside class="fixed inset-y-0 left-0 z-40 hidden lg:flex flex-col h-full w-64 border-r border-[#353534]/20 bg-[#0E0E0E] dark:bg-[#0E0E0E] font-['JetBrains_Mono'] text-sm uppercase tracking-widest gap-4">
+<div class="p-8 flex flex-col gap-2">
+<div class="text-xl font-bold text-[#D0BCFF]">OpenStudio</div>
+<div class="text-[10px] text-on-surface-variant/60">AI-Native DAW</div>
+</div>
+<div class="flex-1 px-4 space-y-1">
+<a class="text-[#e5e2e1]/50 px-4 py-3 flex items-center gap-3 hover:bg-[#353534]/50 transition-all rounded-md" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span> Home
+            </a>
+<a class="text-[#e5e2e1]/50 px-4 py-3 flex items-center gap-3 hover:bg-[#353534]/50 transition-all rounded-md" href="#">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span> Features
+            </a>
+<a class="text-[#e5e2e1]/50 px-4 py-3 flex items-center gap-3 hover:bg-[#353534]/50 transition-all rounded-md" href="#">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span> AI
+            </a>
+<a class="bg-[#353534] text-[#D0BCFF] rounded-md px-4 py-3 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined" data-icon="code" style="font-variation-settings: 'FILL' 1;">code</span> GitHub
+            </a>
+<a class="text-[#e5e2e1]/50 px-4 py-3 flex items-center gap-3 hover:bg-[#353534]/50 transition-all rounded-md" href="#">
+<span class="material-symbols-outlined" data-icon="campaign">campaign</span> Updates
+            </a>
+<a class="text-[#e5e2e1]/50 px-4 py-3 flex items-center gap-3 hover:bg-[#353534]/50 transition-all rounded-md" href="#">
+<span class="material-symbols-outlined" data-icon="download">download</span> Download
+            </a>
+</div>
+<div class="p-4">
+<button class="w-full py-4 bg-surface-container-highest text-primary font-bold rounded-xl border border-primary/20 hover:bg-primary/10 transition-colors">
+                JOIN BETA
+            </button>
+</div>
+</aside>
+<main class="lg:ml-64 pt-20 min-h-screen">
+<!-- Hero Section -->
+<section class="relative px-8 py-24 overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none"></div>
+<div class="max-w-6xl mx-auto flex flex-col items-center text-center relative z-10">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-surface-container-highest rounded-full border border-outline-variant/30 text-secondary font-mono text-xs mb-8">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-secondary"></span>
+</span>
+                    BUILD_VERSION v0.8.2-alpha
+                </div>
+<h1 class="font-headline text-6xl md:text-8xl font-bold tracking-tighter mb-6 bg-gradient-to-r from-on-surface to-on-surface-variant bg-clip-text text-transparent">
+                    Open Source to the Core
+                </h1>
+<p class="max-w-2xl text-on-surface-variant text-lg md:text-xl font-light leading-relaxed mb-10">
+                    We're building the future of music production in public. No proprietary black boxes—just high-performance code and community-driven AI.
+                </p>
+<div class="flex flex-wrap justify-center gap-4">
+<button class="bg-primary text-on-primary px-8 py-4 rounded-xl font-bold flex items-center gap-2 hover:scale-105 active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+                        Star on GitHub
+                    </button>
+<button class="bg-surface-container-highest border border-outline-variant/50 text-on-surface px-8 py-4 rounded-xl font-bold hover:bg-surface-bright transition-colors">
+                        View Repo
+                    </button>
+</div>
+</div>
+</section>
+<!-- GitHub Stats Bento Grid -->
+<section class="px-8 pb-24">
+<div class="max-w-6xl mx-auto">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<!-- Stats Card 1 -->
+<div class="md:col-span-2 glass-panel p-8 rounded-full border border-outline-variant/10 relative overflow-hidden group">
+<div class="noise-texture absolute inset-0"></div>
+<div class="relative z-10">
+<span class="text-secondary font-mono text-sm tracking-widest uppercase mb-4 block">Repositories</span>
+<div class="font-display text-5xl font-bold mb-2">12.4k</div>
+<div class="text-on-surface-variant text-sm">Stars on main branch</div>
+<div class="mt-8 flex gap-1">
+<div class="h-1 flex-1 bg-secondary rounded-full"></div>
+<div class="h-1 flex-1 bg-secondary rounded-full"></div>
+<div class="h-1 flex-1 bg-secondary rounded-full"></div>
+<div class="h-1 flex-1 bg-secondary/30 rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Stats Card 2 -->
+<div class="glass-panel p-8 rounded-full border border-outline-variant/10 relative overflow-hidden group">
+<div class="noise-texture absolute inset-0"></div>
+<div class="relative z-10">
+<span class="text-primary font-mono text-sm tracking-widest uppercase mb-4 block">Forks</span>
+<div class="font-display text-5xl font-bold mb-2">842</div>
+<div class="text-on-surface-variant text-sm">Active derivatives</div>
+</div>
+</div>
+<!-- Stats Card 3 -->
+<div class="glass-panel p-8 rounded-full border border-outline-variant/10 relative overflow-hidden group">
+<div class="noise-texture absolute inset-0"></div>
+<div class="relative z-10">
+<span class="text-tertiary font-mono text-sm tracking-widest uppercase mb-4 block">PRs</span>
+<div class="font-display text-5xl font-bold mb-2">1.2k</div>
+<div class="text-on-surface-variant text-sm">Closed issues</div>
+</div>
+</div>
+<!-- Why Open Source Asymmetric Panel -->
+<div class="md:col-span-3 bg-surface-container-lowest p-12 rounded-full border border-outline-variant/5 relative group">
+<div class="flex flex-col md:flex-row gap-12 items-center">
+<div class="flex-1">
+<h2 class="font-headline text-4xl font-bold mb-6 tracking-tight">The Power of Radical Transparency</h2>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+<div>
+<div class="font-mono text-primary mb-2 text-sm">// 01 TRUST</div>
+<p class="text-on-surface-variant text-sm leading-relaxed">Your data and your art never leave your machine unless you want them to. Audit our code anytime.</p>
+</div>
+<div>
+<div class="font-mono text-secondary mb-2 text-sm">// 02 COMMUNITY</div>
+<p class="text-on-surface-variant text-sm leading-relaxed">Built by producers, for producers. Features are requested and voted on by the collective.</p>
+</div>
+</div>
+</div>
+<div class="w-full md:w-1/3 aspect-square rounded-full overflow-hidden border-2 border-outline-variant/20 shadow-2xl">
+<img alt="Abstract code visualization" class="w-full h-full object-cover" data-alt="Abstract cinematic visualization of computer code flowing like digital liquid in neon purple and green hues" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmuGtxCmGL4-bJAeUHvI014L4mp4x8HwVM7ZPEgXEhrBGCu-WrjkvNjorhrk4LI79QzXOCCLlWcry9bYpo8xqCd0PZxdlT722vDM0ZphUiv-sAwP0BCzAbyPOm1Z0eE_qtdI1sQEauTxe-pK8N518Y-aI-303Uc9Q0qvNTGQ39lRD_eZQ_xaPkjwalgkMF7ohuu4tVY7teTAVkFhEnMy1Aaa3qCXKDcn7oCco3NhdJWg0U8YVO4wktgbDIhOiG9F41Hx_ixzNrMQ"/>
+</div>
+</div>
+</div>
+<!-- Community Quick Card -->
+<div class="bg-primary/10 p-8 rounded-full border border-primary/20 flex flex-col justify-between group cursor-pointer hover:bg-primary/20 transition-all">
+<div>
+<span class="material-symbols-outlined text-primary text-4xl mb-4" data-icon="groups">groups</span>
+<h3 class="font-headline text-xl font-bold">The Forum</h3>
+</div>
+<p class="text-sm text-on-surface-variant mb-6">Join 45,000+ members on Discord.</p>
+<div class="flex items-center gap-2 text-primary font-mono text-xs">
+                            CONNECT <span class="material-symbols-outlined text-xs" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Contributors Section -->
+<section class="px-8 pb-24 bg-surface-container-lowest/30 py-24">
+<div class="max-w-6xl mx-auto">
+<div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+<div class="max-w-xl">
+<h2 class="font-headline text-5xl font-bold tracking-tighter mb-6">Top Contributors</h2>
+<p class="text-on-surface-variant leading-relaxed">Meet the architects behind the Synthetic Atmosphere. These individuals drive the core engine forward every single day.</p>
+</div>
+<div class="font-mono text-xs uppercase tracking-widest text-on-surface-variant/40">
+                        Updated 4 minutes ago
+                    </div>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6">
+<!-- Contributor Avatars -->
+<div class="group text-center">
+<div class="w-20 h-20 mx-auto rounded-full border-2 border-primary/30 p-1 mb-4 group-hover:border-primary transition-all">
+<img alt="Contributor" class="w-full h-full object-cover rounded-full" data-alt="Portrait of a young software developer with glasses in a tech studio setting, professional headshot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3rYeL-ulbaY_Yqlo8FJfQR3Em0JziYQiHe73uX3cE19z5uhsAMxaEfBYI7et9qEoKWidPVMdqMAqJgf_WdFa8z1UIIeGc74PkxFMXeT2J0GsE7sL9eYkz7bjGuoEGOzwfKkFMhdLjXxwDUldRAQ2I3RfVuoSpWQpuR1Guc-vGpnB8QXCiifNQgJmlFpqUC_CL4hFVs6TeiMl7MM3CjWHAKu6zMKSIlN3q3O9yQlnYJoEHmsOlVsYHtzHwGnWoHkMV9rWH_O-JTg"/>
+</div>
+<div class="font-mono text-[10px] text-primary">@dev_oxide</div>
+</div>
+<div class="group text-center">
+<div class="w-20 h-20 mx-auto rounded-full border-2 border-secondary/30 p-1 mb-4 group-hover:border-secondary transition-all">
+<img alt="Contributor" class="w-full h-full object-cover rounded-full" data-alt="Close-up headshot of a smiling male engineer, neutral background, soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzL0XV1ioyYjc8HEGLWKzmmGYG_wJKjzQ3poXTkqi_7TCP_e-9th1YFjVDxA3PYb_0tV0Z2LVrXzKl5qfNBxIRDb3nIDgedwZJz4cioRkq8L2QJ2dhlrZRgA8u6KLhho0JZENoBs1NUMwnin0ihLMO7I551lxxVFy9lrjGyoLCl3ebs5NesIx6HZI-hlCV8qUaXBBNBIQTCbpPwAb5tknpjd1HZc_2xz3OIKlDWbTmVZ-Bc9yCQa-m3KCb3WNhBaTaXhW7fZzjRw"/>
+</div>
+<div class="font-mono text-[10px] text-secondary">@signal_flow</div>
+</div>
+<div class="group text-center">
+<div class="w-20 h-20 mx-auto rounded-full border-2 border-on-surface-variant/30 p-1 mb-4 group-hover:border-on-surface transition-all">
+<img alt="Contributor" class="w-full h-full object-cover rounded-full" data-alt="Modern professional woman's headshot, vibrant and focused studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDK6DFbRRoudPt_2cBIwnmoKkOMmvdZ0kqk7GpAKq-ndC3N-Kx6mNvI08L8_fMJgNjLxQNms4N8KlBI5UcNkCPAllf36WSSufVzdxuzaasZsCyHbl6Y9y08SuAJy6zbrjaDhZzwKEG2E6yS5IsB057NDaGdCBTVWwbZ6-SbFKWbiyzcF6oyLpuFsWTQJlHADQCMS5Toret72jBGfRxW_j6C7f3uyqjtSi4J_S1fEH_1s-IopsAt11RnzYkf43cYWeMzAtWV0ExJw"/>
+</div>
+<div class="font-mono text-[10px] text-on-surface-variant">@alpha_synth</div>
+</div>
+<div class="group text-center">
+<div class="w-20 h-20 mx-auto rounded-full border-2 border-on-surface-variant/30 p-1 mb-4 group-hover:border-on-surface transition-all">
+<img alt="Contributor" class="w-full h-full object-cover rounded-full" data-alt="Candid portrait of a male developer working at a desk, tech environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGgHlPkAvNcL0ZAf2qhHuq2uAo0EoeGosRwQ403ltAjXuj7BGCUjzsn7U7_toLD6logHgWOASMepgMNUl84CtlmqsIxFBAodTx-lzIy7IhcvlTNi7MpkAoQiPwlAxJQw3s5K2TjfrzLkMF7REzjRZ0D51ca9nvkJQq-yjpbLMDDCze1CJExSpmJLuu1CPA5Wsqnds1x3FWqzwFKV6NX6Iuy0k8Du9ZYqgHQMSN2TJk4uEa6RbgpawBVdLkr5cI7IJQqD75_V6KXw"/>
+</div>
+<div class="font-mono text-[10px] text-on-surface-variant">@osc_node</div>
+</div>
+<div class="group text-center">
+<div class="w-20 h-20 mx-auto rounded-full border-2 border-on-surface-variant/30 p-1 mb-4 group-hover:border-on-surface transition-all">
+<img alt="Contributor" class="w-full h-full object-cover rounded-full" data-alt="Portrait of a female programmer, minimalist workspace background, clean aesthetics" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCo1bO_onhHC-wToDG-J53xbyQb3nGbjwF8CqwhYi0GL9wc74rFHrbTK5kwsL7Hpl66Khc2XdqTIMoJprnh3ReJ6ePt2P1YM43EQ9GCLxEzIDqfKpqyGUK3vFE_n6UI6erm9dmArgc7gusaRYyzAw1OeCJjS5TTNPbPowBRJPOe1yedhSXgjE36YXcXn9UU8ni7Qlx6lIOIJeqraa03RPMdnQ6tkYxcxX5QF6p0sZBGTqwruw8LhDqmfy9zbFf9eGkxbnndvo0NZw"/>
+</div>
+<div class="font-mono text-[10px] text-on-surface-variant">@bit_crush</div>
+</div>
+<div class="group text-center">
+<div class="w-20 h-20 mx-auto rounded-full border-2 border-outline-variant/30 border-dashed flex items-center justify-center mb-4 cursor-pointer hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined text-outline-variant" data-icon="add">add</span>
+</div>
+<div class="font-mono text-[10px] text-outline-variant">JOIN US</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Final CTA -->
+<section class="px-8 py-32 text-center">
+<div class="max-w-4xl mx-auto glass-panel p-16 rounded-full border border-primary/20 relative">
+<div class="absolute -top-12 left-1/2 -translate-x-1/2 w-24 h-24 bg-background rounded-full border-2 border-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-4xl" data-icon="terminal">terminal</span>
+</div>
+<h2 class="font-headline text-4xl font-bold mb-6">Ready to fork the future?</h2>
+<p class="text-on-surface-variant mb-10 max-w-lg mx-auto">OpenStudio is and will always be free forever. Join the movement and help us redefine digital audio.</p>
+<div class="flex flex-col sm:flex-row justify-center gap-4">
+<button class="bg-primary text-on-primary font-bold py-4 px-10 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-transform">
+                        Explore the Documentation
+                    </button>
+<button class="bg-surface-container-highest border border-outline-variant text-on-surface font-bold py-4 px-10 rounded-full hover:bg-surface-bright transition-colors">
+                        Join Discord
+                    </button>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-[#0E0E0E] dark:bg-[#0E0E0E] w-full py-12 border-t border-[#353534]/15 flex flex-col md:flex-row justify-between items-center px-12 w-full font-['JetBrains_Mono'] text-[10px] uppercase">
+<div class="text-[#e5e2e1]/40 mb-4 md:mb-0">
+                © 2024 OpenStudio. The Synthetic Atmosphere.
+            </div>
+<div class="flex gap-8">
+<a class="text-[#e5e2e1]/40 hover:text-[#D0BCFF] transition-colors" href="#">Documentation</a>
+<a class="text-[#e5e2e1]/40 hover:text-[#D0BCFF] transition-colors" href="#">Privacy</a>
+<a class="text-[#e5e2e1]/40 hover:text-[#D0BCFF] transition-colors" href="#">Security</a>
+<a class="text-[#e5e2e1]/40 hover:text-[#D0BCFF] transition-colors" href="#">Terms</a>
+</div>
+<div class="mt-4 md:mt-0 text-[#4AE176]">
+                STATUS: ALL SYSTEMS OPERATIONAL
+            </div>
+</footer>
+</main>
+<!-- Background Decorative Elements -->
+<div class="fixed top-1/4 -right-20 w-96 h-96 bg-primary/10 blur-[120px] rounded-full pointer-events-none z-0"></div>
+<div class="fixed bottom-1/4 -left-20 w-96 h-96 bg-secondary/10 blur-[120px] rounded-full pointer-events-none z-0"></div>
+</body></html>
