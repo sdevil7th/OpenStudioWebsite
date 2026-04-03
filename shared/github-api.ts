@@ -203,6 +203,27 @@ const normalizeLatestRelease = (releases: GithubReleaseResponse[]): GithubReleas
   };
 };
 
+const normalizeRelease = (release: GithubReleaseResponse): GithubReleaseSummary | null => {
+  if (!release.published_at || release.draft) {
+    return null;
+  }
+
+  return {
+    id: release.id,
+    tagName: release.tag_name,
+    name: release.name ?? release.tag_name,
+    htmlUrl: release.html_url,
+    publishedAt: release.published_at,
+    isPrerelease: release.prerelease,
+    assetCount: release.assets.length,
+    assets: release.assets.map((asset) => ({
+      name: asset.name,
+      size: asset.size,
+      downloadUrl: asset.browser_download_url,
+    })),
+  };
+};
+
 const scoreReleaseAsset = (assetName: string, platform: GithubPlatform) => {
   const name = assetName.toLowerCase();
   let score = 0;
@@ -239,6 +260,22 @@ export const resolveLatestReleaseAssetUrl = (release: GithubReleaseSummary | nul
     .sort((left, right) => right.score - left.score);
 
   return candidates[0]?.asset.downloadUrl ?? null;
+};
+
+export const fetchLatestGithubRelease = async (token?: string): Promise<GithubReleaseSummary | null> => {
+  const response = await fetch(`${GITHUB_API_BASE}/releases/latest`, {
+    headers: createGithubHeaders(token),
+  });
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(`GitHub latest release request failed with status ${response.status}`);
+  }
+
+  return normalizeRelease((await response.json()) as GithubReleaseResponse);
 };
 
 export const fetchGithubRepoSnapshot = async (token?: string): Promise<GithubRepoSnapshot> => {

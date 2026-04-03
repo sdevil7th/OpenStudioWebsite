@@ -4,13 +4,13 @@
 
 [[redirects]]
   from = "/download/windows/latest"
-  to = "/.netlify/functions/download-latest/windows"
+  to = "/.netlify/functions/download-latest-windows"
   status = 200
   force = true
 
 [[redirects]]
   from = "/download/macos/latest"
-  to = "/.netlify/functions/download-latest/macos"
+  to = "/.netlify/functions/download-latest-macos"
   status = 200
   force = true
 

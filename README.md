@@ -29,10 +29,10 @@ npm run preview
 
 Both routes now rewrite to path-based Netlify function endpoints:
 
-- `/.netlify/functions/download-latest/windows`
-- `/.netlify/functions/download-latest/macos`
+- `/.netlify/functions/download-latest-windows`
+- `/.netlify/functions/download-latest-macos`
 
-The function checks the latest GitHub Release for `sdevil7th/OpenStudio`, finds the best matching asset for the requested platform, and falls back to the release surfaces when no matching asset exists yet.
+These dedicated functions check the latest GitHub Release for `sdevil7th/OpenStudio`, find the best matching asset for the requested platform, and fall back to the release surfaces when no matching asset exists yet.
 
 ## Environment Variables
 
@@ -54,8 +54,8 @@ Then verify these URLs locally:
 ```bash
 curl -I http://localhost:8080/download/windows/latest
 curl -I http://localhost:8080/download/macos/latest
-curl -I http://localhost:8080/.netlify/functions/download-latest/windows
-curl -I http://localhost:8080/.netlify/functions/download-latest/macos
+curl -I http://localhost:8080/.netlify/functions/download-latest-windows
+curl -I http://localhost:8080/.netlify/functions/download-latest-macos
 curl http://localhost:8080/.netlify/functions/github-repo
 ```
 
@@ -77,8 +77,8 @@ After Netlify finishes deploying, verify:
 ```bash
 curl -I https://openstudiowebsite.netlify.app/download/windows/latest
 curl -I https://openstudiowebsite.netlify.app/download/macos/latest
-curl -I https://openstudiowebsite.netlify.app/.netlify/functions/download-latest/windows
-curl -I https://openstudiowebsite.netlify.app/.netlify/functions/download-latest/macos
+curl -I https://openstudiowebsite.netlify.app/.netlify/functions/download-latest-windows
+curl -I https://openstudiowebsite.netlify.app/.netlify/functions/download-latest-macos
 curl https://openstudiowebsite.netlify.app/.netlify/functions/github-repo
 ```
 

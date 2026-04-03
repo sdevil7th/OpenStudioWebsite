@@ -49,6 +49,8 @@ const githubDevBridge = () => ({
       if (
         pathname === "/download/windows/latest" ||
         pathname === "/download/macos/latest" ||
+        pathname === "/.netlify/functions/download-latest-windows" ||
+        pathname === "/.netlify/functions/download-latest-macos" ||
         pathname === "/.netlify/functions/download-latest/windows" ||
         pathname === "/.netlify/functions/download-latest/macos" ||
         pathname === "/.netlify/functions/download-latest"
@@ -56,9 +58,15 @@ const githubDevBridge = () => ({
         const pathSegments = pathname.split("/").filter(Boolean);
         const trailingSegment = pathSegments[pathSegments.length - 1];
         const platform =
-          pathname.includes("/windows/") || trailingSegment === "windows" || url.searchParams.get("platform") === "windows"
+          pathname === "/.netlify/functions/download-latest-windows" ||
+          pathname.includes("/windows/") ||
+          trailingSegment === "windows" ||
+          url.searchParams.get("platform") === "windows"
             ? "windows"
-            : pathname.includes("/macos/") || trailingSegment === "macos" || url.searchParams.get("platform") === "macos"
+            : pathname === "/.netlify/functions/download-latest-macos" ||
+                pathname.includes("/macos/") ||
+                trailingSegment === "macos" ||
+                url.searchParams.get("platform") === "macos"
               ? "macos"
               : null;
 
