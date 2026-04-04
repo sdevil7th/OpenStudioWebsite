@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OpenStudio - Premium Link Preview</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@300;400;500;600&amp;family=Orbitron:wght@400;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary": "#f7be1d",
+                        "on-background": "#e5e2e1",
+                        "on-secondary-container": "#004119",
+                        "on-secondary": "#003915",
+                        "surface-bright": "#3a3939",
+                        "primary-fixed-dim": "#d0bcff",
+                        "outline": "#958ea0",
+                        "inverse-on-surface": "#313030",
+                        "surface-container": "#201f1f",
+                        "secondary-fixed-dim": "#4ae176",
+                        "on-primary-container": "#340080",
+                        "background": "#131313",
+                        "outline-variant": "#494454",
+                        "on-tertiary-fixed": "#251a00",
+                        "tertiary-fixed-dim": "#f7be1d",
+                        "on-secondary-fixed-variant": "#005321",
+                        "on-secondary-fixed": "#002109",
+                        "primary-fixed": "#e9ddff",
+                        "primary": "#d0bcff",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-error": "#690005",
+                        "on-tertiary-container": "#372700",
+                        "inverse-primary": "#6d3bd7",
+                        "on-surface-variant": "#cbc3d7",
+                        "surface": "#131313",
+                        "tertiary-container": "#b68a00",
+                        "on-primary-fixed-variant": "#5516be",
+                        "surface-dim": "#131313",
+                        "primary-container": "#a078ff",
+                        "on-primary-fixed": "#23005c",
+                        "surface-container-highest": "#353534",
+                        "secondary-fixed": "#6bff8f",
+                        "on-surface": "#e5e2e1",
+                        "surface-container-high": "#2a2a2a",
+                        "on-tertiary-fixed-variant": "#5a4300",
+                        "on-error-container": "#ffdad6",
+                        "error": "#ffb4ab",
+                        "on-primary": "#3c0091",
+                        "surface-container-low": "#1c1b1b",
+                        "surface-tint": "#d0bcff",
+                        "inverse-surface": "#e5e2e1",
+                        "tertiary-fixed": "#ffdf9a",
+                        "secondary": "#4ae176",
+                        "secondary-container": "#00b954",
+                        "on-tertiary": "#3f2e00",
+                        "error-container": "#93000a",
+                        "surface-variant": "#353534"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Inter"],
+                        "mono": ["JetBrains Mono"],
+                        "display": ["Orbitron"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .sonic-gradient {
+            background: linear-gradient(135deg, #d0bcff 0%, #a078ff 100%);
+        }
+        .obsidian-overlay {
+            background: linear-gradient(to right, rgba(14, 14, 14, 0.95) 0%, rgba(14, 14, 14, 0.4) 100%);
+        }
+        .glass-panel {
+            background: rgba(53, 53, 52, 0.6);
+            backdrop-filter: blur(20px);
+        }
+        .logo-svg {
+            width: auto;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body overflow-hidden">
+<!-- Container for Social Share Card (1200x630 Fixed Canvas) -->
+<main class="relative w-[1200px] h-[630px] mx-auto overflow-hidden bg-surface-container-lowest border border-outline-variant/20 shadow-2xl">
+<!-- Background Hero Timeline -->
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover opacity-60" data-alt="Professional DAW timeline interface with high-fidelity waveforms in violet and neon green, complex audio nodes, and sleek glassmorphic sliders" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDku51-4g0nQdOxNmgjS8aNJUDVXLbOVyz4r5cXloI8JiKCpGMba_073uU2BaXmXlpdj842M1sC1NjHcX4NlYV-ZtRLbnabljPrYy8qJLL5OeXScjdho2KDl3mM1K9Pu5dr3Zrq5mKN8l1PLaNXvmbBOLDo62287bxn4WzUnMbxrfxPskPFoAX3MWO8Rqy97Sh-tNtec4azhV8oGHt5YxJoZY-7LaPR4cl5cd2lwnPNWUJNWOyd8zgK129Awig7lU_lUVFu3_17_Q"/>
+</div>
+<!-- Sonic Obsidian Overlays -->
+<div class="absolute inset-0 z-10 obsidian-overlay"></div>
+<div class="absolute inset-0 z-10 bg-gradient-to-t from-background via-transparent to-transparent opacity-80"></div>
+<!-- Ambient Glow Elements -->
+<div class="absolute -top-40 -left-40 w-96 h-96 bg-primary/20 blur-[120px] rounded-full z-10"></div>
+<div class="absolute -bottom-40 right-20 w-80 h-80 bg-secondary/10 blur-[100px] rounded-full z-10"></div>
+<!-- Content Shell -->
+<div class="relative z-20 flex flex-col justify-between h-full p-16">
+<!-- Header Section -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-6">
+<div class="h-14 w-14 flex items-center justify-center">
+<svg class="logo-svg" viewbox="634 505 784 784" xmlns="http://www.w3.org/2000/svg">
+<g transform="translate(1023.5, 898) scale(1.2) rotate(45) translate(-1023.5, -898)">
+<path d="M 782.528 691.718 C 818.3 645.424 877.331 606.011 933.236 589.489 C 944.52 628.796 956.906 655.66 982.337 687.618 C 916.516 688.862 848.176 727.505 846.95 801.529 C 846.488 829.446 858.996 848.415 877.865 867.761 C 904.663 887.296 926.615 893.691 959.983 893.908 C 981.802 894.05 1003.73 894.027 1025.56 894.028 L 1176.82 894.162 C 1203.02 894.238 1230.5 892.673 1255.85 899.212 C 1288.73 907.693 1317.8 936.44 1323.18 970.394 C 1328.87 1006.2 1299.46 1063.72 1277.53 1091.35 C 1275.68 1094.84 1261.29 1112.41 1258.16 1115.99 C 1220.7 1158.33 1172.55 1189.82 1118.75 1207.15 C 1110.5 1171.05 1090.11 1133.12 1068.05 1103.77 C 1091.52 1103.62 1105.01 1100.72 1126.69 1091.79 C 1202.51 1060.56 1229.52 964.846 1152.97 915.493 C 1140.95 910.069 1123.47 901.872 1110.32 900.402 C 1080.27 897.04 1045.55 898.048 1015.15 897.994 L 869.677 897.046 C 830.601 897.046 785.856 902.429 753.498 876.682 C 737.523 864.188 727.39 845.672 725.479 825.481 C 721.619 786.772 758.109 721.589 782.528 691.718 z" fill="rgb(136,188,236)"></path>
+<path d="M 1152.97 915.493 C 1162.68 914.351 1183.15 928.286 1190.82 934.418 C 1228.06 964.188 1257.66 1006.53 1270.6 1052.63 C 1273.04 1061.35 1275.78 1087.36 1277.53 1091.35 C 1275.68 1094.84 1261.29 1112.41 1258.16 1115.99 C 1220.7 1158.33 1172.55 1189.82 1118.75 1207.15 C 1110.5 1171.05 1090.11 1133.12 1068.05 1103.77 C 1091.52 1103.62 1105.01 1100.72 1126.69 1091.79 C 1202.51 1060.56 1229.52 964.846 1152.97 915.493 z" fill="rgb(56,154,216)"></path>
+<path d="M 782.528 691.718 C 818.3 645.424 877.331 606.011 933.236 589.489 C 944.52 628.796 956.906 655.66 982.337 687.618 C 916.516 688.862 848.176 727.505 846.95 801.529 C 846.488 829.446 858.996 848.415 877.865 867.761 C 873.112 866.396 862.152 857.998 858.04 854.663 C 817.309 821.638 786.669 767.845 783.818 714.995 C 783.414 707.503 783.54 700.146 782.656 692.723 L 782.528 691.718 z" fill="rgb(56,154,216)"></path>
+<path d="M 602.084 895.192 C 705.574 889.339 793.658 907.831 880.463 966.171 C 968.901 1025.61 1039.81 1116.37 1071.72 1218.23 C 1040.52 1221.96 1018.53 1222.29 987.296 1219.03 C 975.732 1218.81 951.436 1212.89 939.902 1209.56 C 857.463 1185.44 788.332 1128.91 748.318 1052.9 C 730.954 1019.21 726.551 981.274 699.751 953.594 C 674.804 927.827 642.7 914.594 608.639 905.983 C 602.704 904.482 593.838 903.13 589.457 899.079 L 588.901 898.028 C 588.658 897.422 588.414 896.815 588.171 896.208 C 592.751 895.859 597.708 895.026 602.084 895.192 z" fill="rgb(23,21,60)"></path>
+<path d="M 602.084 895.192 C 705.574 889.339 793.658 907.831 880.463 966.171 C 968.901 1025.61 1039.81 1116.37 1071.72 1218.23 C 1040.52 1221.96 1018.53 1222.29 987.296 1219.03 C 944.614 1055.22 779.989 909.659 609.551 897.909 C 608.19 897.617 602.428 896.899 601.692 896.374 C 601.587 895.902 601.799 895.775 602.084 895.192 z" fill="rgb(56,154,216)"></path>
+<path d="M 588.171 896.208 C 592.751 895.859 597.708 895.026 602.084 895.192 C 601.799 895.775 601.587 895.902 601.692 896.374 C 602.428 896.899 608.19 897.617 609.551 897.909 C 602.668 898.038 595.785 898.078 588.901 898.028 C 588.658 897.422 588.414 896.815 588.171 896.208 z" fill="rgb(36,116,180)"></path>
+<path d="M 979.015 578.239 C 1005.02 574.436 1037.35 575.239 1063.31 577.748 C 1146.62 589.033 1222.12 632.686 1273.47 699.25 C 1295.44 727.809 1317.61 766.027 1326.88 800.433 C 1344.73 866.736 1405.84 883.212 1466.14 890.727 C 1470.05 891.214 1474.29 891.876 1478.34 891.794 L 1479.74 894.206 C 1453.6 895.792 1439.82 898.323 1411.99 898.365 C 1350 902.5 1266.48 882.172 1211.4 853.764 C 1102.31 797.49 1016.73 694.68 979.015 578.239 z" fill="rgb(12,250,247)"></path>
+<path d="M 979.015 578.239 C 1005.02 574.436 1037.35 575.239 1063.31 577.748 C 1066.33 590.612 1072.54 607.158 1077.16 619.636 C 1111.89 713.344 1176.94 792.76 1261.97 845.27 C 1294.54 865.465 1330.22 880.152 1367.57 888.741 C 1382.12 892.108 1397.41 893.406 1411 898.124 C 1411.33 898.204 1411.66 898.285 1411.99 898.365 C 1350 902.5 1266.48 882.172 1211.4 853.764 C 1102.31 797.49 1016.73 694.68 979.015 578.239 z" fill="rgb(56,154,216)"></path>
+<path d="M 589.457 899.079 C 583.662 899.178 574.375 899.803 568.86 899.523 L 568.63 899.178 C 568.17 899.167 567.71 899.156 567.251 899.144 C 567.183 899.011 567.116 898.878 567.049 898.744 C 566.903 898.877 586.81 896.357 588.171 896.208 C 588.414 896.815 588.658 897.422 588.901 898.028 L 589.457 899.079 z" fill="rgb(23,21,60)"></path>
+<path d="M 1478.34 891.794 C 1481.42 892.127 1486.55 893.279 1479.74 894.206 L 1478.34 891.794 z" fill="rgb(36,116,180)"></path>
+</g>
+</svg>
+</div>
+<span class="text-4xl font-headline font-bold tracking-tighter text-on-surface uppercase leading-[44.8px]">OpenStudio</span>
+</div>
+<div class="px-4 py-1.5 glass-panel rounded-full border border-outline-variant/30">
+<span class="text-[10px] font-mono tracking-[0.2em] text-secondary font-bold uppercase">AI-Native Technology</span>
+</div>
+</div>
+<!-- Main Typography Block -->
+<div class="max-w-3xl">
+<div class="mb-2 flex items-center gap-3">
+<span class="w-8 h-[2px] bg-primary"></span>
+<span class="text-sm font-mono tracking-widest text-primary-fixed-dim uppercase">Craft sound faster</span>
+</div>
+<h1 class="text-7xl font-headline font-bold text-on-background leading-[0.95] tracking-tight mb-6">
+                    Open-Source, <br/>
+<span class="text-primary italic">AI-Native</span> DAW
+                </h1>
+<!-- Subtext Detail Card -->
+<div class="glass-panel p-6 rounded-xl border-l-4 border-primary/50 max-w-xl">
+<p class="text-lg text-on-surface-variant font-light leading-relaxed">
+                        Precision engineering meets neural synthesis. Featuring <span class="text-secondary font-mono">BS Roformer</span> stem separation and ultra-transparent pitch editing for the modern producer.
+                    </p>
+</div>
+</div>
+<!-- Footer Stats / Meta -->
+<div class="flex items-end justify-between">
+<div class="flex gap-12">
+<div class="flex flex-col gap-1">
+<span class="text-[10px] font-mono text-outline uppercase tracking-widest">Spectral Engine</span>
+<span class="text-xl font-display text-on-surface tracking-tighter">192<span class="text-primary">kHz</span></span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="text-[10px] font-mono text-outline uppercase tracking-widest">Status</span>
+<span class="text-xl font-display text-secondary tracking-tighter">BETA_V1</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="text-right">
+<div class="text-xs font-mono text-outline uppercase mb-1">Available on</div>
+<div class="flex gap-4 items-center">
+<span class="material-symbols-outlined text-on-surface/50">desktop_windows</span>
+<span class="material-symbols-outlined text-on-surface/50">terminal</span>
+</div>
+</div>
+<div class="w-[1px] h-12 bg-outline-variant/30"></div>
+<div class="flex flex-col">
+<span class="text-[10px] font-mono text-primary uppercase font-bold">Open-Source</span>
+<span class="text-lg font-headline font-semibold">github.com/sdevil7th/OpenStudio</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Decorative Elements: Signal Flow Slats -->
+<div class="absolute right-0 top-0 bottom-0 w-32 flex gap-4 p-4 z-10 pointer-events-none opacity-20">
+<div class="w-1 h-full bg-surface-container-highest"></div>
+<div class="w-1 h-full bg-surface-container-highest"></div>
+<div class="w-1 h-2/3 bg-secondary self-center shadow-[0_0_15px_#4ae176]"></div>
+<div class="w-1 h-full bg-surface-container-highest"></div>
+<div class="w-1 h-full bg-surface-container-highest"></div>
+</div>
+</main>
+<!-- Hidden standard page elements for structure requirement -->
+<div class="hidden">
+<footer>
+<p>© 2024 OpenStudio. Craft sound faster.</p>
+</footer>
+</div>
+</body></html>

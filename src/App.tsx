@@ -6,6 +6,7 @@ import FeaturesPage from "@/pages/FeaturesPage";
 import GithubPage from "@/pages/GithubPage";
 import HomePage from "@/pages/HomePage";
 import NotFound from "@/pages/NotFound";
+import OgCardPage from "@/pages/OgCardPage";
 import PrivacyPage from "@/pages/PrivacyPage";
 import ReleasesPage from "@/pages/ReleasesPage";
 import SecurityPage from "@/pages/SecurityPage";
@@ -15,6 +16,8 @@ import TermsPage from "@/pages/TermsPage";
 const App = () => (
   <BrowserRouter>
     <Routes>
+      {/* Standalone route — no navbar/footer, used for OG image generation */}
+      <Route path="/og-card" element={<OgCardPage />} />
       <Route element={<SiteShell />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/features" element={<FeaturesPage />} />
