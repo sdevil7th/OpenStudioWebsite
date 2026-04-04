@@ -4,7 +4,7 @@ export const SITE_DESCRIPTION =
   "A native desktop DAW with built-in stem separation, pitch editing, MIDI instruments, plugin hosting, mixer workflow, and export-ready release paths.";
 export const SITE_TAGLINE = "The synthetic atmosphere for serious production workflows.";
 export const SITE_THEME_COLOR = "#050813";
-export const SITE_OG_IMAGE = "/assets/openstudio/branding/og-image.png";
+export const SITE_OG_IMAGE = "/assets/openstudio/branding/og-image.png?v=2";
 
 export const BRANDING_ASSETS = {
   mark: "/assets/openstudio/branding/icon.svg",
