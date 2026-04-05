@@ -22,6 +22,8 @@ export const DOWNLOAD_PATHS = {
   macosLatest: "/download/macos/latest",
   aiRuntimeWindowsLatest: "/download/ai-runtime/windows/latest",
   aiRuntimeMacosLatest: "/download/ai-runtime/macos/latest",
+  aiRuntimeMacosArm64Latest: "/download/ai-runtime/macos/arm64/latest",
+  aiRuntimeMacosX64Latest: "/download/ai-runtime/macos/x64/latest",
   releaseMetadataLatest: "/releases/latest.json",
   releaseMetadataStableLatest: "/releases/stable/latest.json",
   aiRuntimeMetadataLatest: "/releases/ai-runtime/latest.json",

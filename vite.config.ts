@@ -2,20 +2,57 @@ import fs from "node:fs/promises";
 import path from "path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
-import { parseAiRuntimeManifest, type AiRuntimePlatform } from "./shared/ai-runtime-manifest";
+import {
+  type AiRuntimeMacosArchitecture,
+  parseAiRuntimeManifest,
+  type AiRuntimePlatform,
+  resolveAiRuntimeDownloadUrl,
+} from "./shared/ai-runtime-manifest";
 import { GITHUB_RELEASES_URL, fetchGithubRepoSnapshot, resolveLatestReleaseAssetUrl } from "./shared/github-api";
 
 const AI_RUNTIME_MANIFEST_PATH = path.resolve(__dirname, "public", "releases", "ai-runtime", "latest.json");
 const AI_RUNTIME_DEPLOY_INPUT_PATH = path.resolve(__dirname, "release-input", "releases", "ai-runtime", "latest.json");
 
-const resolveDevAiRuntimeRedirectTarget = async (platform: AiRuntimePlatform) => {
+const parseMacosArchitecture = (value: string | null): AiRuntimeMacosArchitecture | null => {
+  if (!value) {
+    return null;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  return normalized === "arm64" || normalized === "x64" ? normalized : null;
+};
+
+const inferMacosArchitectureFromRequest = (url: URL, userAgent: string): AiRuntimeMacosArchitecture | null => {
+  const explicitArchitecture = parseMacosArchitecture(url.searchParams.get("arch"));
+
+  if (explicitArchitecture) {
+    return explicitArchitecture;
+  }
+
+  const normalizedUserAgent = userAgent.toLowerCase();
+
+  if (/(arm64|aarch64|apple silicon)/.test(normalizedUserAgent)) {
+    return "arm64";
+  }
+
+  if (/(x86_64|intel|amd64|x64)/.test(normalizedUserAgent)) {
+    return "x64";
+  }
+
+  return null;
+};
+
+const resolveDevAiRuntimeRedirectTarget = async (
+  platform: AiRuntimePlatform,
+  architecture?: AiRuntimeMacosArchitecture,
+) => {
   for (const manifestPath of [AI_RUNTIME_MANIFEST_PATH, AI_RUNTIME_DEPLOY_INPUT_PATH]) {
     try {
       const manifest = parseAiRuntimeManifest(
         JSON.parse(await fs.readFile(manifestPath, "utf8")),
         path.relative(__dirname, manifestPath),
       );
-      return manifest.platforms[platform].url;
+      return resolveAiRuntimeDownloadUrl(manifest, platform, architecture);
     } catch {
       // Try the next available source of truth before falling back.
     }
@@ -72,10 +109,14 @@ const githubDevBridge = () => ({
         pathname === "/download/macos/latest" ||
         pathname === "/download/ai-runtime/windows/latest" ||
         pathname === "/download/ai-runtime/macos/latest" ||
+        pathname === "/download/ai-runtime/macos/arm64/latest" ||
+        pathname === "/download/ai-runtime/macos/x64/latest" ||
         pathname === "/.netlify/functions/download-latest-windows" ||
         pathname === "/.netlify/functions/download-latest-macos" ||
         pathname === "/.netlify/functions/download-latest-ai-runtime-windows" ||
         pathname === "/.netlify/functions/download-latest-ai-runtime-macos" ||
+        pathname === "/.netlify/functions/download-latest-ai-runtime-macos-arm64" ||
+        pathname === "/.netlify/functions/download-latest-ai-runtime-macos-x64" ||
         pathname === "/.netlify/functions/download-latest/windows" ||
         pathname === "/.netlify/functions/download-latest/macos" ||
         pathname === "/.netlify/functions/download-latest"
@@ -107,7 +148,18 @@ const githubDevBridge = () => ({
 
         try {
           if (isAiRuntimeRequest) {
-            const redirectTarget = (await resolveDevAiRuntimeRedirectTarget(platform)) ?? GITHUB_RELEASES_URL;
+            const architecture =
+              platform === "macos"
+                ? pathname.includes("/macos/arm64/") ||
+                    pathname === "/.netlify/functions/download-latest-ai-runtime-macos-arm64"
+                  ? "arm64"
+                  : pathname.includes("/macos/x64/") ||
+                      pathname === "/.netlify/functions/download-latest-ai-runtime-macos-x64"
+                    ? "x64"
+                    : inferMacosArchitectureFromRequest(url, req.headers?.["user-agent"] ?? "")
+                : undefined;
+            const redirectTarget =
+              (await resolveDevAiRuntimeRedirectTarget(platform, architecture)) ?? GITHUB_RELEASES_URL;
 
             res.statusCode = 302;
             res.setHeader("Location", redirectTarget);

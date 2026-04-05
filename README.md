@@ -14,6 +14,8 @@ This repo is now the only public publisher for:
 - `/download/macos/latest`
 - `/download/ai-runtime/windows/latest`
 - `/download/ai-runtime/macos/latest`
+- `/download/ai-runtime/macos/arm64/latest`
+- `/download/ai-runtime/macos/x64/latest`
 
 GitHub Releases remain the binary origin. This repo publishes release metadata and appcasts, then exposes stable redirect surfaces that resolve to GitHub-hosted binaries.
 
@@ -57,6 +59,12 @@ Expected desktop release asset filenames:
 - `OpenStudio-appcast-windows-stable.xml`
 - `OpenStudio-appcast-macos-stable.xml`
 
+Current AI runtime binary asset names referenced by metadata:
+
+- `OpenStudio-AI-Runtime-windows-x64.zip`
+- `OpenStudio-AI-Runtime-macos-arm64.zip`
+- `OpenStudio-AI-Runtime-macos-x64.zip`
+
 Published output paths:
 
 - `/releases/latest.json`
@@ -72,8 +80,43 @@ Validation rules:
 - AI runtime root/stable manifests must both exist and match after JSON normalization
 - app release JSON must include `schemaVersion`, `channel`, `version`, `publishedAt`, `releasePageUrl`, `platforms.windows`, and `platforms.macos`
 - AI runtime JSON must include `schemaVersion`, `channel`, `appVersion`, `runtimeVersion`, `publishedAt`, `platforms.windows`, and `platforms.macos`
+- AI runtime macOS metadata may be published either as the legacy flat `platforms.macos` entry or as the current nested `platforms.macos.arm64` and `platforms.macos.x64` entries
 - all manifest platform entries must include `url`, `sha256`, `size`, and `fileName`
 - both stable appcasts must be present, valid XML, and align with the stable app manifest enclosure data
+
+Current AI runtime manifest shape:
+
+```json
+{
+  "schemaVersion": 1,
+  "channel": "stable",
+  "appVersion": "0.0.22",
+  "runtimeVersion": "2026.04.05",
+  "publishedAt": "2026-04-05T00:00:00.000Z",
+  "platforms": {
+    "windows": {
+      "url": "https://github.com/sdevil7th/OpenStudio/releases/download/v0.0.22/OpenStudio-AI-Runtime-windows-x64.zip",
+      "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "size": 123,
+      "fileName": "OpenStudio-AI-Runtime-windows-x64.zip"
+    },
+    "macos": {
+      "arm64": {
+        "url": "https://github.com/sdevil7th/OpenStudio/releases/download/v0.0.22/OpenStudio-AI-Runtime-macos-arm64.zip",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "size": 123,
+        "fileName": "OpenStudio-AI-Runtime-macos-arm64.zip"
+      },
+      "x64": {
+        "url": "https://github.com/sdevil7th/OpenStudio/releases/download/v0.0.22/OpenStudio-AI-Runtime-macos-x64.zip",
+        "sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "size": 123,
+        "fileName": "OpenStudio-AI-Runtime-macos-x64.zip"
+      }
+    }
+  }
+}
+```
 
 ## Environment Variables And Secrets
 
@@ -104,7 +147,9 @@ Desktop-side secret outside this repo:
 ## Redirect Behavior
 
 - `/download/windows/latest` and `/download/macos/latest` remain GitHub-release-backed installer redirects.
-- `/download/ai-runtime/windows/latest` and `/download/ai-runtime/macos/latest` resolve from the published AI runtime manifest, which itself points to GitHub Release asset URLs.
+- `/download/ai-runtime/windows/latest` resolves from the published AI runtime manifest.
+- `/download/ai-runtime/macos/arm64/latest` and `/download/ai-runtime/macos/x64/latest` resolve from the published AI runtime manifest and should be preferred when the caller knows the target architecture.
+- `/download/ai-runtime/macos/latest` remains a best-effort convenience redirect. It still supports the legacy flat macOS manifest entry, and for the new nested shape it will honor `?arch=arm64` or `?arch=x64` when present, otherwise it only redirects when it can infer the architecture safely.
 - Netlify never hosts the `.exe`, `.dmg`, or AI runtime `.zip` files.
 
 ## Website Publish Workflow
@@ -159,6 +204,8 @@ curl -I https://openstudio.org.in/download/windows/latest
 curl -I https://openstudio.org.in/download/macos/latest
 curl -I https://openstudio.org.in/download/ai-runtime/windows/latest
 curl -I https://openstudio.org.in/download/ai-runtime/macos/latest
+curl -I https://openstudio.org.in/download/ai-runtime/macos/arm64/latest
+curl -I https://openstudio.org.in/download/ai-runtime/macos/x64/latest
 ```
 
 Check that:

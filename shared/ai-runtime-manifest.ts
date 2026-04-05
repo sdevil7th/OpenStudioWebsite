@@ -1,4 +1,5 @@
 export type AiRuntimePlatform = "windows" | "macos";
+export type AiRuntimeMacosArchitecture = "arm64" | "x64";
 
 export interface AiRuntimePlatformEntry {
   fileName: string;
@@ -7,10 +8,19 @@ export interface AiRuntimePlatformEntry {
   url: string;
 }
 
+export interface AiRuntimeMacosPlatforms {
+  arm64: AiRuntimePlatformEntry | null;
+  legacy: AiRuntimePlatformEntry | null;
+  x64: AiRuntimePlatformEntry | null;
+}
+
 export interface AiRuntimeManifest {
   appVersion: string;
   channel: string;
-  platforms: Record<AiRuntimePlatform, AiRuntimePlatformEntry>;
+  platforms: {
+    macos: AiRuntimeMacosPlatforms;
+    windows: AiRuntimePlatformEntry;
+  };
   publishedAt: string;
   runtimeVersion: string;
   schemaVersion: number;
@@ -76,6 +86,56 @@ const parsePlatformEntry = (value: unknown, label: string): AiRuntimePlatformEnt
   };
 };
 
+const parseMacosPlatforms = (value: unknown, label: string): AiRuntimeMacosPlatforms => {
+  if (!value || typeof value !== "object") {
+    throw new Error(`${label} is missing.`);
+  }
+
+  const macosValue = value as Record<string, unknown>;
+  const hasNestedShape = macosValue.arm64 != null || macosValue.x64 != null;
+
+  if (!hasNestedShape) {
+    return {
+      arm64: null,
+      legacy: parsePlatformEntry(value, label),
+      x64: null,
+    };
+  }
+
+  const arm64 = macosValue.arm64 != null ? parsePlatformEntry(macosValue.arm64, `${label}.arm64`) : null;
+  const x64 = macosValue.x64 != null ? parsePlatformEntry(macosValue.x64, `${label}.x64`) : null;
+
+  if (!arm64 && !x64) {
+    throw new Error(`${label} must include at least one macOS architecture entry.`);
+  }
+
+  return {
+    arm64,
+    legacy: null,
+    x64,
+  };
+};
+
+export const resolveAiRuntimeDownloadUrl = (
+  manifest: AiRuntimeManifest,
+  platform: AiRuntimePlatform,
+  architecture?: AiRuntimeMacosArchitecture,
+) => {
+  if (platform === "windows") {
+    return manifest.platforms.windows.url;
+  }
+
+  if (manifest.platforms.macos.legacy) {
+    return manifest.platforms.macos.legacy.url;
+  }
+
+  if (architecture) {
+    return manifest.platforms.macos[architecture]?.url ?? null;
+  }
+
+  return null;
+};
+
 export const parseAiRuntimeManifest = (
   value: unknown,
   label = "AI runtime manifest",
@@ -118,7 +178,7 @@ export const parseAiRuntimeManifest = (
     channel: manifest.channel,
     platforms: {
       windows: parsePlatformEntry(platforms.windows, `${label}.platforms.windows`),
-      macos: parsePlatformEntry(platforms.macos, `${label}.platforms.macos`),
+      macos: parseMacosPlatforms(platforms.macos, `${label}.platforms.macos`),
     },
     publishedAt: manifest.publishedAt,
     runtimeVersion: manifest.runtimeVersion,
