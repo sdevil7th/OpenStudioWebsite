@@ -1,0 +1,112 @@
+name: Publish Release Surfaces
+
+on:
+  repository_dispatch:
+    types:
+      - openstudio_release_published
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      OPENSTUDIO_DESKTOP_REPO: ${{ vars.OPENSTUDIO_DESKTOP_REPO != '' && vars.OPENSTUDIO_DESKTOP_REPO || 'sdevil7th/OpenStudio' }}
+      OPENSTUDIO_RELEASE_METADATA_DIR: release-input
+      OPENSTUDIO_REQUIRE_RELEASE_METADATA: "true"
+      GH_TOKEN: ${{ secrets.OPENSTUDIO_RELEASE_SOURCE_TOKEN != '' && secrets.OPENSTUDIO_RELEASE_SOURCE_TOKEN || github.token }}
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Validate dispatch payload
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TAG="${{ github.event.client_payload.tag }}"
+          CHANNEL="${{ github.event.client_payload.channel }}"
+          DESKTOP_REPO="${{ github.event.client_payload.desktopRepo }}"
+
+          if [[ -z "$TAG" ]]; then
+            echo "repository_dispatch client_payload.tag is required." >&2
+            exit 1
+          fi
+
+          if [[ "$CHANNEL" != "stable" ]]; then
+            echo "Only stable release-surface publishes are supported. Received channel '$CHANNEL'." >&2
+            exit 1
+          fi
+
+          if [[ -z "$DESKTOP_REPO" ]]; then
+            echo "repository_dispatch client_payload.desktopRepo is required." >&2
+            exit 1
+          fi
+
+          if [[ "$DESKTOP_REPO" != "$OPENSTUDIO_DESKTOP_REPO" ]]; then
+            echo "Dispatch desktopRepo '$DESKTOP_REPO' does not match configured OPENSTUDIO_DESKTOP_REPO '$OPENSTUDIO_DESKTOP_REPO'." >&2
+            exit 1
+          fi
+
+          if [[ -z "$NETLIFY_AUTH_TOKEN" || -z "$NETLIFY_SITE_ID" ]]; then
+            echo "NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID must both be configured for website release publishing." >&2
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Download release metadata assets from desktop release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TAG="${{ github.event.client_payload.tag }}"
+          DESKTOP_REPO="${{ github.event.client_payload.desktopRepo }}"
+          mkdir -p downloaded-release-assets
+
+          gh release download "$TAG" \
+            --repo "$DESKTOP_REPO" \
+            --dir downloaded-release-assets \
+            --clobber \
+            --pattern "OpenStudio-release-latest.json" \
+            --pattern "OpenStudio-release-stable-latest.json" \
+            --pattern "OpenStudio-ai-runtime-latest.json" \
+            --pattern "OpenStudio-ai-runtime-stable-latest.json" \
+            --pattern "OpenStudio-appcast-windows-stable.xml" \
+            --pattern "OpenStudio-appcast-macos-stable.xml"
+
+      - name: Stage downloaded release inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p release-input/releases/stable
+          mkdir -p release-input/releases/ai-runtime/stable
+          mkdir -p release-input/appcast
+
+          cp downloaded-release-assets/OpenStudio-release-latest.json release-input/releases/latest.json
+          cp downloaded-release-assets/OpenStudio-release-stable-latest.json release-input/releases/stable/latest.json
+          cp downloaded-release-assets/OpenStudio-ai-runtime-latest.json release-input/releases/ai-runtime/latest.json
+          cp downloaded-release-assets/OpenStudio-ai-runtime-stable-latest.json release-input/releases/ai-runtime/stable/latest.json
+          cp downloaded-release-assets/OpenStudio-appcast-windows-stable.xml release-input/appcast/windows-stable.xml
+          cp downloaded-release-assets/OpenStudio-appcast-macos-stable.xml release-input/appcast/macos-stable.xml
+
+      - name: Install dependencies
+        shell: bash
+        run: npm ci
+
+      - name: Validate staged release inputs
+        shell: bash
+        run: npm run validate-release-publish-inputs -- --root release-input
+
+      - name: Build website
+        shell: bash
+        run: npm run build
+
+      - name: Deploy to Netlify
+        shell: bash
+        run: npx netlify-cli deploy --dir dist --site "$NETLIFY_SITE_ID" --prod

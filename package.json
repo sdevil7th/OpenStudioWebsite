@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "stage-release-publish-inputs": "node scripts/stage-release-publish-inputs.mjs",
+    "validate-release-publish-inputs": "node scripts/validate-release-publish-inputs.mjs",
     "stage-ai-runtime-metadata": "node scripts/stage-ai-runtime-metadata.mjs",
     "validate-ai-runtime-metadata": "node scripts/validate-ai-runtime-metadata.mjs",
-    "build": "npm run stage-ai-runtime-metadata && npm run validate-ai-runtime-metadata && vite build",
+    "build": "npm run stage-release-publish-inputs && npm run validate-release-publish-inputs && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "generate-og": "node scripts/generate-og.mjs"
@@ -38,6 +40,7 @@
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
+    "fast-xml-parser": "^4.5.3",
     "globals": "^15.15.0",
     "playwright": "^1.59.1",
     "postcss": "^8.5.6",

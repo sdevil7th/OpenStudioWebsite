@@ -22,6 +22,10 @@ export const DOWNLOAD_PATHS = {
   macosLatest: "/download/macos/latest",
   aiRuntimeWindowsLatest: "/download/ai-runtime/windows/latest",
   aiRuntimeMacosLatest: "/download/ai-runtime/macos/latest",
+  releaseMetadataLatest: "/releases/latest.json",
+  releaseMetadataStableLatest: "/releases/stable/latest.json",
   aiRuntimeMetadataLatest: "/releases/ai-runtime/latest.json",
   aiRuntimeMetadataStableLatest: "/releases/ai-runtime/stable/latest.json",
+  windowsStableAppcast: "/appcast/windows-stable.xml",
+  macosStableAppcast: "/appcast/macos-stable.xml",
 };

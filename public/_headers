@@ -11,7 +11,15 @@
   Cache-Control: public, max-age=86400
 /robots.txt
   Cache-Control: public, max-age=86400
+/releases/latest.json
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+/releases/stable/latest.json
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
 /releases/ai-runtime/latest.json
   Cache-Control: no-store, no-cache, must-revalidate, max-age=0
 /releases/ai-runtime/stable/latest.json
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+/appcast/windows-stable.xml
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+/appcast/macos-stable.xml
   Cache-Control: no-store, no-cache, must-revalidate, max-age=0

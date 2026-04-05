@@ -108,8 +108,24 @@ interface GithubReleaseResponse {
   }>;
 }
 
-export const GITHUB_REPO_OWNER = "sdevil7th";
-export const GITHUB_REPO_NAME = "OpenStudio";
+export const DEFAULT_GITHUB_REPO_SLUG = "sdevil7th/OpenStudio";
+
+const parseRepoSlug = (value?: string) => {
+  const slug = value?.trim() || DEFAULT_GITHUB_REPO_SLUG;
+
+  if (!/^[^/\s]+\/[^/\s]+$/.test(slug)) {
+    throw new Error(`OPENSTUDIO_DESKTOP_REPO must be formatted as 'owner/repo'. Received '${slug}'.`);
+  }
+
+  const [owner, name] = slug.split("/");
+  return { owner, name, slug };
+};
+
+const configuredDesktopRepo = parseRepoSlug(process.env.OPENSTUDIO_DESKTOP_REPO);
+
+export const GITHUB_REPO_OWNER = configuredDesktopRepo.owner;
+export const GITHUB_REPO_NAME = configuredDesktopRepo.name;
+export const GITHUB_REPO_SLUG = configuredDesktopRepo.slug;
 export const GITHUB_REPOSITORY_URL = `https://github.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}`;
 export const GITHUB_DOCS_URL = `${GITHUB_REPOSITORY_URL}/tree/main/docs`;
 export const GITHUB_RELEASES_URL = `${GITHUB_REPOSITORY_URL}/releases`;
