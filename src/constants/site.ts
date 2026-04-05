@@ -20,4 +20,8 @@ export const BRANDING_ASSETS = {
 export const DOWNLOAD_PATHS = {
   windowsLatest: "/download/windows/latest",
   macosLatest: "/download/macos/latest",
+  aiRuntimeWindowsLatest: "/download/ai-runtime/windows/latest",
+  aiRuntimeMacosLatest: "/download/ai-runtime/macos/latest",
+  aiRuntimeMetadataLatest: "/releases/ai-runtime/latest.json",
+  aiRuntimeMetadataStableLatest: "/releases/ai-runtime/stable/latest.json",
 };
