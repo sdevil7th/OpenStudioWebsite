@@ -102,12 +102,12 @@ const HomePage = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
               <div className="absolute left-6 top-6 hidden gap-2 md:flex">
                 {["Stem work", "Pitch edits", "Native mixing", "Open source"].map((item) => (
-                  <span className="design-badge bg-black/30 text-white/70" key={item}>
+                  <span className="design-badge bg-black/30 text-white/70 backdrop-blur-lg" key={item}>
                     {item}
                   </span>
                 ))}
               </div>
-              <div className="absolute bottom-0 left-0 right-0 grid gap-3 border-t border-white/10 bg-black/35 p-4 md:grid-cols-3 md:p-6">
+              <div className="absolute bottom-0 left-0 right-0 grid gap-3 border-t backdrop-blur-xl border-white/10 bg-black/35 p-4 md:grid-cols-3 md:p-6">
                 {[
                   "Recording, MIDI, pitch work, and plugin hosting stay in one session.",
                   "Optional AI tooling stays honest and separate from the base install.",
@@ -140,7 +140,7 @@ const HomePage = () => {
 
           <SectionReveal className="relative mx-auto w-full max-w-[34rem]" delay={0.08}>
             <div className="absolute -inset-6 rounded-full bg-primary/10 blur-3xl" />
-            <div className="relative aspect-square overflow-hidden rounded-full border border-white/10 bg-white/[0.04] shadow-2xl">
+            <div className="relative aspect-square overflow-hidden rounded-[2.75em] border border-white/10 bg-white/[0.04] shadow-2xl">
               <img
                 alt={designMedia.homeStoryServer.alt}
                 className="h-full w-full object-cover grayscale contrast-125"
@@ -161,7 +161,7 @@ const HomePage = () => {
           <div className="grid gap-8 md:grid-cols-3">
             {homePillars.slice(0, 3).map((pillar, index) => (
               <SectionReveal
-                className="design-glass-panel rounded-[2.75rem] p-8 md:rounded-[999px]"
+                className="design-glass-panel rounded-[2.75rem] p-8"
                 delay={index * 0.06}
                 key={pillar.title}
               >
@@ -179,22 +179,11 @@ const HomePage = () => {
       <section className="px-6 py-24 md:px-10">
         <div className="mx-auto grid max-w-7xl gap-4 md:grid-cols-4 md:grid-rows-2">
           <SectionReveal className="design-panel relative overflow-hidden rounded-[2.5rem] p-10 md:col-span-2 md:row-span-2" delay={0.02}>
-            <SoundField accent="emerald" density={0.9} showGrid={false} showNodes={false} />
+            <SoundField accent="emerald" bars={42}  density={0.9} showGrid={false} showNodes={false} showWave={false}/>
             <div className="relative z-10 flex h-full flex-col justify-between">
               <div>
-                <h3 className="font-display text-4xl font-bold text-white">{homeCapabilityGrid[0]?.title ?? "Hyper-Scale Recording"}</h3>
+                <h3 className="font-headline text-4xl font-bold text-white">{homeCapabilityGrid[0]?.title ?? "Hyper-Scale Recording"}</h3>
                 <p className="mt-4 max-w-sm text-sm leading-7 text-white/68">{homeCapabilityGrid[0]?.description}</p>
-              </div>
-              <div className="mt-12 border-t border-white/10 pt-8">
-                <div className="flex h-32 items-end gap-2">
-                  {[60, 82, 100, 40, 90, 50, 72, 100, 34].map((height, index) => (
-                    <div
-                      className="eq-bar w-2 rounded-full bg-secondary"
-                      key={height}
-                      style={{ animationDelay: `${index * 0.08}s`, height: `${height}%`, opacity: Math.max(0.25, height / 100) }}
-                    />
-                  ))}
-                </div>
               </div>
             </div>
           </SectionReveal>
@@ -225,7 +214,7 @@ const HomePage = () => {
         <SectionReveal className="design-glass-panel relative mx-auto max-w-4xl overflow-hidden rounded-[2.75rem] border border-primary/20 p-12 text-center md:p-16">
           <div className="absolute inset-0 bg-primary/5" />
           <div className="relative z-10">
-            <h2 className="font-display text-4xl font-bold text-white md:text-6xl">Ready to join the revolution?</h2>
+            <h2 className="font-headline text-4xl font-bold text-white md:text-6xl">Ready to join the revolution?</h2>
             <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-white/66">{homeFinalCta.description}</p>
             <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
               <Button asChild className="rounded-2xl px-10">
