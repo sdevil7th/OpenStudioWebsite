@@ -15,6 +15,18 @@
   force = true
 
 [[redirects]]
+  from = "/download/ai-runtime/windows/latest"
+  to = "/.netlify/functions/download-latest-ai-runtime-windows"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/download/ai-runtime/macos/latest"
+  to = "/.netlify/functions/download-latest-ai-runtime-macos"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200

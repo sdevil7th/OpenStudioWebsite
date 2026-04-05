@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "stage-ai-runtime-metadata": "node scripts/stage-ai-runtime-metadata.mjs",
+    "validate-ai-runtime-metadata": "node scripts/validate-ai-runtime-metadata.mjs",
+    "build": "npm run stage-ai-runtime-metadata && npm run validate-ai-runtime-metadata && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "generate-og": "node scripts/generate-og.mjs"
