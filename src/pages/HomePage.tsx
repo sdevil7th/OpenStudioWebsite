@@ -155,8 +155,8 @@ const HomePage = () => {
       <section className="bg-black/20 px-6 py-24 md:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="mb-16 text-center">
-            <h2 className="font-display text-3xl font-bold uppercase tracking-tight text-white md:text-5xl">Engineered for the Future</h2>
-            <div className="mx-auto mt-4 h-1 w-32 rounded-full bg-secondary" />
+            <h2 className="font-headline text-3xl font-bold uppercase tracking-tight text-white md:text-5xl">Engineered for the Future</h2>
+            <div className="mx-auto mt-4 h-1 w-32 rounded-full bg-[linear-gradient(135deg,rgba(164,142,255,0.95),rgba(123,255,171,0.9))]" />
           </div>
           <div className="grid gap-8 md:grid-cols-3">
             {homePillars.slice(0, 3).map((pillar, index) => (
