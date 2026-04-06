@@ -1,5 +1,6 @@
 export type AiRuntimePlatform = "windows" | "macos";
 export type AiRuntimeMacosArchitecture = "arm64" | "x64";
+export type AiRuntimeWindowsBackend = "cuda" | "directml";
 
 export interface AiRuntimePlatformEntry {
   fileName: string;
@@ -14,12 +15,20 @@ export interface AiRuntimeMacosPlatforms {
   x64: AiRuntimePlatformEntry | null;
 }
 
+export interface AiRuntimeWindowsPlatforms {
+  backends: {
+    cuda: AiRuntimePlatformEntry | null;
+    directml: AiRuntimePlatformEntry | null;
+  };
+  legacy: AiRuntimePlatformEntry | null;
+}
+
 export interface AiRuntimeManifest {
   appVersion: string;
   channel: string;
   platforms: {
     macos: AiRuntimeMacosPlatforms;
-    windows: AiRuntimePlatformEntry;
+    windows: AiRuntimeWindowsPlatforms;
   };
   publishedAt: string;
   runtimeVersion: string;
@@ -86,6 +95,54 @@ const parsePlatformEntry = (value: unknown, label: string): AiRuntimePlatformEnt
   };
 };
 
+const parseWindowsPlatforms = (value: unknown, label: string): AiRuntimeWindowsPlatforms => {
+  if (!value || typeof value !== "object") {
+    throw new Error(`${label} is missing.`);
+  }
+
+  const windowsValue = value as Record<string, unknown>;
+  const hasLegacyShape =
+    windowsValue.url != null ||
+    windowsValue.sha256 != null ||
+    windowsValue.size != null ||
+    windowsValue.fileName != null;
+  const legacy = hasLegacyShape ? parsePlatformEntry(value, label) : null;
+
+  let cuda: AiRuntimePlatformEntry | null = null;
+  let directml: AiRuntimePlatformEntry | null = null;
+
+  if (windowsValue.backends != null) {
+    if (!windowsValue.backends || typeof windowsValue.backends !== "object") {
+      throw new Error(`${label}.backends must be an object.`);
+    }
+
+    const backendsValue = windowsValue.backends as Record<string, unknown>;
+    cuda = backendsValue.cuda != null ? parsePlatformEntry(backendsValue.cuda, `${label}.backends.cuda`) : null;
+    directml =
+      backendsValue.directml != null
+        ? parsePlatformEntry(backendsValue.directml, `${label}.backends.directml`)
+        : null;
+
+    if (!cuda && !directml) {
+      throw new Error(`${label}.backends must include at least one supported backend entry.`);
+    }
+  }
+
+  if (!legacy && !cuda && !directml) {
+    throw new Error(
+      `${label} must include either a legacy Windows runtime entry or '${label}.backends.cuda'/'${label}.backends.directml'.`,
+    );
+  }
+
+  return {
+    backends: {
+      cuda,
+      directml,
+    },
+    legacy,
+  };
+};
+
 const parseMacosPlatforms = (value: unknown, label: string): AiRuntimeMacosPlatforms => {
   if (!value || typeof value !== "object") {
     throw new Error(`${label} is missing.`);
@@ -120,9 +177,18 @@ export const resolveAiRuntimeDownloadUrl = (
   manifest: AiRuntimeManifest,
   platform: AiRuntimePlatform,
   architecture?: AiRuntimeMacosArchitecture,
+  backend?: AiRuntimeWindowsBackend,
 ) => {
   if (platform === "windows") {
-    return manifest.platforms.windows.url;
+    if (manifest.platforms.windows.legacy) {
+      return manifest.platforms.windows.legacy.url;
+    }
+
+    if (backend) {
+      return manifest.platforms.windows.backends[backend]?.url ?? null;
+    }
+
+    return null;
   }
 
   if (manifest.platforms.macos.legacy) {
@@ -177,7 +243,7 @@ export const parseAiRuntimeManifest = (
     appVersion: manifest.appVersion,
     channel: manifest.channel,
     platforms: {
-      windows: parsePlatformEntry(platforms.windows, `${label}.platforms.windows`),
+      windows: parseWindowsPlatforms(platforms.windows, `${label}.platforms.windows`),
       macos: parseMacosPlatforms(platforms.macos, `${label}.platforms.macos`),
     },
     publishedAt: manifest.publishedAt,

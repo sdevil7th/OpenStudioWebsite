@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "channel": "stable",
+  "appVersion": "0.0.22",
+  "runtimeVersion": "2026.04.07",
+  "publishedAt": "2026-04-07T00:00:00.000Z",
+  "platforms": {
+    "windows": {
+      "backends": {
+        "cuda": {
+          "url": "https://example.com/OpenStudio-AI-Runtime-windows-cuda.zip",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "size": 321,
+          "fileName": "OpenStudio-AI-Runtime-windows-cuda.zip"
+        },
+        "directml": {
+          "url": "https://example.com/OpenStudio-AI-Runtime-windows-directml.zip",
+          "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "size": 654,
+          "fileName": "OpenStudio-AI-Runtime-windows-directml.zip"
+        }
+      }
+    },
+    "macos": {
+      "arm64": {
+        "url": "https://example.com/OpenStudio-AI-Runtime-macos-arm64.zip",
+        "sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "size": 987,
+        "fileName": "OpenStudio-AI-Runtime-macos-arm64.zip"
+      }
+    }
+  }
+}

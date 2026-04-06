@@ -9,6 +9,7 @@
     "validate-release-publish-inputs": "node scripts/validate-release-publish-inputs.mjs",
     "stage-ai-runtime-metadata": "node scripts/stage-ai-runtime-metadata.mjs",
     "validate-ai-runtime-metadata": "node scripts/validate-ai-runtime-metadata.mjs",
+    "test:ai-runtime": "node --test test/ai-runtime-manifest.test.mjs",
     "build": "npm run stage-release-publish-inputs && npm run validate-release-publish-inputs && vite build",
     "lint": "eslint .",
     "preview": "vite preview",

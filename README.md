@@ -80,6 +80,7 @@ Validation rules:
 - AI runtime root/stable manifests must both exist and match after JSON normalization
 - app release JSON must include `schemaVersion`, `channel`, `version`, `publishedAt`, `releasePageUrl`, `platforms.windows`, and `platforms.macos`
 - AI runtime JSON must include `schemaVersion`, `channel`, `appVersion`, `runtimeVersion`, `publishedAt`, `platforms.windows`, and `platforms.macos`
+- AI runtime Windows metadata may be published as a legacy flat `platforms.windows` entry, nested `platforms.windows.backends.cuda` / `platforms.windows.backends.directml`, or a mixed transition manifest that contains both
 - AI runtime macOS metadata may be published either as the legacy flat `platforms.macos` entry or as the current nested `platforms.macos.arm64` and `platforms.macos.x64` entries
 - all manifest platform entries must include `url`, `sha256`, `size`, and `fileName`
 - both stable appcasts must be present, valid XML, and align with the stable app manifest enclosure data
@@ -98,7 +99,21 @@ Current AI runtime manifest shape:
       "url": "https://github.com/sdevil7th/OpenStudio/releases/download/v0.0.22/OpenStudio-AI-Runtime-windows-x64.zip",
       "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
       "size": 123,
-      "fileName": "OpenStudio-AI-Runtime-windows-x64.zip"
+      "fileName": "OpenStudio-AI-Runtime-windows-x64.zip",
+      "backends": {
+        "cuda": {
+          "url": "https://github.com/sdevil7th/OpenStudio/releases/download/v0.0.22/OpenStudio-AI-Runtime-windows-cuda.zip",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "size": 456,
+          "fileName": "OpenStudio-AI-Runtime-windows-cuda.zip"
+        },
+        "directml": {
+          "url": "https://github.com/sdevil7th/OpenStudio/releases/download/v0.0.22/OpenStudio-AI-Runtime-windows-directml.zip",
+          "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "size": 789,
+          "fileName": "OpenStudio-AI-Runtime-windows-directml.zip"
+        }
+      }
     },
     "macos": {
       "arm64": {
@@ -147,7 +162,8 @@ Desktop-side secret outside this repo:
 ## Redirect Behavior
 
 - `/download/windows/latest` and `/download/macos/latest` remain GitHub-release-backed installer redirects.
-- `/download/ai-runtime/windows/latest` resolves from the published AI runtime manifest.
+- `/download/ai-runtime/windows/latest` continues to use the legacy Windows compatibility entry when it is present in the published AI runtime manifest.
+- Nested Windows backend metadata is preserved verbatim in the published JSON at `/releases/ai-runtime/latest.json` and `/releases/ai-runtime/stable/latest.json`.
 - `/download/ai-runtime/macos/arm64/latest` and `/download/ai-runtime/macos/x64/latest` resolve from the published AI runtime manifest and should be preferred when the caller knows the target architecture.
 - `/download/ai-runtime/macos/latest` remains a best-effort convenience redirect. It still supports the legacy flat macOS manifest entry, and for the new nested shape it will honor `?arch=arm64` or `?arch=x64` when present, otherwise it only redirects when it can infer the architecture safely.
 - Netlify never hosts the `.exe`, `.dmg`, or AI runtime `.zip` files.

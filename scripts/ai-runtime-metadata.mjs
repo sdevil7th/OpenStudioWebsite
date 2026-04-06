@@ -83,6 +83,49 @@ const validatePlatformEntry = (entry, label) => {
   }
 };
 
+const validateWindowsPlatforms = (platforms, label) => {
+  if (!platforms || typeof platforms !== "object") {
+    throw new Error(`${label} is missing.`);
+  }
+
+  const hasLegacyShape =
+    platforms.url != null ||
+    platforms.sha256 != null ||
+    platforms.size != null ||
+    platforms.fileName != null;
+  const hasBackendsShape = platforms.backends != null;
+
+  if (!hasLegacyShape && !hasBackendsShape) {
+    throw new Error(
+      `${label} must include either a legacy Windows runtime entry or '${label}.backends.cuda'/'${label}.backends.directml'.`,
+    );
+  }
+
+  if (hasLegacyShape) {
+    validatePlatformEntry(platforms, label);
+  }
+
+  if (!hasBackendsShape) {
+    return;
+  }
+
+  if (!platforms.backends || typeof platforms.backends !== "object") {
+    throw new Error(`${label}.backends must be an object.`);
+  }
+
+  const backendEntries = ["cuda", "directml"].filter(
+    (backend) => platforms.backends[backend] && typeof platforms.backends[backend] === "object",
+  );
+
+  if (backendEntries.length === 0) {
+    throw new Error(`${label}.backends must include at least one supported backend entry.`);
+  }
+
+  for (const backend of backendEntries) {
+    validatePlatformEntry(platforms.backends[backend], `${label}.backends.${backend}`);
+  }
+};
+
 const validateMacosPlatforms = (platforms, label) => {
   if (!platforms || typeof platforms !== "object") {
     throw new Error(`${label} is missing.`);
@@ -140,7 +183,7 @@ export const validateAiRuntimeMetadata = (metadata, label) => {
     throw new Error(`${label}.platforms is required.`);
   }
 
-  validatePlatformEntry(metadata.platforms.windows, `${label}.platforms.windows`);
+  validateWindowsPlatforms(metadata.platforms.windows, `${label}.platforms.windows`);
   validateMacosPlatforms(metadata.platforms.macos, `${label}.platforms.macos`);
 };
 
