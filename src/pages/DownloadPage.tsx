@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle2, Code2, Cpu, Download, Monitor, Terminal } from "lucide-react";
+import { useEffect, useState } from "react";
 import PageSeo from "@/components/PageSeo";
 import SectionReveal from "@/components/motion/SectionReveal";
 import { Button } from "@/components/ui/button";
@@ -9,12 +10,52 @@ import { downloadHero, platformDownloads, systemRequirementMatrix } from "@/data
 import { externalLinks } from "@/data/siteLinks";
 import { useGithubRepoSnapshot } from "@/hooks/useGithubRepoSnapshot";
 import { formatGithubDate } from "@/lib/github";
+import { cn } from "@/lib/utils";
+
+type BrowserPlatform = "windows" | "macos" | "other";
+
+const detectBrowserPlatform = (): BrowserPlatform => {
+  if (typeof navigator === "undefined") {
+    return "other";
+  }
+
+  const navigatorWithUserAgentData = navigator as Navigator & {
+    userAgentData?: {
+      platform?: string;
+    };
+  };
+  const platformSignal = [
+    navigatorWithUserAgentData.userAgentData?.platform ?? "",
+    navigator.platform ?? "",
+    navigator.userAgent ?? "",
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  if (platformSignal.includes("mac")) {
+    return "macos";
+  }
+
+  if (platformSignal.includes("win")) {
+    return "windows";
+  }
+
+  return "other";
+};
 
 const DownloadPage = () => {
   const windows = platformDownloads.find((item) => item.id === "windows")!;
   const macos = platformDownloads.find((item) => item.id === "macos")!;
   const linux = platformDownloads.find((item) => item.id === "linux")!;
   const { snapshot } = useGithubRepoSnapshot();
+  const [browserPlatform, setBrowserPlatform] = useState<BrowserPlatform>(() => detectBrowserPlatform());
+  const prefersMacLayout = browserPlatform === "macos";
+  const windowsCardSpan = prefersMacLayout ? "md:col-span-4" : "md:col-span-8";
+  const macosCardSpan = prefersMacLayout ? "md:col-span-8" : "md:col-span-4";
+
+  useEffect(() => {
+    setBrowserPlatform(detectBrowserPlatform());
+  }, []);
 
   return (
     <motion.main
@@ -48,7 +89,7 @@ const DownloadPage = () => {
         </header>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
-          <SectionReveal className="design-panel group relative overflow-hidden rounded-[2.5rem] p-8 md:col-span-8">
+          <SectionReveal className={cn("design-panel group relative overflow-hidden rounded-[2.5rem] p-8", windowsCardSpan)}>
             <div className="mb-12 flex items-start justify-between gap-6">
               <div>
                 <div className="mb-2 flex items-center gap-3">
@@ -82,7 +123,7 @@ const DownloadPage = () => {
             </div>
           </SectionReveal>
 
-          <SectionReveal className="design-panel rounded-[2.5rem] p-8 md:col-span-4" delay={0.06}>
+          <SectionReveal className={cn("design-panel rounded-[2.5rem] p-8", macosCardSpan)} delay={0.06}>
             <div className="mb-12">
               <div className="mb-2 flex items-center gap-3">
                 <Monitor className="h-10 w-10 text-white" />
