@@ -1,15 +1,11 @@
 {
   "schemaVersion": 1,
   "channel": "stable",
-  "appVersion": "0.0.22",
+  "appVersion": "0.0.23",
   "runtimeVersion": "2026.04.07",
   "publishedAt": "2026-04-07T00:00:00.000Z",
   "platforms": {
     "windows": {
-      "url": "https://example.com/OpenStudio-AI-Runtime-windows-x64.zip",
-      "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-      "size": 123,
-      "fileName": "OpenStudio-AI-Runtime-windows-x64.zip",
       "base": {
         "url": "https://example.com/OpenStudio-AI-Runtime-windows-base.zip",
         "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",

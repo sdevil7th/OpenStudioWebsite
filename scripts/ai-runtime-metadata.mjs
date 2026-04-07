@@ -58,8 +58,18 @@ const ensureSha256 = (value, label) => {
   }
 };
 
+const isNonArrayObject = (value) => !!value && typeof value === "object" && !Array.isArray(value);
+
+const hasDownloadableAssetShape = (value) => {
+  if (!isNonArrayObject(value)) {
+    return false;
+  }
+
+  return value.url != null || value.sha256 != null || value.size != null || value.fileName != null;
+};
+
 const validatePlatformEntry = (entry, label) => {
-  if (!entry || typeof entry !== "object") {
+  if (!isNonArrayObject(entry)) {
     throw new Error(`${label} is missing.`);
   }
 
@@ -83,21 +93,33 @@ const validatePlatformEntry = (entry, label) => {
   }
 };
 
-const validateWindowsPlatforms = (platforms, label) => {
-  if (!platforms || typeof platforms !== "object") {
+const validateWindowsBackendEntry = (entry, label) => {
+  if (!isNonArrayObject(entry)) {
     throw new Error(`${label} is missing.`);
   }
 
-  const hasLegacyShape =
-    platforms.url != null ||
-    platforms.sha256 != null ||
-    platforms.size != null ||
-    platforms.fileName != null;
+  if (hasDownloadableAssetShape(entry)) {
+    validatePlatformEntry(entry, label);
+    return;
+  }
+
+  if (!isNonArrayObject(entry.installPlan)) {
+    throw new Error(`${label}.installPlan must be an object.`);
+  }
+};
+
+const validateWindowsPlatforms = (platforms, label) => {
+  if (!isNonArrayObject(platforms)) {
+    throw new Error(`${label} is missing.`);
+  }
+
+  const hasLegacyShape = hasDownloadableAssetShape(platforms);
+  const hasBaseShape = platforms.base != null;
   const hasBackendsShape = platforms.backends != null;
 
-  if (!hasLegacyShape && !hasBackendsShape) {
+  if (!hasLegacyShape && !hasBaseShape && !hasBackendsShape) {
     throw new Error(
-      `${label} must include either a legacy Windows runtime entry or '${label}.backends.cuda'/'${label}.backends.directml'.`,
+      `${label} must include a legacy Windows runtime entry, '${label}.base', or '${label}.backends.cuda'/'${label}.backends.directml'.`,
     );
   }
 
@@ -105,16 +127,20 @@ const validateWindowsPlatforms = (platforms, label) => {
     validatePlatformEntry(platforms, label);
   }
 
+  if (hasBaseShape) {
+    validatePlatformEntry(platforms.base, `${label}.base`);
+  }
+
   if (!hasBackendsShape) {
     return;
   }
 
-  if (!platforms.backends || typeof platforms.backends !== "object") {
+  if (!isNonArrayObject(platforms.backends)) {
     throw new Error(`${label}.backends must be an object.`);
   }
 
   const backendEntries = ["cuda", "directml"].filter(
-    (backend) => platforms.backends[backend] && typeof platforms.backends[backend] === "object",
+    (backend) => isNonArrayObject(platforms.backends[backend]),
   );
 
   if (backendEntries.length === 0) {
@@ -122,12 +148,12 @@ const validateWindowsPlatforms = (platforms, label) => {
   }
 
   for (const backend of backendEntries) {
-    validatePlatformEntry(platforms.backends[backend], `${label}.backends.${backend}`);
+    validateWindowsBackendEntry(platforms.backends[backend], `${label}.backends.${backend}`);
   }
 };
 
 const validateMacosPlatforms = (platforms, label) => {
-  if (!platforms || typeof platforms !== "object") {
+  if (!isNonArrayObject(platforms)) {
     throw new Error(`${label} is missing.`);
   }
 

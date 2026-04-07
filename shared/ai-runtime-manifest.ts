@@ -2,12 +2,21 @@ export type AiRuntimePlatform = "windows" | "macos";
 export type AiRuntimeMacosArchitecture = "arm64" | "x64";
 export type AiRuntimeWindowsBackend = "cuda" | "directml";
 
-export interface AiRuntimePlatformEntry {
+export interface AiRuntimeDownloadableAssetEntry {
   fileName: string;
   sha256: string;
   size: number;
   url: string;
 }
+
+export interface AiRuntimeBackendInstallPlanEntry {
+  installPlan: Record<string, unknown>;
+}
+
+export type AiRuntimePlatformEntry = AiRuntimeDownloadableAssetEntry;
+export type AiRuntimeWindowsBackendEntry =
+  | AiRuntimeDownloadableAssetEntry
+  | AiRuntimeBackendInstallPlanEntry;
 
 export interface AiRuntimeMacosPlatforms {
   arm64: AiRuntimePlatformEntry | null;
@@ -16,9 +25,10 @@ export interface AiRuntimeMacosPlatforms {
 }
 
 export interface AiRuntimeWindowsPlatforms {
+  base: AiRuntimePlatformEntry | null;
   backends: {
-    cuda: AiRuntimePlatformEntry | null;
-    directml: AiRuntimePlatformEntry | null;
+    cuda: AiRuntimeWindowsBackendEntry | null;
+    directml: AiRuntimeWindowsBackendEntry | null;
   };
   legacy: AiRuntimePlatformEntry | null;
 }
@@ -61,8 +71,19 @@ const ensureSha256 = (value: string, label: string) => {
   }
 };
 
+const isNonArrayObject = (value: unknown): value is Record<string, unknown> =>
+  !!value && typeof value === "object" && !Array.isArray(value);
+
+const hasDownloadableAssetShape = (value: unknown) => {
+  if (!isNonArrayObject(value)) {
+    return false;
+  }
+
+  return value.url != null || value.sha256 != null || value.size != null || value.fileName != null;
+};
+
 const parsePlatformEntry = (value: unknown, label: string): AiRuntimePlatformEntry => {
-  if (!value || typeof value !== "object") {
+  if (!isNonArrayObject(value)) {
     throw new Error(`${label} is missing.`);
   }
 
@@ -95,32 +116,62 @@ const parsePlatformEntry = (value: unknown, label: string): AiRuntimePlatformEnt
   };
 };
 
+export const isAiRuntimeDownloadableAssetEntry = (
+  entry: AiRuntimeWindowsBackendEntry | null | undefined,
+): entry is AiRuntimeDownloadableAssetEntry => hasDownloadableAssetShape(entry);
+
+export const isAiRuntimeBackendInstallPlanEntry = (
+  entry: AiRuntimeWindowsBackendEntry | null | undefined,
+): entry is AiRuntimeBackendInstallPlanEntry =>
+  isNonArrayObject(entry) && isNonArrayObject(entry.installPlan) && !hasDownloadableAssetShape(entry);
+
+const parseWindowsBackendEntry = (
+  value: unknown,
+  label: string,
+): AiRuntimeWindowsBackendEntry => {
+  if (!isNonArrayObject(value)) {
+    throw new Error(`${label} is missing.`);
+  }
+
+  if (hasDownloadableAssetShape(value)) {
+    return parsePlatformEntry(value, label);
+  }
+
+  if (!isNonArrayObject(value.installPlan)) {
+    throw new Error(`${label}.installPlan must be an object.`);
+  }
+
+  return {
+    installPlan: value.installPlan,
+  };
+};
+
 const parseWindowsPlatforms = (value: unknown, label: string): AiRuntimeWindowsPlatforms => {
-  if (!value || typeof value !== "object") {
+  if (!isNonArrayObject(value)) {
     throw new Error(`${label} is missing.`);
   }
 
   const windowsValue = value as Record<string, unknown>;
-  const hasLegacyShape =
-    windowsValue.url != null ||
-    windowsValue.sha256 != null ||
-    windowsValue.size != null ||
-    windowsValue.fileName != null;
+  const hasLegacyShape = hasDownloadableAssetShape(windowsValue);
   const legacy = hasLegacyShape ? parsePlatformEntry(value, label) : null;
+  const base = windowsValue.base != null ? parsePlatformEntry(windowsValue.base, `${label}.base`) : null;
 
-  let cuda: AiRuntimePlatformEntry | null = null;
-  let directml: AiRuntimePlatformEntry | null = null;
+  let cuda: AiRuntimeWindowsBackendEntry | null = null;
+  let directml: AiRuntimeWindowsBackendEntry | null = null;
 
   if (windowsValue.backends != null) {
-    if (!windowsValue.backends || typeof windowsValue.backends !== "object") {
+    if (!isNonArrayObject(windowsValue.backends)) {
       throw new Error(`${label}.backends must be an object.`);
     }
 
     const backendsValue = windowsValue.backends as Record<string, unknown>;
-    cuda = backendsValue.cuda != null ? parsePlatformEntry(backendsValue.cuda, `${label}.backends.cuda`) : null;
+    cuda =
+      backendsValue.cuda != null
+        ? parseWindowsBackendEntry(backendsValue.cuda, `${label}.backends.cuda`)
+        : null;
     directml =
       backendsValue.directml != null
-        ? parsePlatformEntry(backendsValue.directml, `${label}.backends.directml`)
+        ? parseWindowsBackendEntry(backendsValue.directml, `${label}.backends.directml`)
         : null;
 
     if (!cuda && !directml) {
@@ -128,13 +179,14 @@ const parseWindowsPlatforms = (value: unknown, label: string): AiRuntimeWindowsP
     }
   }
 
-  if (!legacy && !cuda && !directml) {
+  if (!legacy && !base && !cuda && !directml) {
     throw new Error(
-      `${label} must include either a legacy Windows runtime entry or '${label}.backends.cuda'/'${label}.backends.directml'.`,
+      `${label} must include a legacy Windows runtime entry, '${label}.base', or '${label}.backends.cuda'/'${label}.backends.directml'.`,
     );
   }
 
   return {
+    base,
     backends: {
       cuda,
       directml,
@@ -144,7 +196,7 @@ const parseWindowsPlatforms = (value: unknown, label: string): AiRuntimeWindowsP
 };
 
 const parseMacosPlatforms = (value: unknown, label: string): AiRuntimeMacosPlatforms => {
-  if (!value || typeof value !== "object") {
+  if (!isNonArrayObject(value)) {
     throw new Error(`${label} is missing.`);
   }
 
@@ -180,12 +232,17 @@ export const resolveAiRuntimeDownloadUrl = (
   backend?: AiRuntimeWindowsBackend,
 ) => {
   if (platform === "windows") {
-    if (manifest.platforms.windows.legacy) {
-      return manifest.platforms.windows.legacy.url;
+    if (backend) {
+      const backendEntry = manifest.platforms.windows.backends[backend];
+      return isAiRuntimeDownloadableAssetEntry(backendEntry) ? backendEntry.url : null;
     }
 
-    if (backend) {
-      return manifest.platforms.windows.backends[backend]?.url ?? null;
+    if (manifest.platforms.windows.base) {
+      return manifest.platforms.windows.base.url;
+    }
+
+    if (manifest.platforms.windows.legacy) {
+      return manifest.platforms.windows.legacy.url;
     }
 
     return null;
