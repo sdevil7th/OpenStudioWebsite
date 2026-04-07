@@ -1,6 +1,7 @@
+import * as Dialog from "@radix-ui/react-dialog";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle2, Code2, Cpu, Download, Monitor, Terminal } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowRight, Check, CheckCircle2, Code2, Copy, Cpu, Download, Monitor, Terminal, X } from "lucide-react";
+import { type ReactNode, useEffect, useState } from "react";
 import PageSeo from "@/components/PageSeo";
 import SectionReveal from "@/components/motion/SectionReveal";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,8 @@ import { formatGithubDate } from "@/lib/github";
 import { cn } from "@/lib/utils";
 
 type BrowserPlatform = "windows" | "macos" | "other";
+type DownloadPlatform = "windows" | "macos";
+type CopyState = "idle" | "copied" | "error";
 
 const detectBrowserPlatform = (): BrowserPlatform => {
   if (typeof navigator === "undefined") {
@@ -43,19 +46,163 @@ const detectBrowserPlatform = (): BrowserPlatform => {
   return "other";
 };
 
+const copyText = async (value: string) => {
+  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+
+  if (typeof document === "undefined") {
+    throw new Error("Clipboard unavailable");
+  }
+
+  const input = document.createElement("textarea");
+  input.value = value;
+  input.setAttribute("readonly", "");
+  input.style.position = "absolute";
+  input.style.left = "-9999px";
+  document.body.appendChild(input);
+  input.select();
+  document.execCommand("copy");
+  document.body.removeChild(input);
+};
+
 const DownloadPage = () => {
   const windows = platformDownloads.find((item) => item.id === "windows")!;
   const macos = platformDownloads.find((item) => item.id === "macos")!;
   const linux = platformDownloads.find((item) => item.id === "linux")!;
   const { snapshot } = useGithubRepoSnapshot();
   const [browserPlatform, setBrowserPlatform] = useState<BrowserPlatform>(() => detectBrowserPlatform());
+  const [pendingDownload, setPendingDownload] = useState<DownloadPlatform | null>(null);
+  const [copyState, setCopyState] = useState<CopyState>("idle");
   const prefersMacLayout = browserPlatform === "macos";
+  const featuredPlatform: DownloadPlatform = prefersMacLayout ? "macos" : "windows";
+  const isWindowsFeatured = featuredPlatform === "windows";
+  const isMacosFeatured = featuredPlatform === "macos";
   const windowsCardSpan = prefersMacLayout ? "md:col-span-4" : "md:col-span-8";
   const macosCardSpan = prefersMacLayout ? "md:col-span-8" : "md:col-span-4";
+
+  const downloadInstructions: Record<
+    DownloadPlatform,
+    {
+      href: string;
+      title: string;
+      eyebrow: string;
+      summary: ReactNode;
+      confirmLabel: string;
+      steps: ReactNode[];
+      command?: string;
+      commandLabel?: string;
+    }
+  > = {
+    windows: {
+      href: windows.href!,
+      title: "Windows trust step required",
+      eyebrow: "Before you open the installer",
+      summary: (
+        <>
+          When Windows warns that OpenStudio is from an untrusted publisher, click{" "}
+          <span className="rounded-md border border-amber-300/40 bg-amber-300/18 px-2 py-0.5 font-mono text-[0.72rem] font-bold uppercase tracking-[0.14em] text-amber-100">
+            More info
+          </span>{" "}
+          and then{" "}
+          <span className="rounded-md border border-rose-300/40 bg-rose-300/18 px-2 py-0.5 font-mono text-[0.72rem] font-bold uppercase tracking-[0.14em] text-rose-100">
+            Run anyway
+          </span>{" "}
+          to continue.
+        </>
+      ),
+      confirmLabel: "I understand, download for Windows",
+      steps: [
+        "Download the latest Windows installer.",
+        "Run the .exe after the download completes.",
+        <>
+          If SmartScreen appears, click{" "}
+          <span className="rounded-md border border-amber-300/40 bg-amber-300/18 px-2 py-0.5 font-mono text-[0.72rem] font-bold uppercase tracking-[0.14em] text-amber-100">
+            More info
+          </span>
+          .
+        </>,
+        <>
+          Click{" "}
+          <span className="rounded-md border border-rose-300/40 bg-rose-300/18 px-2 py-0.5 font-mono text-[0.72rem] font-bold uppercase tracking-[0.14em] text-rose-100">
+            Run anyway
+          </span>{" "}
+          to continue with the install.
+        </>,
+      ],
+    },
+    macos: {
+      href: macos.href!,
+      title: "macOS trust step required",
+      eyebrow: "Before you open the app",
+      summary: (
+        <>
+          If macOS marks OpenStudio as{" "}
+          <span className="rounded-md border border-orange-300/40 bg-orange-300/18 px-2 py-0.5 font-mono text-[0.72rem] font-bold uppercase tracking-[0.14em] text-orange-100">
+            damaged
+          </span>{" "}
+          or{" "}
+          <span className="rounded-md border border-orange-300/40 bg-orange-300/18 px-2 py-0.5 font-mono text-[0.72rem] font-bold uppercase tracking-[0.14em] text-orange-100">
+            broken
+          </span>
+          , remove the quarantine flag with the command below and then launch the app again.
+        </>
+      ),
+      confirmLabel: "I understand, download for macOS",
+      steps: [
+        "Download the latest macOS DMG.",
+        "Move OpenStudio.app into /Applications.",
+        "Open Terminal and run the quarantine-removal command below.",
+        "Launch OpenStudio again from Applications.",
+      ],
+      command: "xattr -dr com.apple.quarantine /Applications/OpenStudio.app",
+      commandLabel: "Run in Terminal",
+    },
+  };
+
+  const activeDownload = pendingDownload ? downloadInstructions[pendingDownload] : null;
 
   useEffect(() => {
     setBrowserPlatform(detectBrowserPlatform());
   }, []);
+
+  useEffect(() => {
+    if (pendingDownload == null) {
+      setCopyState("idle");
+    }
+  }, [pendingDownload]);
+
+  useEffect(() => {
+    if (copyState !== "copied") {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => setCopyState("idle"), 2000);
+    return () => window.clearTimeout(timeout);
+  }, [copyState]);
+
+  const handleConfirmDownload = () => {
+    if (!activeDownload || typeof window === "undefined") {
+      return;
+    }
+
+    setPendingDownload(null);
+    window.location.assign(activeDownload.href);
+  };
+
+  const handleCopyCommand = async () => {
+    if (!activeDownload?.command) {
+      return;
+    }
+
+    try {
+      await copyText(activeDownload.command);
+      setCopyState("copied");
+    } catch {
+      setCopyState("error");
+    }
+  };
 
   return (
     <motion.main
@@ -89,57 +236,108 @@ const DownloadPage = () => {
         </header>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
-          <SectionReveal className={cn("design-panel group relative overflow-hidden rounded-[2.5rem] p-8", windowsCardSpan)}>
+          <SectionReveal
+            className={cn(
+              "design-panel relative overflow-hidden rounded-[2.5rem] p-8",
+              isWindowsFeatured && "group border-primary/25 bg-[radial-gradient(circle_at_top_right,rgba(164,142,255,0.14),transparent_44%)]",
+              !isWindowsFeatured && "border-white/10 bg-white/[0.03]",
+              windowsCardSpan,
+            )}
+          >
             <div className="mb-12 flex items-start justify-between gap-6">
               <div>
                 <div className="mb-2 flex items-center gap-3">
-                  <Monitor className="h-10 w-10 text-primary" />
+                  <Monitor className={cn("h-10 w-10", isWindowsFeatured ? "text-primary" : "text-white")} />
                   <h2 className="font-headline text-3xl font-bold text-white">Windows</h2>
                 </div>
                 <p className="font-mono text-xs uppercase tracking-[0.18em] text-white/48">x64 architecture • installer (.exe)</p>
               </div>
-              <div className="rounded-lg bg-primary/20 px-3 py-1 font-mono text-[0.62rem] font-bold uppercase tracking-[0.18em] text-primary">
-                Recommended
-              </div>
+              {isWindowsFeatured ? (
+                <div className="rounded-lg bg-primary/20 px-3 py-1 font-mono text-[0.62rem] font-bold uppercase tracking-[0.18em] text-primary">
+                  {browserPlatform === "windows" ? "Recommended on this device" : "Recommended"}
+                </div>
+              ) : null}
             </div>
-            <div className="space-y-6">
-              <div className="flex flex-wrap gap-4">
-                {["ASIO support", "WASAPI low latency", "DirectSound"].map((item) => (
-                  <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-1.5" key={item}>
-                    <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
-                    <span className="font-mono text-[0.68rem] text-white/58">{item}</span>
-                  </div>
-                ))}
-              </div>
-              <Button asChild className="h-auto w-full rounded-2xl px-8 py-5 text-xl font-bold">
-                <a href={windows.href}>
-                  <Download className="h-5 w-5" />
-                  Download for Windows
-                </a>
+            <div className={cn("space-y-4", isWindowsFeatured && "space-y-6")}>
+              {isWindowsFeatured ? (
+                <div className="flex flex-wrap gap-4">
+                  {["ASIO support", "WASAPI low latency", "DirectSound"].map((item) => (
+                    <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-1.5" key={item}>
+                      <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
+                      <span className="font-mono text-[0.68rem] text-white/58">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm italic leading-7 text-white/60">Best for ASIO and low-latency desktop audio setups with the current manual trust notes kept visible.</p>
+              )}
+              <Button
+                className={cn("h-auto w-full rounded-2xl px-8 py-5 font-bold", isWindowsFeatured ? "text-xl" : "text-lg")}
+                onClick={() => setPendingDownload("windows")}
+                type="button"
+                variant={isWindowsFeatured ? "default" : "outline"}
+              >
+                <Download className="h-5 w-5" />
+                Download for Windows
               </Button>
             </div>
-            <div className="pointer-events-none absolute -bottom-20 -right-20 text-white/5 transition group-hover:text-white/10">
-              <Cpu className="h-56 w-56" />
-            </div>
+            {isWindowsFeatured ? (
+              <div className="pointer-events-none absolute -bottom-20 -right-20 text-white/5 transition group-hover:text-white/10">
+                <Cpu className="h-56 w-56" />
+              </div>
+            ) : null}
           </SectionReveal>
 
-          <SectionReveal className={cn("design-panel rounded-[2.5rem] p-8", macosCardSpan)} delay={0.06}>
-            <div className="mb-12">
-              <div className="mb-2 flex items-center gap-3">
-                <Monitor className="h-10 w-10 text-white" />
-                <h2 className="font-headline text-3xl font-bold text-white">macOS</h2>
+          <SectionReveal
+            className={cn(
+              "design-panel relative overflow-hidden rounded-[2.5rem] p-8",
+              isMacosFeatured && "group border-secondary/25 bg-[radial-gradient(circle_at_top_right,rgba(123,255,171,0.16),transparent_44%)]",
+              !isMacosFeatured && "border-white/10 bg-white/[0.03]",
+              macosCardSpan,
+            )}
+            delay={0.06}
+          >
+            <div className="mb-12 flex items-start justify-between gap-6">
+              <div>
+                <div className="mb-2 flex items-center gap-3">
+                  <Monitor className={cn("h-10 w-10", isMacosFeatured ? "text-secondary" : "text-white")} />
+                  <h2 className="font-headline text-3xl font-bold text-white">macOS</h2>
+                </div>
+                <p className="font-mono text-xs uppercase tracking-[0.18em] text-white/48">Universal DMG</p>
               </div>
-              <p className="font-mono text-xs uppercase tracking-[0.18em] text-white/48">Universal DMG</p>
+              {isMacosFeatured ? (
+                <div className="rounded-lg bg-secondary/20 px-3 py-1 font-mono text-[0.62rem] font-bold uppercase tracking-[0.18em] text-secondary">
+                  {browserPlatform === "macos" ? "Recommended on this device" : "Recommended"}
+                </div>
+              ) : null}
             </div>
-            <div className="space-y-4">
+            <div className={cn("space-y-4", isMacosFeatured && "space-y-6")}>
+              {isMacosFeatured ? (
+                <div className="flex flex-wrap gap-4">
+                  {["Apple Silicon", "Intel support", "DMG install"].map((item) => (
+                    <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-1.5" key={item}>
+                      <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                      <span className="font-mono text-[0.68rem] text-white/58">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               <p className="text-sm italic leading-7 text-white/60">Supports Intel and Apple Silicon with the current manual trust notes kept visible.</p>
-              <Button asChild className="h-auto w-full rounded-2xl px-8 py-5 text-lg font-bold" variant="outline">
-                <a href={macos.href}>
-                  <Download className="h-5 w-5" />
-                  Get macOS app
-                </a>
+              <Button
+                className={cn("h-auto w-full rounded-2xl px-8 py-5 font-bold", isMacosFeatured ? "text-xl" : "text-lg")}
+                onClick={() => setPendingDownload("macos")}
+                type="button"
+                variant={isMacosFeatured ? "default" : "outline"}
+              >
+                <Download className="h-5 w-5" />
+                Get macOS app
               </Button>
             </div>
+            {isMacosFeatured ? (
+              <div className="pointer-events-none absolute -bottom-20 -right-20 text-white/5 transition group-hover:text-white/10">
+                <Download className="h-56 w-56" />
+              </div>
+            ) : null}
           </SectionReveal>
 
           <SectionReveal className="design-panel cursor-not-allowed rounded-[2.5rem] p-8 grayscale opacity-55 md:col-span-4" delay={0.1}>
@@ -244,6 +442,74 @@ const DownloadPage = () => {
           </div>
         </SectionReveal>
       </div>
+
+      <Dialog.Root onOpenChange={(open) => setPendingDownload(open ? pendingDownload : null)} open={pendingDownload !== null}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-[rgba(3,5,12,0.82)] backdrop-blur-sm" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[min(92vw,40rem)] -translate-x-1/2 -translate-y-1/2 rounded-[2rem] border border-white/10 bg-[#0b0d14]/95 p-6 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:p-8">
+            <Dialog.Title className="font-headline text-2xl font-bold text-white">{activeDownload?.title}</Dialog.Title>
+            <Dialog.Description className="mt-3 text-sm leading-7 text-white/64">{activeDownload?.summary}</Dialog.Description>
+
+            <button
+              aria-label="Close download instructions"
+              className="absolute right-4 top-4 rounded-full border border-white/10 p-2 text-white/55 transition hover:text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+              onClick={() => setPendingDownload(null)}
+              type="button"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5">
+              <div className="font-mono text-[0.68rem] uppercase tracking-[0.22em] text-secondary">{activeDownload?.eyebrow}</div>
+              <ol className="mt-4 space-y-3 text-sm leading-7 text-white/78">
+                {activeDownload?.steps.map((step, index) => (
+                  <li className="flex gap-3" key={`${pendingDownload ?? "download"}-step-${index}`}>
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] font-mono text-[0.68rem] text-secondary">
+                      {index + 1}
+                    </span>
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ol>
+
+              {activeDownload?.command ? (
+                <div className="mt-5 rounded-[1.25rem] border border-white/10 bg-black/30 p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-primary">{activeDownload.commandLabel}</div>
+                    <Button
+                      className="h-10 rounded-xl px-4 text-xs"
+                      onClick={handleCopyCommand}
+                      size="sm"
+                      type="button"
+                      variant="secondary"
+                    >
+                      {copyState === "copied" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      {copyState === "copied" ? "Copied" : copyState === "error" ? "Copy failed" : "Copy command"}
+                    </Button>
+                  </div>
+                  <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-all font-mono text-sm leading-6 text-white">
+                    <code>{activeDownload.command}</code>
+                  </pre>
+                </div>
+              ) : null}
+            </div>
+
+            <p className="mt-5 text-sm leading-7 text-white/58">
+              Confirming means you understand that OpenStudio may require these manual trust steps before it opens normally on your platform.
+            </p>
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <Button onClick={() => setPendingDownload(null)} type="button" variant="ghost">
+                Cancel
+              </Button>
+              <Button className="h-auto px-6 py-3 text-base" onClick={handleConfirmDownload} type="button">
+                <Download className="h-4 w-4" />
+                {activeDownload?.confirmLabel}
+              </Button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </motion.main>
   );
 };
