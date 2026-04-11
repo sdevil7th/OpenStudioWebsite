@@ -15,6 +15,7 @@ interface SoundFieldProps {
   showMeters?: boolean;
   showWave?: boolean;
   showNodes?: boolean;
+  bars?: number;
 }
 
 const SoundField = ({
@@ -27,14 +28,15 @@ const SoundField = ({
   showMeters = true,
   showWave = true,
   showNodes = true,
+  bars = 10,
 }: SoundFieldProps) => (
   <div aria-hidden="true" className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}>
     {showGrid ? <SignalGrid accent={accent} density={density} reducedMotionMode={reducedMotionMode} speed={speed} /> : null}
     {showNodes ? <OrbitalNodes accent={accent} count={5} density={density} reducedMotionMode={reducedMotionMode} speed={speed} /> : null}
-    {showWave ? <WaveformRibbon accent={accent} className="bottom-[12%] h-28" density={density} reducedMotionMode={reducedMotionMode} speed={speed} /> : null}
+    {showWave ? <WaveformRibbon accent={accent} className="bottom-[12%] h-42" density={density} reducedMotionMode={reducedMotionMode} speed={speed} /> : null}
     {showMeters ? (
-      <div className="absolute bottom-6 right-6">
-        <MeterBars accent={accent} bars={10} density={density} reducedMotionMode={reducedMotionMode} speed={speed} />
+      <div className="absolute -bottom-1 -right-1">
+        <MeterBars accent={accent} bars={bars} density={density} reducedMotionMode={reducedMotionMode} speed={speed} />
       </div>
     ) : null}
   </div>

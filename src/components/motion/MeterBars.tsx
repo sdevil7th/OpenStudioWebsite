@@ -18,7 +18,12 @@ const accentClass: Record<AccentTone, string> = {
   frost: "from-white/15 via-sky-200/75 to-white/80",
 };
 
-const baseHeights = [38, 58, 74, 46, 66, 94, 52, 82, 63, 42];
+const seedHeights = [138, 158, 174, 146, 166, 194, 152, 182, 163, 142];
+
+function generateHeights(count: number): number[] {
+  if (count <= seedHeights.length) return seedHeights.slice(0, count);
+  return Array.from({ length: count }, (_, i) => seedHeights[i % seedHeights.length]);
+}
 
 const MeterBars = ({
   className,
@@ -37,7 +42,7 @@ const MeterBars = ({
   return (
     <div aria-hidden="true" className={cn("pointer-events-none flex items-end gap-2", className)}>
       {Array.from({ length: bars }).map((_, index) => {
-        const height = baseHeights[index % baseHeights.length] * density;
+        const height = generateHeights(bars)[index] * density;
 
         return (
           <motion.span
