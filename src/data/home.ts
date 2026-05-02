@@ -2,10 +2,23 @@ import { screenshots } from "@/data/screenshots";
 import type { ActionLink, SeoMeta, StoryStep } from "@/data/marketing";
 
 export const homeSeo: SeoMeta = {
-  title: "OpenStudio | Free Open Source DAW — Stem Separation, Pitch Editing, MIDI, and Mixing",
+  title: "OpenStudio | Free Open Source DAW for Music Production",
   description:
-    "OpenStudio is a free, open source DAW for Windows and macOS — stem separation, pitch editing, MIDI instruments, plugin hosting, and a complete music production workflow.",
+    "OpenStudio is a free, open source DAW for Windows, macOS, and Linux — music production software with multitrack recording, MIDI, pitch editing, stem separation, and plugin hosting.",
   path: "/",
+  keywords: [
+    "free daw",
+    "open source daw",
+    "music production software",
+    "digital audio workstation",
+    "audio editing software",
+    "music making software",
+    "daw free",
+    "free music production software",
+    "daw windows",
+    "daw mac",
+    "daw linux",
+  ],
   jsonLd: [
     {
       "@context": "https://schema.org",
@@ -13,10 +26,12 @@ export const homeSeo: SeoMeta = {
       name: "OpenStudio",
       applicationCategory: "MultimediaApplication",
       applicationSubCategory: "DigitalAudioWorkstation",
-      operatingSystem: ["Windows 10", "Windows 11", "macOS"],
+      operatingSystem: ["Windows 10", "Windows 11", "macOS", "Linux"],
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
       description:
-        "Free, open source DAW for Windows and macOS with stem separation, pitch editing, MIDI, plugin hosting, and mixing.",
+        "Free, open source DAW for Windows, macOS, and Linux — music production software with stem separation, pitch editing, MIDI, plugin hosting, audio editing, and mixing.",
+      keywords:
+        "free daw, open source daw, music production software, digital audio workstation, audio editing software, music making software, daw free, free music production software",
       featureList: [
         "Multi-track recording",
         "MIDI instruments",
@@ -25,6 +40,8 @@ export const homeSeo: SeoMeta = {
         "Plugin hosting (VST3, CLAP, LV2, ARA2)",
         "Three-tier FX chain",
         "Automation lanes",
+        "Audio editing and mixing",
+        "Music production workflow",
       ],
       downloadUrl: "https://openstudio.org.in/download",
       url: "https://openstudio.org.in",
@@ -41,7 +58,7 @@ export const homeSeo: SeoMeta = {
         {
           "@type": "Question",
           name: "What operating systems does OpenStudio support?",
-          acceptedAnswer: { "@type": "Answer", text: "Windows 10/11 and macOS." },
+          acceptedAnswer: { "@type": "Answer", text: "Windows 10/11, macOS, and Linux." },
         },
         {
           "@type": "Question",
@@ -76,8 +93,8 @@ export const homeHero = {
     to: "/features",
   } satisfies ActionLink,
   tertiaryCta: {
-    label: "See Stem Separation",
-    to: "/stem-separation",
+    label: "Explore AI",
+    to: "/ai",
   } satisfies ActionLink,
 };
 
@@ -99,14 +116,14 @@ export const homeProofBarItems = [
 ];
 
 export const homeOriginStory = {
-  eyebrow: "Developer odyssey",
-  title: "One product vision, shipped through focused iteration.",
+  eyebrow: "Open project direction",
+  title: "A serious DAW, shaped through public iteration.",
   description:
-    "OpenStudio is being shaped as a native DAW with a visually modern surface and a grounded production story. The public site should make that feel intentional: serious audio workflows, integrated advanced tools, and no fake distance between product ambition and the real release path.",
+    "OpenStudio is being shaped as a native DAW with a visually modern surface and a grounded production story. The public site should make that feel intentional: serious audio workflows, integrated advanced tools, and a direct connection between product ambition, releases, and the real repository.",
   points: [
-    "Native DAW positioning, not a browser-first toy.",
-    "Advanced workflow depth framed as part of the session.",
-    "Release claims kept honest around optional AI tooling and installer trust.",
+    "Native DAW positioning instead of a browser-first compromise.",
+    "Advanced workflow depth framed as part of the session, not a detached utility story.",
+    "Release claims kept honest around optional AI tooling, packaging, and installer trust.",
   ],
 };
 
@@ -249,8 +266,8 @@ export const homeShowcase = {
     to: "/features",
   } satisfies ActionLink,
   secondaryCta: {
-    label: "See Stem Separation",
-    to: "/stem-separation",
+    label: "Explore AI",
+    to: "/ai",
   } satisfies ActionLink,
   media: [
     screenshots.pitchEditor,
@@ -263,7 +280,7 @@ export const homeFinalCta = {
   eyebrow: "Start here",
   title: "Use one DAW, then go deeper when the project asks for it.",
   description:
-    "OpenStudio is built for creators who want a serious modern DAW with advanced workflows already within reach.",
+    "OpenStudio is built for people who want a serious modern DAW with advanced workflows already within reach and an open project they can actually inspect.",
   primaryCta: {
     label: "Download OpenStudio",
     to: "/download",

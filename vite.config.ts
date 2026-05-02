@@ -107,18 +107,23 @@ const githubDevBridge = () => ({
       if (
         pathname === "/download/windows/latest" ||
         pathname === "/download/macos/latest" ||
+        pathname === "/download/linux/latest" ||
         pathname === "/download/ai-runtime/windows/latest" ||
         pathname === "/download/ai-runtime/macos/latest" ||
+        pathname === "/download/ai-runtime/linux/latest" ||
         pathname === "/download/ai-runtime/macos/arm64/latest" ||
         pathname === "/download/ai-runtime/macos/x64/latest" ||
         pathname === "/.netlify/functions/download-latest-windows" ||
         pathname === "/.netlify/functions/download-latest-macos" ||
+        pathname === "/.netlify/functions/download-latest-linux" ||
         pathname === "/.netlify/functions/download-latest-ai-runtime-windows" ||
         pathname === "/.netlify/functions/download-latest-ai-runtime-macos" ||
+        pathname === "/.netlify/functions/download-latest-ai-runtime-linux" ||
         pathname === "/.netlify/functions/download-latest-ai-runtime-macos-arm64" ||
         pathname === "/.netlify/functions/download-latest-ai-runtime-macos-x64" ||
         pathname === "/.netlify/functions/download-latest/windows" ||
         pathname === "/.netlify/functions/download-latest/macos" ||
+        pathname === "/.netlify/functions/download-latest/linux" ||
         pathname === "/.netlify/functions/download-latest"
       ) {
         const pathSegments = pathname.split("/").filter(Boolean);
@@ -137,6 +142,12 @@ const githubDevBridge = () => ({
                 trailingSegment === "macos" ||
                 url.searchParams.get("platform") === "macos"
               ? "macos"
+              : pathname === "/.netlify/functions/download-latest-linux" ||
+                  pathname === "/.netlify/functions/download-latest-ai-runtime-linux" ||
+                  pathname.includes("/linux/") ||
+                  trailingSegment === "linux" ||
+                  url.searchParams.get("platform") === "linux"
+                ? "linux"
               : null;
 
         if (!platform) {
@@ -205,6 +216,7 @@ export default defineConfig({
         manualChunks: {
           "react-vendor": ["react", "react-dom", "react-router-dom"],
           "animation-vendor": ["framer-motion"],
+          "webgl-vendor": ["three"],
           "ui-vendor": [
             "@radix-ui/react-dialog",
             "@radix-ui/react-aspect-ratio",

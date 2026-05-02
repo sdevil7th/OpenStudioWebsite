@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useReducedMotion } from "framer-motion";
 import Lenis from "lenis";
+import { registerGsap, ScrollTrigger, gsap } from "@/lib/gsap";
 
 interface SmoothScrollContextValue {
   lenis: Lenis | null;
@@ -25,6 +26,8 @@ const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) => {
       return;
     }
 
+    registerGsap();
+
     const lenisInstance = new Lenis({
       duration: 1.1,
       smoothWheel: true,
@@ -34,18 +37,18 @@ const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) => {
     });
 
     setLenis(lenisInstance);
-
-    let frame = 0;
-
-    const raf = (time: number) => {
-      lenisInstance.raf(time);
-      frame = window.requestAnimationFrame(raf);
+    const updateScroll = () => ScrollTrigger.update();
+    const tick = (time: number) => {
+      lenisInstance.raf(time * 1000);
     };
 
-    frame = window.requestAnimationFrame(raf);
+    lenisInstance.on("scroll", updateScroll);
+    gsap.ticker.add(tick);
+    gsap.ticker.lagSmoothing(0);
 
     return () => {
-      window.cancelAnimationFrame(frame);
+      lenisInstance.off("scroll", updateScroll);
+      gsap.ticker.remove(tick);
       lenisInstance.destroy();
       setLenis(null);
     };

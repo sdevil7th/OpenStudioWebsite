@@ -30,173 +30,226 @@ export interface LegalDocument {
 
 export const privacyDocument: LegalDocument = {
   eyebrow: "Privacy",
-  title: "A short privacy note based on the current product.",
+  title: "Privacy Policy",
   summary:
-    "OpenStudio is a desktop product and public website, not a telemetry-heavy cloud service. This page reflects the current codebase and shipping surface as we understand it today.",
+    "OpenStudio is a local desktop application and public website. This policy describes what limited information the site and app may encounter and how it is handled.",
   seo: {
-    title: "OpenStudio Privacy | Fact-Based Privacy Summary",
+    title: "OpenStudio Privacy Policy | Website and App",
     description:
-      "Read the current OpenStudio privacy summary covering downloads, release metadata, optional AI tools, and the product's present data-collection stance.",
+      "Read the OpenStudio privacy policy covering the public website, the desktop app, release metadata checks, and optional local AI tools.",
     path: "/privacy",
   },
   facts: [
-    { label: "Product shape", value: "Native desktop DAW plus public marketing site" },
-    { label: "AI tools", value: "Optional install, separate from the base app" },
-    { label: "Update surface", value: "Release metadata and appcast URLs at openstudio.org.in" },
-    { label: "Telemetry stance", value: "No dedicated analytics vendor found in the current repo" },
+    { label: "Last updated", value: "April 16, 2026" },
+    { label: "Analytics", value: "None" },
+    { label: "Software license", value: "GNU AGPLv3" },
+    { label: "AI tools", value: "Optional, user-installed only" },
   ],
   sections: [
     {
-      title: "What this page is",
+      title: "Scope of this policy",
       paragraphs: [
-        "This is a plain-language privacy summary based on the current OpenStudio website and the Studio13-v3 codebase it was derived from. It is meant to describe observable product behavior, not act as a lawyer-written policy for hypothetical future services.",
-        "If OpenStudio later adds account systems, cloud collaboration, or broader data collection, this page should be updated to reflect those changes.",
+        "This policy covers openstudio.org.in and the OpenStudio desktop application. The website exists primarily to explain the product, publish release information, and let users download the app itself.",
+        "This policy does not cover third-party services, plugins, or tools that you choose to connect to independently outside the base OpenStudio website and desktop workflow.",
       ],
     },
     {
-      title: "What OpenStudio appears to handle today",
+      title: "Information the website may collect",
       paragraphs: [
-        "The website is built to present the product, link to downloads, show release information, and point people toward documentation, the repository, and contact details.",
-        "The desktop app appears to center on local creative work: project files, audio assets, presets, exports, optional AI runtime files, and release/update metadata used to keep the download path legible.",
-      ],
-      bullets: [
-        "Local project and session data created by the user",
-        "Presets, themes, exports, and other user-generated files",
-        "Optional AI runtime files installed later for stem separation workflows",
-        "Standard website or hosting logs that may exist at the infrastructure layer",
+        "The website may generate standard server or hosting logs such as IP address, browser type, referrer, pages visited, and timestamps. That information is retained only as needed for infrastructure operation, security, and availability.",
+        "OpenStudio does not use tracking pixels, ad networks, or dedicated analytics vendors on the public site.",
       ],
     },
     {
-      title: "Network-facing behavior",
+      title: "Information the desktop app may encounter",
       paragraphs: [
-        "The current codebase points to release metadata, appcast URLs, and download/release pages hosted on openstudio.org.in. Those update and release surfaces are the clearest network-facing behaviors visible in the repo today.",
-        "The optional AI tools flow is separate from the base app and may require downloading runtime packages or models when a user explicitly chooses to install that tooling.",
+        "Project files, audio, presets, and exports stay on your device as part of the normal desktop workflow. OpenStudio is a desktop product first, and the website is only the delivery and documentation surface around it.",
+        "The app may request openstudio.org.in to check release or update metadata. Those requests are intended to retrieve version information and download metadata, not to send personal identity information.",
       ],
     },
     {
-      title: "Analytics and telemetry",
+      title: "Optional AI tools",
       paragraphs: [
-        "We did not find clear evidence in the current repo of a dedicated analytics, advertising, or product-telemetry vendor. OpenStudio should therefore not present itself as a telemetry-heavy service.",
-        "That said, absence of a dedicated analytics vendor in the repo is not the same as a permanent promise that no operational logs or future diagnostics will ever exist. If that product behavior changes, this page should change with it.",
+        "Stem separation and similar features are provided through a separate optional install. Those tools are not required to use the base application.",
+        "When installed, the intended base workflow is local: audio is processed on your machine rather than uploaded to external servers as part of the standard OpenStudio experience.",
+      ],
+    },
+    {
+      title: "Third-party services",
+      paragraphs: [
+        "Release artifacts are hosted through GitHub at github.com/sdevil7th/OpenStudio, so GitHub's own privacy policy applies when you access release assets there.",
+        "OpenStudio does not integrate advertising, remarketing, or marketing automation vendors into the current website or desktop product flow.",
+      ],
+    },
+    {
+      title: "Contact",
+      paragraphs: [
+        "If you have privacy questions about the OpenStudio website or desktop application, contact sdevil7th@gmail.com.",
       ],
     },
   ],
   links: [
-    { label: "Documentation", href: externalLinks.documentation ?? "/github", external: Boolean(externalLinks.documentation?.startsWith("http")) },
-    { label: "GitHub repository", href: externalLinks.repository ?? "/github", external: Boolean(externalLinks.repository?.startsWith("http")) },
+    {
+      label: "Documentation",
+      href: externalLinks.documentation ?? "/github",
+      external: Boolean(externalLinks.documentation?.startsWith("http")),
+    },
+    {
+      label: "GitHub repository",
+      href: externalLinks.repository ?? "/github",
+      external: Boolean(externalLinks.repository?.startsWith("http")),
+    },
     { label: "Contact", href: "/contact" },
   ],
 };
 
 export const securityDocument: LegalDocument = {
   eyebrow: "Security",
-  title: "A practical security page, not a marketing checklist.",
+  title: "Security Policy",
   summary:
-    "OpenStudio should describe its current release and security posture honestly: public releases, visible trust caveats, and a straightforward disclosure path rather than exaggerated guarantees.",
+    "How OpenStudio handles release integrity, platform trust, and responsible vulnerability disclosure.",
   seo: {
-    title: "OpenStudio Security | Release and Disclosure Notes",
+    title: "OpenStudio Security Policy | Downloads and Disclosure",
     description:
-      "Review OpenStudio's current practical security stance, release surfaces, manual trust caveats, and responsible disclosure path.",
+      "Review the OpenStudio security policy covering supported versions, official downloads, trust prompts, and responsible vulnerability disclosure.",
     path: "/security",
   },
   facts: [
-    { label: "Release surfaces", value: "Downloads, manifests, appcasts, and GitHub releases" },
-    { label: "Platform trust", value: "Manual trust steps may still exist, especially on macOS" },
-    { label: "AI tools", value: "Installed separately, not bundled into the base app by default" },
-    { label: "Disclosure", value: "Contact the creator or open a responsible report on GitHub" },
+    { label: "Last updated", value: "April 16, 2026" },
+    { label: "Disclosure contact", value: "sdevil7th@gmail.com" },
+    { label: "Response target", value: "Best-effort, typically within 7 days" },
+    { label: "Bug bounty", value: "None currently" },
   ],
   sections: [
     {
-      title: "Current stance",
+      title: "Supported versions",
       paragraphs: [
-        "OpenStudio is in a public early-release phase. The correct security posture is practical and transparent: document what is shipped, keep release metadata legible, and avoid implying a hardened enterprise program that does not exist.",
-        "The repo shows real release metadata, appcast, and download surfaces. Those are part of the security story because they influence how people discover, trust, and install new builds.",
+        "Only the latest public release of OpenStudio is actively maintained. Older builds are not backport-patched as a general rule.",
+        "Before reporting a security issue in the desktop app or the website distribution flow, please upgrade to the latest public release and confirm the issue still reproduces there.",
       ],
     },
     {
-      title: "What users should know right now",
+      title: "Verifying your download",
       paragraphs: [
-        "Windows and macOS downloads are real, but trust cues and packaging maturity are still evolving. Current website messaging should continue to keep those caveats visible instead of hiding them behind polished language.",
-        "Optional AI tools are installed later and separately from the base app. That separation is part of the product's current safety and packaging story.",
+        "Always download OpenStudio from openstudio.org.in or the official GitHub releases page. The website is the public distribution surface for the desktop app, and unofficial mirrors should not be treated as trusted release channels.",
+        "On macOS, you may need to approve the app manually in System Settings > Privacy & Security if Gatekeeper prompts you. Do not install builds from unofficial sources.",
       ],
       bullets: [
-        "Release metadata and appcast files are part of the public shipping surface",
-        "Unsigned or manually trusted install flows may still appear during the current release cycle",
-        "Users should prefer the official website, repository, and release pages when evaluating builds",
+        "Download from openstudio.org.in or the official GitHub releases page",
+        "Check the release page for any integrity notes on the specific build",
+        "On macOS: allow the app in System Settings > Privacy & Security if Gatekeeper prompts you",
       ],
     },
     {
-      title: "What this page does not claim",
+      title: "Reporting a vulnerability",
       paragraphs: [
-        "This page does not claim SOC 2, penetration-test coverage, bug bounty infrastructure, or any enterprise certification that is not visible in the current product and repo.",
-        "It also does not claim that every plugin, user script, or third-party tool in a music-production workflow is free from crashes or security risk. OpenStudio is designed to be useful and honest, not magical.",
+        "Email sdevil7th@gmail.com with the subject line \"Security: OpenStudio\" if you believe you found a vulnerability in the OpenStudio desktop app, website, release artifacts, or update metadata.",
+        "Please include a clear description of the issue, reproduction steps, affected version, affected platform such as Windows, macOS, or Linux, and how you discovered it. Please allow up to 7 days for an initial response before public disclosure.",
       ],
     },
     {
-      title: "Reporting a security issue",
+      title: "Scope",
       paragraphs: [
-        "If you believe you have found a security issue in the website, downloads, release artifacts, or app behavior, please report it directly to the project creator or through the public repository.",
-        "Include reproduction steps, affected version information, platform details, and whether the issue relates to downloads, update metadata, optional AI tools, or local project handling.",
+        "In scope: the OpenStudio desktop application, the openstudio.org.in website, official release artifacts, and update metadata published for the app.",
+        "Out of scope: third-party DAW plugins, your operating system or local system configuration, and AI model or runtime files obtained from third-party providers outside the standard OpenStudio distribution flow.",
+      ],
+    },
+    {
+      title: "Disclosure policy",
+      paragraphs: [
+        "OpenStudio follows coordinated disclosure. Please report issues privately first, allow reasonable time for investigation and a fix, and then disclose publicly when appropriate.",
+        "Credit will be given to reporters unless they request anonymity.",
+      ],
+    },
+    {
+      title: "What we do not currently claim",
+      paragraphs: [
+        "OpenStudio does not currently claim SOC 2 compliance, formal security certifications, or a managed penetration-testing program for the current release cycle.",
+        "There is also no automated bug bounty program at this time.",
       ],
     },
   ],
   links: [
-    { label: "Email the creator", href: externalLinks.creatorEmail ?? "mailto:sdevil7th@gmail.com" },
-    { label: "GitHub repository", href: externalLinks.repository ?? "/github", external: Boolean(externalLinks.repository?.startsWith("http")) },
+    { label: "Email project contact", href: externalLinks.contactEmail ?? "mailto:sdevil7th@gmail.com" },
+    {
+      label: "GitHub repository",
+      href: externalLinks.repository ?? "/github",
+      external: Boolean(externalLinks.repository?.startsWith("http")),
+    },
     { label: "Releases", href: "/releases" },
   ],
 };
 
 export const termsDocument: LegalDocument = {
   eyebrow: "Terms",
-  title: "Simple terms for the current OpenStudio website and downloads.",
+  title: "Terms of Use",
   summary:
-    "These terms are intentionally short. They describe the current website and software surface without inventing a separate commercial EULA or licensing model that the repo does not clearly support today.",
+    "The terms governing use of the OpenStudio website and software downloads. These are intentionally plain and reflect the current open-source, desktop-first product.",
   seo: {
-    title: "OpenStudio Terms | Site and Software Use",
+    title: "OpenStudio Terms of Use | Website and Software",
     description:
-      "Read the current OpenStudio terms covering website use, downloads, documentation, and the project's AGPLv3-compatible licensing posture.",
+      "Read the OpenStudio terms governing the website, software downloads, AGPLv3 licensing, acceptable use, and warranty limitations.",
     path: "/terms",
   },
   facts: [
-    { label: "License direction", value: "AGPLv3-compatible terms in the current repo" },
-    { label: "Third-party notices", value: "Available in LICENSE and THIRD_PARTY_LICENSES.md" },
-    { label: "Site purpose", value: "Product information, docs, releases, and downloads" },
-    { label: "Future changes", value: "These terms should evolve if the product model changes" },
+    { label: "Last updated", value: "April 16, 2026" },
+    { label: "Software license", value: "GNU AGPLv3" },
+    { label: "Third-party notices", value: "LICENSE and THIRD_PARTY_LICENSES.md in the repo" },
+    { label: "Contact", value: "sdevil7th@gmail.com" },
   ],
   sections: [
     {
-      title: "Using the site",
+      title: "Acceptance",
       paragraphs: [
-        "The OpenStudio website is provided so people can understand the product, review release information, access documentation, inspect the public repository, and download current builds.",
-        "Please use the site and downloads lawfully and in good faith. Do not abuse release endpoints, impersonate the project, or misrepresent unofficial builds as official OpenStudio releases.",
+        "By using openstudio.org.in or downloading OpenStudio, you agree to these terms. If you do not agree, do not use the site or software.",
       ],
     },
     {
-      title: "Software terms and licensing",
+      title: "What OpenStudio is",
       paragraphs: [
-        "Based on the current codebase, OpenStudio is distributed under AGPLv3-compatible terms, with third-party dependency notices available in the repository.",
-        "That means these site terms do not replace the software license files. If you download, run, modify, or redistribute the software, you are also responsible for complying with the applicable license text and third-party notices that ship with the project.",
+        "OpenStudio is a desktop digital audio workstation distributed as open-source software. The website is not the product itself; it exists to provide product information, documentation, release notes, and download access to the application.",
+        "OpenStudio is not a subscription service and does not require an account to use the current website or desktop app.",
       ],
     },
     {
-      title: "Documentation, releases, and product status",
+      title: "Software license",
       paragraphs: [
-        "The website, documentation, release notes, and download pages are meant to reflect the product as it currently exists. They are not a promise that every planned feature, platform target, or packaging improvement is already complete.",
-        "OpenStudio may change its release process, packaging, or website content over time. When those product facts change materially, these terms should be updated as well.",
+        "The OpenStudio source code is licensed under the GNU Affero General Public License v3 (AGPLv3). The full license text is available in the LICENSE file in the repository.",
+        "Third-party component notices are listed in THIRD_PARTY_LICENSES.md. If you download, run, modify, or redistribute the software, you are responsible for complying with the AGPLv3 and any applicable third-party license terms.",
       ],
     },
     {
-      title: "No extra promises beyond what is stated",
+      title: "Acceptable use",
       paragraphs: [
-        "These terms are intentionally narrow. They do not create a separate warranty program, support contract, enterprise SLA, or hidden commercial license structure that is not already stated in the project materials.",
-        "If you need a different legal or commercial arrangement in the future, that should be documented explicitly rather than implied by this page.",
+        "Use the website and software lawfully and in good faith. Do not misrepresent unofficial builds as official OpenStudio releases.",
+        "Do not abuse, scrape, or overload release, download, or update endpoints in ways that degrade service availability for others.",
+      ],
+    },
+    {
+      title: "No warranty",
+      paragraphs: [
+        "The software and website are provided \"as is\" without warranty of any kind, express or implied. No guarantee is made that OpenStudio will be fit for a particular purpose, continuously available, or free from errors.",
+        "To the extent permitted by applicable law, the maintainer's liability is limited to the amount paid for the software, which is zero because OpenStudio is freely available.",
+      ],
+    },
+    {
+      title: "Changes to these terms",
+      paragraphs: [
+        "These terms may be updated as the product evolves. If material changes are made, they will be reflected in the updated \"Last updated\" date on this page.",
       ],
     },
   ],
   links: [
-    { label: "GitHub repository", href: externalLinks.repository ?? "/github", external: Boolean(externalLinks.repository?.startsWith("http")) },
-    { label: "Documentation", href: externalLinks.documentation ?? "/github", external: Boolean(externalLinks.documentation?.startsWith("http")) },
+    {
+      label: "GitHub repository",
+      href: externalLinks.repository ?? "/github",
+      external: Boolean(externalLinks.repository?.startsWith("http")),
+    },
+    {
+      label: "Documentation",
+      href: externalLinks.documentation ?? "/github",
+      external: Boolean(externalLinks.documentation?.startsWith("http")),
+    },
     { label: "Contact", href: "/contact" },
   ],
 };

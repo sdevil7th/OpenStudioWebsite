@@ -1,5 +1,6 @@
-export type AiRuntimePlatform = "windows" | "macos";
+export type AiRuntimePlatform = "windows" | "macos" | "linux";
 export type AiRuntimeMacosArchitecture = "arm64" | "x64";
+export type AiRuntimeLinuxArchitecture = "x64" | "arm64";
 export type AiRuntimeWindowsBackend = "cuda" | "directml";
 
 export interface AiRuntimeDownloadableAssetEntry {
@@ -33,12 +34,19 @@ export interface AiRuntimeWindowsPlatforms {
   legacy: AiRuntimePlatformEntry | null;
 }
 
+export interface AiRuntimeLinuxPlatforms {
+  x64: AiRuntimePlatformEntry | null;
+  arm64: AiRuntimePlatformEntry | null;
+  legacy: AiRuntimePlatformEntry | null;
+}
+
 export interface AiRuntimeManifest {
   appVersion: string;
   channel: string;
   platforms: {
     macos: AiRuntimeMacosPlatforms;
     windows: AiRuntimeWindowsPlatforms;
+    linux?: AiRuntimeLinuxPlatforms;
   };
   publishedAt: string;
   runtimeVersion: string;
@@ -225,10 +233,36 @@ const parseMacosPlatforms = (value: unknown, label: string): AiRuntimeMacosPlatf
   };
 };
 
+const parseLinuxPlatforms = (value: unknown, label: string): AiRuntimeLinuxPlatforms => {
+  if (!isNonArrayObject(value)) {
+    throw new Error(`${label} is missing.`);
+  }
+
+  const linuxValue = value as Record<string, unknown>;
+  const hasNestedShape = linuxValue.x64 != null || linuxValue.arm64 != null;
+
+  if (!hasNestedShape) {
+    return {
+      x64: null,
+      arm64: null,
+      legacy: parsePlatformEntry(value, label),
+    };
+  }
+
+  const x64 = linuxValue.x64 != null ? parsePlatformEntry(linuxValue.x64, `${label}.x64`) : null;
+  const arm64 = linuxValue.arm64 != null ? parsePlatformEntry(linuxValue.arm64, `${label}.arm64`) : null;
+
+  if (!x64 && !arm64) {
+    throw new Error(`${label} must include at least one Linux architecture entry.`);
+  }
+
+  return { x64, arm64, legacy: null };
+};
+
 export const resolveAiRuntimeDownloadUrl = (
   manifest: AiRuntimeManifest,
   platform: AiRuntimePlatform,
-  architecture?: AiRuntimeMacosArchitecture,
+  architecture?: AiRuntimeMacosArchitecture | AiRuntimeLinuxArchitecture,
   backend?: AiRuntimeWindowsBackend,
 ) => {
   if (platform === "windows") {
@@ -246,6 +280,17 @@ export const resolveAiRuntimeDownloadUrl = (
     }
 
     return null;
+  }
+
+  if (platform === "linux") {
+    const linuxPlatform = manifest.platforms.linux;
+
+    if (!linuxPlatform) return null;
+    if (linuxPlatform.legacy) return linuxPlatform.legacy.url;
+    if (architecture && (architecture === "x64" || architecture === "arm64")) {
+      return linuxPlatform[architecture]?.url ?? null;
+    }
+    return linuxPlatform.x64?.url ?? linuxPlatform.arm64?.url ?? null;
   }
 
   if (manifest.platforms.macos.legacy) {
@@ -295,6 +340,10 @@ export const parseAiRuntimeManifest = (
   }
 
   const platforms = manifest.platforms as Record<string, unknown>;
+  const linux =
+    platforms.linux != null
+      ? parseLinuxPlatforms(platforms.linux, `${label}.platforms.linux`)
+      : undefined;
 
   return {
     appVersion: manifest.appVersion,
@@ -302,6 +351,7 @@ export const parseAiRuntimeManifest = (
     platforms: {
       windows: parseWindowsPlatforms(platforms.windows, `${label}.platforms.windows`),
       macos: parseMacosPlatforms(platforms.macos, `${label}.platforms.macos`),
+      ...(linux !== undefined ? { linux } : {}),
     },
     publishedAt: manifest.publishedAt,
     runtimeVersion: manifest.runtimeVersion,

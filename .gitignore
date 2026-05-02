@@ -17,6 +17,12 @@ public/releases/ai-runtime/*
 release-input/*
 !release-input/README.md
 
+# Local throwaway screenshots and scratch files (design comparisons, audit passes)
+.screenshots/
+/tmp-*
+/local-*.png
+/shopify-*.png
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -27,3 +33,9 @@ release-input/*
 *.njsproj
 *.sln
 *.sw?
+
+# local markerting assets
+marketing
+
+# Local Netlify folder
+.netlify

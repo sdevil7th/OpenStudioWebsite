@@ -179,6 +179,33 @@ const validateMacosPlatforms = (platforms, label) => {
   }
 };
 
+const validateLinuxPlatforms = (platforms, label) => {
+  if (!isNonArrayObject(platforms)) {
+    throw new Error(`${label} is missing.`);
+  }
+
+  const hasNestedArchitectures =
+    (platforms.x64 && typeof platforms.x64 === "object") ||
+    (platforms.arm64 && typeof platforms.arm64 === "object");
+
+  if (!hasNestedArchitectures) {
+    validatePlatformEntry(platforms, label);
+    return;
+  }
+
+  const architectures = ["x64", "arm64"].filter(
+    (arch) => platforms[arch] && typeof platforms[arch] === "object",
+  );
+
+  if (architectures.length === 0) {
+    throw new Error(`${label} must include at least one Linux architecture entry.`);
+  }
+
+  for (const arch of architectures) {
+    validatePlatformEntry(platforms[arch], `${label}.${arch}`);
+  }
+};
+
 export const validateAiRuntimeMetadata = (metadata, label) => {
   if (!metadata || typeof metadata !== "object") {
     throw new Error(`${label} must contain a JSON object.`);
@@ -211,6 +238,9 @@ export const validateAiRuntimeMetadata = (metadata, label) => {
 
   validateWindowsPlatforms(metadata.platforms.windows, `${label}.platforms.windows`);
   validateMacosPlatforms(metadata.platforms.macos, `${label}.platforms.macos`);
+  if (metadata.platforms.linux != null) {
+    validateLinuxPlatforms(metadata.platforms.linux, `${label}.platforms.linux`);
+  }
 };
 
 export const readJsonFile = async (filePath, label) => {

@@ -1,3 +1,3 @@
 import { redirectToLatestPlatformRelease } from "./download-latest";
 
-export default async () => redirectToLatestPlatformRelease("macos");
+export default async (request: Request) => redirectToLatestPlatformRelease(request, "macos");

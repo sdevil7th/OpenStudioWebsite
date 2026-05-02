@@ -1,191 +1,874 @@
 import { motion } from "framer-motion";
-import { BrainCircuit, Download, FolderCog, Music4, SlidersHorizontal, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  BrainCircuit,
+  Download,
+  ShieldCheck,
+} from "lucide-react";
+import { memo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import PageSeo from "@/components/PageSeo";
+import PretextEditorialField from "@/components/motion/PretextEditorialField";
 import SectionReveal from "@/components/motion/SectionReveal";
-import SoundField from "@/components/scene/SoundField";
+import AiNeuralStudioStage, { type AiNeuralStudioState } from "@/components/scene/AiNeuralStudioStage";
+import AiSignalWebGLStage from "@/components/scene/AiSignalWebGLStage";
+import AiGenesisStage from "@/components/scene/AiGenesisStage";
+import AiArchitectureOrbit from "@/components/scene/AiArchitectureOrbit";
+import AiUseCaseConstellation from "@/components/scene/AiUseCaseConstellation";
+import AiOutroStage from "@/components/scene/AiOutroStage";
 import { Button } from "@/components/ui/button";
-import { designMedia } from "@/data/designMedia";
-import { stemArchitectureCards, stemExplainer, stemHero, stemInstallFacts, stemSeparationSeo, stemWhyItMatters } from "@/data/stemSeparation";
+import {
+  aiArchitectureNodes,
+  aiGenesisCopy,
+  aiNeuralStudioPhases,
+  aiOutroCopy,
+  aiPillars,
+  aiRuntimePrinciples,
+  musicGenerationControls,
+  stemFinalCta,
+  stemInstallFacts,
+  stemSeparationSeo,
+  stemUseCases,
+  type AiNeuralStudioPhase,
+} from "@/data/stemSeparation";
+import { gsap, ScrollTrigger, useScrollScene } from "@/lib/gsap";
+import { cn } from "@/lib/utils";
 
-const StemSeparationPage = () => (
-  <motion.main
-    animate={{ opacity: 1, y: 0 }}
-    className="design-page-main"
-    id="main-content"
-    initial={{ opacity: 0, y: 18 }}
-    transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-  >
-    <PageSeo {...stemSeparationSeo} />
+const heroTokens = ["BS Roformer", "6 stems", "spectrogram", "ACE-Step", "lyrics", "seed", "full decode", "WAV"];
+const stemRibbonLabels = [
+  { label: "Vocals", color: "#ff4fbf" },
+  { label: "Drums", color: "#58caff" },
+  { label: "Bass", color: "#9b72ff" },
+  { label: "Guitar", color: "#ffc857" },
+  { label: "Piano", color: "#dff8ff" },
+  { label: "Other", color: "#43f2a2" },
+];
 
-    <div className="relative mx-auto max-w-7xl px-6 pb-24 md:px-10">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[52rem] overflow-hidden opacity-30">
-        <img alt={designMedia.homeHeroTimeline.alt} className="h-full w-full object-cover object-top [mask-image:linear-gradient(180deg,#000_50%,transparent_100%)]" src={designMedia.homeHeroTimeline.src} />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/80 to-background" />
+const clampProgress = (value?: number) => {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return 0;
+  }
+  return Math.max(0, Math.min(1, value));
+};
+
+const phaseIndexForProgress = (progress: number) => {
+  const clamped = clampProgress(progress);
+  const index = aiNeuralStudioPhases.findIndex(
+    (phase) => clamped >= phase.scrollRange[0] && clamped <= phase.scrollRange[1],
+  );
+  return Math.max(0, index === -1 ? aiNeuralStudioPhases.length - 1 : index);
+};
+
+const phaseProgressFor = (phase: AiNeuralStudioPhase, progress: number) => {
+  const [start, end] = phase.scrollRange;
+  return end <= start ? 1 : clampProgress((progress - start) / (end - start));
+};
+
+const AiKineticText = ({ className, text }: { className?: string; text: string }) => (
+  <PretextEditorialField
+    className={["ai-editorial-copy", className].filter(Boolean).join(" ")}
+    forceCount={2}
+    text={text}
+    variant="ai"
+    visibleObjects
+  />
+);
+
+const TokenOrbit = () => (
+  <div className="ai-token-orbit ai-neural-token-strip" aria-hidden="true">
+    {heroTokens.map((token, index) => (
+      <span data-ai-token key={token} style={{ ["--ai-token-index" as string]: index }}>
+        {token}
+      </span>
+    ))}
+  </div>
+);
+
+const NeuralFallbackInstrument = ({ phase }: { phase: AiNeuralStudioPhase }) => (
+  <div className={cn("ai-neural-fallback-instrument", `ai-neural-fallback-instrument--${phase.mode}`)} data-ai-neural-fallback>
+    <div className="ai-neural-fallback-instrument__liquid" aria-hidden="true">
+      <div className="ai-neural-fallback-instrument__boundary">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <span key={index} style={{ ["--ring-index" as string]: index }} />
+        ))}
       </div>
+      <div className="ai-neural-fallback-instrument__membranes">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <span key={index} style={{ ["--sheet-index" as string]: index }} />
+        ))}
+      </div>
+      <div className="ai-neural-fallback-instrument__currents">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <span key={index} style={{ ["--current-index" as string]: index }} />
+        ))}
+      </div>
+      <div className="ai-neural-fallback-instrument__shared-playhead" />
+      <div className="ai-neural-fallback-instrument__prompt-filament" />
+      <div className="ai-neural-fallback-instrument__shockwave" />
+      <div className="ai-neural-fallback-instrument__ace-transform">
+        <span className="ai-neural-fallback-instrument__prompt-wave" />
+        <span className="ai-neural-fallback-instrument__transform-orb" />
+        <span className="ai-neural-fallback-instrument__generated-wave" />
+      </div>
+      <div className="ai-neural-fallback-instrument__waveform-spine" />
+      <div className="ai-neural-fallback-instrument__caustics" />
+      <div className="ai-neural-fallback-instrument__floor" />
+      <div className="ai-neural-fallback-instrument__glints">
+        {Array.from({ length: 24 }).map((_, index) => (
+          <i key={index} style={{ ["--glint-index" as string]: index }} />
+        ))}
+      </div>
+    </div>
+    <div className="ai-neural-fallback-instrument__core">
+      <BrainCircuit className="h-5 w-5" />
+    </div>
+  </div>
+);
 
-      <section className="relative z-10">
-        <div className="mb-20 max-w-4xl pt-6">
-          <div className="design-badge design-badge-primary mb-8">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-secondary shadow-[0_0_10px_#4ae176]" />
-            BS Roformer 6-Track Separation Active
-          </div>
-          <h1 className="font-headline text-7xl font-black tracking-[-0.08em] leading-[0.85] text-white md:text-9xl">
-            Sonic <span className="bg-gradient-to-br from-primary via-secondary to-primary bg-clip-text text-transparent">Obsidian</span>
-          </h1>
-          <p className="mt-8 max-w-3xl text-xl font-light leading-relaxed text-white/74 md:text-2xl">{stemHero.description}</p>
-          <div className="mt-10 flex flex-wrap gap-4">
-            <Button asChild className="rounded-full px-8 py-4">
-              <Link to={stemHero.primaryCta.to}>
-                <Sparkles className="h-4 w-4" />
-                Process audio
-              </Link>
-            </Button>
-            <Button asChild className="rounded-full px-8 py-4" variant="outline">
-              <Link to={stemHero.secondaryCta.to}>View benchmarks</Link>
-            </Button>
-          </div>
+const NeuralCinematicExplainer = memo(({ activePhase }: { activePhase: AiNeuralStudioPhase }) => (
+  <section
+    className={cn("ai-neural-explainer", `ai-neural-explainer--${activePhase.mode}`)}
+    data-ai-neural-explainer
+  >
+    <span className="ai-neural-explainer__eyebrow">Cinematic AI Lab / {activePhase.label}</span>
+    <h2>{activePhase.headline}</h2>
+    <p>{activePhase.description}</p>
+    <ul>
+      {activePhase.sceneBullets.map((bullet) => (
+        <li key={bullet}>{bullet}</li>
+      ))}
+    </ul>
+    {activePhase.mode === "separate" ? (
+      <div className="ai-neural-explainer__stem-labels" data-ai-neural-stem-labels>
+        {stemRibbonLabels.map((stem) => (
+          <span key={stem.label} style={{ ["--stem-color" as string]: stem.color }}>
+            {stem.label}
+          </span>
+        ))}
+      </div>
+    ) : null}
+    {activePhase.mode === "generate" ? (
+      <div className="ai-neural-explainer__formula" data-ai-neural-generation-formula>
+        <span>Prompt waveform</span>
+        <strong>ACE-Step transform</strong>
+        <span>Generated color waveform</span>
+      </div>
+    ) : null}
+    {activePhase.mode === "commit" ? (
+      <div className="ai-neural-explainer__tableau" data-ai-neural-final-tableau>
+        <span>Six stems</span>
+        <span>Generated wave</span>
+        <span>Synchronized motion</span>
+        <span>Session-ready WAV</span>
+      </div>
+    ) : null}
+    <TokenOrbit />
+  </section>
+));
+NeuralCinematicExplainer.displayName = "NeuralCinematicExplainer";
+
+const NeuralHud = memo(({ activePhase }: { activePhase: AiNeuralStudioPhase }) => (
+  <div className="ai-neural-hud ai-neural-hud--compact" data-ai-neural-hud>
+    <div className="ai-neural-hud__status">
+      <div>
+        <span>OpenStudio AI</span>
+        <strong>Neural Studio</strong>
+      </div>
+      <i>{activePhase.mode}</i>
+    </div>
+
+    <div className="ai-neural-hud__metrics">
+      {activePhase.metrics.map((metric) => (
+        <div key={metric.label}>
+          <span>{metric.label}</span>
+          <strong>{metric.value}</strong>
+          <p>{metric.detail}</p>
         </div>
+      ))}
+    </div>
 
-        <div className="grid gap-8 lg:grid-cols-12">
-          <SectionReveal className="design-glass-panel relative overflow-hidden rounded-[2rem] border-primary/25 p-8 lg:col-span-8">
-            <SoundField accent="lavender" density={0.9} showGrid={false} />
-            <div className="relative z-10">
-              <div className="mb-10 flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="rounded-xl border border-primary/20 bg-primary/10 p-3">
-                    <Music4 className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h2 className="font-mono text-sm font-bold uppercase tracking-[0.2em] text-white">Input: MASTER_MIX_FINAL.wav</h2>
-                    <p className="font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white/34">Optional local AI runtime</p>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <span className="design-badge bg-white/[0.06]">6-stem mode</span>
-                  <span className="design-badge design-badge-secondary animate-pulse">extracting</span>
-                </div>
-              </div>
+    <div className="ai-neural-hud__bottom">
+      <div>
+        <span>Global pass</span>
+        <strong data-ai-neural-global-pct>00%</strong>
+      </div>
+      <div className="ai-neural-progress">
+        <i data-ai-neural-progress-bar style={{ width: "6%" }} />
+      </div>
+      <div>
+        <span>Phase resolve</span>
+        <strong data-ai-neural-phase-pct>00%</strong>
+      </div>
+    </div>
+  </div>
+));
+NeuralHud.displayName = "NeuralHud";
 
-              <div className="space-y-4">
-                {stemArchitectureCards.slice(0, 3).map((card, index) => (
-                  <div className="group flex min-h-16 items-center gap-6 rounded-[1.25rem] border border-white/5 bg-white/[0.04] px-6 py-4 transition hover:bg-white/[0.08]" key={card.id}>
-                    <div className="w-24 text-xs font-mono uppercase tracking-[0.18em]" style={{ color: card.color }}>
-                      {card.label}
-                    </div>
-                    <div className="flex h-8 flex-1 items-center gap-[3px]">
-                      {Array.from({ length: index === 2 ? 1 : 10 }).map((_, barIndex) => (
-                        <div
-                          className={`rounded-full ${index === 2 ? "h-1 w-full" : "eq-bar w-1.5"}`}
-                          key={`${card.id}-${barIndex}`}
-                          style={{
-                            animationDelay: `${barIndex * 0.06}s`,
-                            background: card.color,
-                            boxShadow: `0 0 12px ${card.color}`,
-                            height: index === 2 ? undefined : `${[30, 55, 82, 44, 24, 72, 36, 62, 94, 50][barIndex]}%`,
-                            opacity: index === 2 ? 1 : [0.35, 0.55, 0.9, 0.45, 0.25, 0.72, 0.4, 0.6, 1, 0.5][barIndex],
-                          }}
-                        />
-                      ))}
-                    </div>
-                    <div className="flex gap-3 text-white/28 transition group-hover:text-white/78">
-                      <SlidersHorizontal className="h-4 w-4" />
-                      <Sparkles className="h-4 w-4" />
-                    </div>
-                  </div>
-                ))}
+const MobileInstrument = ({ phase }: { phase: AiNeuralStudioPhase }) => (
+  <article className="ai-neural-mobile-instrument" data-ai-neural-mobile>
+    <NeuralFallbackInstrument phase={phase} />
+    <div className="ai-neural-mobile-instrument__copy">
+      <span>{phase.label}</span>
+      <h2>{phase.headline}</h2>
+      <p>{phase.description}</p>
+      <ul className="ai-neural-mobile-instrument__bullets">
+        {phase.sceneBullets.map((bullet) => (
+          <li key={bullet}>{bullet}</li>
+        ))}
+      </ul>
+      {phase.mode === "separate" ? (
+        <div className="ai-neural-mobile-instrument__stems">
+          {stemRibbonLabels.map((stem) => (
+            <span key={stem.label} style={{ ["--stem-color" as string]: stem.color }}>
+              {stem.label}
+            </span>
+          ))}
+        </div>
+      ) : null}
+      {phase.mode === "generate" ? (
+        <div className="ai-neural-mobile-instrument__formula">Prompt waveform -&gt; ACE-Step -&gt; generated color waveform</div>
+      ) : null}
+      {phase.mode === "commit" ? (
+        <div className="ai-neural-mobile-instrument__tableau">
+          <span>Six stems</span>
+          <span>Generated wave</span>
+          <span>Synchronized motion</span>
+          <span>Session WAV</span>
+        </div>
+      ) : null}
+      <div>
+        {phase.hudLines.map((line) => (
+          <i key={line}>{line}</i>
+        ))}
+      </div>
+    </div>
+  </article>
+);
 
-                <div className="grid grid-cols-3 gap-4">
-                  {stemArchitectureCards.slice(3).map((card) => (
-                    <div className="flex h-16 items-center justify-center rounded-[1.25rem] border border-white/5 bg-white/[0.04] font-mono text-[0.68rem] uppercase tracking-[0.18em] text-white/45 transition hover:border-primary/30 hover:text-primary" key={card.id}>
-                      {card.label}
-                    </div>
-                  ))}
-                </div>
-              </div>
+const StemSeparationPage = () => {
+  const pageRef = useRef<HTMLElement | null>(null);
+  const studioStateRef = useRef<AiNeuralStudioState>({
+    globalProgress: 0,
+    phaseIndex: 0,
+    phaseProgress: 0,
+    pointer: { x: 0, y: 0 },
+    audioEnergy: 0,
+    reducedMotion: false,
+  });
+  const globalProgressRef = useRef(0);
+  const phaseProgressRef = useRef(0);
+  const [activePhaseIndex, setActivePhaseIndex] = useState(0);
+  const genesisProgressRef = useRef(0);
+  const genesisPointerRef = useRef({ x: 0, y: 0 });
+  const pillarsProgressRef = useRef(0);
+  const pillarsPhaseRef = useRef(0);
+  const [archActiveNode, setArchActiveNode] = useState(0);
+  const archPointerRef = useRef({ x: 0, y: 0 });
+  const [useCaseActive, setUseCaseActive] = useState(0);
+  const useCasePointerRef = useRef({ x: 0, y: 0 });
+  const outroCollapseRef = useRef(0);
 
-              <div className="mt-12 rounded-[1.5rem] border border-white/5 bg-black/35 p-6">
-                <div className="mb-6 flex items-center gap-3">
-                  <Sparkles className="h-4 w-4 text-secondary" />
-                  <h3 className="font-mono text-sm font-bold uppercase tracking-[0.2em] text-white">Extraction complete</h3>
-                </div>
-                <div className="grid items-center gap-8 md:grid-cols-2">
-                  <div className="overflow-hidden rounded-[1rem] border border-white/10 shadow-2xl">
-                    <img alt={designMedia.stemRenderDialog.alt} className="w-full transition duration-700 hover:scale-105" src={designMedia.stemRenderDialog.src} />
-                  </div>
-                  <div>
-                    <h4 className="font-headline text-lg font-bold text-white">Commit to disk</h4>
-                    <p className="mt-4 text-sm leading-7 text-white/62">
-                      Once separated, use the integrated render flow to export stems. The value is not just the split, it is the fact that the results move straight back into the same project.
-                    </p>
-                    <Button asChild className="mt-6 h-auto w-full rounded-2xl px-6 py-3 font-mono text-xs uppercase tracking-[0.18em]" variant="outline">
-                      <Link to="/download">Open export path</Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
+  const activePhase = aiNeuralStudioPhases[activePhaseIndex] ?? aiNeuralStudioPhases[0]!;
+
+  useScrollScene(pageRef, ({ prefersReducedMotion, isDesktop }) => {
+    const cleanups: Array<() => void> = [];
+    studioStateRef.current.reducedMotion = prefersReducedMotion;
+
+    if (!prefersReducedMotion) {
+      gsap.fromTo(
+        "[data-ai-neural-hud] > *",
+        { y: 22, autoAlpha: 0 },
+        {
+          y: 0,
+          autoAlpha: 1,
+          clearProps: "transform,opacity,visibility",
+          duration: 0.76,
+          stagger: 0.07,
+          ease: "power3.out",
+        },
+      );
+
+      gsap.fromTo(
+        "[data-ai-token]",
+        { y: 18, scale: 0.72, autoAlpha: 0 },
+        {
+          y: 0,
+          scale: 1,
+          autoAlpha: 1,
+          clearProps: "transform,opacity,visibility",
+          duration: 0.62,
+          ease: "back.out(1.6)",
+          stagger: { amount: 0.56, from: "center" },
+        },
+      );
+
+      gsap.from("[data-ai-neural-detail]", {
+        y: 28,
+        opacity: 0,
+        duration: 0.74,
+        stagger: 0.08,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: "[data-ai-neural-details]",
+          start: "top 80%",
+        },
+      });
+
+      gsap.fromTo(
+        "[data-ai-genesis-headline] .ai-genesis-overlay__line",
+        { y: 36, autoAlpha: 0 },
+        {
+          y: 0,
+          autoAlpha: 1,
+          clearProps: "transform,opacity,visibility",
+          duration: 0.96,
+          stagger: 0.12,
+          ease: "power4.out",
+          delay: 0.1,
+        },
+      );
+
+      gsap.fromTo(
+        "[data-ai-genesis-ticker] span",
+        { y: 14, autoAlpha: 0 },
+        {
+          y: 0,
+          autoAlpha: 1,
+          clearProps: "transform,opacity,visibility",
+          duration: 0.5,
+          stagger: 0.04,
+          ease: "power3.out",
+          delay: 0.4,
+        },
+      );
+
+      gsap.fromTo(
+        "[data-ai-pillar-card]",
+        { y: 36, autoAlpha: 0 },
+        {
+          y: 0,
+          autoAlpha: 1,
+          clearProps: "transform,opacity,visibility",
+          duration: 0.72,
+          stagger: 0.12,
+          ease: "power3.out",
+          scrollTrigger: { trigger: "[data-ai-pillars]", start: "top 88%", once: true },
+        },
+      );
+
+      gsap.fromTo(
+        "[data-ai-arch-card]",
+        { y: 26, autoAlpha: 0 },
+        {
+          y: 0,
+          autoAlpha: 1,
+          clearProps: "transform,opacity,visibility",
+          duration: 0.6,
+          stagger: 0.06,
+          ease: "power3.out",
+          scrollTrigger: { trigger: "[data-ai-arch]", start: "top 88%", once: true },
+        },
+      );
+
+      gsap.fromTo(
+        "[data-ai-usecase-card]",
+        { y: 24, autoAlpha: 0 },
+        {
+          y: 0,
+          autoAlpha: 1,
+          clearProps: "transform,opacity,visibility",
+          duration: 0.6,
+          stagger: 0.07,
+          ease: "power3.out",
+          scrollTrigger: { trigger: "[data-ai-usecases]", start: "top 88%", once: true },
+        },
+      );
+    }
+
+    if (isDesktop) {
+      const stage = document.querySelector<HTMLElement>("[data-ai-neural-stage-wrap]");
+      if (stage) {
+        const pinTrigger = ScrollTrigger.create({
+          trigger: "[data-ai-neural-lab]",
+          start: "top top",
+          end: "bottom bottom",
+          pin: stage,
+          pinSpacing: false,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+        });
+        cleanups.push(() => pinTrigger.kill());
+      }
+
+      const trigger = ScrollTrigger.create({
+        trigger: "[data-ai-neural-lab]",
+        start: "top top",
+        end: "bottom bottom",
+        scrub: true,
+        onUpdate: (self) => {
+          const nextProgress = clampProgress(self.progress);
+          const nextIndex = phaseIndexForProgress(nextProgress);
+          const nextPhase = aiNeuralStudioPhases[nextIndex] ?? aiNeuralStudioPhases[0]!;
+          const nextPhaseProgress = phaseProgressFor(nextPhase, nextProgress);
+
+          studioStateRef.current.globalProgress = nextProgress;
+          studioStateRef.current.phaseIndex = nextIndex;
+          studioStateRef.current.phaseProgress = nextPhaseProgress;
+          studioStateRef.current.audioEnergy = 0.4 + Math.sin(nextProgress * Math.PI * 4) * 0.18 + nextPhaseProgress * 0.16;
+          globalProgressRef.current = nextProgress;
+          phaseProgressRef.current = nextPhaseProgress;
+          setActivePhaseIndex((previous) => (previous === nextIndex ? previous : nextIndex));
+        },
+      });
+      cleanups.push(() => trigger.kill());
+
+      const genesisTrigger = ScrollTrigger.create({
+        trigger: "[data-ai-genesis]",
+        start: "top bottom",
+        end: "bottom top",
+        scrub: true,
+        onUpdate: (self) => {
+          genesisProgressRef.current = clampProgress(self.progress);
+        },
+      });
+      cleanups.push(() => genesisTrigger.kill());
+
+      const pillarsTrigger = ScrollTrigger.create({
+        trigger: "[data-ai-pillars]",
+        start: "top 90%",
+        end: "bottom 10%",
+        scrub: true,
+        onUpdate: (self) => {
+          const next = clampProgress(self.progress);
+          pillarsProgressRef.current = next;
+          pillarsPhaseRef.current = next < 0.33 ? 0 : next < 0.66 ? 1 : 2;
+        },
+      });
+      cleanups.push(() => pillarsTrigger.kill());
+
+      const archTrigger = ScrollTrigger.create({
+        trigger: "[data-ai-arch]",
+        start: "top 80%",
+        end: "bottom 20%",
+        scrub: true,
+        onUpdate: (self) => {
+          const next = clampProgress(Number(self.progress.toFixed(3)));
+          const node = Math.min(
+            aiArchitectureNodes.length - 1,
+            Math.floor(next * aiArchitectureNodes.length),
+          );
+          setArchActiveNode((prev) => (prev === node ? prev : node));
+        },
+      });
+      cleanups.push(() => archTrigger.kill());
+
+      const useCaseTrigger = ScrollTrigger.create({
+        trigger: "[data-ai-usecases]",
+        start: "top 80%",
+        end: "bottom 20%",
+        scrub: true,
+        onUpdate: (self) => {
+          const next = clampProgress(Number(self.progress.toFixed(3)));
+          const idx = Math.min(3, Math.floor(next * 4));
+          setUseCaseActive((prev) => (prev === idx ? prev : idx));
+        },
+      });
+      cleanups.push(() => useCaseTrigger.kill());
+
+      const outroTrigger = ScrollTrigger.create({
+        trigger: "[data-ai-outro]",
+        start: "top bottom",
+        end: "bottom bottom",
+        scrub: true,
+        onUpdate: (self) => {
+          outroCollapseRef.current = clampProgress(self.progress);
+        },
+      });
+      cleanups.push(() => outroTrigger.kill());
+    }
+
+    const stage = document.querySelector<HTMLElement>("[data-ai-neural-stage-wrap]");
+    if (stage) {
+      let pointerFrame = 0;
+      const pointerState = { x: 0, y: 0, targetX: 0, targetY: 0 };
+
+      const tickPointer = () => {
+        pointerState.x += (pointerState.targetX - pointerState.x) * 0.12;
+        pointerState.y += (pointerState.targetY - pointerState.y) * 0.12;
+        studioStateRef.current.pointer = { x: pointerState.x, y: pointerState.y };
+        stage.style.setProperty("--ai-neural-pointer-x", `${pointerState.x}`);
+        stage.style.setProperty("--ai-neural-pointer-y", `${pointerState.y}`);
+        pointerFrame = window.requestAnimationFrame(tickPointer);
+      };
+
+      const handlePointerMove = (event: PointerEvent) => {
+        const bounds = stage.getBoundingClientRect();
+        pointerState.targetX = ((event.clientX - bounds.left) / Math.max(1, bounds.width)) * 2 - 1;
+        pointerState.targetY = ((event.clientY - bounds.top) / Math.max(1, bounds.height)) * 2 - 1;
+      };
+
+      const handlePointerLeave = () => {
+        pointerState.targetX = 0;
+        pointerState.targetY = 0;
+      };
+
+      stage.addEventListener("pointermove", handlePointerMove);
+      stage.addEventListener("pointerleave", handlePointerLeave);
+      pointerFrame = window.requestAnimationFrame(tickPointer);
+      cleanups.push(() => {
+        window.cancelAnimationFrame(pointerFrame);
+        stage.removeEventListener("pointermove", handlePointerMove);
+        stage.removeEventListener("pointerleave", handlePointerLeave);
+      });
+    }
+
+    const attachStagePointer = (
+      selector: string,
+      target: { current: { x: number; y: number } },
+    ) => {
+      const node = document.querySelector<HTMLElement>(selector);
+      if (!node) {
+        return;
+      }
+      const state = { x: 0, y: 0, targetX: 0, targetY: 0 };
+      let raf = 0;
+      const tick = () => {
+        state.x += (state.targetX - state.x) * 0.1;
+        state.y += (state.targetY - state.y) * 0.1;
+        target.current = { x: state.x, y: state.y };
+        raf = window.requestAnimationFrame(tick);
+      };
+      const onMove = (event: PointerEvent) => {
+        const bounds = node.getBoundingClientRect();
+        state.targetX = ((event.clientX - bounds.left) / Math.max(1, bounds.width)) * 2 - 1;
+        state.targetY = ((event.clientY - bounds.top) / Math.max(1, bounds.height)) * 2 - 1;
+      };
+      const onLeave = () => {
+        state.targetX = 0;
+        state.targetY = 0;
+      };
+      node.addEventListener("pointermove", onMove);
+      node.addEventListener("pointerleave", onLeave);
+      raf = window.requestAnimationFrame(tick);
+      cleanups.push(() => {
+        window.cancelAnimationFrame(raf);
+        node.removeEventListener("pointermove", onMove);
+        node.removeEventListener("pointerleave", onLeave);
+      });
+    };
+
+    attachStagePointer("[data-ai-genesis]", genesisPointerRef);
+    attachStagePointer("[data-ai-arch]", archPointerRef);
+    attachStagePointer("[data-ai-usecases]", useCasePointerRef);
+
+    // HUD percentage / progress-bar live updates via direct DOM (no React re-render per scroll tick).
+    const globalPctEl = document.querySelector<HTMLElement>("[data-ai-neural-global-pct]");
+    const phasePctEl = document.querySelector<HTMLElement>("[data-ai-neural-phase-pct]");
+    const progressBarEl = document.querySelector<HTMLElement>("[data-ai-neural-progress-bar]");
+    if (globalPctEl || phasePctEl || progressBarEl) {
+      let lastG = -1;
+      let lastP = -1;
+      let hudFrame = 0;
+      const tickHud = () => {
+        const g = Math.round(globalProgressRef.current * 100);
+        const p = Math.round(phaseProgressRef.current * 100);
+        if (g !== lastG) {
+          lastG = g;
+          if (globalPctEl) globalPctEl.textContent = `${String(g).padStart(2, "0")}%`;
+          if (progressBarEl) progressBarEl.style.width = `${Math.max(6, g)}%`;
+        }
+        if (p !== lastP) {
+          lastP = p;
+          if (phasePctEl) phasePctEl.textContent = `${String(p).padStart(2, "0")}%`;
+        }
+        hudFrame = window.requestAnimationFrame(tickHud);
+      };
+      hudFrame = window.requestAnimationFrame(tickHud);
+      cleanups.push(() => window.cancelAnimationFrame(hudFrame));
+    }
+
+    return () => cleanups.forEach((cleanup) => cleanup());
+  });
+
+  return (
+    <motion.main
+      ref={pageRef}
+      animate={{ opacity: 1 }}
+      className="design-page-main ai-page-main ai-neural-page overflow-hidden"
+      id="main-content"
+      initial={{ opacity: 0 }}
+      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <PageSeo {...stemSeparationSeo} />
+
+      {/* Act 0 — Genesis Hero */}
+      <section className="ai-genesis-section" data-ai-genesis>
+        <AiGenesisStage progressRef={genesisProgressRef} pointerRef={genesisPointerRef} />
+        <div className="ai-genesis-overlay" data-ai-genesis-headline>
+          <div className="ai-genesis-overlay__inner">
+            <span className="ai-genesis-overlay__eyebrow">{aiGenesisCopy.eyebrow}</span>
+            <h1 className="ai-genesis-overlay__headline">
+              {aiGenesisCopy.headline.split(/(?<=\.)\s+/).map((line) => (
+                <span className="ai-genesis-overlay__line" key={line}>
+                  {line}
+                </span>
+              ))}
+            </h1>
+            <p className="ai-genesis-overlay__subhead">
+              <span className="ai-genesis-overlay__line">{aiGenesisCopy.subhead}</span>
+            </p>
+            <div className="ai-genesis-overlay__badge">{aiGenesisCopy.badge}</div>
+            <div className="ai-genesis-overlay__proof" aria-label="OpenStudio AI capability summary">
+              <span>
+                <strong>6</strong>
+                Stem lanes
+              </span>
+              <span>
+                <strong>ACE</strong>
+                Prompt audio
+              </span>
+              <span>
+                <strong>WAV</strong>
+                Session return
+              </span>
             </div>
-          </SectionReveal>
-
-          <div className="space-y-8 lg:col-span-4">
-            <SectionReveal className="design-glass-panel rounded-[2rem] bg-gradient-to-br from-[#1A1A1A] to-[#0A0A0A] p-8" delay={0.08}>
-              <div className="flex items-center gap-3">
-                <BrainCircuit className="h-5 w-5 text-primary" />
-                <h3 className="font-headline text-lg font-bold tracking-tight text-white">BS Roformer Core</h3>
-              </div>
-              <p className="mt-6 text-sm leading-7 text-white/66">{stemExplainer.paragraphs[0]}</p>
-              <div className="mt-8 space-y-4">
-                <div className="flex items-center justify-between font-mono text-[0.62rem] uppercase tracking-[0.18em]">
-                  <span className="text-white/35">Architecture</span>
-                  <span className="text-secondary">Band-split transformer</span>
-                </div>
-                <div className="flex items-center justify-between font-mono text-[0.62rem] uppercase tracking-[0.18em]">
-                  <span className="text-white/35">Install path</span>
-                  <span className="text-primary">Optional</span>
-                </div>
-                <div className="flex items-center justify-between font-mono text-[0.62rem] uppercase tracking-[0.18em]">
-                  <span className="text-white/35">Workflow</span>
-                  <span className="text-white">6 stems</span>
-                </div>
-              </div>
-            </SectionReveal>
-
-            <SectionReveal className="design-panel rounded-[2rem] p-8" delay={0.12}>
-              <FolderCog className="mb-4 h-6 w-6 text-accent" />
-              <h4 className="font-mono text-sm font-bold uppercase tracking-[0.2em] text-white">Practical setup</h4>
-              <div className="mt-4 space-y-4">
-                {stemInstallFacts.slice(0, 3).map((fact) => (
-                  <p className="text-xs leading-6 text-white/56" key={fact}>
-                    {fact}
-                  </p>
-                ))}
-              </div>
-              <Button asChild className="mt-6 h-auto w-full rounded-2xl px-6 py-3 font-semibold" variant="outline">
-                <Link to="/download">Configure export</Link>
+            <div className="ai-genesis-overlay__ticker" data-ai-genesis-ticker aria-hidden="true">
+              {aiGenesisCopy.ticker.map((token) => (
+                <span key={token}>{token}</span>
+              ))}
+            </div>
+            <div className="ai-genesis-overlay__cta">
+              <Button asChild className="rounded-2xl px-7">
+                <Link to={aiGenesisCopy.primaryCta.to}>
+                  <Download className="h-4 w-4" />
+                  {aiGenesisCopy.primaryCta.label}
+                </Link>
               </Button>
-            </SectionReveal>
-
-            <Button asChild className="h-auto w-full rounded-[2rem] px-8 py-6 text-xl font-black shadow-[0_20px_40px_rgba(208,188,255,0.22)]">
-              <Link to="/download">
-                <Download className="h-5 w-5" />
-                Download models
-              </Link>
-            </Button>
+              <Button asChild className="rounded-2xl px-7" variant="outline">
+                <a href={aiGenesisCopy.secondaryCta.to}>
+                  {aiGenesisCopy.secondaryCta.label}
+                  <ArrowRight className="h-4 w-4" />
+                </a>
+              </Button>
+            </div>
+          </div>
+          <div className="ai-genesis-overlay__chrome" aria-hidden="true">
+            <span>SIG · 01</span>
+            <span>BS Roformer · ACE-Step</span>
+            <span>WAV · LOCAL</span>
           </div>
         </div>
+      </section>
 
-        <div className="mt-36 grid gap-16 border-t border-white/5 pt-20 md:grid-cols-3">
-          {stemWhyItMatters.map((item, index) => (
-            <SectionReveal className="space-y-6" delay={index * 0.06} key={item.title}>
-              <div className={`font-display text-5xl ${index === 0 ? "text-primary/10" : index === 1 ? "text-secondary/10" : "text-accent/10"}`}>{`0${index + 1}`}</div>
-              <h3 className="font-headline text-2xl font-bold text-white">{item.title}</h3>
-              <p className="text-base leading-8 text-white/58">{item.description}</p>
-            </SectionReveal>
+      {/* Act 1 — Dual pillars */}
+      <section className="ai-pillars-section" data-ai-pillars>
+        <div className="ai-pillars-canvas">
+          <AiSignalWebGLStage progressRef={pillarsProgressRef} sectionPhaseRef={pillarsPhaseRef} />
+        </div>
+        <div className="page-frame-wide ai-pillars-grid">
+          <header className="ai-pillars-header">
+            <div className="design-badge design-badge-secondary mb-5 w-fit">Two pillars · one engine</div>
+            <h2>Pull a mix apart. Compose a new one. Same surface, same session.</h2>
+            <p>
+              OpenStudio AI is not a side panel. The same engine that powers the rest of the DAW now reads spectrograms,
+              writes diffusion latents, and drops finished WAVs back onto the timeline.
+            </p>
+          </header>
+          <div className="ai-pillars-cards">
+            {aiPillars.map((pillar, index) => (
+              <article
+                className={cn("ai-pillar-card", `ai-pillar-card--${pillar.id}`)}
+                data-ai-pillar-card
+                key={pillar.id}
+              >
+                <span className="ai-pillar-card__signal" aria-hidden="true" />
+                <span className="ai-pillar-card__index">{String(index + 1).padStart(2, "0")}</span>
+                <span className="ai-pillar-card__eyebrow">{pillar.eyebrow}</span>
+                <h3 className="ai-pillar-card__title">{pillar.title}</h3>
+                <p className="ai-pillar-card__description">{pillar.description}</p>
+                <ul className="ai-pillar-card__details">
+                  {pillar.details.map((detail) => (
+                    <li key={detail}>{detail}</li>
+                  ))}
+                </ul>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Act 2 — Neural Studio Lab (pinned WebGL centerpiece) */}
+      <section className="ai-neural-lab" data-ai-neural-lab id="ai-neural-lab">
+        <div className="ai-neural-stage-wrap" data-ai-neural-stage-wrap>
+          <AiNeuralStudioStage
+            fallback={<NeuralFallbackInstrument phase={activePhase} />}
+            phases={aiNeuralStudioPhases}
+            stateRef={studioStateRef}
+          />
+          <NeuralCinematicExplainer activePhase={activePhase} />
+          <NeuralHud activePhase={activePhase} />
+        </div>
+      </section>
+
+      <section className="ai-neural-mobile-stack">
+        <div className="page-frame-wide">
+          {aiNeuralStudioPhases.map((phase) => (
+            <MobileInstrument key={phase.id} phase={phase} />
           ))}
         </div>
       </section>
-    </div>
-  </motion.main>
-);
+
+      {/* Act 3 — Architecture Orbit */}
+      <section className="ai-arch-section" data-ai-arch data-ai-neural-details>
+        <div className="ai-arch-canvas">
+          <AiArchitectureOrbit activeNode={archActiveNode} pointerRef={archPointerRef} />
+        </div>
+        <div className="page-frame-wide ai-arch-grid">
+          <header className="ai-arch-header" data-ai-neural-detail>
+            <div className="design-badge design-badge-secondary mb-5 w-fit">The runtime, in the open</div>
+            <h2>Every model, every dial, every WAV — owned by OpenStudio.</h2>
+            <p>
+              No black-box graph apps. No hidden fallbacks. The entire AI pipeline lives inside the app, validated before it
+              runs and visible the entire way through.
+            </p>
+          </header>
+          <div className="ai-arch-nodes">
+            {aiArchitectureNodes.map((node, index) => (
+              <article
+                className={cn(
+                  "ai-arch-node-card",
+                  `ai-arch-node-card--${node.accent}`,
+                  archActiveNode === index && "ai-arch-node-card--active",
+                )}
+                data-ai-arch-card
+                data-ai-neural-detail
+                key={node.id}
+              >
+                <span className="ai-arch-node-card__index">{String(index + 1).padStart(2, "0")}</span>
+                <span className="ai-arch-node-card__role">{node.role}</span>
+                <h3 className="ai-arch-node-card__label">{node.label}</h3>
+                <AiKineticText className="ai-arch-node-card__description" text={node.description} />
+              </article>
+            ))}
+          </div>
+
+          <div className="ai-arch-controls">
+            <header>
+              <div className="design-badge design-badge-secondary mb-5 w-fit">Generation controls</div>
+              <h3>Prompt, lyrics, seed, decode. Every parameter stays on the surface.</h3>
+            </header>
+            <div className="ai-arch-controls__grid">
+              {musicGenerationControls.map((control, index) => (
+                <SectionReveal className="ai-arch-control-card" delay={index * 0.04} key={control.title}>
+                  <span>{control.note}</span>
+                  <strong>{control.title}</strong>
+                  <p>{control.description}</p>
+                </SectionReveal>
+              ))}
+            </div>
+          </div>
+
+          <div className="ai-arch-trust">
+            <div className="ai-arch-trust__column">
+              <header>
+                <div className="design-badge design-badge-secondary mb-4 w-fit">Trust</div>
+                <h3>Optional, validated, offline after setup.</h3>
+              </header>
+              <ul className="ai-arch-trust__list">
+                {stemInstallFacts.map((fact) => (
+                  <li className="ai-arch-trust__item" key={fact}>
+                    <ShieldCheck className="h-5 w-5 text-secondary" />
+                    <AiKineticText text={fact} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="ai-arch-trust__column">
+              <header>
+                <div className="design-badge design-badge-secondary mb-4 w-fit">Principles</div>
+                <h3>The rules the runtime keeps so the music stays yours.</h3>
+              </header>
+              <ul className="ai-arch-trust__list">
+                {aiRuntimePrinciples.map((principle) => (
+                  <li className="ai-arch-trust__item" key={principle.title}>
+                    <BrainCircuit className="h-5 w-5 text-primary" />
+                    <div>
+                      <strong>{principle.title}</strong>
+                      <AiKineticText text={principle.description} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Act 4 — Use case constellation */}
+      <section className="ai-usecases-section" data-ai-usecases>
+        <div className="ai-usecases-canvas">
+          <AiUseCaseConstellation activeIndex={useCaseActive} pointerRef={useCasePointerRef} />
+        </div>
+        <div className="page-frame-wide ai-usecases-grid">
+          <header className="ai-usecases-header">
+            <div className="design-badge design-badge-secondary mb-5 w-fit">Production uses</div>
+            <h2>Four moves that AI actually unlocks once it lives in the session.</h2>
+          </header>
+          <div className="ai-usecases-list">
+            {stemUseCases.slice(0, 4).map((item, index) => (
+              <article
+                className={cn(
+                  "ai-usecase-card",
+                  useCaseActive === index && "ai-usecase-card--active",
+                )}
+                data-ai-usecase-card
+                key={item.title}
+              >
+                <span className="ai-usecase-card__index">{String(index + 1).padStart(2, "0")}</span>
+                <h3 className="ai-usecase-card__title">{item.title}</h3>
+                <AiKineticText className="ai-usecase-card__description" text={item.description} />
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Act 5 — Outro collapse / final CTA */}
+      <section className="ai-outro-section ai-final-section" data-ai-outro>
+        <div className="ai-outro-canvas">
+          <AiOutroStage collapseRef={outroCollapseRef} />
+        </div>
+        <SectionReveal className="page-frame-wide ai-outro-shell">
+          <div className="ai-outro-cta ai-outro-cta--premium">
+            <div>
+              <div className="design-badge design-badge-secondary mb-5 w-fit">{aiOutroCopy.eyebrow}</div>
+              <h2 className="font-headline text-4xl font-bold leading-tight text-white md:text-5xl">
+                {aiOutroCopy.headline}
+              </h2>
+              <AiKineticText
+                className="mt-4 max-w-3xl text-base leading-8 text-white/64"
+                text={`${aiOutroCopy.body} ${stemFinalCta.description}`}
+              />
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
+              <Button asChild className="rounded-2xl px-8">
+                <Link to={aiOutroCopy.primaryCta.to}>
+                  <Download className="h-4 w-4" />
+                  {aiOutroCopy.primaryCta.label}
+                </Link>
+              </Button>
+              <Button asChild className="rounded-2xl px-8" variant="outline">
+                <Link to={aiOutroCopy.secondaryCta.to}>
+                  {aiOutroCopy.secondaryCta.label}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </SectionReveal>
+      </section>
+    </motion.main>
+  );
+};
 
 export default StemSeparationPage;

@@ -2,10 +2,18 @@ import type { GithubHighlight, SeoMeta } from "@/data/marketing";
 import { externalLinks } from "@/data/siteLinks";
 
 export const githubSeo: SeoMeta = {
-  title: "OpenStudio GitHub | Open Source Direction, Contribution Story, and Repository Signals",
+  title: "OpenStudio on GitHub | Open Source DAW Repository",
   description:
-    "See how OpenStudio frames its open-source direction, contribution style, public build transparency, and the repository surface around the product.",
+    "Explore OpenStudio's GitHub repository — an open source DAW project. See the public codebase, contribution flow, release transparency, and architecture notes.",
   path: "/github",
+  keywords: [
+    "open source daw",
+    "openstudio github",
+    "daw github",
+    "open source music production software",
+    "open source audio workstation",
+    "daw source code",
+  ],
 };
 
 export const githubHero = {
@@ -35,9 +43,9 @@ export const githubHighlights: GithubHighlight[] = [
   },
   {
     eyebrow: "Contribution",
-    title: "Contribution starts with understanding what is already visible and real.",
+    title: "Contribution starts with a repository that is legible and easy to trust.",
     description:
-      "The point is not to fake a big community. It is to make the current repo legible enough that the next contributor understands where to help.",
+      "The goal is to make the current repository understandable enough that the next contributor can see where to help without guesswork.",
     metric: "Practical collaboration",
     accent: "amber",
   },
@@ -62,5 +70,5 @@ export const githubCallout = {
   eyebrow: "Repository surface",
   title: "Explore the repository with the product story still attached.",
   description:
-    "The goal is straightforward: code, docs, releases, and product direction should stay close enough that the repo feels useful even before the contributor graph gets crowded.",
+    "The goal is straightforward: code, docs, releases, and product direction should stay close enough that the repository feels useful to maintainers, contributors, and evaluators alike.",
 };

@@ -29,15 +29,16 @@ const OgCardPage = () => {
       style={{ width: "1200px", height: "630px", flexShrink: 0 }}
       className="relative overflow-hidden bg-[#0e0e0e]"
     >
-      {/* Background — hero timeline screenshot */}
+      {/* Background - hero timeline screenshot */}
       <img
         src="/assets/openstudio/screenshots/hero-timeline.png"
         alt=""
         aria-hidden="true"
         className="absolute inset-0 h-full w-full object-cover opacity-60"
+        decoding="async"
       />
 
-      {/* Obsidian overlay — horizontal fade */}
+      {/* Obsidian overlay - horizontal fade */}
       <div
         aria-hidden="true"
         className="absolute inset-0"
@@ -138,7 +139,7 @@ const OgCardPage = () => {
             style={{ background: "rgba(30,32,44,0.72)", backdropFilter: "blur(20px)" }}
           >
             <span className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-secondary">
-              Open Source · AI-Native
+              Open Source / AI-Native
             </span>
           </div>
         </div>
@@ -173,7 +174,7 @@ const OgCardPage = () => {
             }}
           >
             <p className="font-body text-[17px] font-light leading-relaxed text-muted-foreground">
-              Precision engineering meets neural synthesis — with{" "}
+              Precision engineering meets neural synthesis, with{" "}
               <span className="font-mono text-secondary">AI stem separation</span>, ultra-transparent
               pitch editing, MIDI instruments, and plugin hosting for the modern producer.
             </p>
@@ -194,9 +195,9 @@ const OgCardPage = () => {
             </div>
             <div className="flex flex-col gap-1">
               <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                Status
+                Release
               </span>
-              <span className="font-display text-xl tracking-tighter text-secondary">BETA_V1</span>
+              <span className="font-display text-xl tracking-tighter text-secondary">PUBLIC</span>
             </div>
           </div>
 
@@ -209,6 +210,7 @@ const OgCardPage = () => {
               <div className="flex items-center gap-4 font-mono text-sm text-foreground/50">
                 <span>Windows</span>
                 <span>macOS</span>
+                <span>Linux</span>
               </div>
             </div>
 

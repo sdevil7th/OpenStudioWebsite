@@ -1,4 +1,4 @@
-export type GithubPlatform = "windows" | "macos";
+export type GithubPlatform = "windows" | "macos" | "linux";
 
 export interface GithubRepoStats {
   stars: number;
@@ -249,14 +249,22 @@ const scoreReleaseAsset = (assetName: string, platform: GithubPlatform) => {
     if (name.endsWith(".msi")) score += 6;
     if (name.includes("setup")) score += 4;
     if (name.includes("windows") || name.includes("win")) score += 4;
-    if (name.includes("x64") || name.includes("amd64")) score += 2;
+    if (score > 0 && (name.includes("x64") || name.includes("amd64"))) score += 2;
   }
 
   if (platform === "macos") {
     if (name.endsWith(".dmg")) score += 8;
     if (name.endsWith(".pkg")) score += 6;
     if (name.includes("macos") || name.includes("mac") || name.includes("osx")) score += 4;
-    if (name.includes("universal") || name.includes("arm64") || name.includes("apple")) score += 2;
+    if (score > 0 && (name.includes("universal") || name.includes("arm64") || name.includes("apple"))) score += 2;
+  }
+
+  if (platform === "linux") {
+    if (name.endsWith(".appimage")) score += 8;
+    if (name.endsWith(".deb")) score += 6;
+    if (name.endsWith(".rpm")) score += 5;
+    if (name.includes("linux")) score += 4;
+    if (score > 0 && (name.includes("x86_64") || name.includes("x64") || name.includes("amd64"))) score += 2;
   }
 
   return score;

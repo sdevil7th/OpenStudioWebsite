@@ -1,12 +1,13 @@
 import {
+  type AiRuntimeLinuxArchitecture,
   type AiRuntimeMacosArchitecture,
+  type AiRuntimePlatform,
   parseAiRuntimeManifest,
   resolveAiRuntimeDownloadUrl,
 } from "../../shared/ai-runtime-manifest";
 import { GITHUB_RELEASES_URL } from "../../shared/github-api";
 
-const AI_RUNTIME_MANIFEST_PATH = "/releases/ai-runtime/latest.json";
-type AiRuntimeRedirectPlatform = "windows" | "macos";
+const AI_RUNTIME_MANIFEST_PATH = "/releases/ai-runtime/stable/latest.json";
 
 const fetchPublishedAiRuntimeManifest = async (request: Request) => {
   const manifestUrl = new URL(AI_RUNTIME_MANIFEST_PATH, request.url);
@@ -23,24 +24,35 @@ const fetchPublishedAiRuntimeManifest = async (request: Request) => {
   return parseAiRuntimeManifest(await response.json(), AI_RUNTIME_MANIFEST_PATH);
 };
 
-const parseMacosArchitecture = (value: string | null): AiRuntimeMacosArchitecture | null => {
+type AiRuntimeArchitecture = AiRuntimeMacosArchitecture | AiRuntimeLinuxArchitecture;
+
+const parseRuntimeArchitecture = (value: string | null): AiRuntimeArchitecture | null => {
   if (!value) {
     return null;
   }
 
-  const normalized = value.trim().toLowerCase();
-  return normalized === "arm64" || normalized === "x64" ? normalized : null;
+  const normalized = value.trim().toLowerCase().replace(/^"|"$/g, "");
+
+  if (normalized === "arm64" || normalized === "aarch64") {
+    return "arm64";
+  }
+
+  if (normalized === "x64" || normalized === "x86_64" || normalized === "amd64" || normalized === "x86") {
+    return "x64";
+  }
+
+  return null;
 };
 
-const inferMacosArchitectureFromRequest = (request: Request): AiRuntimeMacosArchitecture | null => {
+const inferRuntimeArchitectureFromRequest = (request: Request): AiRuntimeArchitecture | null => {
   const url = new URL(request.url);
-  const explicitArchitecture = parseMacosArchitecture(url.searchParams.get("arch"));
+  const explicitArchitecture = parseRuntimeArchitecture(url.searchParams.get("arch"));
 
   if (explicitArchitecture) {
     return explicitArchitecture;
   }
 
-  const headerArchitecture = parseMacosArchitecture(request.headers.get("sec-ch-ua-arch"));
+  const headerArchitecture = parseRuntimeArchitecture(request.headers.get("sec-ch-ua-arch"));
 
   if (headerArchitecture) {
     return headerArchitecture;
@@ -61,13 +73,15 @@ const inferMacosArchitectureFromRequest = (request: Request): AiRuntimeMacosArch
 
 export const redirectToLatestAiRuntimeRelease = async (
   request: Request,
-  platform: AiRuntimeRedirectPlatform,
-  architecture?: AiRuntimeMacosArchitecture,
+  platform: AiRuntimePlatform,
+  architecture?: AiRuntimeArchitecture,
 ) => {
   try {
     const manifest = await fetchPublishedAiRuntimeManifest(request);
     const resolvedArchitecture =
-      platform === "macos" ? architecture ?? inferMacosArchitectureFromRequest(request) : undefined;
+      platform === "macos" || platform === "linux"
+        ? architecture ?? inferRuntimeArchitectureFromRequest(request) ?? undefined
+        : undefined;
     const redirectTarget = resolveAiRuntimeDownloadUrl(manifest, platform, resolvedArchitecture);
 
     if (!redirectTarget) {
