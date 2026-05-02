@@ -150,7 +150,7 @@ const assertRepoHygiene = async () => {
     }
   }
 
-  const checkScreenshots = spawnSync("git", ["check-ignore", "-q", ".screenshots"], {
+  const checkScreenshots = spawnSync("git", ["check-ignore", "-q", ".screenshots/"], {
     cwd: repoRoot,
     encoding: "utf8",
   });

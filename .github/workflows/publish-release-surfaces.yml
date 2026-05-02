@@ -79,6 +79,14 @@ jobs:
             --pattern "OpenStudio-appcast-windows-stable.xml" \
             --pattern "OpenStudio-appcast-macos-stable.xml"
 
+          if gh release view "$TAG" --repo "$DESKTOP_REPO" --json assets --jq '.assets[].name' | grep -qx "OpenStudio-appcast-linux-stable.xml"; then
+            gh release download "$TAG" \
+              --repo "$DESKTOP_REPO" \
+              --dir downloaded-release-assets \
+              --clobber \
+              --pattern "OpenStudio-appcast-linux-stable.xml"
+          fi
+
       - name: Stage downloaded release inputs
         shell: bash
         run: |
@@ -94,6 +102,9 @@ jobs:
           cp downloaded-release-assets/OpenStudio-ai-runtime-stable-latest.json release-input/releases/ai-runtime/stable/latest.json
           cp downloaded-release-assets/OpenStudio-appcast-windows-stable.xml release-input/appcast/windows-stable.xml
           cp downloaded-release-assets/OpenStudio-appcast-macos-stable.xml release-input/appcast/macos-stable.xml
+          if [[ -f downloaded-release-assets/OpenStudio-appcast-linux-stable.xml ]]; then
+            cp downloaded-release-assets/OpenStudio-appcast-linux-stable.xml release-input/appcast/linux-stable.xml
+          fi
 
       - name: Install dependencies
         shell: bash

@@ -10,12 +10,17 @@ This repo is now the only public publisher for:
 - `/releases/ai-runtime/stable/latest.json`
 - `/appcast/windows-stable.xml`
 - `/appcast/macos-stable.xml`
+- `/appcast/linux-stable.xml`
 - `/download/windows/latest`
 - `/download/macos/latest`
+- `/download/linux/latest`
 - `/download/ai-runtime/windows/latest`
 - `/download/ai-runtime/macos/latest`
 - `/download/ai-runtime/macos/arm64/latest`
 - `/download/ai-runtime/macos/x64/latest`
+- `/download/ai-runtime/linux/latest`
+- `/download/ai-runtime/linux/x64/latest`
+- `/download/ai-runtime/linux/arm64/latest`
 
 GitHub Releases remain the binary origin. This repo publishes release metadata and appcasts, then exposes stable redirect surfaces that resolve to GitHub-hosted binaries.
 
@@ -49,6 +54,7 @@ Expected staged deploy-input files:
 - `release-input/releases/ai-runtime/stable/latest.json`
 - `release-input/appcast/windows-stable.xml`
 - `release-input/appcast/macos-stable.xml`
+- `release-input/appcast/linux-stable.xml` when `releases/stable/latest.json` includes `platforms.linux`
 
 Expected desktop release asset filenames:
 
@@ -58,12 +64,17 @@ Expected desktop release asset filenames:
 - `OpenStudio-ai-runtime-stable-latest.json`
 - `OpenStudio-appcast-windows-stable.xml`
 - `OpenStudio-appcast-macos-stable.xml`
+- `OpenStudio-appcast-linux-stable.xml` when Linux app metadata is published
 
-Current AI runtime binary asset names referenced by metadata:
+Common AI runtime binary asset names referenced by metadata:
 
-- `OpenStudio-AI-Runtime-windows-base.zip`
+- `OpenStudio-AI-Runtime-windows-base-x64.zip`
+- `OpenStudio-AI-Runtime-windows-directml-x64.zip` when a downloadable backend archive is published instead of an install plan
+- `OpenStudio-AI-Runtime-windows-cuda-x64.zip` when a downloadable backend archive is published instead of an install plan
 - `OpenStudio-AI-Runtime-macos-arm64.zip`
 - `OpenStudio-AI-Runtime-macos-x64.zip`
+- `OpenStudio-AI-Runtime-linux-x64.zip`
+- `OpenStudio-AI-Runtime-linux-arm64.zip`
 
 Published output paths:
 
@@ -73,24 +84,26 @@ Published output paths:
 - `/releases/ai-runtime/stable/latest.json`
 - `/appcast/windows-stable.xml`
 - `/appcast/macos-stable.xml`
+- `/appcast/linux-stable.xml` when provided
 
 Validation rules:
 
 - app release root/stable manifests must both exist and match after JSON normalization
 - AI runtime root/stable manifests must both exist and match after JSON normalization
-- app release JSON must include `schemaVersion`, `channel`, `version`, `publishedAt`, `releasePageUrl`, `platforms.windows`, and `platforms.macos`
-- AI runtime JSON must include `schemaVersion`, `channel`, `appVersion`, `runtimeVersion`, `publishedAt`, `platforms.windows`, and `platforms.macos`
+- app release JSON must include `schemaVersion`, `channel`, `version`, `publishedAt`, `releasePageUrl`, `platforms.windows`, and `platforms.macos`; `platforms.linux` is optional
+- AI runtime JSON must include `schemaVersion`, `channel`, `appVersion`, `runtimeVersion`, `publishedAt`, `platforms.windows`, and `platforms.macos`; `platforms.linux` is optional
 - AI runtime Windows metadata may be published as a legacy flat `platforms.windows` entry, an old nested backend-asset shape under `platforms.windows.backends`, the new `platforms.windows.base` plus `platforms.windows.backends.<backend>.installPlan` shape, or a mixed transition manifest that contains both legacy and new fields
 - AI runtime macOS metadata may be published either as the legacy flat `platforms.macos` entry or as the current nested `platforms.macos.arm64` and `platforms.macos.x64` entries
+- AI runtime Linux metadata may be published either as a legacy flat `platforms.linux` entry or as nested `platforms.linux.x64` and `platforms.linux.arm64` entries
 - downloadable manifest asset entries must include `url`, `sha256`, `size`, and `fileName`
 - Windows backend install-plan entries must expose an `installPlan` object and are published verbatim
-- both stable appcasts must be present, valid XML, and align with the stable app manifest enclosure data
+- Windows and macOS stable appcasts must be present, valid XML, and align with the stable app manifest enclosure data; the Linux appcast is required when Linux app metadata is published
 
 Current AI runtime manifest shape:
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 4,
   "channel": "stable",
   "appVersion": "0.0.22",
   "runtimeVersion": "2026.04.05",
@@ -98,10 +111,10 @@ Current AI runtime manifest shape:
   "platforms": {
     "windows": {
       "base": {
-        "url": "https://github.com/sdevil7th/OpenStudio/releases/download/v0.0.22/OpenStudio-AI-Runtime-windows-base.zip",
+        "url": "https://github.com/sdevil7th/OpenStudio/releases/download/v0.0.22/OpenStudio-AI-Runtime-windows-base-x64.zip",
         "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
         "size": 123,
-        "fileName": "OpenStudio-AI-Runtime-windows-base.zip"
+        "fileName": "OpenStudio-AI-Runtime-windows-base-x64.zip"
       },
       "backends": {
         "cuda": {
@@ -149,6 +162,20 @@ Current AI runtime manifest shape:
         "size": 123,
         "fileName": "OpenStudio-AI-Runtime-macos-x64.zip"
       }
+    },
+    "linux": {
+      "x64": {
+        "url": "https://github.com/sdevil7th/OpenStudio/releases/download/v0.0.22/OpenStudio-AI-Runtime-linux-x64.zip",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "size": 123,
+        "fileName": "OpenStudio-AI-Runtime-linux-x64.zip"
+      },
+      "arm64": {
+        "url": "https://github.com/sdevil7th/OpenStudio/releases/download/v0.0.22/OpenStudio-AI-Runtime-linux-arm64.zip",
+        "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "size": 123,
+        "fileName": "OpenStudio-AI-Runtime-linux-arm64.zip"
+      }
     }
   }
 }
@@ -182,13 +209,15 @@ Desktop-side secret outside this repo:
 
 ## Redirect Behavior
 
-- `/download/windows/latest` and `/download/macos/latest` remain GitHub-release-backed installer redirects.
+- `/download/windows/latest`, `/download/macos/latest`, and `/download/linux/latest` resolve from `/releases/stable/latest.json` first, then fall back to GitHub latest-release asset matching if metadata is not available.
 - `/download/ai-runtime/windows/latest` resolves to `platforms.windows.base.url` when the new Windows manifest shape is present, otherwise it falls back to the legacy flat `platforms.windows.url` entry when available.
 - Windows backend install-plan metadata is preserved verbatim in the published JSON at `/releases/ai-runtime/latest.json` and `/releases/ai-runtime/stable/latest.json`.
 - `/download/ai-runtime/windows/latest` does not treat `platforms.windows.backends.cuda` or `platforms.windows.backends.directml` as downloadable URLs when those entries only contain `installPlan`.
 - `/download/ai-runtime/macos/arm64/latest` and `/download/ai-runtime/macos/x64/latest` resolve from the published AI runtime manifest and should be preferred when the caller knows the target architecture.
 - `/download/ai-runtime/macos/latest` remains a best-effort convenience redirect. It still supports the legacy flat macOS manifest entry, and for the new nested shape it will honor `?arch=arm64` or `?arch=x64` when present, otherwise it only redirects when it can infer the architecture safely.
-- Netlify never hosts the `.exe`, `.dmg`, or AI runtime `.zip` files.
+- `/download/ai-runtime/linux/x64/latest` and `/download/ai-runtime/linux/arm64/latest` resolve from the published AI runtime manifest and should be preferred when the caller knows the target architecture.
+- `/download/ai-runtime/linux/latest` supports the legacy flat Linux manifest entry and otherwise falls back to `x64`, then `arm64`, when no architecture is provided.
+- Netlify never hosts the `.exe`, `.dmg`, `.AppImage`, or AI runtime archive files.
 
 ## Website Publish Workflow
 
@@ -212,7 +241,7 @@ Workflow behavior:
 
 1. validate the dispatch payload and reject non-`stable` channels
 2. validate `desktopRepo` matches the configured `OPENSTUDIO_DESKTOP_REPO`
-3. download the six generated metadata/appcast assets from the desktop GitHub Release for `tag`
+3. download the generated metadata/appcast assets from the desktop GitHub Release for `tag`, including the Linux appcast when present
 4. map them into `release-input/`
 5. run `npm ci`
 6. run `npm run validate-release-publish-inputs -- --root release-input`
@@ -238,19 +267,24 @@ curl https://openstudio.org.in/releases/ai-runtime/latest.json
 curl https://openstudio.org.in/releases/ai-runtime/stable/latest.json
 curl https://openstudio.org.in/appcast/windows-stable.xml
 curl https://openstudio.org.in/appcast/macos-stable.xml
+curl https://openstudio.org.in/appcast/linux-stable.xml
 curl -I https://openstudio.org.in/download/windows/latest
 curl -I https://openstudio.org.in/download/macos/latest
+curl -I https://openstudio.org.in/download/linux/latest
 curl -I https://openstudio.org.in/download/ai-runtime/windows/latest
 curl -I https://openstudio.org.in/download/ai-runtime/macos/latest
 curl -I https://openstudio.org.in/download/ai-runtime/macos/arm64/latest
 curl -I https://openstudio.org.in/download/ai-runtime/macos/x64/latest
+curl -I https://openstudio.org.in/download/ai-runtime/linux/latest
+curl -I https://openstudio.org.in/download/ai-runtime/linux/x64/latest
+curl -I https://openstudio.org.in/download/ai-runtime/linux/arm64/latest
 ```
 
 Check that:
 
-- all six metadata/appcast files are live
-- all six metadata/appcast files are uncached
-- installer redirects resolve to GitHub Release asset URLs
+- metadata/appcast files are live
+- metadata/appcast files are uncached
+- app download redirects resolve through the published app release metadata to GitHub Release asset URLs
 - AI runtime redirects resolve through the published AI runtime metadata to GitHub Release asset URLs
 
 ## Assets
