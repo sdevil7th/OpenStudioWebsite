@@ -106,6 +106,65 @@ test("accepts a mixed transition manifest with legacy and new Windows entries", 
   );
 });
 
+test("accepts an optional Linux runtime manifest and falls back to x64", () => {
+  const manifest = {
+    schemaVersion: 1,
+    channel: "stable",
+    appVersion: "1.2.3",
+    runtimeVersion: "4.5.6",
+    publishedAt: "2026-04-16T00:00:00.000Z",
+    platforms: {
+      windows: {
+        base: {
+          fileName: "OpenStudio-AI-Runtime-windows-x64.zip",
+          sha256: "a".repeat(64),
+          size: 123,
+          url: "https://example.com/OpenStudio-AI-Runtime-windows-x64.zip",
+        },
+      },
+      macos: {
+        arm64: {
+          fileName: "OpenStudio-AI-Runtime-macos-arm64.zip",
+          sha256: "b".repeat(64),
+          size: 456,
+          url: "https://example.com/OpenStudio-AI-Runtime-macos-arm64.zip",
+        },
+      },
+      linux: {
+        x64: {
+          fileName: "OpenStudio-AI-Runtime-linux-x64.tar.gz",
+          sha256: "c".repeat(64),
+          size: 789,
+          url: "https://example.com/OpenStudio-AI-Runtime-linux-x64.tar.gz",
+        },
+        arm64: {
+          fileName: "OpenStudio-AI-Runtime-linux-arm64.tar.gz",
+          sha256: "d".repeat(64),
+          size: 790,
+          url: "https://example.com/OpenStudio-AI-Runtime-linux-arm64.tar.gz",
+        },
+      },
+    },
+  };
+
+  assert.doesNotThrow(() => validateAiRuntimeMetadata(manifest, "linux-runtime.json"));
+
+  const parsed = parseAiRuntimeManifest(manifest, "linux-runtime.json");
+  assert.equal(parsed.platforms.linux?.x64?.fileName, "OpenStudio-AI-Runtime-linux-x64.tar.gz");
+  assert.equal(
+    resolveAiRuntimeDownloadUrl(parsed, "linux"),
+    "https://example.com/OpenStudio-AI-Runtime-linux-x64.tar.gz",
+  );
+  assert.equal(
+    resolveAiRuntimeDownloadUrl(parsed, "linux", "x64"),
+    "https://example.com/OpenStudio-AI-Runtime-linux-x64.tar.gz",
+  );
+  assert.equal(
+    resolveAiRuntimeDownloadUrl(parsed, "linux", "arm64"),
+    "https://example.com/OpenStudio-AI-Runtime-linux-arm64.tar.gz",
+  );
+});
+
 test("staging preserves backend install-plan metadata verbatim", async () => {
   const manifestText = await readFixtureText("windows-base-install-plan");
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "openstudio-ai-runtime-"));

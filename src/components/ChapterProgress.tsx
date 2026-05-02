@@ -3,50 +3,61 @@ import { cn } from "@/lib/utils";
 interface ChapterProgressItem {
   id: string;
   label: string;
+  numeral?: string;
 }
 
 interface ChapterProgressProps {
   items: ChapterProgressItem[];
   activeId?: string;
   className?: string;
+  progressById?: Record<string, number>;
 }
 
-const ChapterProgress = ({ items, activeId, className }: ChapterProgressProps) => (
-  <div className={cn("space-y-3", className)}>
-    {items.map((item, index) => {
-      const active = item.id === activeId;
+const clampProgress = (value?: number) => {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return 0;
+  }
 
-      return (
-        <a
-          className={cn(
-            "group flex items-center gap-4 rounded-[1.35rem] border px-3 py-3 transition",
-            active
-              ? "border-white/12 bg-white/[0.05]"
-              : "border-transparent hover:border-white/8 hover:bg-white/[0.025]",
-          )}
-          href={`#${item.id}`}
-          key={item.id}
-        >
-          <span
-            className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-full border font-sans text-[0.7rem] font-medium uppercase tracking-[0.1em] transition",
-              active ? "border-primary/45 bg-primary/12 text-primary" : "border-white/10 text-white/40",
-            )}
-          >
-            {index + 1}
-          </span>
-          <span
-            className={cn(
-              "font-sans text-[0.72rem] font-medium uppercase tracking-[0.12em] transition",
-              active ? "text-white" : "text-white/46 group-hover:text-white/75",
-            )}
-          >
-            {item.label}
-          </span>
-        </a>
-      );
-    })}
-  </div>
+  return Math.max(0, Math.min(1, value));
+};
+
+const ChapterProgress = ({ items, activeId, className, progressById }: ChapterProgressProps) => (
+  <nav className={cn("chapter-rail", className)}>
+    <span aria-hidden="true" className="chapter-rail__spine" />
+    <ol className="chapter-rail__list">
+      {items.map((item, index) => {
+        const active = item.id === activeId;
+        const progress = clampProgress(progressById?.[item.id]);
+        const numeral = item.numeral ?? String(index + 1);
+
+        return (
+          <li className="chapter-rail__item" key={item.id}>
+            <a
+              className={cn(
+                "chapter-rail__link group",
+                active ? "chapter-rail__link--active" : undefined,
+              )}
+              data-active={active ? "true" : "false"}
+              href={`#${item.id}`}
+            >
+              <span aria-hidden="true" className="chapter-rail__tick" />
+              <span className="chapter-rail__numeral" data-active={active ? "true" : "false"}>
+                {numeral}
+              </span>
+              <span className="chapter-rail__label">{item.label}</span>
+              {active ? (
+                <span
+                  aria-hidden="true"
+                  className="chapter-rail__underline"
+                  style={{ width: `${Math.max(4, progress * 100)}%` }}
+                />
+              ) : null}
+            </a>
+          </li>
+        );
+      })}
+    </ol>
+  </nav>
 );
 
 export default ChapterProgress;

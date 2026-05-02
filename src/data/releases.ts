@@ -1,10 +1,18 @@
 import type { ReleaseEntry, SeoMeta } from "@/data/marketing";
 
 export const releasesSeo: SeoMeta = {
-  title: "OpenStudio Releases | Update Timeline, Build Notes, and Release Direction",
+  title: "OpenStudio Releases | Free Open Source DAW Updates",
   description:
-    "Track the OpenStudio public release arc, update philosophy, distribution notes, and the current state of Windows and macOS builds.",
+    "Track the OpenStudio release timeline — update notes, distribution status, and Windows, macOS, and Linux build details for the free, open source DAW.",
   path: "/releases",
+  keywords: [
+    "openstudio releases",
+    "daw release notes",
+    "open source daw updates",
+    "free daw windows",
+    "free daw mac",
+    "free daw linux",
+  ],
 };
 
 export const releasesHero = {
@@ -19,14 +27,14 @@ export const releaseTimeline: ReleaseEntry[] = [
     id: "first-public-release",
     label: "Current track",
     version: "Public release",
-    title: "Windows and macOS downloads are live through stable redirect endpoints.",
+    title: "Windows, macOS, and Linux downloads are live through stable redirect endpoints.",
     summary:
       "The current public release keeps distribution straightforward: browser-first downloads, platform notes kept visible, and the release path centered on clarity rather than overpromising background update magic.",
     status: "Live now",
     dateLabel: "Current release path",
     accent: "lavender",
     bullets: [
-      "Stable redirect endpoints back the Windows and macOS download buttons.",
+      "Stable redirect endpoints back the Windows, macOS, and Linux download buttons.",
       "Unsigned install guidance stays explicit for both platforms.",
       "The base app remains lean while optional AI tooling stays separate.",
     ],

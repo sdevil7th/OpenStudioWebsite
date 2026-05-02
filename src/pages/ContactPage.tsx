@@ -1,136 +1,186 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Code2, Github, Link as LinkIcon, Mail } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowRight, Code2, FileText, Github, Link as LinkIcon, Mail, MapPin } from "lucide-react";
 import PageSeo from "@/components/PageSeo";
 import SectionReveal from "@/components/motion/SectionReveal";
-import { designMedia } from "@/data/designMedia";
-import { contactSeo } from "@/data/contact";
+import { Button } from "@/components/ui/button";
+import { contactAvailability, contactHero, contactMethods, contactSeo } from "@/data/contact";
 import { contactProfile, externalLinks } from "@/data/siteLinks";
 
 const ContactPage = () => (
   <motion.main
-    animate={{ opacity: 1, y: 0 }}
+    animate={{ opacity: 1 }}
     className="design-page-main overflow-hidden"
     id="main-content"
-    initial={{ opacity: 0, y: 18 }}
-    transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+    initial={{ opacity: 0 }}
+    transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
   >
     <PageSeo {...contactSeo} />
 
-    <div className="fixed inset-0 -z-10 overflow-hidden">
-      <div className="absolute -left-10 top-[-10%] h-[40%] w-[40%] rounded-full bg-primary/12 blur-[100px]" />
-      <div className="absolute -bottom-10 right-[-5%] h-[50%] w-[50%] rounded-full bg-primary/10 blur-[120px] opacity-50" />
-      <div className="absolute right-[10%] top-[30%] h-[30%] w-[30%] rounded-full bg-secondary/5 blur-[80px]" />
-    </div>
+    <div className="page-frame-wide pb-20">
+      <section className="pb-12">
+        <div className="hero-shell overflow-hidden rounded-[2.8rem] px-6 py-8 md:px-10 md:py-10 2xl:px-12">
+          <div className="grid gap-8 2xl:grid-cols-[minmax(0,0.82fr)_minmax(20rem,0.7fr)] 2xl:items-start">
+            <SectionReveal className="max-w-4xl">
+              <div className="design-badge design-badge-primary mb-6 w-fit">{contactHero.eyebrow}</div>
+              <h1 className="font-headline text-5xl font-bold tracking-[-0.06em] text-white md:text-7xl 2xl:text-[6rem]">
+                {contactHero.title}
+              </h1>
+              <p className="mt-6 max-w-3xl text-lg leading-8 text-white/66 2xl:text-[1.35rem]">{contactHero.description}</p>
 
-    <div className="mx-auto flex min-h-[calc(100vh-7rem)] max-w-5xl items-center px-6 pb-20 md:px-10">
-      <div className="grid w-full items-center gap-8 lg:grid-cols-12">
-        <SectionReveal className="space-y-8 lg:col-span-5">
-          <div>
-            <h4 className="mb-4 font-mono text-sm uppercase tracking-[0.3em] text-primary">The Synthetic Atmosphere</h4>
-            <h1 className="font-headline text-6xl font-bold leading-none tracking-[-0.06em] text-white lg:text-7xl">
-              Let&apos;s <br />
-              <span className="text-secondary">Connect</span>.
-            </h1>
-          </div>
-          <p className="max-w-sm text-lg leading-relaxed text-white/60">{contactProfile.summary}</p>
-          <div className="flex flex-col gap-6">
-            <div className="group flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] transition group-hover:bg-primary/20">
-                <Mail className="h-5 w-5 text-white/70 transition group-hover:text-primary" />
-              </div>
-              <div>
-                <p className="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white/35">Email</p>
-                <a className="font-headline text-lg text-white transition hover:text-primary" href={`mailto:${contactProfile.email}`}>
-                  {contactProfile.email}
-                </a>
-              </div>
-            </div>
-            <div className="group flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] transition group-hover:bg-secondary/20">
-                <LinkIcon className="h-5 w-5 text-white/70 transition group-hover:text-secondary" />
-              </div>
-              <div>
-                <p className="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white/35">Website</p>
-                <a className="font-headline text-lg text-white transition hover:text-secondary" href={contactProfile.website} rel="noreferrer" target="_blank">
-                  {contactProfile.website.replace("https://", "")}
-                </a>
-              </div>
-            </div>
-          </div>
-        </SectionReveal>
-
-        <SectionReveal className="lg:col-span-7" delay={0.08}>
-          <div className="group relative">
-            <div className="absolute -inset-1 rounded-[2rem] bg-gradient-to-r from-primary to-secondary opacity-20 blur transition duration-1000 group-hover:opacity-30" />
-            <div className="design-glass-panel relative overflow-hidden rounded-[2rem] p-10 shadow-2xl">
-              <div className="bg-carbon-fibre absolute inset-0 opacity-[0.03]" />
-              <div className="relative z-10 space-y-10">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <div className="font-display text-[40px] text-white/90">OS-ID</div>
-                    <div className="font-mono text-[0.62rem] tracking-[0.2em] text-primary">PUBLIC BUILD CONTACT</div>
-                  </div>
-                  <div className="h-16 w-16 overflow-hidden rounded-2xl border border-primary/30">
-                    <img alt={designMedia.contactPortrait.alt} className="h-full w-full object-cover" src={designMedia.contactPortrait.src} />
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="rounded-xl border border-white/5 bg-black/40 p-4">
-                      <p className="mb-1 font-mono text-[0.56rem] uppercase tracking-[0.2em] text-white/28">Status</p>
-                      <p className="font-mono text-xs uppercase tracking-[0.18em] text-secondary">Public repo live</p>
-                    </div>
-                    <div className="rounded-xl border border-white/5 bg-black/40 p-4">
-                      <p className="mb-1 font-mono text-[0.56rem] uppercase tracking-[0.2em] text-white/28">Location</p>
-                      <p className="font-mono text-xs uppercase tracking-[0.18em] text-white">{contactProfile.location}</p>
-                    </div>
-                  </div>
-
-                  <a
-                    className="flex items-center justify-between rounded-2xl border border-primary/20 bg-primary/10 p-6 transition hover:bg-primary/15"
-                    href={`mailto:${contactProfile.email}`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <Mail className="h-8 w-8 text-primary" />
-                      <div>
-                        <p className="font-headline font-bold text-white">Send Message</p>
-                        <p className="text-xs text-primary/70">Release feedback, collaboration, and product discussion</p>
-                      </div>
-                    </div>
-                    <ArrowRight className="h-5 w-5 text-primary transition group-hover:translate-x-1" />
-                  </a>
-                </div>
-
-                <div className="flex items-center justify-between border-t border-white/5 pt-6">
-                  <div className="flex gap-4">
-                    <a className="rounded-lg p-2 text-white/60 transition hover:bg-white/5 hover:text-white" href={contactProfile.website} rel="noreferrer" target="_blank">
-                      <LinkIcon className="h-5 w-5" />
-                    </a>
-                    {externalLinks.creatorGithub ? (
-                      <a className="rounded-lg p-2 text-white/60 transition hover:bg-white/5 hover:text-white" href={externalLinks.creatorGithub} rel="noreferrer" target="_blank">
-                        <Github className="h-5 w-5" />
-                      </a>
-                    ) : externalLinks.repository ? (
-                      <a className="rounded-lg p-2 text-white/60 transition hover:bg-white/5 hover:text-white" href={externalLinks.repository} rel="noreferrer" target="_blank">
-                        <Code2 className="h-5 w-5" />
+              <div className="mt-10 grid gap-4 md:grid-cols-3">
+                {contactMethods.map((method) => (
+                  <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.03] px-5 py-5" key={method.label}>
+                    <p className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white/38">{method.label}</p>
+                    {method.href ? (
+                      <a className="mt-3 block font-headline text-xl font-semibold text-white transition hover:text-primary" href={method.href} rel="noreferrer" target={method.href.startsWith("http") ? "_blank" : undefined}>
+                        {method.value}
                       </a>
                     ) : (
-                      <Link className="rounded-lg p-2 text-white/60 transition hover:bg-white/5 hover:text-white" to="/github">
-                        <Code2 className="h-5 w-5" />
-                      </Link>
+                      <p className="mt-3 font-headline text-xl font-semibold text-white">{method.value}</p>
                     )}
+                    <p className="mt-3 text-sm leading-7 text-white/60">{method.note}</p>
                   </div>
-                  <div className="font-display text-[0.62rem] tracking-[0.2em] text-white/20">Copyright 2026 OpenStudio</div>
+                ))}
+              </div>
+
+              <div className="mt-8 flex flex-wrap gap-4">
+                <Button asChild className="rounded-2xl px-8 py-4">
+                  <a href={`mailto:${contactProfile.email}`}>
+                    <Mail className="h-4 w-4" />
+                    Email maintainer
+                  </a>
+                </Button>
+                {externalLinks.maintainerGithub ? (
+                  <Button asChild className="rounded-2xl px-8 py-4" variant="outline">
+                    <a href={externalLinks.maintainerGithub} rel="noreferrer" target="_blank">
+                      <Github className="h-4 w-4" />
+                      Maintainer GitHub
+                    </a>
+                  </Button>
+                ) : null}
+              </div>
+            </SectionReveal>
+
+            <SectionReveal className="h-full" delay={0.08}>
+              <div className="design-glass-panel h-full rounded-[2.2rem] p-6 md:p-8">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="font-display text-[36px] leading-none text-white/92">OS-CONTACT</div>
+                    <div className="mt-2 font-mono text-[0.62rem] uppercase tracking-[0.24em] text-primary">Maintainer-facing project surface</div>
+                  </div>
+                  <div className="rounded-full border border-secondary/20 bg-secondary/10 px-3 py-1 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-secondary">
+                    Public repo live
+                  </div>
+                </div>
+
+                <div className="mt-8 grid gap-4">
+                  <InfoRow icon={Mail} label="Primary contact" value={contactProfile.email} />
+                  <InfoRow icon={LinkIcon} label="Website" value={contactProfile.website.replace("https://", "")} />
+                  <InfoRow icon={MapPin} label="Location" value={contactProfile.location} />
+                </div>
+
+                <div className="mt-8 rounded-[1.6rem] border border-white/10 bg-black/25 p-5">
+                  <div className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-secondary">Best for</div>
+                  <div className="mt-4 grid gap-3">
+                    {contactAvailability.map((item) => (
+                      <div className="rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/70" key={item}>
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                  {externalLinks.repository ? (
+                    <a className="rounded-[1.4rem] border border-white/10 bg-white/[0.03] px-4 py-4 text-left transition hover:border-primary/30 hover:bg-white/[0.05]" href={externalLinks.repository} rel="noreferrer" target="_blank">
+                      <div className="flex items-center gap-3 font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white/42">
+                        <Code2 className="h-4 w-4 text-primary" />
+                        Repository
+                      </div>
+                      <p className="mt-3 text-sm leading-7 text-white/66">Use the live repository for code context, issues, releases, and contribution pathways.</p>
+                    </a>
+                  ) : null}
+                  {externalLinks.documentation ? (
+                    <a className="rounded-[1.4rem] border border-white/10 bg-white/[0.03] px-4 py-4 text-left transition hover:border-secondary/30 hover:bg-white/[0.05]" href={externalLinks.documentation} rel="noreferrer" target="_blank">
+                      <div className="flex items-center gap-3 font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white/42">
+                        <FileText className="h-4 w-4 text-secondary" />
+                        Documentation
+                      </div>
+                      <p className="mt-3 text-sm leading-7 text-white/66">The docs surface should stay close to releases and repository truth, not drift into a separate story.</p>
+                    </a>
+                  ) : null}
                 </div>
               </div>
+            </SectionReveal>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-3">
+        <SectionReveal className="rounded-[1.9rem] border border-white/10 bg-white/[0.03] p-6">
+          <div className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-primary">Release feedback</div>
+          <h2 className="mt-4 font-headline text-2xl font-semibold text-white">Use contact when the release surface needs correction.</h2>
+          <p className="mt-4 text-sm leading-7 text-white/62">
+            Installer trust, feature wording, download clarity, and public release messaging all belong here if they affect how the project is understood.
+          </p>
+        </SectionReveal>
+
+        <SectionReveal className="rounded-[1.9rem] border border-white/10 bg-white/[0.03] p-6" delay={0.05}>
+          <div className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-secondary">Repository questions</div>
+          <h2 className="mt-4 font-headline text-2xl font-semibold text-white">Use GitHub when the issue already belongs in the repo.</h2>
+          <p className="mt-4 text-sm leading-7 text-white/62">
+            Code changes, docs fixes, issue discussion, and contribution flow should stay on the public repo whenever possible so the project history remains legible.
+          </p>
+        </SectionReveal>
+
+        <SectionReveal className="rounded-[1.9rem] border border-white/10 bg-white/[0.03] p-6" delay={0.1}>
+          <div className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-accent">Site collaboration</div>
+          <h2 className="mt-4 font-headline text-2xl font-semibold text-white">Use this page for website and motion collaboration.</h2>
+          <p className="mt-4 text-sm leading-7 text-white/62">
+            If the site design, content structure, or motion system needs work, this is the right surface for that conversation before it turns into implementation.
+          </p>
+        </SectionReveal>
+      </section>
+
+      <section className="pt-10">
+        <SectionReveal className="scroll-spotlight rounded-[2.4rem] border border-primary/20 p-8 md:p-10">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-3xl">
+              <div className="design-badge design-badge-secondary mb-5 w-fit">Direct and project-aware</div>
+              <h2 className="font-headline text-3xl font-bold text-white md:text-4xl">Keep project contact grounded in the same public story as the repo and releases.</h2>
+              <p className="mt-4 text-sm leading-7 text-white/64">
+                The contact page should help people reach the right surface quickly: email for maintainer-level conversation, GitHub for repo-native discussion, and docs/releases for current public context.
+              </p>
             </div>
+            <Button asChild className="rounded-2xl px-8 py-4">
+              <a href={`mailto:${contactProfile.email}`}>
+                Start the conversation
+                <ArrowRight className="h-4 w-4" />
+              </a>
+            </Button>
           </div>
         </SectionReveal>
-      </div>
+      </section>
     </div>
   </motion.main>
+);
+
+interface InfoRowProps {
+  icon: typeof Mail;
+  label: string;
+  value: string;
+}
+
+const InfoRow = ({ icon: Icon, label, value }: InfoRowProps) => (
+  <div className="flex items-start gap-4 rounded-[1.3rem] border border-white/10 bg-black/20 px-4 py-4">
+    <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04]">
+      <Icon className="h-4 w-4 text-primary" />
+    </div>
+    <div>
+      <div className="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white/38">{label}</div>
+      <div className="mt-2 text-sm leading-7 text-white/74">{value}</div>
+    </div>
+  </div>
 );
 
 export default ContactPage;

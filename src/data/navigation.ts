@@ -7,9 +7,10 @@ export interface NavigationItem {
 export const mainNavigation: NavigationItem[] = [
   { label: "Home", to: "/" },
   { label: "Features", to: "/features" },
-  { label: "Stem Separation", to: "/stem-separation", shortLabel: "AI" },
+  { label: "AI", to: "/ai" },
   { label: "GitHub", to: "/github" },
   { label: "Releases", to: "/releases" },
+  { label: "Blogs", to: "/blogs" },
   { label: "Download", to: "/download" },
   { label: "Contact", to: "/contact" },
 ];
@@ -17,9 +18,10 @@ export const mainNavigation: NavigationItem[] = [
 export const footerNavigation: NavigationItem[] = [
   { label: "Home", to: "/" },
   { label: "Features", to: "/features" },
-  { label: "Stem Separation", to: "/stem-separation" },
+  { label: "AI", to: "/ai" },
   { label: "GitHub", to: "/github" },
   { label: "Releases", to: "/releases" },
+  { label: "Blogs", to: "/blogs" },
   { label: "Download", to: "/download" },
   { label: "Contact", to: "/contact" },
 ];

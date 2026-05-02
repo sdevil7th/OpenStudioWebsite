@@ -7,20 +7,20 @@ export const externalLinks: ExternalLinkMap = {
   security: "/security",
   terms: "/terms",
   changelog: "/releases",
-  creatorSite: "https://sourav-das.in",
-  creatorEmail: "mailto:sdevil7th@gmail.com",
-  creatorGithub: "https://github.com/sdevil7th",
+  contactSite: "https://sourav-das.in",
+  contactEmail: "mailto:sdevil7th@gmail.com",
+  maintainerGithub: "https://github.com/sdevil7th",
 };
 
 export const contactProfile: ContactProfile = {
   name: "Sourav Das",
-  role: "Creator, design systems, audio product direction",
+  role: "Maintainer, design systems, audio product direction",
   email: "sdevil7th@gmail.com",
   website: "https://sourav-das.in",
-  heroTitle: "Let's connect.",
+  heroTitle: "Project contact for OpenStudio.",
   summary:
-    "OpenStudio is being shaped as a native DAW with a cinematic interface, serious production workflows, and an honest story around optional AI tooling.",
-  location: "Remote-first, building the public OpenStudio release.",
+    "Use this page for release feedback, contribution questions, website collaboration, and maintainer contact around the public OpenStudio project.",
+  location: "Remote-first, maintaining OpenStudio in public.",
 };
 
 export const footerUtilityLinks = [

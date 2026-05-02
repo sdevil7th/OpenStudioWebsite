@@ -1,13 +1,15 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import ScrollProgress from "@/components/ScrollProgress";
 import SiteFooter from "@/components/SiteFooter";
 import SiteNavbar from "@/components/SiteNavbar";
+import BrandIntroOverlay, { shouldPlayInitialIntro } from "@/components/brand/BrandIntroOverlay";
 import SmoothScrollProvider, { useSmoothScroll } from "@/components/SmoothScrollProvider";
 
 const ShellContent = () => {
   const location = useLocation();
   const { lenis } = useSmoothScroll();
+  const [brandIntroVisible, setBrandIntroVisible] = useState(() => shouldPlayInitialIntro(location.pathname));
 
   useEffect(() => {
     if (lenis) {
@@ -19,7 +21,7 @@ const ShellContent = () => {
   }, [lenis, location.pathname]);
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-background text-foreground">
+    <div className="relative min-h-screen bg-background text-foreground">
       <a
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[80] focus:rounded-full focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:text-foreground focus:ring-2 focus:ring-ring"
         href="#main-content"
@@ -35,11 +37,14 @@ const ShellContent = () => {
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed bottom-[-12rem] left-1/2 -z-10 h-[28rem] w-[60rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(247,190,29,0.12),transparent_66%)] blur-[120px]"
+        className="site-shell-ambient-bottom pointer-events-none fixed bottom-[-12rem] left-1/2 -z-10 h-[28rem] w-[60rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(247,190,29,0.12),transparent_66%)] blur-[120px]"
       />
-      <SiteNavbar />
-      <Outlet />
-      <SiteFooter />
+      <div className={brandIntroVisible ? "site-shell-content site-shell-content--intro" : "site-shell-content"}>
+        <SiteNavbar />
+        <Outlet />
+        <SiteFooter />
+      </div>
+      <BrandIntroOverlay onVisibilityChange={setBrandIntroVisible} />
     </div>
   );
 };

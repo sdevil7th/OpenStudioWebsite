@@ -13,6 +13,8 @@ export const APPCAST_PATHS = [
   "appcast/macos-stable.xml",
 ];
 
+export const LINUX_APPCAST_PATH = "appcast/linux-stable.xml";
+
 export const RELEASE_PUBLISH_INPUT_PATHS = [
   ...APP_RELEASE_METADATA_PATHS,
   ...AI_RUNTIME_METADATA_PATHS,
@@ -163,6 +165,9 @@ export const validateAppReleaseMetadata = (metadata, label) => {
 
   const windows = validatePlatformEntry(metadata.platforms.windows, `${label}.platforms.windows`);
   const macos = validatePlatformEntry(metadata.platforms.macos, `${label}.platforms.macos`);
+  if (metadata.platforms.linux != null) {
+    validatePlatformEntry(metadata.platforms.linux, `${label}.platforms.linux`);
+  }
 
   if (windows.installerArguments != null && typeof windows.installerArguments !== "string") {
     throw new Error(`${label}.platforms.windows.installerArguments must be a string when provided.`);
@@ -423,6 +428,27 @@ export const validateReleasePublishInputsTree = async (
     platformLabel: "macOS platform metadata",
   });
 
+  // Linux appcast is required once Linux release metadata is published.
+  const linuxAppcastFull = path.join(rootDir, LINUX_APPCAST_PATH);
+  try {
+    await fs.access(linuxAppcastFull);
+    const linuxAppcast = await parseAppcastFile(linuxAppcastFull, LINUX_APPCAST_PATH);
+    if (appStableManifest.platforms.linux) {
+      validateAppcastAgainstManifest({
+        appcast: linuxAppcast,
+        appcastLabel: LINUX_APPCAST_PATH,
+        manifest: appStableManifest,
+        platform: "linux",
+        platformLabel: "Linux platform metadata",
+      });
+    }
+  } catch (error) {
+    if (error?.code !== "ENOENT") throw error;
+    if (appStableManifest.platforms.linux) {
+      throw new Error(`${LINUX_APPCAST_PATH} is required when releases/stable/latest.json includes Linux platform metadata.`);
+    }
+  }
+
   return { found: true };
 };
 
@@ -455,6 +481,17 @@ export const stageReleasePublishInputs = async ({
     const destinationPath = path.join(outputRoot, relativePath);
     await fs.mkdir(path.dirname(destinationPath), { recursive: true });
     await fs.copyFile(sourcePath, destinationPath);
+  }
+
+  // Copy linux appcast when present
+  const linuxAppcastSrc = path.join(inputRoot, LINUX_APPCAST_PATH);
+  const linuxAppcastDst = path.join(outputRoot, LINUX_APPCAST_PATH);
+  try {
+    await fs.access(linuxAppcastSrc);
+    await fs.mkdir(path.dirname(linuxAppcastDst), { recursive: true });
+    await fs.copyFile(linuxAppcastSrc, linuxAppcastDst);
+  } catch {
+    // linux appcast absent - skip silently
   }
 
   await validateReleasePublishInputsTree(outputRoot, { requireMetadata: true });

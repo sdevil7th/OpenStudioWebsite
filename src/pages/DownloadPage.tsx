@@ -1,21 +1,89 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { motion } from "framer-motion";
-import { ArrowRight, Check, CheckCircle2, Code2, Copy, Cpu, Download, Monitor, Terminal, X } from "lucide-react";
-import { type ReactNode, useEffect, useState } from "react";
+import {
+  ArrowRight,
+  Check,
+  CheckCircle2,
+  Code2,
+  Copy,
+  Download,
+  HardDrive,
+  Monitor,
+  ShieldCheck,
+  Sparkles,
+  Terminal,
+  X,
+  type LucideIcon,
+} from "lucide-react";
+import { lazy, Suspense, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import PageSeo from "@/components/PageSeo";
+import BrandLogoConstructScene from "@/components/brand/BrandLogoConstructScene";
 import SectionReveal from "@/components/motion/SectionReveal";
 import { Button } from "@/components/ui/button";
-import { SITE_NAME } from "@/constants/site";
 import { designMedia } from "@/data/designMedia";
-import { downloadHero, platformDownloads, systemRequirementMatrix } from "@/data/downloads";
+import {
+  downloadHero,
+  downloadHeroSignals,
+  downloadSeo,
+  platformDownloads,
+  systemRequirementMatrix,
+} from "@/data/downloads";
 import { externalLinks } from "@/data/siteLinks";
 import { useGithubRepoSnapshot } from "@/hooks/useGithubRepoSnapshot";
+import { gsap, ScrollTrigger, useScrollScene } from "@/lib/gsap";
 import { formatGithubDate } from "@/lib/github";
 import { cn } from "@/lib/utils";
 
-type BrowserPlatform = "windows" | "macos" | "other";
-type DownloadPlatform = "windows" | "macos";
+type BrowserPlatform = "windows" | "macos" | "linux" | "other";
+type DownloadPlatform = "windows" | "macos" | "linux";
 type CopyState = "idle" | "copied" | "error";
+
+interface PlatformStudioCopy {
+  architecture: string;
+  driver: string;
+  highlights: string[];
+  icon: LucideIcon;
+  surface: string;
+  trust: string;
+}
+
+const platformStudioCopy: Record<DownloadPlatform, PlatformStudioCopy> = {
+  windows: {
+    architecture: "x64 installer",
+    driver: "ASIO / WASAPI / DirectSound",
+    highlights: ["Stable redirect", "Desktop installer", "SmartScreen note"],
+    icon: Monitor,
+    surface:
+      "Best for everyday desktop sessions, plugin hosting, and low-latency recording on Windows machines.",
+    trust: "Unsigned installer may show SmartScreen on first launch.",
+  },
+  macos: {
+    architecture: "Universal DMG",
+    driver: "Apple Silicon / Intel",
+    highlights: ["Universal build", "DMG install", "Gatekeeper guidance"],
+    icon: HardDrive,
+    surface:
+      "A single macOS build for Apple Silicon and Intel setups, with first-open trust guidance kept visible.",
+    trust: "Unsigned DMG can require manual Gatekeeper approval.",
+  },
+  linux: {
+    architecture: "AppImage",
+    driver: "Ubuntu 22.04+ tested",
+    highlights: [
+      "Self-contained",
+      "Executable AppImage",
+      "Desktop integration optional",
+    ],
+    icon: Terminal,
+    surface:
+      "A portable Linux build for direct launch, useful for studio machines that avoid package manager lock-in.",
+    trust: "Most distros run the AppImage after chmod.",
+  },
+};
+
+const platformOrder: DownloadPlatform[] = ["windows", "macos", "linux"];
+const LOGO_SCROLL_TARGET_PROGRESS = 0.66;
+const DownloadCinematicStory = lazy(() => import("@/components/scene/DownloadCinematicStory"));
 
 const detectBrowserPlatform = (): BrowserPlatform => {
   if (typeof navigator === "undefined") {
@@ -43,8 +111,16 @@ const detectBrowserPlatform = (): BrowserPlatform => {
     return "windows";
   }
 
+  if (platformSignal.includes("linux") || platformSignal.includes("x11")) {
+    return "linux";
+  }
+
   return "other";
 };
+
+const browserToDownloadPlatform = (
+  platform: BrowserPlatform,
+): DownloadPlatform => (platform === "macos" || platform === "linux" ? platform : "windows");
 
 const copyText = async (value: string) => {
   if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
@@ -68,19 +144,75 @@ const copyText = async (value: string) => {
 };
 
 const DownloadPage = () => {
-  const windows = platformDownloads.find((item) => item.id === "windows")!;
-  const macos = platformDownloads.find((item) => item.id === "macos")!;
-  const linux = platformDownloads.find((item) => item.id === "linux")!;
+  const pageRef = useRef<HTMLElement | null>(null);
+  const [logoProgress, setLogoProgress] = useState(0);
+  const downloadsById = useMemo(
+    () =>
+      Object.fromEntries(platformDownloads.map((item) => [item.id, item])) as Record<
+        DownloadPlatform,
+        (typeof platformDownloads)[number]
+      >,
+    [],
+  );
   const { snapshot } = useGithubRepoSnapshot();
-  const [browserPlatform, setBrowserPlatform] = useState<BrowserPlatform>(() => detectBrowserPlatform());
-  const [pendingDownload, setPendingDownload] = useState<DownloadPlatform | null>(null);
+  const [browserPlatform, setBrowserPlatform] = useState<BrowserPlatform>(() =>
+    detectBrowserPlatform(),
+  );
+  const [activePlatform, setActivePlatform] = useState<DownloadPlatform>(() =>
+    browserToDownloadPlatform(detectBrowserPlatform()),
+  );
+  const [pendingDownload, setPendingDownload] =
+    useState<DownloadPlatform | null>(null);
   const [copyState, setCopyState] = useState<CopyState>("idle");
-  const prefersMacLayout = browserPlatform === "macos";
-  const featuredPlatform: DownloadPlatform = prefersMacLayout ? "macos" : "windows";
-  const isWindowsFeatured = featuredPlatform === "windows";
-  const isMacosFeatured = featuredPlatform === "macos";
-  const windowsCardSpan = prefersMacLayout ? "md:col-span-4" : "md:col-span-8";
-  const macosCardSpan = prefersMacLayout ? "md:col-span-8" : "md:col-span-4";
+  const recommendedPlatform = browserToDownloadPlatform(browserPlatform);
+  const activeDownloadItem = downloadsById[activePlatform];
+
+  useScrollScene(pageRef, ({ prefersReducedMotion, isDesktop }) => {
+    if (prefersReducedMotion) {
+      setLogoProgress(0.5);
+      return;
+    }
+
+    const cleanups: Array<() => void> = [];
+
+    if (isDesktop) {
+      setLogoProgress(0);
+      const logoScrollTrigger = ScrollTrigger.create({
+        trigger: "[data-download-studio-hero]",
+        start: "top top+=96",
+        endTrigger: "[data-download-panel-stack]",
+        end: "bottom bottom-=96",
+        pin: "[data-download-logo-pin-stage]",
+        pinSpacing: false,
+        anticipatePin: 1,
+        scrub: 0.7,
+        invalidateOnRefresh: true,
+        onUpdate: (self) => {
+          setLogoProgress(
+            Number((self.progress * LOGO_SCROLL_TARGET_PROGRESS).toFixed(3)),
+          );
+        },
+      });
+
+      cleanups.push(() => logoScrollTrigger.kill());
+    } else {
+      setLogoProgress(0.5);
+    }
+
+    const cardIntro = gsap.from("[data-download-hero-card]", {
+      y: 34,
+      opacity: 0,
+      duration: 0.78,
+      stagger: 0.08,
+      ease: "power3.out",
+    });
+
+    cleanups.push(() => {
+      cardIntro.kill();
+    });
+
+    return () => cleanups.forEach((cleanup) => cleanup());
+  });
 
   const downloadInstructions: Record<
     DownloadPlatform,
@@ -96,7 +228,7 @@ const DownloadPage = () => {
     }
   > = {
     windows: {
-      href: windows.href!,
+      href: downloadsById.windows.href!,
       title: "Windows trust step required",
       eyebrow: "Before you open the installer",
       summary: (
@@ -133,7 +265,7 @@ const DownloadPage = () => {
       ],
     },
     macos: {
-      href: macos.href!,
+      href: downloadsById.macos.href!,
       title: "macOS trust step required",
       eyebrow: "Before you open the app",
       summary: (
@@ -159,12 +291,37 @@ const DownloadPage = () => {
       command: "xattr -dr com.apple.quarantine /Applications/OpenStudio.app",
       commandLabel: "Run in Terminal",
     },
+    linux: {
+      href: downloadsById.linux.href!,
+      title: "Linux AppImage download",
+      eyebrow: "Before you launch the app",
+      summary: (
+        <>
+          Linux downloads ship as a self-contained AppImage tested on Ubuntu 22.04+. Make the file
+          executable, run it directly, and use the optional install flag if you want desktop
+          integration.
+        </>
+      ),
+      confirmLabel: "Download AppImage",
+      steps: [
+        "Download the Linux AppImage.",
+        "Make it executable: chmod +x OpenStudio-*.AppImage",
+        "Run it directly: ./OpenStudio-*.AppImage",
+        "Optional: ./OpenStudio-*.AppImage --install for desktop integration.",
+      ],
+      command: "chmod +x OpenStudio-*.AppImage",
+      commandLabel: "Run in Terminal first",
+    },
   };
 
-  const activeDownload = pendingDownload ? downloadInstructions[pendingDownload] : null;
+  const activeInstruction = pendingDownload
+    ? downloadInstructions[pendingDownload]
+    : null;
 
   useEffect(() => {
-    setBrowserPlatform(detectBrowserPlatform());
+    const detected = detectBrowserPlatform();
+    setBrowserPlatform(detected);
+    setActivePlatform(browserToDownloadPlatform(detected));
   }, []);
 
   useEffect(() => {
@@ -183,21 +340,21 @@ const DownloadPage = () => {
   }, [copyState]);
 
   const handleConfirmDownload = () => {
-    if (!activeDownload || typeof window === "undefined") {
+    if (!activeInstruction || typeof window === "undefined") {
       return;
     }
 
     setPendingDownload(null);
-    window.location.assign(activeDownload.href);
+    window.location.assign(activeInstruction.href);
   };
 
   const handleCopyCommand = async () => {
-    if (!activeDownload?.command) {
+    if (!activeInstruction?.command) {
       return;
     }
 
     try {
-      await copyText(activeDownload.command);
+      await copyText(activeInstruction.command);
       setCopyState("copied");
     } catch {
       setCopyState("error");
@@ -206,213 +363,262 @@ const DownloadPage = () => {
 
   return (
     <motion.main
+      ref={pageRef}
       animate={{ opacity: 1, y: 0 }}
-      className="design-page-main"
+      className="design-page-main download-page"
       id="main-content"
       initial={{ opacity: 0, y: 18 }}
       transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
     >
-      <PageSeo
-        description="Download OpenStudio free for Windows or macOS — a native, open source DAW with MIDI, pitch editing, stem separation, and plugin hosting."
-        path="/download"
-        title={`${SITE_NAME} Download | Free for Windows and macOS`}
-      />
+      <PageSeo {...downloadSeo} />
 
-      <div className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -right-24 top-[-10%] h-[32rem] w-[32rem] rounded-full bg-primary/10 blur-[120px]" />
-        <div className="absolute -left-10 bottom-[-8%] h-[24rem] w-[24rem] rounded-full bg-secondary/10 blur-[100px]" />
-      </div>
+      <div className="download-page__backdrop" aria-hidden="true" />
 
-      <div className="mx-auto max-w-7xl px-6 pb-24 md:px-10">
-        <header className="mb-20 text-center">
-          <div className="design-badge mx-auto mb-6 w-fit">
-            <CheckCircle2 className="h-3.5 w-3.5 text-secondary" />
-            <span>Windows + macOS stable builds</span>
+      <div className="mx-auto max-w-7xl px-5 pb-24 md:px-10">
+        <section
+          className="download-studio-hero"
+          data-download-studio-hero
+        >
+          <div className="download-home-logo-stage" data-download-logo-pin-stage>
+            <div data-download-logo-stage>
+              <BrandLogoConstructScene
+                label="OpenStudio logo construction for download preview"
+                progress={logoProgress}
+                showWordmark
+                size="intro"
+              />
+            </div>
           </div>
-          <h1 className="font-headline text-5xl font-bold tracking-[-0.06em] text-transparent bg-gradient-to-b from-white to-white/60 bg-clip-text md:text-7xl">
-            Deploy Your Sound.
-          </h1>
-          <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-white/64 md:text-xl">{downloadHero.description}</p>
-        </header>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
-          <SectionReveal
-            className={cn(
-              "design-panel relative overflow-hidden rounded-[2.5rem] p-8",
-              isWindowsFeatured && "group border-primary/25 bg-[radial-gradient(circle_at_top_right,rgba(164,142,255,0.14),transparent_44%)]",
-              !isWindowsFeatured && "border-white/10 bg-white/[0.03]",
-              windowsCardSpan,
-            )}
-          >
-            <div className="mb-12 flex items-start justify-between gap-6">
+          <div className="download-studio-hero__panel-stack" data-download-panel-stack>
+            <div className="download-studio-hero__copy">
+              <div className="design-badge download-studio-hero__badge w-fit">
+                <CheckCircle2 className="h-3.5 w-3.5 text-secondary" />
+                <span>{downloadHero.eyebrow}</span>
+              </div>
+
               <div>
-                <div className="mb-2 flex items-center gap-3">
-                  <Monitor className={cn("h-10 w-10", isWindowsFeatured ? "text-primary" : "text-white")} />
-                  <h2 className="font-headline text-3xl font-bold text-white">Windows</h2>
-                </div>
-                <p className="font-mono text-xs uppercase tracking-[0.18em] text-white/48">x64 architecture • installer (.exe)</p>
+                <p className="download-studio-hero__kicker">
+                  {downloadHero.title}
+                </p>
+                <h1>Download OpenStudio. Start the session clean.</h1>
+                <p className="download-studio-hero__lede">
+                  {downloadHero.description}
+                </p>
               </div>
-              {isWindowsFeatured ? (
-                <div className="rounded-lg bg-primary/20 px-3 py-1 font-mono text-[0.62rem] font-bold uppercase tracking-[0.18em] text-primary">
-                  {browserPlatform === "windows" ? "Recommended on this device" : "Recommended"}
-                </div>
-              ) : null}
-            </div>
-            <div className={cn("space-y-4", isWindowsFeatured && "space-y-6")}>
-              {isWindowsFeatured ? (
-                <div className="flex flex-wrap gap-4">
-                  {["ASIO support", "WASAPI low latency", "DirectSound"].map((item) => (
-                    <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-1.5" key={item}>
-                      <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
-                      <span className="font-mono text-[0.68rem] text-white/58">{item}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm italic leading-7 text-white/60">Best for ASIO and low-latency desktop audio setups with the current manual trust notes kept visible.</p>
-              )}
-              <Button
-                className={cn("h-auto w-full rounded-2xl px-8 py-5 font-bold", isWindowsFeatured ? "text-xl" : "text-lg")}
-                onClick={() => setPendingDownload("windows")}
-                type="button"
-                variant={isWindowsFeatured ? "default" : "outline"}
+
+              <div
+                className="download-studio-signals"
+                aria-label="Download release signals"
               >
-                <Download className="h-5 w-5" />
-                Download for Windows
-              </Button>
-            </div>
-            {isWindowsFeatured ? (
-              <div className="pointer-events-none absolute -bottom-20 -right-20 text-white/5 transition group-hover:text-white/10">
-                <Cpu className="h-56 w-56" />
-              </div>
-            ) : null}
-          </SectionReveal>
-
-          <SectionReveal
-            className={cn(
-              "design-panel relative overflow-hidden rounded-[2.5rem] p-8",
-              isMacosFeatured && "group border-secondary/25 bg-[radial-gradient(circle_at_top_right,rgba(123,255,171,0.16),transparent_44%)]",
-              !isMacosFeatured && "border-white/10 bg-white/[0.03]",
-              macosCardSpan,
-            )}
-            delay={0.06}
-          >
-            <div className="mb-12 flex items-start justify-between gap-6">
-              <div>
-                <div className="mb-2 flex items-center gap-3">
-                  <Monitor className={cn("h-10 w-10", isMacosFeatured ? "text-secondary" : "text-white")} />
-                  <h2 className="font-headline text-3xl font-bold text-white">macOS</h2>
-                </div>
-                <p className="font-mono text-xs uppercase tracking-[0.18em] text-white/48">Universal DMG</p>
-              </div>
-              {isMacosFeatured ? (
-                <div className="rounded-lg bg-secondary/20 px-3 py-1 font-mono text-[0.62rem] font-bold uppercase tracking-[0.18em] text-secondary">
-                  {browserPlatform === "macos" ? "Recommended on this device" : "Recommended"}
-                </div>
-              ) : null}
-            </div>
-            <div className={cn("space-y-4", isMacosFeatured && "space-y-6")}>
-              {isMacosFeatured ? (
-                <div className="flex flex-wrap gap-4">
-                  {["Apple Silicon", "Intel support", "DMG install"].map((item) => (
-                    <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-1.5" key={item}>
-                      <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                      <span className="font-mono text-[0.68rem] text-white/58">{item}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-              <p className="text-sm italic leading-7 text-white/60">Supports Intel and Apple Silicon with the current manual trust notes kept visible.</p>
-              <Button
-                className={cn("h-auto w-full rounded-2xl px-8 py-5 font-bold", isMacosFeatured ? "text-xl" : "text-lg")}
-                onClick={() => setPendingDownload("macos")}
-                type="button"
-                variant={isMacosFeatured ? "default" : "outline"}
-              >
-                <Download className="h-5 w-5" />
-                Get macOS app
-              </Button>
-            </div>
-            {isMacosFeatured ? (
-              <div className="pointer-events-none absolute -bottom-20 -right-20 text-white/5 transition group-hover:text-white/10">
-                <Download className="h-56 w-56" />
-              </div>
-            ) : null}
-          </SectionReveal>
-
-          <SectionReveal className="design-panel cursor-not-allowed rounded-[2.5rem] p-8 grayscale opacity-55 md:col-span-4" delay={0.1}>
-            <div>
-              <div className="mb-2 flex items-center gap-3">
-                <Terminal className="h-10 w-10" />
-                <h2 className="font-headline text-3xl font-bold text-white">Linux</h2>
-              </div>
-              <p className="font-mono text-xs uppercase tracking-[0.18em] text-white/48">AppImage / Flatpak</p>
-            </div>
-            <div className="mt-10">
-              <div className="mb-4 rounded-lg bg-white/[0.06] py-2 text-center font-mono text-[0.68rem] uppercase tracking-[0.18em] text-white/44">{linux.status}</div>
-              <button className="flex w-full items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-8 py-5 font-headline text-lg font-bold text-white/45" disabled>
-                <Terminal className="h-5 w-5" />
-                Coming soon
-              </button>
-            </div>
-          </SectionReveal>
-
-          <SectionReveal className="design-glass-panel rounded-[2.5rem] p-8 md:col-span-8" delay={0.14}>
-            <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
-              <div className="flex items-center gap-6">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-black">
-                  <Code2 className="h-8 w-8" />
-                </div>
-                <div>
-                  <h3 className="font-headline text-xl font-bold text-white">Open Source Core</h3>
-                  <p className="mt-2 max-w-md text-sm leading-7 text-white/60">
-                    Review the code, follow the release story, or inspect the public product surface without leaving the site.
-                  </p>
-                </div>
-              </div>
-              <div className="flex w-full items-center gap-4 md:w-auto">
-                <div className="hidden flex-col items-end lg:flex">
-                  <span className="font-mono text-sm font-bold text-secondary">{snapshot.license}</span>
-                  <span className="font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white/38">
-                    {snapshot.latestRelease ? `Latest release ${snapshot.latestRelease.tagName}` : "GitHub releases pending"}
+                {downloadHeroSignals.map((signal) => (
+                  <span key={signal}>
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    {signal}
                   </span>
-                </div>
-                {externalLinks.repository ? (
+                ))}
+              </div>
+
+              <div className="download-hero-platform-grid" data-download-platforms>
+                {platformOrder.map((platform) => {
+                  const item = downloadsById[platform];
+                  const copy = platformStudioCopy[platform];
+                  const Icon = copy.icon;
+                  const isActive = activePlatform === platform;
+                  const isRecommended = recommendedPlatform === platform;
+
+                  return (
+                    <article
+                      className={cn(
+                        "download-platform-card download-platform-card--hero",
+                        isActive && "download-platform-card--active",
+                      )}
+                      data-download-hero-card
+                      data-platform={platform}
+                      key={platform}
+                    >
+                      <div className="download-platform-card__top">
+                        <div className="download-platform-card__icon">
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <span>{copy.architecture}</span>
+                          <h2>{item.label}</h2>
+                        </div>
+                        {isRecommended ? (
+                          <strong>
+                            {browserPlatform === platform
+                              ? "This device"
+                              : "Recommended"}
+                          </strong>
+                        ) : null}
+                      </div>
+                      <p>{copy.surface}</p>
+                      <div className="download-platform-card__chips">
+                        {copy.highlights.map((highlight) => (
+                          <span key={highlight}>{highlight}</span>
+                        ))}
+                      </div>
+                      {item.notes ? (
+                        <ul className="download-platform-card__notes">
+                          {item.notes.slice(0, 2).map((note) => (
+                            <li key={note}>{note}</li>
+                          ))}
+                        </ul>
+                      ) : null}
+                      <div className="download-platform-card__actions">
+                        <Button
+                          className="h-auto flex-1 px-6 py-4 font-bold"
+                          onClick={() => setPendingDownload(platform)}
+                          type="button"
+                          variant={isActive ? "default" : "outline"}
+                        >
+                          {platform === "linux" ? (
+                            <Terminal className="h-4 w-4" />
+                          ) : (
+                            <Download className="h-4 w-4" />
+                          )}
+                          {platform === "linux"
+                            ? "Download AppImage"
+                            : `Download ${item.label}`}
+                        </Button>
+                        <Button
+                          aria-label={`Focus ${item.label} release path`}
+                          className="h-12 w-12 rounded-2xl p-0"
+                          onClick={() => setActivePlatform(platform)}
+                          size="icon"
+                          type="button"
+                          variant="ghost"
+                        >
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <SectionReveal
+          className="download-source-strip download-source-strip--studio"
+          data-download-trust-dock
+          delay={0.12}
+        >
+          <div className="download-source-strip__main">
+            <div className="download-source-strip__identity">
+              <div className="download-source-strip__icon">
+                <Code2 className="h-8 w-8" />
+              </div>
+              <div>
+                <h2 className="font-headline text-xl font-bold text-white">
+                  Open source release path
+                </h2>
+                <p className="mt-2 max-w-xl text-sm leading-7 text-white/64">
+                  Stable buttons resolve through download endpoints while the public repository and release status stay visible.
+                </p>
+              </div>
+            </div>
+            <div className="download-source-strip__meta">
+              <div>
+                <span>License</span>
+                <strong>{snapshot.license}</strong>
+              </div>
+              <div>
+                <span>Latest release</span>
+                <strong>
+                  {snapshot.latestRelease
+                    ? snapshot.latestRelease.tagName
+                    : "Pending"}
+                </strong>
+              </div>
+              <div>
+                <span>Redirects</span>
+                <strong>Windows / macOS / Linux</strong>
+              </div>
+            </div>
+            <div className="download-source-strip__action">
+              {externalLinks.repository ? (
+                <Button
+                  asChild
+                  className="h-auto flex-1 px-8 py-4 font-bold md:flex-none"
+                  variant="outline"
+                >
                   <a
-                    className="flex-1 rounded-2xl border border-white/10 bg-white/[0.06] px-8 py-4 text-center font-headline font-bold text-white transition hover:bg-white/[0.1] md:flex-none"
                     href={externalLinks.repository}
                     rel="noreferrer"
                     target="_blank"
                   >
                     View GitHub
                   </a>
-                ) : (
-                  <a className="flex-1 rounded-2xl border border-white/10 bg-white/[0.06] px-8 py-4 text-center font-headline font-bold text-white transition hover:bg-white/[0.1] md:flex-none" href="/github">
-                    View GitHub
-                  </a>
-                )}
-              </div>
+                </Button>
+              ) : (
+                <Button
+                  asChild
+                  className="h-auto flex-1 px-8 py-4 font-bold md:flex-none"
+                  variant="outline"
+                >
+                  <a href="/github">View GitHub</a>
+                </Button>
+              )}
             </div>
-          </SectionReveal>
-        </div>
+          </div>
+        </SectionReveal>
 
-        <section className="mb-24 mt-20">
-          <h2 className="mb-10 text-center font-headline text-3xl font-bold text-white">System Requirements</h2>
-          <div className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#0f1015]">
-            <table className="w-full text-left font-mono text-sm">
+        <Suspense
+          fallback={
+            <section className="download-cinematic download-cinematic--loading" data-download-cinema data-download-cinematic-story>
+              <div className="download-cinematic__loading">
+                <div className="design-badge design-badge-secondary w-fit">Studio workflow</div>
+                <h2>Preparing the studio filmstrip.</h2>
+              </div>
+            </section>
+          }
+        >
+          <DownloadCinematicStory
+            activePlatformLabel={activeDownloadItem.label}
+            onDownload={() => setPendingDownload(activePlatform)}
+          />
+        </Suspense>
+
+        <section className="download-requirements" data-download-requirements>
+          <div className="download-section-header">
+            <div className="design-badge design-badge-secondary w-fit">
+              System requirements
+            </div>
+            <h2>Built for the session you actually run.</h2>
+            <p>
+              The base app stays lean, but dense sessions, plugin chains, and optional local AI tools benefit from extra CPU,
+              memory, and SSD headroom.
+            </p>
+          </div>
+          <div className="download-requirements__table-wrap" data-download-requirements-table>
+            <div className="download-requirements__table-meta">
+              <span>System Requirements</span>
+              <strong>REV 2026.04 · Desktop</strong>
+            </div>
+            <table className="download-requirements__table">
+              <caption>OpenStudio desktop system requirements</caption>
               <thead>
-                <tr className="border-b border-white/10 bg-white/[0.03]">
-                  <th className="px-8 py-6 text-primary">Component</th>
-                  <th className="px-8 py-6 text-primary">Minimum</th>
-                  <th className="px-8 py-6 text-primary">Recommended</th>
+                <tr>
+                  <th scope="col">Component</th>
+                  <th scope="col">Minimum</th>
+                  <th scope="col">Recommended</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/10">
+              <tbody>
                 {systemRequirementMatrix.map((item) => (
-                  <tr className="transition hover:bg-white/[0.03]" key={item.component}>
-                    <td className="px-8 py-6 font-bold text-white">{item.component}</td>
-                    <td className="px-8 py-6 text-white/62">{item.minimum}</td>
-                    <td className="px-8 py-6 text-white/62">{item.recommended}</td>
+                  <tr key={item.component}>
+                    <th scope="row">{item.component}</th>
+                    <td>
+                      <span className="download-requirements__mobile-label">Minimum</span>
+                      {item.minimum}
+                    </td>
+                    <td>
+                      <span className="download-requirements__mobile-label">Recommended</span>
+                      <strong>{item.recommended}</strong>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -420,35 +626,54 @@ const DownloadPage = () => {
           </div>
         </section>
 
-        <SectionReveal className="design-panel relative overflow-hidden rounded-[2.5rem] border border-primary/20 p-12 text-center">
-          <img alt={designMedia.downloadWorkspace.alt} className="absolute inset-0 h-full w-full object-cover opacity-10 mix-blend-screen" src={designMedia.downloadWorkspace.src} />
-          <div className="relative z-10">
-            <h3 className="font-headline text-2xl font-bold text-white">Unleash the Power of AI-Native Audio.</h3>
-            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-white/62">
+        <SectionReveal className="download-ai-callout" data-download-outro>
+          <img
+            alt={designMedia.downloadWorkspace.alt}
+            className="download-ai-callout__image"
+            decoding="async"
+            loading="lazy"
+            src={designMedia.downloadWorkspace.src}
+          />
+          <div className="download-ai-callout__content">
+            <div className="design-badge design-badge-secondary w-fit">
+              <Sparkles className="h-3.5 w-3.5" />
+              Optional AI tooling
+            </div>
+            <h2>Base installer first. AI runtime only when you ask for it.</h2>
+            <p>
               {snapshot.latestRelease
-                ? `GitHub release ${snapshot.latestRelease.tagName} was published ${formatGithubDate(snapshot.latestRelease.publishedAt)}. The base installer stays honest, Windows and macOS ship through stable endpoints, and optional AI tooling remains a separate step for the stem workflow.`
-                : "The base installer stays honest, Windows and macOS ship through stable endpoints, and optional AI tooling remains a clearly separate step for the stem workflow while GitHub Releases is still preparing for its first asset-backed publish."}
+                ? `GitHub release ${snapshot.latestRelease.tagName} was published ${formatGithubDate(snapshot.latestRelease.publishedAt)}. The base installer stays honest, and optional AI tooling remains a separate setup step for stem and generation workflows.`
+                : "The base installer stays honest, Windows, macOS, and Linux ship through stable endpoints, and optional AI tooling remains a clearly separate step while GitHub Releases prepares for its first asset-backed publish."}
             </p>
-            <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
-              <div className="flex items-center justify-center gap-2 font-mono text-[0.68rem] uppercase tracking-[0.22em] text-secondary">
+            <div className="download-ai-callout__signals">
+              <span>
                 <Sparkline />
                 Optional AI tools separate
-              </div>
-              <div className="flex items-center justify-center gap-2 font-mono text-[0.68rem] uppercase tracking-[0.22em] text-primary">
+              </span>
+              <span>
                 <ArrowRight className="h-3.5 w-3.5" />
-                {snapshot.latestRelease ? "GitHub release path active" : "GitHub release path warming up"}
-              </div>
+                {snapshot.latestRelease
+                  ? "GitHub release path active"
+                  : "GitHub release path warming up"}
+              </span>
             </div>
           </div>
         </SectionReveal>
       </div>
 
-      <Dialog.Root onOpenChange={(open) => setPendingDownload(open ? pendingDownload : null)} open={pendingDownload !== null}>
+      <Dialog.Root
+        onOpenChange={(open) => !open && setPendingDownload(null)}
+        open={pendingDownload !== null}
+      >
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-50 bg-[rgba(3,5,12,0.82)] backdrop-blur-sm" />
           <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[min(92vw,40rem)] -translate-x-1/2 -translate-y-1/2 rounded-[2rem] border border-white/10 bg-[#0b0d14]/95 p-6 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:p-8">
-            <Dialog.Title className="font-headline text-2xl font-bold text-white">{activeDownload?.title}</Dialog.Title>
-            <Dialog.Description className="mt-3 text-sm leading-7 text-white/64">{activeDownload?.summary}</Dialog.Description>
+            <Dialog.Title className="font-headline text-2xl font-bold text-white">
+              {activeInstruction?.title}
+            </Dialog.Title>
+            <Dialog.Description className="mt-3 text-sm leading-7 text-white/64">
+              {activeInstruction?.summary}
+            </Dialog.Description>
 
             <button
               aria-label="Close download instructions"
@@ -460,10 +685,15 @@ const DownloadPage = () => {
             </button>
 
             <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5">
-              <div className="font-mono text-[0.68rem] uppercase tracking-[0.22em] text-secondary">{activeDownload?.eyebrow}</div>
+              <div className="font-mono text-[0.68rem] uppercase tracking-[0.22em] text-secondary">
+                {activeInstruction?.eyebrow}
+              </div>
               <ol className="mt-4 space-y-3 text-sm leading-7 text-white/78">
-                {activeDownload?.steps.map((step, index) => (
-                  <li className="flex gap-3" key={`${pendingDownload ?? "download"}-step-${index}`}>
+                {activeInstruction?.steps.map((step, index) => (
+                  <li
+                    className="flex gap-3"
+                    key={`${pendingDownload ?? "download"}-step-${index}`}
+                  >
                     <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] font-mono text-[0.68rem] text-secondary">
                       {index + 1}
                     </span>
@@ -472,10 +702,12 @@ const DownloadPage = () => {
                 ))}
               </ol>
 
-              {activeDownload?.command ? (
+              {activeInstruction?.command ? (
                 <div className="mt-5 rounded-[1.25rem] border border-white/10 bg-black/30 p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-primary">{activeDownload.commandLabel}</div>
+                    <div className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-primary">
+                      {activeInstruction.commandLabel}
+                    </div>
                     <Button
                       className="h-10 rounded-xl px-4 text-xs"
                       onClick={handleCopyCommand}
@@ -483,12 +715,20 @@ const DownloadPage = () => {
                       type="button"
                       variant="secondary"
                     >
-                      {copyState === "copied" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                      {copyState === "copied" ? "Copied" : copyState === "error" ? "Copy failed" : "Copy command"}
+                      {copyState === "copied" ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                      {copyState === "copied"
+                        ? "Copied"
+                        : copyState === "error"
+                          ? "Copy failed"
+                          : "Copy command"}
                     </Button>
                   </div>
                   <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-all font-mono text-sm leading-6 text-white">
-                    <code>{activeDownload.command}</code>
+                    <code>{activeInstruction.command}</code>
                   </pre>
                 </div>
               ) : null}
@@ -499,12 +739,20 @@ const DownloadPage = () => {
             </p>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
-              <Button onClick={() => setPendingDownload(null)} type="button" variant="ghost">
+              <Button
+                onClick={() => setPendingDownload(null)}
+                type="button"
+                variant="ghost"
+              >
                 Cancel
               </Button>
-              <Button className="h-auto px-6 py-3 text-base" onClick={handleConfirmDownload} type="button">
+              <Button
+                className="h-auto px-6 py-3 text-base"
+                onClick={handleConfirmDownload}
+                type="button"
+              >
                 <Download className="h-4 w-4" />
-                {activeDownload?.confirmLabel}
+                {activeInstruction?.confirmLabel}
               </Button>
             </div>
           </Dialog.Content>
@@ -517,7 +765,11 @@ const DownloadPage = () => {
 const Sparkline = () => (
   <div className="flex h-4 items-end gap-1">
     {[45, 80, 60, 100].map((height, index) => (
-      <span className="eq-bar w-1 rounded-full bg-secondary" key={height} style={{ animationDelay: `${index * 0.08}s`, height: `${height}%` }} />
+      <span
+        className="eq-bar w-1 rounded-full bg-secondary"
+        key={height}
+        style={{ animationDelay: `${index * 0.08}s`, height: `${height}%` }}
+      />
     ))}
   </div>
 );
