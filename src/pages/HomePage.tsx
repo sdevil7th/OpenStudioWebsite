@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { ArrowRight, Download, Github, Sparkles } from "lucide-react";
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -126,13 +125,10 @@ const HomePage = () => {
   });
 
   return (
-    <motion.main
+    <main
       ref={pageRef}
-      animate={{ opacity: 1 }}
       className="relative"
       id="main-content"
-      initial={{ opacity: 0 }}
-      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
       <PageSeo {...homeSeo} />
 
@@ -542,7 +538,7 @@ const HomePage = () => {
           </div>
         </SectionReveal>
       </section>
-    </motion.main>
+    </main>
   );
 };
 

@@ -1,5 +1,6 @@
 import { type RefObject, useEffect, useRef } from "react";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
 
 type GsapRuntime = {
   gsap: typeof import("gsap").gsap;
@@ -53,23 +54,26 @@ export const useScrollScene = <T extends HTMLElement>(
     let cleanup: void | (() => void);
     let context: { revert: () => void } | undefined;
 
-    void loadGsap().then(({ gsap, ScrollTrigger }) => {
-      if (!active) {
-        return;
-      }
+    const cancelSchedule = scheduleAfterInitialLoad(() => {
+      void loadGsap().then(({ gsap, ScrollTrigger }) => {
+        if (!active) {
+          return;
+        }
 
-      context = gsap.context(() => {
-        cleanup = setupRef.current({
-          gsap,
-          ScrollTrigger,
-          isDesktop: window.matchMedia("(min-width: 1024px)").matches,
-          prefersReducedMotion,
-        });
-      }, element);
+        context = gsap.context(() => {
+          cleanup = setupRef.current({
+            gsap,
+            ScrollTrigger,
+            isDesktop: window.matchMedia("(min-width: 1024px)").matches,
+            prefersReducedMotion,
+          });
+        }, element);
+      });
     });
 
     return () => {
       active = false;
+      cancelSchedule();
       cleanup?.();
       context?.revert();
     };

@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { type CSSProperties } from "react";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import type { AccentTone } from "@/data/marketing";
 import { cn } from "@/lib/utils";
 
@@ -35,7 +36,7 @@ const OrbitalNodes = ({
   count = 4,
   reducedMotionMode = "static",
 }: OrbitalNodesProps) => {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   if (prefersReducedMotion && reducedMotionMode === "hidden") {
     return null;
@@ -44,33 +45,18 @@ const OrbitalNodes = ({
   return (
     <div aria-hidden="true" className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}>
       {positions.slice(0, count).map((node, index) => (
-        <motion.span
-          animate={
-            prefersReducedMotion
-              ? undefined
-              : {
-                  x: [0, index % 2 === 0 ? 18 : -14, 0],
-                  y: [0, index % 2 === 0 ? -16 : 14, 0],
-                  scale: [1, 1.08, 1],
-                }
-          }
-          className={cn("absolute rounded-full blur-[70px]", accentMap[accent])}
+        <span
+          className={cn("orbital-node absolute rounded-full blur-[70px]", accentMap[accent])}
           key={`${accent}-${index}`}
           style={{
             left: node.left,
             top: node.top,
             width: `${node.size * density}px`,
             height: `${node.size * density}px`,
-          }}
-          transition={
-            prefersReducedMotion
-              ? undefined
-              : {
-                    duration: (8 + index * 1.2) / speed,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }
-          }
+            "--orbital-x": `${index % 2 === 0 ? 18 : -14}px`,
+            "--orbital-y": `${index % 2 === 0 ? -16 : 14}px`,
+            "--orbital-duration": `${(8 + index * 1.2) / speed}s`,
+          } as CSSProperties}
         />
       ))}
     </div>

@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { type CSSProperties } from "react";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import type { AccentTone } from "@/data/marketing";
 import { cn } from "@/lib/utils";
 
@@ -24,7 +25,7 @@ const WaveformRibbon = ({
   speed = 1,
   reducedMotionMode = "static",
 }: WaveformRibbonProps) => {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   if (prefersReducedMotion && reducedMotionMode === "hidden") {
     return null;
@@ -34,10 +35,9 @@ const WaveformRibbon = ({
 
   return (
     <div aria-hidden="true" className={cn("pointer-events-none absolute inset-x-0 flex items-center justify-center overflow-hidden", className)}>
-      <motion.div
-        animate={prefersReducedMotion ? undefined : { x: ["0%", "-4%", "0%"], y: [0, -6, 0] }}
-        className="flex w-[130%] items-end gap-2 opacity-80"
-        transition={prefersReducedMotion ? undefined : { duration: 8 / speed, repeat: Infinity, ease: "easeInOut" }}
+      <div
+        className="waveform-ribbon__track flex w-[130%] items-end gap-2 opacity-80"
+        style={{ "--waveform-duration": `${8 / speed}s` } as CSSProperties}
       >
         {segments.map((_, index) => (
           <span
@@ -50,7 +50,7 @@ const WaveformRibbon = ({
             }}
           />
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 };

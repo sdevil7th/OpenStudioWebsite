@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { type CSSProperties } from "react";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import type { AccentTone } from "@/data/marketing";
 import { cn } from "@/lib/utils";
 
@@ -24,23 +25,22 @@ const SignalGrid = ({
   speed = 1,
   reducedMotionMode = "static",
 }: SignalGridProps) => {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   if (prefersReducedMotion && reducedMotionMode === "hidden") {
     return null;
   }
 
   return (
-    <motion.div
+    <div
       aria-hidden="true"
-      animate={prefersReducedMotion ? undefined : { opacity: [0.18, 0.26, 0.18] }}
-      className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}
-      transition={prefersReducedMotion ? undefined : { duration: 6 / speed, repeat: Infinity, ease: "easeInOut" }}
+      className={cn("signal-grid pointer-events-none absolute inset-0 overflow-hidden", className)}
+      style={{ "--signal-grid-duration": `${6 / speed}s` } as CSSProperties}
     >
       <div className="absolute inset-0 grid-overlay opacity-[0.08]" style={{ backgroundSize: `${56 / density}px ${56 / density}px` }} />
       <div className="absolute inset-0 surface-dot-grid opacity-[0.08]" />
       <div className={cn("absolute inset-0 bg-gradient-to-br opacity-60", accentGlow[accent])} />
-    </motion.div>
+    </div>
   );
 };
 

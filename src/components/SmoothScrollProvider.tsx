@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import type Lenis from "lenis";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { loadGsap } from "@/lib/gsap";
+import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
 
 interface SmoothScrollContextValue {
   lenis: Lenis | null;
@@ -65,21 +66,13 @@ const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) => {
       };
     };
 
-    const scheduleStart = () => {
-      window.setTimeout(() => {
-        void startSmoothScroll();
-      }, 80);
-    };
-
-    if (window.__openstudioAppReady) {
-      scheduleStart();
-    } else {
-      window.addEventListener("openstudio:app-ready", scheduleStart, { once: true });
-    }
+    const cancelSchedule = scheduleAfterInitialLoad(() => {
+      void startSmoothScroll();
+    }, { delay: 2800, timeout: 3600 });
 
     return () => {
       cancelled = true;
-      window.removeEventListener("openstudio:app-ready", scheduleStart);
+      cancelSchedule();
       cleanup?.();
     };
   }, [prefersReducedMotion]);

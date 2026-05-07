@@ -1,7 +1,8 @@
-import { useMemo, type PointerEventHandler } from "react";
-import { motion, useMotionTemplate, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
+import { useMemo, useRef, type CSSProperties, type PointerEventHandler } from "react";
 import { Disc3, Piano, SlidersHorizontal, Sparkles } from "lucide-react";
+import SectionReveal from "@/components/motion/SectionReveal";
 import SoundField from "@/components/scene/SoundField";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { screenshots } from "@/data/screenshots";
 import type { AccentTone } from "@/data/marketing";
 import { cn } from "@/lib/utils";
@@ -28,13 +29,9 @@ const showcaseCards = [
 const heroPills = ["Multitrack recording", "Pitch editing", "Detached mixer", "VST3 / CLAP / LV2"];
 
 const DawCockpitScene = ({ accent = "lavender", className, density = 1 }: DawCockpitSceneProps) => {
-  const prefersReducedMotion = useReducedMotion();
-  const rotateX = useSpring(0, { stiffness: 140, damping: 20, mass: 0.8 });
-  const rotateY = useSpring(0, { stiffness: 140, damping: 20, mass: 0.8 });
-  const glowX = useMotionValue(52);
-  const glowY = useMotionValue(34);
-  const spotlight = useMotionTemplate`radial-gradient(circle at ${glowX}% ${glowY}%, rgba(164, 142, 255, 0.22), transparent 24%), radial-gradient(circle at 80% 84%, rgba(123, 255, 171, 0.16), transparent 28%)`;
-
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const shellRef = useRef<HTMLDivElement | null>(null);
+  const tiltRef = useRef<HTMLDivElement | null>(null);
   const mixerBars = useMemo(() => [36, 62, 48, 86, 56, 92, 44, 74, 58, 82], []);
 
   const handlePointerMove: PointerEventHandler<HTMLDivElement> = (event) => {
@@ -46,54 +43,42 @@ const DawCockpitScene = ({ accent = "lavender", className, density = 1 }: DawCoc
     const x = (event.clientX - rect.left) / rect.width;
     const y = (event.clientY - rect.top) / rect.height;
 
-    rotateY.set((x - 0.5) * 10);
-    rotateX.set((0.5 - y) * 9);
-    glowX.set(x * 100);
-    glowY.set(y * 100);
+    tiltRef.current?.style.setProperty("--daw-rotate-y", `${(x - 0.5) * 10}deg`);
+    tiltRef.current?.style.setProperty("--daw-rotate-x", `${(0.5 - y) * 9}deg`);
+    shellRef.current?.style.setProperty("--daw-glow-x", `${x * 100}%`);
+    shellRef.current?.style.setProperty("--daw-glow-y", `${y * 100}%`);
   };
 
   const resetPointer = () => {
-    rotateX.set(0);
-    rotateY.set(0);
-    glowX.set(52);
-    glowY.set(34);
+    tiltRef.current?.style.setProperty("--daw-rotate-x", "0deg");
+    tiltRef.current?.style.setProperty("--daw-rotate-y", "0deg");
+    shellRef.current?.style.setProperty("--daw-glow-x", "52%");
+    shellRef.current?.style.setProperty("--daw-glow-y", "34%");
   };
 
   return (
-    <motion.div
-      className={cn("relative", className)}
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
-      transition={prefersReducedMotion ? undefined : { duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      viewport={{ once: true, amount: 0.25 }}
-      whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-    >
+    <SectionReveal className={cn("relative", className)}>
       <div
         className="hero-shell relative overflow-hidden rounded-[2.75rem] p-4 md:p-5 xl:p-6"
         onPointerLeave={resetPointer}
         onPointerMove={handlePointerMove}
+        ref={shellRef}
       >
-        <div className="absolute inset-0 opacity-80" style={{ backgroundImage: prefersReducedMotion ? undefined : spotlight }} />
+        <div
+          className="daw-cockpit-spotlight absolute inset-0 opacity-80"
+          style={{
+            backgroundImage: prefersReducedMotion
+              ? undefined
+              : "radial-gradient(circle at var(--daw-glow-x, 52%) var(--daw-glow-y, 34%), rgba(164, 142, 255, 0.22), transparent 24%), radial-gradient(circle at 80% 84%, rgba(123, 255, 171, 0.16), transparent 28%)",
+          }}
+        />
         <SoundField accent={accent} className="opacity-75" density={density} showGrid={false} showNodes showWave />
 
-        <motion.div
-          className="relative z-10"
-          style={
-            prefersReducedMotion
-              ? undefined
-              : {
-                  rotateX,
-                  rotateY,
-                  transformPerspective: 2000,
-                  transformStyle: "preserve-3d",
-                }
-          }
-        >
+        <div className="daw-cockpit-tilt relative z-10" ref={tiltRef}>
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.18fr)_minmax(20rem,0.82fr)]">
-            <motion.div
-              className="design-window-shell rounded-[2rem] border border-white/10 bg-black/45"
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 24, scale: 0.98 }}
-              transition={prefersReducedMotion ? undefined : { duration: 0.8, delay: 0.06, ease: [0.16, 1, 0.3, 1] }}
-              whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
+            <div
+              className="daw-cockpit-reveal design-window-shell rounded-[2rem] border border-white/10 bg-black/45"
+              style={{ "--daw-reveal-delay": "60ms" } as CSSProperties}
             >
               <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.04] px-5 py-3">
                 <div className="flex items-center gap-2">
@@ -144,12 +129,17 @@ const DawCockpitScene = ({ accent = "lavender", className, density = 1 }: DawCoc
                     </div>
                     <div className="mt-4 flex h-16 items-end gap-2">
                       {mixerBars.map((height, index) => (
-                        <motion.span
-                          animate={prefersReducedMotion ? undefined : { height: [`${height}%`, `${Math.max(28, height - 12)}%`, `${height}%`] }}
-                          className="rounded-full bg-gradient-to-t from-primary via-white/90 to-secondary"
+                        <span
+                          className="daw-cockpit-meter rounded-full bg-gradient-to-t from-primary via-white/90 to-secondary"
                           key={`${height}-${index}`}
-                          style={{ width: "9%", height: `${height}%`, opacity: 0.46 + index * 0.03 }}
-                          transition={prefersReducedMotion ? undefined : { duration: 1.9 + index * 0.08, repeat: Infinity, ease: "easeInOut" }}
+                          style={{
+                            width: "9%",
+                            height: `${height}%`,
+                            opacity: 0.46 + index * 0.03,
+                            "--daw-meter-height": `${height}%`,
+                            "--daw-meter-low": `${Math.max(28, height - 12)}%`,
+                            "--daw-meter-duration": `${1.9 + index * 0.08}s`,
+                          } as CSSProperties}
                         />
                       ))}
                     </div>
@@ -174,16 +164,20 @@ const DawCockpitScene = ({ accent = "lavender", className, density = 1 }: DawCoc
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             <div className="grid gap-4">
               {showcaseCards.map(({ asset, label, icon: Icon }, index) => (
-                <motion.div
-                  className="design-window-shell rounded-[1.8rem] border border-white/10 bg-black/45"
-                  initial={prefersReducedMotion ? false : { opacity: 0, x: 26, y: 18, rotateZ: index === 0 ? 1.5 : -1.5 }}
+                <div
+                  className="daw-cockpit-reveal design-window-shell rounded-[1.8rem] border border-white/10 bg-black/45"
                   key={asset.id}
-                  transition={prefersReducedMotion ? undefined : { duration: 0.75, delay: 0.12 + index * 0.08, ease: [0.16, 1, 0.3, 1] }}
-                  whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0, y: 0, rotateZ: 0 }}
+                  style={
+                    {
+                      "--daw-reveal-delay": `${120 + index * 80}ms`,
+                      "--daw-reveal-x": `${index === 0 ? 26 : -26}px`,
+                      "--daw-reveal-rotate": `${index === 0 ? 1.5 : -1.5}deg`,
+                    } as CSSProperties
+                  }
                 >
                   <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.04] px-4 py-3">
                     <div className="font-mono text-[0.58rem] uppercase tracking-[0.26em] text-white/42">{label}</div>
@@ -194,13 +188,13 @@ const DawCockpitScene = ({ accent = "lavender", className, density = 1 }: DawCoc
                     <div className="font-headline text-base font-semibold text-white">{asset.label}</div>
                     <p className="mt-2 text-sm leading-6 text-white/70">{asset.caption}</p>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </SectionReveal>
   );
 };
 

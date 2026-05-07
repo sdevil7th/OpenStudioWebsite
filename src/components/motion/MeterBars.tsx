@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { type CSSProperties } from "react";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import type { AccentTone } from "@/data/marketing";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +29,7 @@ const MeterBars = ({
   speed = 1,
   reducedMotionMode = "static",
 }: MeterBarsProps) => {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   if (prefersReducedMotion && reducedMotionMode === "hidden") {
     return null;
@@ -40,31 +41,21 @@ const MeterBars = ({
         const height = baseHeights[index % baseHeights.length] * density;
 
         return (
-          <motion.span
-            animate={
-              prefersReducedMotion
-                ? undefined
-                : {
-                    scaleY: [0.35 + ((index % 3) * 0.1), 1, 0.45 + ((index % 4) * 0.08)],
-                    opacity: [0.4, 0.95, 0.55],
-                  }
-            }
+          <span
             className={cn(
-              "origin-bottom rounded-full bg-gradient-to-t shadow-[0_0_30px_rgba(255,255,255,0.08)]",
+              "meter-bars__bar origin-bottom rounded-full bg-gradient-to-t shadow-[0_0_30px_rgba(255,255,255,0.08)]",
               accentClass[accent],
             )}
             key={`${accent}-${index}`}
-            style={{ height: `${height}px`, width: `${Math.max(8, 10 * density)}px` }}
-            transition={
-              prefersReducedMotion
-                ? undefined
-                : {
-                    duration: (1.6 + (index % 4) * 0.18) / speed,
-                    repeat: Infinity,
-                    repeatType: "mirror",
-                    ease: "easeInOut",
-                    delay: index * 0.04,
-                  }
+            style={
+              {
+                height: `${height}px`,
+                width: `${Math.max(8, 10 * density)}px`,
+                "--meter-scale-start": 0.35 + (index % 3) * 0.1,
+                "--meter-scale-end": 0.45 + (index % 4) * 0.08,
+                "--meter-duration": `${(1.6 + (index % 4) * 0.18) / speed}s`,
+                "--meter-delay": `${index * 0.04}s`,
+              } as CSSProperties
             }
           />
         );

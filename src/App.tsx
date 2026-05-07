@@ -2,7 +2,6 @@ import { lazy, Suspense, useEffect, type ReactElement, type ReactNode } from "re
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import SiteShell from "@/components/SiteShell";
-import { BRANDING_ASSETS } from "@/constants/site";
 
 const loadContactPage = () => import("@/pages/ContactPage");
 const loadBlogPostPage = () => import("@/pages/BlogPostPage");
@@ -34,30 +33,10 @@ const SecurityPage = lazy(loadSecurityPage);
 const StemSeparationPage = lazy(loadStemSeparationPage);
 const TermsPage = lazy(loadTermsPage);
 
-const prefetchLoaders = {
-  ai: loadStemSeparationPage,
-  blogs: loadBlogsPage,
-  contact: loadContactPage,
-  download: loadDownloadPage,
-  features: loadFeaturesPage,
-  github: loadGithubPage,
-  releases: loadReleasesPage,
-};
-
-const PageLoader = () => (
-  <div
-    className="fixed inset-0 z-[90] flex min-h-dvh items-center justify-center bg-background text-foreground"
-    role="status"
-    aria-live="polite"
-  >
-    <div className="flex flex-col items-center gap-5">
-      <img className="h-14 w-14 animate-pulse" src={BRANDING_ASSETS.mark} alt="" aria-hidden="true" decoding="async" />
-      <div className="h-1 w-44 overflow-hidden rounded-full bg-white/10">
-        <div className="h-full w-1/2 animate-[loading-bar_1.15s_ease-in-out_infinite] rounded-full bg-primary" />
-      </div>
-      <span className="font-mono text-xs uppercase tracking-[0.28em] text-muted-foreground">Loading OpenStudio</span>
-    </div>
-  </div>
+const RouteFallback = () => (
+  <span className="sr-only" role="status" aria-live="polite">
+    Loading OpenStudio
+  </span>
 );
 
 const RouteReadySignal = ({ children }: { children: ReactNode }) => {
@@ -87,109 +66,33 @@ const RouteReadySignal = ({ children }: { children: ReactNode }) => {
   return children;
 };
 
-const canPrefetch = () => {
-  if (typeof navigator === "undefined") {
-    return true;
-  }
-
-  const connection = (navigator as Navigator & {
-    connection?: { effectiveType?: string; saveData?: boolean };
-  }).connection;
-
-  return !connection?.saveData && connection?.effectiveType !== "slow-2g" && connection?.effectiveType !== "2g";
-};
-
-const scheduleIdle = (callback: () => void, timeout = 1800) => {
-  if ("requestIdleCallback" in window) {
-    const id = window.requestIdleCallback(callback, { timeout });
-    return () => window.cancelIdleCallback(id);
-  }
-
-  const id = window.setTimeout(callback, Math.min(timeout, 900));
-  return () => window.clearTimeout(id);
-};
-
-const IdleRoutePrefetcher = () => {
-  const location = useLocation();
-
-  useEffect(() => {
-    if (!canPrefetch()) {
-      return;
-    }
-
-    const timers: number[] = [];
-    let cancelIdle = () => undefined;
-
-    const startPrefetch = () => {
-      const routeKey = location.pathname.replace(/^\//, "").split("/")[0] || "home";
-      const primaryRoutes =
-        routeKey === "home"
-          ? ["features", "download", "ai"]
-          : routeKey === "features"
-            ? ["download", "ai"]
-            : routeKey === "ai"
-              ? ["download", "features"]
-              : ["features", "download"];
-      const secondaryRoutes = ["github", "releases", "blogs", "contact"];
-
-      cancelIdle = scheduleIdle(() => {
-        [...primaryRoutes, ...secondaryRoutes].forEach((key, index) => {
-          const loader = prefetchLoaders[key as keyof typeof prefetchLoaders];
-          if (!loader) return;
-
-          timers.push(
-            window.setTimeout(() => {
-              void loader().catch(() => undefined);
-            }, index * 180),
-          );
-        });
-      }, 1400);
-    };
-
-    if (window.__openstudioAppReady) {
-      startPrefetch();
-    } else {
-      window.addEventListener("openstudio:app-ready", startPrefetch, { once: true });
-    }
-
-    return () => {
-      window.removeEventListener("openstudio:app-ready", startPrefetch);
-      cancelIdle();
-      timers.forEach((timer) => window.clearTimeout(timer));
-    };
-  }, [location.pathname]);
-
-  return null;
-};
-
-const withPageLoader = (page: ReactElement) => (
-  <Suspense fallback={<PageLoader />}>
+const withRouteFallback = (page: ReactElement) => (
+  <Suspense fallback={<RouteFallback />}>
     <RouteReadySignal>{page}</RouteReadySignal>
   </Suspense>
 );
 
 const App = () => (
   <BrowserRouter>
-    <IdleRoutePrefetcher />
     <Routes>
       {/* Standalone route - no navbar/footer, used for OG image generation */}
-      <Route path="/og-card" element={withPageLoader(<OgCardPage />)} />
+      <Route path="/og-card" element={withRouteFallback(<OgCardPage />)} />
       <Route element={<SiteShell />}>
-        <Route path="/" element={withPageLoader(<HomePage />)} />
-        <Route path="/features" element={withPageLoader(<FeaturesPage />)} />
-        <Route path="/ai" element={withPageLoader(<StemSeparationPage />)} />
+        <Route path="/" element={withRouteFallback(<HomePage />)} />
+        <Route path="/features" element={withRouteFallback(<FeaturesPage />)} />
+        <Route path="/ai" element={withRouteFallback(<StemSeparationPage />)} />
         <Route path="/stem-separation" element={<Navigate to="/ai" replace />} />
-        <Route path="/github" element={withPageLoader(<GithubPage />)} />
-        <Route path="/releases" element={withPageLoader(<ReleasesPage />)} />
-        <Route path="/blogs" element={withPageLoader(<BlogsPage />)} />
-        <Route path="/blogs/:slug" element={withPageLoader(<BlogPostPage />)} />
-        <Route path="/download" element={withPageLoader(<DownloadPage />)} />
-        <Route path="/contact" element={withPageLoader(<ContactPage />)} />
-        <Route path="/privacy" element={withPageLoader(<PrivacyPage />)} />
-        <Route path="/security" element={withPageLoader(<SecurityPage />)} />
-        <Route path="/terms" element={withPageLoader(<TermsPage />)} />
+        <Route path="/github" element={withRouteFallback(<GithubPage />)} />
+        <Route path="/releases" element={withRouteFallback(<ReleasesPage />)} />
+        <Route path="/blogs" element={withRouteFallback(<BlogsPage />)} />
+        <Route path="/blogs/:slug" element={withRouteFallback(<BlogPostPage />)} />
+        <Route path="/download" element={withRouteFallback(<DownloadPage />)} />
+        <Route path="/contact" element={withRouteFallback(<ContactPage />)} />
+        <Route path="/privacy" element={withRouteFallback(<PrivacyPage />)} />
+        <Route path="/security" element={withRouteFallback(<SecurityPage />)} />
+        <Route path="/terms" element={withRouteFallback(<TermsPage />)} />
         <Route path="/home" element={<Navigate to="/" replace />} />
-        <Route path="*" element={withPageLoader(<NotFound />)} />
+        <Route path="*" element={withRouteFallback(<NotFound />)} />
       </Route>
     </Routes>
   </BrowserRouter>

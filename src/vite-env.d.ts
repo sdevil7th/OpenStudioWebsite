@@ -2,6 +2,4 @@
 
 interface Window {
   __openstudioAppReady?: boolean;
-  __openstudioBootLoaderActive?: boolean;
-  __openstudioBootLoaderDismissed?: boolean;
 }
