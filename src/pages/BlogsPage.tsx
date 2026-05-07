@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { ArrowRight, BookOpen, Clock3, FileText, Radio, type LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import PageSeo from "@/components/PageSeo";
@@ -7,12 +6,9 @@ import { blogPosts, blogsSeo, getBlogIndexJsonLd, getBlogPostUrl } from "@/data/
 import { designMedia } from "@/data/designMedia";
 
 const BlogsPage = () => (
-  <motion.main
-    animate={{ opacity: 1 }}
-    className="design-page-main audio-scan-grid"
+  <main
+    className="design-page-main audio-scan-grid route-appear"
     id="main-content"
-    initial={{ opacity: 0 }}
-    transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
   >
     <PageSeo {...blogsSeo} jsonLd={getBlogIndexJsonLd()} />
 
@@ -126,7 +122,7 @@ const BlogsPage = () => (
         )}
       </section>
     </div>
-  </motion.main>
+  </main>
 );
 
 interface BlogStatProps {

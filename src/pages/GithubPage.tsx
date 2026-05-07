@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Activity, ArrowRight, Clock3, FileText, GitBranch, GitFork, Github, Shield, Star, Users } from "lucide-react";
 import { useRef } from "react";
 import { Link } from "react-router-dom";
@@ -57,13 +56,10 @@ const GithubPage = () => {
   });
 
   return (
-    <motion.main
+    <main
       ref={pageRef}
-      animate={{ opacity: 1 }}
-      className="design-page-main"
+      className="design-page-main route-appear"
       id="main-content"
-      initial={{ opacity: 0 }}
-      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
       <PageSeo {...githubSeo} />
 
@@ -277,7 +273,7 @@ const GithubPage = () => {
           </SectionReveal>
         </section>
       </div>
-    </motion.main>
+    </main>
   );
 };
 

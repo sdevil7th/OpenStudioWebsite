@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { ArrowRight, Clock3, Download, FileText, GitBranch, Megaphone, ShieldCheck, Sparkles } from "lucide-react";
 import { useRef } from "react";
 import { Link } from "react-router-dom";
@@ -105,13 +104,10 @@ const ReleasesPage = () => {
   });
 
   return (
-    <motion.main
+    <main
       ref={pageRef}
-      animate={{ opacity: 1 }}
-      className="design-page-main audio-scan-grid"
+      className="design-page-main audio-scan-grid route-appear"
       id="main-content"
-      initial={{ opacity: 0 }}
-      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
       <PageSeo {...releasesSeo} />
 
@@ -332,7 +328,7 @@ const ReleasesPage = () => {
           </SectionReveal>
         </section>
       </div>
-    </motion.main>
+    </main>
   );
 };
 

@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
 
 interface DeferredClientStageProps {
   children: ReactNode;
   className?: string;
   fallback: ReactNode;
+  idle?: boolean;
+  idleDelay?: number;
+  idleTimeout?: number;
   rootMargin?: string;
 }
 
@@ -23,6 +27,9 @@ const DeferredClientStage = ({
   children,
   className,
   fallback,
+  idle = true,
+  idleDelay = 1800,
+  idleTimeout = 3200,
   rootMargin = "900px 0px",
 }: DeferredClientStageProps) => {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -38,15 +45,37 @@ const DeferredClientStage = ({
       return;
     }
 
+    let cancelIdleSchedule: (() => void) | undefined;
+    let fallbackTimer = 0;
+
+    const queueRender = () => {
+      if (cancelIdleSchedule) {
+        return;
+      }
+
+      if (!idle) {
+        setShouldRender(true);
+        return;
+      }
+
+      cancelIdleSchedule = scheduleAfterInitialLoad(
+        () => setShouldRender(true),
+        { delay: idleDelay, runOnInput: false, timeout: idleTimeout },
+      );
+    };
+
     if (!("IntersectionObserver" in window)) {
-      const id = window.setTimeout(() => setShouldRender(true), 240);
-      return () => window.clearTimeout(id);
+      fallbackTimer = window.setTimeout(queueRender, 240);
+      return () => {
+        window.clearTimeout(fallbackTimer);
+        cancelIdleSchedule?.();
+      };
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry?.isIntersecting) {
-          setShouldRender(true);
+          queueRender();
           observer.disconnect();
         }
       },
@@ -54,8 +83,12 @@ const DeferredClientStage = ({
     );
 
     observer.observe(element);
-    return () => observer.disconnect();
-  }, [rootMargin, shouldRender]);
+    return () => {
+      window.clearTimeout(fallbackTimer);
+      cancelIdleSchedule?.();
+      observer.disconnect();
+    };
+  }, [idle, idleDelay, idleTimeout, rootMargin, shouldRender]);
 
   return (
     <div className={className} ref={ref}>

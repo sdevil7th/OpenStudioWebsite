@@ -1,5 +1,6 @@
 type InitialIdleOptions = {
   delay?: number;
+  runOnInput?: boolean;
   timeout?: number;
 };
 
@@ -7,7 +8,7 @@ const INPUT_EVENTS = ["wheel", "touchstart", "pointerdown", "keydown"] as const;
 
 export const scheduleAfterInitialLoad = (
   callback: () => void,
-  { delay = 2400, timeout = 3200 }: InitialIdleOptions = {},
+  { delay = 2400, runOnInput = true, timeout = 3200 }: InitialIdleOptions = {},
 ) => {
   let cancelled = false;
   let delayTimer = 0;
@@ -53,9 +54,11 @@ export const scheduleAfterInitialLoad = (
     }
 
     clearInputListeners();
-    INPUT_EVENTS.forEach((eventName) => {
-      window.addEventListener(eventName, runSoon, { once: true, passive: true });
-    });
+    if (runOnInput) {
+      INPUT_EVENTS.forEach((eventName) => {
+        window.addEventListener(eventName, runSoon, { once: true, passive: true });
+      });
+    }
 
     delayTimer = window.setTimeout(() => {
       if ("requestIdleCallback" in window) {
@@ -68,7 +71,7 @@ export const scheduleAfterInitialLoad = (
   }
 
   function waitForIntro() {
-    if (document.querySelector("[data-brand-intro-overlay]")) {
+    if (document.querySelector("[data-openstudio-loader]")) {
       window.addEventListener("openstudio:intro-hidden", scheduleIdle, { once: true });
       return;
     }

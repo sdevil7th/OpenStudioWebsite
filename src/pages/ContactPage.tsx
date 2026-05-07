@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { ArrowRight, Code2, FileText, Github, Link as LinkIcon, Mail, MapPin } from "lucide-react";
 import PageSeo from "@/components/PageSeo";
 import SectionReveal from "@/components/motion/SectionReveal";
@@ -7,12 +6,9 @@ import { contactAvailability, contactHero, contactMethods, contactSeo } from "@/
 import { contactProfile, externalLinks } from "@/data/siteLinks";
 
 const ContactPage = () => (
-  <motion.main
-    animate={{ opacity: 1 }}
-    className="design-page-main overflow-hidden"
+  <main
+    className="design-page-main overflow-hidden route-appear"
     id="main-content"
-    initial={{ opacity: 0 }}
-    transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
   >
     <PageSeo {...contactSeo} />
 
@@ -162,7 +158,7 @@ const ContactPage = () => (
         </SectionReveal>
       </section>
     </div>
-  </motion.main>
+  </main>
 );
 
 interface InfoRowProps {

@@ -199,12 +199,27 @@ const githubDevBridge = () => ({
   },
 });
 
+const nonBlockingAppCss = () => ({
+  name: "openstudio-nonblocking-app-css",
+  enforce: "post" as const,
+  transformIndexHtml(html: string) {
+    return html.replace(
+      /<link\s+rel="stylesheet"([^>]*?)href="([^"]*\/assets\/index-[^"]+\.css)"([^>]*)>/g,
+      (_match, beforeHref: string, href: string, afterHref: string) =>
+        [
+          `<link rel="preload" as="style"${beforeHref}href="${href}"${afterHref} data-openstudio-app-css onload="this.onload=null;this.rel='stylesheet';this.dataset.openstudioAppCssReady='true';window.__openstudioMarkAppCssReady&&window.__openstudioMarkAppCssReady()" onerror="this.dataset.openstudioAppCssReady='true';window.__openstudioMarkAppCssReady&&window.__openstudioMarkAppCssReady()">`,
+          `<noscript><link rel="stylesheet"${beforeHref}href="${href}"${afterHref}></noscript>`,
+        ].join("\n    "),
+    );
+  },
+});
+
 export default defineConfig({
   server: {
     host: "::",
     port: 8080,
   },
-  plugins: [react(), githubDevBridge()],
+  plugins: [react(), githubDevBridge(), nonBlockingAppCss()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -213,9 +228,37 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          "react-vendor": ["react", "react-dom", "react-router-dom"],
-          "webgl-vendor": ["three"],
+        manualChunks(id) {
+          const normalizedId = id.replace(/\\/g, "/");
+
+          if (
+            normalizedId.includes("/node_modules/react/") ||
+            normalizedId.includes("/node_modules/react-dom/") ||
+            normalizedId.includes("/node_modules/react-router-dom/") ||
+            normalizedId.includes("/node_modules/@remix-run/router/")
+          ) {
+            return "react-vendor";
+          }
+
+          if (normalizedId.includes("/node_modules/three/")) {
+            return "webgl-vendor";
+          }
+
+          if (normalizedId.includes("/node_modules/gsap/")) {
+            return "gsap-vendor";
+          }
+
+          if (normalizedId.includes("/node_modules/lenis/")) {
+            return "lenis-vendor";
+          }
+
+          if (normalizedId.includes("/node_modules/@chenglou/pretext/")) {
+            return "pretext-engine";
+          }
+
+          if (normalizedId.includes("/node_modules/framer-motion/")) {
+            return "framer-motion";
+          }
         },
       },
     },

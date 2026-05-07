@@ -1,5 +1,5 @@
 import { ArrowRight, Download, Github, Sparkles } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import PageSeo from "@/components/PageSeo";
 import BrandLogoConstructScene from "@/components/brand/BrandLogoConstructScene";
@@ -20,7 +20,8 @@ import {
   homeWorkflowSteps,
 } from "@/data/home";
 import { externalLinks } from "@/data/siteLinks";
-import { type ScrollTriggerInstance, useScrollScene } from "@/lib/gsap";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { useScrollScene } from "@/lib/gsap";
 
 const pillarMedia = [
   designMedia.homeUspStems,
@@ -28,62 +29,109 @@ const pillarMedia = [
   designMedia.homeUspCode,
 ];
 
+const HomeLogoAmbientField = ({ progress }: { progress: number }) => {
+  const atmosphereStyle = {
+    "--home-logo-atmosphere-opacity": (0.78 + Math.min(progress, 0.8) * 0.12).toFixed(3),
+    "--home-logo-progress": progress.toFixed(3),
+  } as CSSProperties;
+
+  return (
+    <div className="home-logo-atmosphere" aria-hidden="true" style={atmosphereStyle}>
+      <span className="home-logo-atmosphere__curtain home-logo-atmosphere__curtain--one" />
+      <span className="home-logo-atmosphere__curtain home-logo-atmosphere__curtain--two" />
+      <span className="home-logo-atmosphere__curtain home-logo-atmosphere__curtain--three" />
+      <span className="home-logo-atmosphere__curtain home-logo-atmosphere__curtain--four" />
+      <span className="home-logo-atmosphere__beam home-logo-atmosphere__beam--one" />
+      <span className="home-logo-atmosphere__beam home-logo-atmosphere__beam--two" />
+      <span className="home-logo-atmosphere__beam home-logo-atmosphere__beam--three" />
+      <span className="home-logo-atmosphere__ring home-logo-atmosphere__ring--one" />
+      <span className="home-logo-atmosphere__ring home-logo-atmosphere__ring--two" />
+      <span className="home-logo-atmosphere__streak home-logo-atmosphere__streak--one" />
+      <span className="home-logo-atmosphere__streak home-logo-atmosphere__streak--two" />
+      <span className="home-logo-atmosphere__shimmer" />
+    </div>
+  );
+};
+
 const HomePage = () => {
   const pageRef = useRef<HTMLElement | null>(null);
+  const logoSectionRef = useRef<HTMLElement | null>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
   const [logoProgress, setLogoProgress] = useState(0);
 
-  useScrollScene(pageRef, ({ prefersReducedMotion, isDesktop, gsap, ScrollTrigger }) => {
-    let logoTrigger: ScrollTriggerInstance | undefined;
-    let logoPinTrigger: ScrollTriggerInstance | undefined;
+  useEffect(() => {
+    const section = logoSectionRef.current;
+
+    if (!section) {
+      return;
+    }
 
     if (prefersReducedMotion) {
       setLogoProgress(0.5);
-    } else if (isDesktop) {
-      logoPinTrigger = ScrollTrigger.create({
-        trigger: "[data-home-logo-scroll-section]",
-        start: "top top+=96",
-        end: "bottom top",
-        pin: "[data-home-logo-pin-stage]",
-        pinSpacing: true,
-        anticipatePin: 1,
-        invalidateOnRefresh: true,
-      });
-
-      logoTrigger = ScrollTrigger.create({
-        trigger: "[data-home-logo-scroll-section]",
-        start: "top top",
-        end: "bottom top",
-        scrub: 0.7,
-        onUpdate: (self) => {
-          setLogoProgress(Number(self.progress.toFixed(3)));
-        },
-      });
-    } else {
-      setLogoProgress(0.5);
+      section.style.setProperty("--home-logo-progress", "0.500");
+      return;
     }
 
-    if (!prefersReducedMotion) {
-      gsap
-        .timeline({ defaults: { ease: "power3.out" } })
-        .from("[data-home-hero-eyebrow]", { y: 18, duration: 0.48 })
-        .from("[data-home-hero-title]", { y: 14, duration: 0.52 }, 0.06)
-        .from("[data-home-hero-support]", { y: 12, duration: 0.32 }, 0.12)
-        .from("[data-home-hero-body]", { y: 14, duration: 0.38 }, 0.16)
-        .from(
-          "[data-home-hero-action]",
-          { y: 12, stagger: 0.08, duration: 0.34 },
-          0.18,
-        )
-        .from(
-          "[data-home-proof-item]",
-          { y: 16, opacity: 0, stagger: 0.05, duration: 0.38 },
-          0.32,
-        )
-        .from(
-          "[data-home-logo-stage]",
-          { y: 28, opacity: 0, scale: 0.97, duration: 0.72 },
-          0.1,
-        );
+    let frame = 0;
+    let lastProgress = -1;
+    const desktopQuery = window.matchMedia("(min-width: 1280px)");
+
+    const writeProgress = (value: number) => {
+      const rounded = Number(value.toFixed(3));
+
+      section.style.setProperty("--home-logo-progress", rounded.toFixed(3));
+      if (rounded !== lastProgress) {
+        lastProgress = rounded;
+        setLogoProgress(rounded);
+      }
+    };
+
+    const update = () => {
+      frame = 0;
+
+      if (!desktopQuery.matches) {
+        writeProgress(0.5);
+        return;
+      }
+
+      const rect = section.getBoundingClientRect();
+      const scrollRange = Number.parseFloat(
+        window.getComputedStyle(section).getPropertyValue("--home-logo-scroll-range"),
+      );
+      const travel = Number.isFinite(scrollRange)
+        ? Math.max(1, scrollRange)
+        : Math.max(1, section.offsetHeight - window.innerHeight);
+      const progress = Math.max(0, Math.min(1, -rect.top / travel));
+      writeProgress(progress);
+    };
+
+    const requestUpdate = () => {
+      if (frame) {
+        return;
+      }
+
+      frame = window.requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+    desktopQuery.addEventListener("change", requestUpdate);
+
+    return () => {
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
+
+      window.removeEventListener("scroll", requestUpdate);
+      window.removeEventListener("resize", requestUpdate);
+      desktopQuery.removeEventListener("change", requestUpdate);
+    };
+  }, [prefersReducedMotion]);
+
+  useScrollScene(pageRef, ({ prefersReducedMotion, gsap }) => {
+    if (prefersReducedMotion) {
+      return undefined;
     }
 
     gsap.from("[data-home-card]", {
@@ -118,10 +166,7 @@ const HomePage = () => {
         );
       });
 
-    return () => {
-      logoPinTrigger?.kill();
-      logoTrigger?.kill();
-    };
+    return undefined;
   });
 
   return (
@@ -133,10 +178,13 @@ const HomePage = () => {
       <PageSeo {...homeSeo} />
 
       <section
-        className="home-logo-scroll-section relative min-h-[auto] overflow-hidden px-4 pb-12 pt-24 md:px-8 xl:min-h-[214vh] xl:px-12"
+        className="home-logo-scroll-section relative min-h-[auto] px-4 pb-12 pt-24 md:px-8 xl:px-12 xl:pb-0"
         data-home-logo-scroll-section
+        ref={logoSectionRef}
+        style={{ "--home-logo-progress": logoProgress.toFixed(3) } as CSSProperties}
       >
         <div className="absolute inset-0 design-mesh-bg" />
+        <HomeLogoAmbientField progress={logoProgress} />
         <div className="floating-audio-orb left-[5%] top-[10%] h-72 w-72 bg-primary/24" />
         <div className="floating-audio-orb bottom-[6%] right-[6%] h-[32rem] w-[32rem] bg-secondary/18 [animation-delay:-2s]" />
         {/* <SoundField accent="lavender" density={1.15} showGrid={false} /> */}
@@ -454,7 +502,7 @@ const HomePage = () => {
                     (height, index) => (
                       <div
                         className="eq-bar w-2 rounded-full bg-secondary"
-                        key={height}
+                        key={`capability-eq-${height}-${index}`}
                         style={{
                           animationDelay: `${index * 0.08}s`,
                           height: `${height}%`,

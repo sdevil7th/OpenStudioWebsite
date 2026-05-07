@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, type ReactElement, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useState, type ReactElement, type ReactNode } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import SiteShell from "@/components/SiteShell";
@@ -33,11 +33,49 @@ const SecurityPage = lazy(loadSecurityPage);
 const StemSeparationPage = lazy(loadStemSeparationPage);
 const TermsPage = lazy(loadTermsPage);
 
-const RouteFallback = () => (
-  <span className="sr-only" role="status" aria-live="polite">
-    Loading OpenStudio
-  </span>
-);
+const markPerformance = (name: string) => {
+  try {
+    window.performance?.mark?.(`openstudio:${name}`);
+  } catch {
+    // Performance marks are diagnostic only.
+  }
+};
+
+const RouteFallback = () => {
+  const [introHidden, setIntroHidden] = useState(() =>
+    typeof window !== "undefined" ? Boolean(window.__openstudioIntroHidden) : false,
+  );
+
+  useEffect(() => {
+    if (introHidden) {
+      return;
+    }
+
+    const handleIntroHidden = () => setIntroHidden(true);
+    window.addEventListener("openstudio:intro-hidden", handleIntroHidden, { once: true });
+    return () => window.removeEventListener("openstudio:intro-hidden", handleIntroHidden);
+  }, [introHidden]);
+
+  if (!introHidden) {
+    return (
+      <span className="sr-only" role="status" aria-live="polite">
+        Preparing OpenStudio
+      </span>
+    );
+  }
+
+  return (
+    <div className="route-transition-surface" role="status" aria-live="polite">
+      <span className="sr-only">Preparing OpenStudio</span>
+      <div className="route-transition-surface__grid" aria-hidden="true">
+        <span className="route-transition-surface__beam route-transition-surface__beam--one" />
+        <span className="route-transition-surface__beam route-transition-surface__beam--two" />
+        <span className="route-transition-surface__beam route-transition-surface__beam--three" />
+        <span className="route-transition-surface__line" />
+      </div>
+    </div>
+  );
+};
 
 const RouteReadySignal = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
@@ -49,6 +87,11 @@ const RouteReadySignal = ({ children }: { children: ReactNode }) => {
     firstFrame = window.requestAnimationFrame(() => {
       secondFrame = window.requestAnimationFrame(() => {
         window.__openstudioAppReady = true;
+        markPerformance("app-ready");
+        if (!window.__openstudioFirstRouteReveal) {
+          window.__openstudioFirstRouteReveal = true;
+          markPerformance("first-route-reveal");
+        }
         window.dispatchEvent(
           new CustomEvent("openstudio:app-ready", {
             detail: { pathname: location.pathname },

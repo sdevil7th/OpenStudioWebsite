@@ -1,5 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type MutableRefObject, type ReactNode } from "react";
 import {
   ArrowRight,
   Layers3,
@@ -13,12 +12,6 @@ import { Link } from "react-router-dom";
 import ChapterProgress from "@/components/ChapterProgress";
 import DeferredClientStage from "@/components/DeferredClientStage";
 import PageSeo from "@/components/PageSeo";
-import FeatureSceneCompositor, {
-  type FeatureSceneCompositorState,
-} from "@/components/scene/FeatureSceneCompositor";
-import FeatureStoryUnifiedTransition from "@/components/scene/FeatureStoryUnifiedTransition";
-import FeaturesStoryBackdrop from "@/components/scene/FeaturesStoryBackdrop";
-import ChapterIntroOverlay from "@/components/scene/ChapterIntroOverlay";
 import SectionReveal from "@/components/motion/SectionReveal";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,10 +22,33 @@ import {
   featuresFinalCta,
 } from "@/data/features";
 import type { FeatureChapter } from "@/data/marketing";
+import type { FeatureSceneCompositorState } from "@/components/scene/FeatureSceneCompositor";
+import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
 import { useScrollScene } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 
+const ChapterIntroOverlay = lazy(() => import("@/components/scene/ChapterIntroOverlay"));
+const FeatureSceneCompositor = lazy(() => import("@/components/scene/FeatureSceneCompositor"));
 const FeatureSceneWebGLStage = lazy(() => import("@/components/scene/FeatureSceneWebGLStage"));
+const FeatureStoryUnifiedTransition = lazy(() => import("@/components/scene/FeatureStoryUnifiedTransition"));
+const FeaturesStoryBackdrop = lazy(() => import("@/components/scene/FeaturesStoryBackdrop"));
+
+const DeferredAfterIntro = ({ children, delay = 700 }: { children: ReactNode; delay?: number }) => {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (ready) {
+      return;
+    }
+
+    return scheduleAfterInitialLoad(
+      () => setReady(true),
+      { delay, runOnInput: false, timeout: 1800 },
+    );
+  }, [delay, ready]);
+
+  return ready ? children : null;
+};
 
 const accentBadgeClass = {
   lavender: "border-primary/25 bg-primary/10 text-primary",
@@ -48,6 +64,33 @@ const chapterIcons: Record<string, LucideIcon> = {
   engine: Sparkles,
   automation: Settings2,
 };
+
+interface FeatureSceneCompositorSurfaceProps {
+  chapters: FeatureChapter[];
+  className?: string;
+  stateRef: MutableRefObject<FeatureSceneCompositorState>;
+}
+
+const FeatureSceneStaticFallback = ({ className }: { className?: string }) => (
+  <div className={cn("feature-story-static-stage", className)} aria-hidden="true">
+    <span className="feature-story-static-stage__wash" />
+    <span className="feature-story-static-stage__beam feature-story-static-stage__beam--one" />
+    <span className="feature-story-static-stage__beam feature-story-static-stage__beam--two" />
+    <span className="feature-story-static-stage__rail" />
+    <span className="feature-story-static-stage__panel feature-story-static-stage__panel--primary" />
+    <span className="feature-story-static-stage__panel feature-story-static-stage__panel--secondary" />
+  </div>
+);
+
+const FeatureSceneCompositorSurface = ({
+  chapters,
+  className,
+  stateRef,
+}: FeatureSceneCompositorSurfaceProps) => (
+  <Suspense fallback={<FeatureSceneStaticFallback className={className} />}>
+    <FeatureSceneCompositor chapters={chapters} className={className} stateRef={stateRef} />
+  </Suspense>
+);
 
 const clampProgress = (value?: number) => {
   if (typeof value !== "number" || Number.isNaN(value)) {
@@ -355,7 +398,8 @@ const FeatureMobileCard = ({
                   : "object-cover",
               )}
               decoding="async"
-              loading={index === 0 ? "eager" : "lazy"}
+              fetchpriority="low"
+              loading="lazy"
               src={chapter.sceneBase.asset.src}
             />
           ) : null}
@@ -380,7 +424,8 @@ const FeatureMobileCard = ({
                       : "object-cover",
                   )}
                   decoding="async"
-                  loading={index === 0 ? "eager" : "lazy"}
+                  fetchpriority="low"
+                  loading="lazy"
                   src={fragment.asset.src}
                 />
               ) : null}
@@ -1408,25 +1453,22 @@ const FeaturesPage = () => {
   const HeroChapterIcon = chapterIcons[featureChapters[0]?.id ?? ""] ?? Layers3;
 
   return (
-    <motion.main
+    <main
       ref={pageRef}
-      animate={{ opacity: 1 }}
-      className="design-page-main feature-story-page"
+      className="design-page-main feature-story-page route-appear"
       id="main-content"
-      initial={{ opacity: 0 }}
-      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
       <PageSeo {...featurePageSeo} />
-      <FeaturesStoryBackdrop
-        chapter={activeChapter}
-        chapters={featureChapters}
-        progress={activeProgress}
-        stateRef={compositorStateRef}
-      />
-      <FeatureStoryUnifiedTransition
-        chapters={featureChapters}
-        stateRef={compositorStateRef}
-      />
+      <DeferredAfterIntro delay={520}>
+        <Suspense fallback={null}>
+          <FeaturesStoryBackdrop
+            chapter={activeChapter}
+            chapters={featureChapters}
+            progress={activeProgress}
+            stateRef={compositorStateRef}
+          />
+        </Suspense>
+      </DeferredAfterIntro>
 
       <div className="page-frame-wide relative">
         <section
@@ -1462,6 +1504,7 @@ const FeaturesPage = () => {
                   alt={featureChapters[0]!.sceneBase.asset.alt}
                   className="h-[22rem] w-full object-cover md:h-[27rem] xl:h-[31rem]"
                   decoding="async"
+                  fetchpriority="high"
                   loading="eager"
                   src={featureChapters[0]!.sceneBase.asset.src}
                 />
@@ -1496,6 +1539,7 @@ const FeaturesPage = () => {
                     alt={featureChapters[3]!.sceneBase.asset.alt}
                     className="h-52 w-full object-cover"
                     decoding="async"
+                    fetchpriority="low"
                     loading="lazy"
                     src={featureChapters[3]!.sceneBase.asset.src}
                   />
@@ -1506,6 +1550,21 @@ const FeaturesPage = () => {
         </section>
 
         <section className="feature-story-viewport">
+          <DeferredClientStage
+            className="feature-story-deferred-layer"
+            fallback={null}
+            idleDelay={2400}
+            idleTimeout={4200}
+            rootMargin="240px 0px"
+          >
+            <Suspense fallback={null}>
+              <FeatureStoryUnifiedTransition
+                chapters={featureChapters}
+                stateRef={compositorStateRef}
+              />
+            </Suspense>
+          </DeferredClientStage>
+
           <div className="feature-story-shell-sticky hidden xl:block">
             <div className="feature-story-shell-grid">
               <aside className="feature-story-rail-panel">
@@ -1546,26 +1605,18 @@ const FeaturesPage = () => {
                 <div className="feature-story-canvas">
                   <DeferredClientStage
                     className="h-full"
-                    fallback={
-                      <FeatureSceneCompositor
-                        chapters={featureChapters}
-                        stateRef={compositorStateRef}
-                      />
-                    }
-                    rootMargin="250px 0px"
+                    fallback={<FeatureSceneStaticFallback />}
+                    idleDelay={2600}
+                    idleTimeout={4600}
+                    rootMargin="240px 0px"
                   >
                     <Suspense
-                      fallback={
-                        <FeatureSceneCompositor
-                          chapters={featureChapters}
-                          stateRef={compositorStateRef}
-                        />
-                      }
+                      fallback={<FeatureSceneStaticFallback />}
                     >
                       <FeatureSceneWebGLStage
                         chapters={featureChapters}
                         fallback={
-                          <FeatureSceneCompositor
+                          <FeatureSceneCompositorSurface
                             chapters={featureChapters}
                             stateRef={compositorStateRef}
                           />
@@ -1592,10 +1643,12 @@ const FeaturesPage = () => {
                       />
                     ))}
                   </div>
-                  <ChapterIntroOverlay
-                    chapters={featureChapters}
-                    stateRef={compositorStateRef}
-                  />
+                  <Suspense fallback={null}>
+                    <ChapterIntroOverlay
+                      chapters={featureChapters}
+                      stateRef={compositorStateRef}
+                    />
+                  </Suspense>
                 </div>
               </div>
             </div>
@@ -1686,7 +1739,7 @@ const FeaturesPage = () => {
           </SectionReveal>
         </section>
       </div>
-    </motion.main>
+    </main>
   );
 };
 

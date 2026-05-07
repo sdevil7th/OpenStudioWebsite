@@ -66,9 +66,12 @@ const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) => {
       };
     };
 
-    const cancelSchedule = scheduleAfterInitialLoad(() => {
-      void startSmoothScroll();
-    }, { delay: 2800, timeout: 3600 });
+    const cancelSchedule = scheduleAfterInitialLoad(
+      () => {
+        void startSmoothScroll();
+      },
+      { delay: 2800, runOnInput: false, timeout: 3600 },
+    );
 
     return () => {
       cancelled = true;

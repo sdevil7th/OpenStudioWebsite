@@ -7,7 +7,7 @@ export const SITE_THEME_COLOR = "#050813";
 export const SITE_OG_IMAGE = "/assets/openstudio/branding/og-image.png?v=2";
 
 export const BRANDING_ASSETS = {
-  mark: "/assets/openstudio/branding/icon.svg",
+  mark: "/assets/openstudio/branding/android-chrome-192x192.png",
   favicon16: "/assets/openstudio/branding/favicon-16x16.png",
   favicon32: "/assets/openstudio/branding/favicon-32x32.png",
   appleTouch: "/assets/openstudio/branding/apple-touch-icon.png",

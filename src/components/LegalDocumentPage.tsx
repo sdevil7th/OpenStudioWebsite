@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import PageSeo from "@/components/PageSeo";
@@ -10,12 +9,9 @@ interface LegalDocumentPageProps {
 }
 
 const LegalDocumentPage = ({ document }: LegalDocumentPageProps) => (
-  <motion.main
-    animate={{ opacity: 1, y: 0 }}
-    className="design-page-main"
+  <main
+    className="design-page-main route-appear"
     id="main-content"
-    initial={{ opacity: 0, y: 18 }}
-    transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
   >
     <PageSeo {...document.seo} />
 
@@ -103,7 +99,7 @@ const LegalDocumentPage = ({ document }: LegalDocumentPageProps) => (
         </div>
       </div>
     </div>
-  </motion.main>
+  </main>
 );
 
 export default LegalDocumentPage;

@@ -1,8 +1,8 @@
-import { motion, useReducedMotion } from "framer-motion";
 import StarField from "@/components/scene/StarField";
 import ConstellationField from "@/components/scene/ConstellationField";
 import type { FeatureSceneCompositorState } from "@/components/scene/FeatureSceneCompositor";
 import type { AccentTone, FeatureChapter } from "@/data/marketing";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
 
 interface FeaturesStoryBackdropProps {
@@ -33,7 +33,7 @@ const FeaturesStoryBackdrop = ({
   progress,
   className,
 }: FeaturesStoryBackdropProps) => {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = usePrefersReducedMotion();
   const accent = chapter.accent ?? "lavender";
   const wash = washMap[accent];
   const stageProgress = clampProgress(progress);
@@ -50,11 +50,9 @@ const FeaturesStoryBackdrop = ({
       )}
       style={{ background: "var(--feature-void)" }}
     >
-      <motion.div
-        animate={{ opacity: prefersReducedMotion ? 0.6 : 1 }}
+      <div
         className="absolute inset-0"
-        style={{ backgroundImage: wash }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        style={{ backgroundImage: wash, opacity: prefersReducedMotion ? 0.6 : 1 }}
       />
 
       <StarField
@@ -69,27 +67,21 @@ const FeaturesStoryBackdrop = ({
         stateRef={stateRef}
       />
 
-      <motion.div
-        animate={{
-          opacity: prefersReducedMotion ? 0.08 : 0.1 + stageProgress * 0.08,
-        }}
+      <div
         className="pointer-events-none absolute inset-x-0 top-0 h-64"
         style={{
           background:
             "linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%)",
+          opacity: prefersReducedMotion ? 0.08 : 0.1 + stageProgress * 0.08,
         }}
-        transition={{ duration: 0.6 }}
       />
-      <motion.div
-        animate={{
-          opacity: prefersReducedMotion ? 0.12 : 0.22,
-        }}
+      <div
         className="pointer-events-none absolute inset-x-0 bottom-0 h-64"
         style={{
           background:
             "linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)",
+          opacity: prefersReducedMotion ? 0.12 : 0.22,
         }}
-        transition={{ duration: 0.6 }}
       />
     </div>
   );

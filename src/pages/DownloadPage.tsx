@@ -1,5 +1,4 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { motion } from "framer-motion";
 import {
   ArrowRight,
   Check,
@@ -362,13 +361,10 @@ const DownloadPage = () => {
   };
 
   return (
-    <motion.main
+    <main
       ref={pageRef}
-      animate={{ opacity: 1, y: 0 }}
-      className="design-page-main download-page"
+      className="design-page-main download-page route-appear"
       id="main-content"
-      initial={{ opacity: 0, y: 18 }}
-      transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
     >
       <PageSeo {...downloadSeo} />
 
@@ -758,7 +754,7 @@ const DownloadPage = () => {
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
-    </motion.main>
+    </main>
   );
 };
 

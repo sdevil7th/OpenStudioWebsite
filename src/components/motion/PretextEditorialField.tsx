@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useReducedMotion } from "framer-motion";
 import { layoutWithLines, prepareWithSegments, clearCache } from "@chenglou/pretext";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
 
 type EditorialVariant = "features" | "ai";
@@ -107,7 +107,7 @@ const PretextEditorialField = ({
   const objectRefs = useRef<Array<HTMLSpanElement | null>>([]);
   const layoutRef = useRef({ width: 1, height: 1, left: 0, top: 0 });
   const pointerRef = useRef({ x: 0, y: 0, active: 0 });
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const [fragments, setFragments] = useState<EditorialFragment[]>([]);
   const [height, setHeight] = useState(0);
   const objectLabels = useMemo(
