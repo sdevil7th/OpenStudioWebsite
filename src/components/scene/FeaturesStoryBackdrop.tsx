@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import StarField from "@/components/scene/StarField";
 import ConstellationField from "@/components/scene/ConstellationField";
 import type { FeatureSceneCompositorState } from "@/components/scene/FeatureSceneCompositor";
@@ -41,7 +42,7 @@ const FeaturesStoryBackdrop = ({
     (item) => item.accent ?? ("lavender" as AccentTone),
   );
 
-  return (
+  const backdrop = (
     <div
       aria-hidden="true"
       className={cn(
@@ -85,6 +86,12 @@ const FeaturesStoryBackdrop = ({
       />
     </div>
   );
+
+  if (typeof document === "undefined") {
+    return backdrop;
+  }
+
+  return createPortal(backdrop, document.body);
 };
 
 export default FeaturesStoryBackdrop;

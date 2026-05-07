@@ -2,21 +2,22 @@ import { lazy, Suspense, useEffect, useState, type ReactElement, type ReactNode 
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import SiteShell from "@/components/SiteShell";
+import { preloadModuleOnce } from "@/lib/runtimePreloadRegistry";
 
-const loadContactPage = () => import("@/pages/ContactPage");
-const loadBlogPostPage = () => import("@/pages/BlogPostPage");
-const loadBlogsPage = () => import("@/pages/BlogsPage");
-const loadDownloadPage = () => import("@/pages/DownloadPage");
-const loadFeaturesPage = () => import("@/pages/FeaturesPage");
-const loadGithubPage = () => import("@/pages/GithubPage");
-const loadHomePage = () => import("@/pages/HomePage");
-const loadNotFound = () => import("@/pages/NotFound");
-const loadOgCardPage = () => import("@/pages/OgCardPage");
-const loadPrivacyPage = () => import("@/pages/PrivacyPage");
-const loadReleasesPage = () => import("@/pages/ReleasesPage");
-const loadSecurityPage = () => import("@/pages/SecurityPage");
-const loadStemSeparationPage = () => import("@/pages/StemSeparationPage");
-const loadTermsPage = () => import("@/pages/TermsPage");
+const loadContactPage = () => preloadModuleOnce("route:contact", () => import("@/pages/ContactPage"));
+const loadBlogPostPage = () => preloadModuleOnce("route:blog-post", () => import("@/pages/BlogPostPage"));
+const loadBlogsPage = () => preloadModuleOnce("route:blogs", () => import("@/pages/BlogsPage"));
+const loadDownloadPage = () => preloadModuleOnce("route:download", () => import("@/pages/DownloadPage"));
+const loadFeaturesPage = () => preloadModuleOnce("route:features", () => import("@/pages/FeaturesPage"));
+const loadGithubPage = () => preloadModuleOnce("route:github", () => import("@/pages/GithubPage"));
+const loadHomePage = () => preloadModuleOnce("route:home", () => import("@/pages/HomePage"));
+const loadNotFound = () => preloadModuleOnce("route:not-found", () => import("@/pages/NotFound"));
+const loadOgCardPage = () => preloadModuleOnce("route:og-card", () => import("@/pages/OgCardPage"));
+const loadPrivacyPage = () => preloadModuleOnce("route:privacy", () => import("@/pages/PrivacyPage"));
+const loadReleasesPage = () => preloadModuleOnce("route:releases", () => import("@/pages/ReleasesPage"));
+const loadSecurityPage = () => preloadModuleOnce("route:security", () => import("@/pages/SecurityPage"));
+const loadStemSeparationPage = () => preloadModuleOnce("route:ai", () => import("@/pages/StemSeparationPage"));
+const loadTermsPage = () => preloadModuleOnce("route:terms", () => import("@/pages/TermsPage"));
 
 const ContactPage = lazy(loadContactPage);
 const BlogPostPage = lazy(loadBlogPostPage);
@@ -45,6 +46,24 @@ const RouteFallback = () => {
   const [introHidden, setIntroHidden] = useState(() =>
     typeof window !== "undefined" ? Boolean(window.__openstudioIntroHidden) : false,
   );
+
+  useEffect(() => {
+    const token = `route-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    window.dispatchEvent(
+      new CustomEvent("openstudio:route-fallback", {
+        detail: { active: true, token },
+      }),
+    );
+
+    return () => {
+      window.dispatchEvent(
+        new CustomEvent("openstudio:route-fallback", {
+          detail: { active: false, token },
+        }),
+      );
+    };
+  }, []);
 
   useEffect(() => {
     if (introHidden) {

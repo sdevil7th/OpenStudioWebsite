@@ -20,7 +20,16 @@ const deferredStageSource = readFileSync(new URL("../src/components/DeferredClie
 const featuresSource = readFileSync(new URL("../src/pages/FeaturesPage.tsx", import.meta.url), "utf8");
 const aiSource = readFileSync(new URL("../src/pages/StemSeparationPage.tsx", import.meta.url), "utf8");
 const assetLoadingSource = readFileSync(new URL("../src/lib/assetLoading.ts", import.meta.url), "utf8");
+const assetGraphqlSource = readFileSync(new URL("../src/lib/assetGraphQL.ts", import.meta.url), "utf8");
+const assetGraphqlFunctionSource = readFileSync(new URL("../netlify/functions/assets-graphql.ts", import.meta.url), "utf8");
+const sharedAssetPlanSource = readFileSync(new URL("../shared/asset-image-plan.ts", import.meta.url), "utf8");
 const gsapSource = readFileSync(new URL("../src/lib/gsap.ts", import.meta.url), "utf8");
+const runtimePreloadRegistrySource = readFileSync(
+  new URL("../src/lib/runtimePreloadRegistry.ts", import.meta.url),
+  "utf8",
+);
+const imageGeneratorSource = readFileSync(new URL("../scripts/generate-image-assets.mjs", import.meta.url), "utf8");
+const packageSource = readFileSync(new URL("../package.json", import.meta.url), "utf8");
 const smoothScrollSource = readFileSync(
   new URL("../src/components/SmoothScrollProvider.tsx", import.meta.url),
   "utf8",
@@ -117,7 +126,7 @@ test("homepage atmosphere is full-bleed and first input does not force heavy scr
   assert.match(indexCssSource, /\.home-logo-sticky-stage\s*\{[^}]*top: 0/);
   assert.doesNotMatch(indexCssSource, /\.home-logo-atmosphere\s*\{[^}]*mask-image/);
   assert.match(initialLoadSource, /runOnInput = true/);
-  assert.match(gsapSource, /runOnInput: false/);
+  assert.match(gsapSource, /runOnInput = false/);
   assert.match(smoothScrollSource, /runOnInput: false/);
   assert.match(shellSource, /lenisRef/);
   assert.match(shellSource, /\[location\.pathname\]/);
@@ -125,11 +134,18 @@ test("homepage atmosphere is full-bleed and first input does not force heavy scr
 });
 
 test("initial routes are lazy-loaded behind the html-first loader", () => {
-  assert.match(appSource, /const loadHomePage = \(\) => import\("@\/pages\/HomePage"\)/);
+  assert.match(appSource, /preloadModuleOnce/);
+  assert.match(runtimePreloadRegistrySource, /modulePreloadCache/);
+  assert.match(appSource, /const loadHomePage = \(\) => preloadModuleOnce\("route:home", \(\) => import\("@\/pages\/HomePage"\)\)/);
   assert.match(appSource, /const HomePage = lazy\(loadHomePage\)/);
   assert.match(appSource, /const RouteFallback = \(\) =>/);
+  assert.match(appSource, /openstudio:route-fallback/);
+  assert.match(shellSource, /routeFallbackTokens/);
+  assert.match(shellSource, /data-route-pending=\{routePending \? "true" : "false"\}/);
+  assert.match(shellSource, /\{!routePending \? <SiteFooter \/> : null\}/);
   assert.match(appSource, /<Suspense fallback=\{<RouteFallback \/>\}>/);
   assert.match(appSource, /route-transition-surface/);
+  assert.match(indexCssSource, /\.route-transition-surface \{[\s\S]*min-height: 100svh/);
   assert.match(appSource, /__openstudioFirstRouteReveal/);
   assert.doesNotMatch(appSource, /const PageLoader = \(\) =>/);
   assert.doesNotMatch(appSource, /Suspense fallback=\{null\}/);
@@ -143,17 +159,39 @@ test("heavy route dependencies are deferred behind polished surfaces", () => {
   assert.match(featuresSource, /const FeatureSceneCompositor = lazy/);
   assert.match(featuresSource, /const FeatureStoryUnifiedTransition = lazy/);
   assert.match(featuresSource, /FeatureSceneStaticFallback/);
-  assert.match(featuresSource, /DeferredAfterIntro/);
+  assert.match(featuresSource, /FeaturesStoryBackdrop/);
+  assert.match(featuresSource, /FeatureStoryTransitionFallback/);
+  assert.match(featuresSource, /rootMargin="1400px 0px"/);
   assert.doesNotMatch(featuresSource, /from "framer-motion"/);
   assert.match(aiSource, /const PretextEditorialField = lazy/);
-  assert.match(aiSource, /idleDelay=\{2400\}/);
-  assert.match(aiSource, /rootMargin="0px"/);
+  assert.match(aiSource, /idleDelay=\{720\}/);
+  assert.match(aiSource, /rootMargin="1400px 0px"/);
   assert.doesNotMatch(aiSource, /from "framer-motion"/);
   assert.match(viteConfigSource, /"gsap-vendor"/);
   assert.match(viteConfigSource, /"lenis-vendor"/);
-  assert.doesNotMatch(viteConfigSource, /"radix-dialog"/);
+  assert.match(viteConfigSource, /"radix-vendor"/);
   assert.match(assetLoadingSource, /assetPriorityManifest/);
   assert.match(assetLoadingSource, /"heavy-story\/on-viewport"/);
+  assert.match(assetLoadingSource, /generatedImagePath/);
+  assert.match(assetLoadingSource, /netlifyImageCdnUrl/);
+  assert.match(assetLoadingSource, /getResponsiveImageAttributes/);
+  assert.match(assetLoadingSource, /\[320, 480, 640, 768, 960, 1280, 1600\]/);
+  assert.match(assetGraphqlSource, /assets-graphql/);
+  assert.match(assetGraphqlSource, /OpenStudioImagePlan/);
+  assert.match(assetGraphqlFunctionSource, /buildAssetPlan/);
+  assert.match(sharedAssetPlanSource, /\/\.netlify\/images/);
+  assert.match(sharedAssetPlanSource, /selectImageWidth/);
+  assert.match(sharedAssetPlanSource, /transition-mask/);
+  assert.match(sharedAssetPlanSource, /q: String\(quality\)/);
+  assert.match(sharedAssetPlanSource, /params\.set\("h", String\(resolvedHeight\)\)/);
+  assert.doesNotMatch(sharedAssetPlanSource, /quality: String\(quality\)/);
+  assert.match(imageGeneratorSource, /from "sharp"/);
+  assert.match(imageGeneratorSource, /createHash/);
+  assert.match(imageGeneratorSource, /public.*assets.*openstudio.*generated/s);
+  assert.match(imageGeneratorSource, /image-manifest\.json/);
+  assert.match(imageGeneratorSource, /collectReferencedAssetPaths/);
+  assert.match(packageSource, /"generate-image-assets"/);
+  assert.match(packageSource, /"sharp":/);
 });
 
 test("shared button component owns the app-wide interaction theme", () => {

@@ -36,6 +36,7 @@ release-input/*
 
 # local markerting assets
 marketing
+public/assets/openstudio/generated/
 
 # Local Netlify folder
 .netlify

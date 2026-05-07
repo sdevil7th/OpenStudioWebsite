@@ -45,6 +45,17 @@ export const githubFallbackSnapshot: GithubRepoSnapshot = {
 
 let snapshotRequest: Promise<GithubRepoSnapshot> | null = null;
 
+const shouldFetchGithubSnapshot = () => {
+  if (typeof window === "undefined") {
+    return true;
+  }
+
+  const { hostname, port } = window.location;
+  const localHost = hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+
+  return !localHost || port === "8080" || port === "8888";
+};
+
 const normalizeGithubSnapshot = (snapshot: GithubRepoSnapshot): GithubRepoSnapshot => ({
   ...snapshot,
   languages: snapshot.languages ?? githubFallbackSnapshot.languages,
@@ -52,6 +63,10 @@ const normalizeGithubSnapshot = (snapshot: GithubRepoSnapshot): GithubRepoSnapsh
 });
 
 export const getGithubRepoSnapshot = async () => {
+  if (!shouldFetchGithubSnapshot()) {
+    return githubFallbackSnapshot;
+  }
+
   if (!snapshotRequest) {
     snapshotRequest = fetch(GITHUB_SNAPSHOT_ENDPOINT, {
       headers: {

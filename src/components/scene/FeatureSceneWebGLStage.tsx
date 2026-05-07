@@ -9,6 +9,7 @@ import {
   phaseProgress,
   type FeatureSceneCompositorState,
 } from "@/components/scene/FeatureSceneCompositor";
+import { resolveImageAssetUrl } from "@/lib/assetGraphQL";
 import { cn } from "@/lib/utils";
 
 interface FeatureSceneWebGLStageProps {
@@ -50,7 +51,7 @@ interface ChapterRecord {
 
 const WORLD_WIDTH = 12;
 const WORLD_HEIGHT = 8;
-const DPR_LIMIT = 2;
+const DPR_LIMIT = 1.5;
 const PARTICLES_PER_PLANE = 280;
 
 const vertexShader = `
@@ -330,26 +331,57 @@ const makeFallbackTexture = (asset: ScreenshotAsset) => {
   return texture;
 };
 
-const loadTexture = (loader: THREE.TextureLoader, asset: ScreenshotAsset) =>
+const applyTextureQuality = (texture: THREE.Texture) => {
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.generateMipmaps = true;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.anisotropy = 8;
+  return texture;
+};
+
+const loadTexture = (
+  loader: THREE.TextureLoader,
+  asset: ScreenshotAsset,
+  maxWidth = 1024,
+  slot: "webgl-base" | "webgl-fragment" = "webgl-base",
+) =>
   new Promise<THREE.Texture>((resolve) => {
-    loader.load(
-      asset.src,
-      (texture) => {
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.generateMipmaps = true;
-        texture.minFilter = THREE.LinearMipmapLinearFilter;
-        texture.magFilter = THREE.LinearFilter;
-        texture.anisotropy = 8;
-        resolve(texture);
-      },
-      undefined,
-      () => resolve(makeFallbackTexture(asset)),
-    );
+    resolveImageAssetUrl(asset.src, {
+      fit: "cover",
+      group: "nearby",
+      maxWidth,
+      slot,
+      tier: "heavy-on-viewport",
+    })
+      .then((optimizedSrc) => {
+        loader.load(
+          optimizedSrc,
+          (texture) => resolve(applyTextureQuality(texture)),
+          undefined,
+          () => {
+            if (optimizedSrc === asset.src) {
+              resolve(makeFallbackTexture(asset));
+              return;
+            }
+
+            loader.load(
+              asset.src,
+              (texture) => resolve(applyTextureQuality(texture)),
+              undefined,
+              () => resolve(makeFallbackTexture(asset)),
+            );
+          },
+        );
+      })
+      .catch(() => resolve(makeFallbackTexture(asset)));
   });
 
 const FeatureSceneWebGLStage = ({ chapters, stateRef, fallback, className }: FeatureSceneWebGLStageProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const activeRecordReadyRef = useRef(false);
   const [failed, setFailed] = useState(false);
+  const [activeRecordReady, setActiveRecordReady] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -371,9 +403,12 @@ const FeatureSceneWebGLStage = ({ chapters, stateRef, fallback, className }: Fea
     camera.position.set(0, 0, 17);
     const records: Array<ChapterRecord | undefined> = Array(chapters.length);
     const loadingChapters = new Set<number>();
-    const loadTimers: number[] = [];
     const loader = new THREE.TextureLoader();
     const renderStartTime = performance.now();
+    let stageVisible = true;
+    let lastRenderWidth = 0;
+    let lastRenderHeight = 0;
+    let lastRenderDpr = 0;
 
     try {
       renderer = new THREE.WebGLRenderer({
@@ -398,6 +433,13 @@ const FeatureSceneWebGLStage = ({ chapters, stateRef, fallback, className }: Fea
       const width = Math.max(1, bounds.width);
       const height = Math.max(1, bounds.height);
       const dpr = Math.min(window.devicePixelRatio || 1, DPR_LIMIT);
+      if (width === lastRenderWidth && height === lastRenderHeight && dpr === lastRenderDpr) {
+        return;
+      }
+
+      lastRenderWidth = width;
+      lastRenderHeight = height;
+      lastRenderDpr = dpr;
       renderer.setPixelRatio(dpr);
       renderer.setSize(width, height, false);
       camera.aspect = width / height;
@@ -406,10 +448,21 @@ const FeatureSceneWebGLStage = ({ chapters, stateRef, fallback, className }: Fea
 
     const makeChapter = async (chapter: FeatureChapter, chapterIndex: number): Promise<ChapterRecord> => {
       const accent = accentColor(chapter);
-      const baseTexture = await loadTexture(loader, chapter.sceneBase.asset);
-      const fragmentTextures = await Promise.all(
-        chapter.sceneFragments.map((fragment) => loadTexture(loader, fragment.asset)),
-      );
+      const baseTexture = await loadTexture(loader, chapter.sceneBase.asset, 1024, "webgl-base");
+      const fragmentTextures: THREE.Texture[] = [];
+
+      for (const fragment of chapter.sceneFragments) {
+        if (disposed) {
+          break;
+        }
+
+        fragmentTextures.push(await loadTexture(loader, fragment.asset, 768, "webgl-fragment"));
+      }
+
+      if (disposed) {
+        throw new Error("Feature WebGL stage disposed before textures finished.");
+      }
+
       const group = new THREE.Group();
       const chapterSeed = hashString(chapter.id);
       const planes: PlaneRecord[] = [
@@ -469,20 +522,6 @@ const FeatureSceneWebGLStage = ({ chapters, stateRef, fallback, className }: Fea
       }
     };
 
-    const loadRemainingChapters = () => {
-      chapters.forEach((_, index) => {
-        if (records[index]) {
-          return;
-        }
-
-        loadTimers.push(
-          window.setTimeout(() => {
-            void loadChapterAt(index);
-          }, 260 + index * 180),
-        );
-      });
-    };
-
     const applyPlaneState = (
       plane: PlaneRecord,
       record: ChapterRecord,
@@ -524,6 +563,11 @@ const FeatureSceneWebGLStage = ({ chapters, stateRef, fallback, className }: Fea
         return;
       }
 
+      if (!stageVisible || document.visibilityState === "hidden") {
+        rafId = 0;
+        return;
+      }
+
       resize();
       const state = stateRef.current;
       const time = (performance.now() - renderStartTime) / 1000;
@@ -533,6 +577,12 @@ const FeatureSceneWebGLStage = ({ chapters, stateRef, fallback, className }: Fea
       const toIndex = clamp(state.toIndex ?? state.nextIndex ?? fromIndex, 0, chapters.length - 1);
       void loadChapterAt(fromIndex);
       void loadChapterAt(toIndex);
+      const visualOwnerIndex = clamp(state.visualOwnerIndex ?? state.activeIndex ?? fromIndex, 0, chapters.length - 1);
+      const nextActiveRecordReady = Boolean(records[visualOwnerIndex]);
+      if (activeRecordReadyRef.current !== nextActiveRecordReady) {
+        activeRecordReadyRef.current = nextActiveRecordReady;
+        setActiveRecordReady(nextActiveRecordReady);
+      }
       const hasTransition = state.transitionActive > 0.001 && fromIndex !== toIndex;
       const loosen = hasTransition ? clamp(state.loosenProgress ?? phase(progress, 0.22, 0.36), 0, 1) : 0;
       const destruction = hasTransition ? clamp(state.destructionProgress ?? phase(progress, 0.36, 0.72), 0, 1) : 0;
@@ -545,7 +595,7 @@ const FeatureSceneWebGLStage = ({ chapters, stateRef, fallback, className }: Fea
         }
 
         record.group.visible = false;
-        let visible = index === (state.visualOwnerIndex ?? state.activeIndex) ? 1 : 0;
+        let visible = index === visualOwnerIndex ? 1 : 0;
         let incoming = false;
         let recordLoosen = 0;
         let recordDestruction = 0;
@@ -585,10 +635,18 @@ const FeatureSceneWebGLStage = ({ chapters, stateRef, fallback, className }: Fea
       rafId = window.requestAnimationFrame(render);
     };
 
+    const requestRender = () => {
+      if (rafId || disposed || !renderer || !stageVisible || document.visibilityState === "hidden") {
+        return;
+      }
+
+      rafId = window.requestAnimationFrame(render);
+    };
+
     const initialIndex = clamp(stateRef.current.activeIndex ?? 0, 0, chapters.length - 1);
     const initialNextIndex = clamp(stateRef.current.nextIndex ?? initialIndex + 1, 0, chapters.length - 1);
 
-    Promise.all([loadChapterAt(initialIndex), loadChapterAt(initialNextIndex)])
+    loadChapterAt(initialIndex)
       .then(() => {
         if (disposed) {
           return;
@@ -597,7 +655,7 @@ const FeatureSceneWebGLStage = ({ chapters, stateRef, fallback, className }: Fea
         setReady(true);
         resize();
         render();
-        loadRemainingChapters();
+        void loadChapterAt(initialNextIndex);
       })
       .catch(() => {
         if (!disposed) {
@@ -607,12 +665,28 @@ const FeatureSceneWebGLStage = ({ chapters, stateRef, fallback, className }: Fea
       });
 
     window.addEventListener("resize", resize);
+    const stageObserver =
+      typeof IntersectionObserver === "undefined"
+        ? undefined
+        : new IntersectionObserver(
+            ([entry]) => {
+              stageVisible = Boolean(entry?.isIntersecting);
+              requestRender();
+            },
+            { rootMargin: "420px 0px", threshold: 0.01 },
+          );
+    if (canvas.parentElement) {
+      stageObserver?.observe(canvas.parentElement);
+    }
+    const handleVisibilityChange = () => requestRender();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       disposed = true;
-      loadTimers.forEach((timer) => window.clearTimeout(timer));
       window.cancelAnimationFrame(rafId);
       window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      stageObserver?.disconnect();
       records.forEach((record) => {
         if (record) {
           disposeRecord(record);
@@ -631,7 +705,12 @@ const FeatureSceneWebGLStage = ({ chapters, stateRef, fallback, className }: Fea
         data-feature-story-webgl
         ref={canvasRef}
       />
-      <div className={cn("feature-story-fallback-stage", ready && !failed && "feature-story-fallback-stage--hidden")}>
+      <div
+        className={cn(
+          "feature-story-fallback-stage",
+          ready && activeRecordReady && !failed && "feature-story-fallback-stage--hidden",
+        )}
+      >
         {fallback}
       </div>
     </>

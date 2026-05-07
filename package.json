@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "sync-blog-images": "node scripts/sync-blog-image-manifest.mjs",
-    "predev": "npm run sync-blog-images",
+    "generate-image-assets": "node scripts/generate-image-assets.mjs",
+    "predev": "npm run sync-blog-images && npm run generate-image-assets",
     "dev": "vite",
     "stage-release-publish-inputs": "node scripts/stage-release-publish-inputs.mjs",
     "validate-release-publish-inputs": "node scripts/validate-release-publish-inputs.mjs",
@@ -16,7 +17,7 @@
     "test:ai-runtime": "node --test test/ai-runtime-manifest.test.mjs",
     "test:feature-story": "node --test test/feature-story-*.test.mjs",
     "test:launch": "node --test test/launch-readiness.test.mjs",
-    "build": "npm run sync-blog-images && npm run stage-release-publish-inputs && npm run validate-release-publish-inputs && npm run validate-launch-readiness && vite build && npm run prerender-route-metadata",
+    "build": "npm run sync-blog-images && npm run generate-image-assets && npm run stage-release-publish-inputs && npm run validate-release-publish-inputs && npm run validate-launch-readiness && vite build && npm run prerender-route-metadata",
     "lint": "eslint .",
     "preview": "vite preview",
     "generate-og": "node scripts/generate-og.mjs"
@@ -55,6 +56,7 @@
     "globals": "^15.15.0",
     "playwright": "^1.59.1",
     "postcss": "^8.5.6",
+    "sharp": "^0.34.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { getImageLoadingAttributes } from "@/lib/assetLoading";
+import { getResponsiveImageAttributes } from "@/lib/assetLoading";
 import { cn } from "@/lib/utils";
 import type { ScreenshotAsset } from "@/data/screenshots";
 
@@ -17,7 +17,14 @@ const ScreenshotFrame = ({ screenshot, ratio = 16 / 10, className, variant = "ch
     variant === "hero" ? "rounded-[2rem]" : variant === "gallery" ? "rounded-[1.75rem]" : "rounded-[1.6rem]";
   const minimal = variant === "minimal";
   const fitMode = screenshot.fit ?? (minimal ? "contain" : "cover");
-  const loadingAttributes = getImageLoadingAttributes(variant === "hero" ? "hero/eager" : "below-fold/lazy");
+  const imageAttributes = getResponsiveImageAttributes(
+    screenshot.src,
+    variant === "hero" ? "hero/eager" : "below-fold",
+    {
+      maxWidth: variant === "hero" ? 1600 : 1280,
+      sizes: variant === "hero" ? "(min-width: 1024px) 52vw, 100vw" : "(min-width: 1024px) 42vw, 100vw",
+    },
+  );
 
   return (
     <div className={cn(minimal ? "overflow-hidden" : "spotlight-border panel-surface overflow-hidden", heightClass, className)}>
@@ -28,13 +35,12 @@ const ScreenshotFrame = ({ screenshot, ratio = 16 / 10, className, variant = "ch
           {!minimal ? <div className="grid-overlay absolute inset-0 opacity-30" /> : null}
           {!hasError ? (
             <img
-              src={screenshot.src}
+              {...imageAttributes}
               alt={screenshot.alt}
               className={cn(
                 "screenshot-frame__image h-full w-full",
                 fitMode === "contain" ? "object-contain p-2 md:p-3" : "object-cover",
               )}
-              {...loadingAttributes}
               style={{ objectPosition: screenshot.focalPosition ?? "center center" }}
               onError={() => setHasError(true)}
             />

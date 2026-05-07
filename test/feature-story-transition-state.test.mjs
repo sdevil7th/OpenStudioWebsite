@@ -11,6 +11,11 @@ const webglSource = readFileSync(
   new URL("../src/components/scene/FeatureSceneWebGLStage.tsx", import.meta.url),
   "utf8",
 );
+const transitionSource = readFileSync(
+  new URL("../src/components/scene/FeatureStoryUnifiedTransition.tsx", import.meta.url),
+  "utf8",
+);
+const imageSchedulerSource = readFileSync(new URL("../src/lib/imageScheduler.ts", import.meta.url), "utf8");
 const featureSource = readFileSync(new URL("../src/data/features.ts", import.meta.url), "utf8");
 const packageSource = readFileSync(new URL("../package.json", import.meta.url), "utf8");
 const cssSource = readFileSync(new URL("../src/index.css", import.meta.url), "utf8");
@@ -98,6 +103,31 @@ test("webgl stage is the desktop primary renderer with the canvas fallback retai
   assert.match(webglSource, /ShaderMaterial/);
   assert.match(webglSource, /Points/);
   assert.match(webglSource, /prefers-reduced-motion: reduce/);
+  assert.match(webglSource, /resolveImageAssetUrl/);
+  assert.doesNotMatch(webglSource, /Promise\.all\(\[loadChapterAt/);
+  assert.doesNotMatch(webglSource, /Promise\.all\(\s*chapter\.sceneFragments/);
+});
+
+test("feature story image loading is priority scheduled instead of bulk eager", () => {
+  assert.match(compositorSource, /loadScheduledImage/);
+  assert.match(transitionSource, /loadScheduledImage/);
+  assert.match(imageSchedulerSource, /MAX_IDLE_IMAGE_DECODE = 2/);
+  assert.match(imageSchedulerSource, /MAX_SCROLL_IMAGE_DECODE = 1/);
+  assert.match(imageSchedulerSource, /resolveImageAssetUrl/);
+  assert.match(imageSchedulerSource, /getGeneratedImageFallbackSrc/);
+  assert.match(imageSchedulerSource, /loadImageWithFallbacks/);
+  assert.match(imageSchedulerSource, /shouldLoadHeavyMedia/);
+  assert.doesNotMatch(compositorSource, /image\.loading\s*=\s*"eager"/);
+  assert.doesNotMatch(transitionSource, /image\.loading\s*=\s*"eager"/);
+  assert.doesNotMatch(compositorSource, /chapters\.forEach\(\(_, index\) => loadChapter/);
+  assert.doesNotMatch(transitionSource, /chapters\.forEach\(\(_, index\) => loadChapter/);
+  assert.match(pageSource, /rootMargin="1400px 0px"/);
+  assert.match(pageSource, /warmScheduledImages/);
+  assert.match(pageSource, /FeatureStoryTransitionFallback/);
+  assert.doesNotMatch(
+    pageSource,
+    /useEffect\(\(\) => \{[\s\S]*?document\.fonts\.ready[\s\S]*?ScrollTrigger\.refresh\(\);[\s\S]*?\}, \[\]\);/,
+  );
 });
 
 test("feature scene keeps the right story panel and moves dense chapter details into the bottom crawl", () => {

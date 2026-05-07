@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import ScrollProgress from "@/components/ScrollProgress";
 import SiteFooter from "@/components/SiteFooter";
@@ -9,6 +9,8 @@ const ShellContent = () => {
   const location = useLocation();
   const { lenis } = useSmoothScroll();
   const lenisRef = useRef(lenis);
+  const [routeFallbackTokens, setRouteFallbackTokens] = useState<Set<string>>(() => new Set());
+  const routePending = routeFallbackTokens.size > 0;
 
   useEffect(() => {
     lenisRef.current = lenis;
@@ -24,6 +26,32 @@ const ShellContent = () => {
 
     window.scrollTo(0, 0);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const handleRouteFallback = (event: Event) => {
+      const detail = (event as CustomEvent<{ active?: boolean; token?: string }>).detail;
+      const token = detail?.token;
+
+      if (!token) {
+        return;
+      }
+
+      setRouteFallbackTokens((previous) => {
+        const next = new Set(previous);
+
+        if (detail.active) {
+          next.add(token);
+        } else {
+          next.delete(token);
+        }
+
+        return next;
+      });
+    };
+
+    window.addEventListener("openstudio:route-fallback", handleRouteFallback);
+    return () => window.removeEventListener("openstudio:route-fallback", handleRouteFallback);
+  }, []);
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">
@@ -44,10 +72,12 @@ const ShellContent = () => {
         aria-hidden="true"
         className="site-shell-ambient-bottom pointer-events-none fixed bottom-[-12rem] left-1/2 -z-10 h-[28rem] w-[60rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(247,190,29,0.12),transparent_66%)] blur-[120px]"
       />
-      <div className="site-shell-content">
+      <div className="site-shell-content" data-route-pending={routePending ? "true" : "false"}>
         <SiteNavbar />
-        <Outlet />
-        <SiteFooter />
+        <div className="site-shell-route-frame">
+          <Outlet />
+        </div>
+        {!routePending ? <SiteFooter /> : null}
       </div>
     </div>
   );

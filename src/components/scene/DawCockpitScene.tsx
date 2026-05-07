@@ -5,6 +5,7 @@ import SoundField from "@/components/scene/SoundField";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { screenshots } from "@/data/screenshots";
 import type { AccentTone } from "@/data/marketing";
+import { getResponsiveImageAttributes } from "@/lib/assetLoading";
 import { cn } from "@/lib/utils";
 
 interface DawCockpitSceneProps {
@@ -92,12 +93,12 @@ const DawCockpitScene = ({ accent = "lavender", className, density = 1 }: DawCoc
               <div className="grid gap-4 p-4 md:p-5">
                 <div className="relative overflow-hidden rounded-[1.65rem] border border-white/10 bg-black/40">
                   <img
+                    {...getResponsiveImageAttributes(screenshots.arrangementOverviewWide.src, "below-fold", {
+                      maxWidth: 1280,
+                      sizes: "(min-width: 1280px) 54vw, 100vw",
+                    })}
                     alt={screenshots.arrangementOverviewWide.alt}
                     className="h-[20rem] w-full object-cover object-top md:h-[26rem] 2xl:h-[30rem]"
-                    decoding="async"
-                    fetchpriority="low"
-                    loading="lazy"
-                    src={screenshots.arrangementOverviewWide.src}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/20 to-transparent" />
                   <div className="absolute left-4 right-4 top-4 flex flex-wrap gap-2">
@@ -183,7 +184,14 @@ const DawCockpitScene = ({ accent = "lavender", className, density = 1 }: DawCoc
                     <div className="font-mono text-[0.58rem] uppercase tracking-[0.26em] text-white/42">{label}</div>
                     <Icon className={`h-4 w-4 ${index === 0 ? "text-primary" : "text-secondary"}`} />
                   </div>
-                  <img alt={asset.alt} className="h-64 w-full object-cover object-top" decoding="async" loading="lazy" src={asset.src} />
+                  <img
+                    {...getResponsiveImageAttributes(asset.src, "below-fold", {
+                      maxWidth: 960,
+                      sizes: "(min-width: 1280px) 28vw, 100vw",
+                    })}
+                    alt={asset.alt}
+                    className="h-64 w-full object-cover object-top"
+                  />
                   <div className="px-4 py-4">
                     <div className="font-headline text-base font-semibold text-white">{asset.label}</div>
                     <p className="mt-2 text-sm leading-6 text-white/70">{asset.caption}</p>

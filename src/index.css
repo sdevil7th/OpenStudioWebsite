@@ -274,7 +274,7 @@ html.lenis body {
 
   .route-transition-surface {
     position: relative;
-    min-height: 72svh;
+    min-height: 100svh;
     overflow: hidden;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     background:
@@ -4681,8 +4681,29 @@ html.lenis body {
   .feature-story-backdrop {
     isolation: isolate;
     contain: paint;
+    position: fixed !important;
+    inset: 0 auto auto 0 !important;
+    width: 100vw;
+    height: 100svh;
+    min-height: 100svh;
     max-width: 100vw;
     overflow: clip;
+    z-index: 0 !important;
+  }
+
+  .feature-story-page > .page-frame-wide {
+    position: relative;
+    z-index: 1;
+  }
+
+  .feature-story-backdrop--fallback {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse at 18% 18%, rgba(199, 180, 255, 0.16), transparent 36%),
+      radial-gradient(ellipse at 82% 26%, rgba(116, 241, 169, 0.12), transparent 34%),
+      linear-gradient(180deg, rgba(4, 6, 12, 0.92), rgba(1, 3, 8, 0.98));
   }
 
   .feature-starfield {
@@ -4756,9 +4777,10 @@ html.lenis body {
   }
 
   .feature-story-shell-sticky {
-    position: relative;
+    position: sticky;
+    top: 5.25rem;
     z-index: 10;
-    height: calc(100vh - 6.75rem);
+    height: calc(100svh - 6.75rem);
     padding-bottom: 1rem;
     --story-shell-hide: 0;
     --story-shell-rail-hide: 0;
@@ -4776,6 +4798,46 @@ html.lenis body {
     opacity: var(--feature-story-portal-opacity, 0);
     pointer-events: none;
     transition: opacity 120ms linear;
+  }
+
+  .feature-story-transition-fallback {
+    position: fixed;
+    inset: 0;
+    z-index: 79;
+    pointer-events: none;
+    opacity: calc(var(--feature-story-portal-opacity, 0) * 0.72);
+    transition: opacity 160ms linear;
+    background:
+      radial-gradient(ellipse at 48% 48%, rgba(199, 180, 255, 0.16), transparent 34%),
+      radial-gradient(ellipse at 62% 52%, rgba(116, 241, 169, 0.12), transparent 38%),
+      linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
+    mix-blend-mode: screen;
+  }
+
+  .feature-story-transition-fallback span {
+    position: absolute;
+    top: 14%;
+    bottom: 14%;
+    width: 24vw;
+    border-radius: 999px;
+    filter: blur(28px);
+    opacity: 0.38;
+    transform: skewX(-14deg);
+    background: linear-gradient(180deg, transparent, rgba(199, 180, 255, 0.42), transparent);
+  }
+
+  .feature-story-transition-fallback span:nth-child(1) {
+    left: 8%;
+  }
+
+  .feature-story-transition-fallback span:nth-child(2) {
+    left: 38%;
+    background: linear-gradient(180deg, transparent, rgba(116, 241, 169, 0.34), transparent);
+  }
+
+  .feature-story-transition-fallback span:nth-child(3) {
+    right: 7%;
+    background: linear-gradient(180deg, transparent, rgba(125, 231, 255, 0.32), transparent);
   }
 
   .feature-story-shell-grid {
@@ -5763,7 +5825,7 @@ html.lenis body {
   }
 
   .feature-story-fallback-stage--hidden {
-    opacity: 0;
+    opacity: 1;
     pointer-events: none;
   }
 
@@ -6882,15 +6944,15 @@ html.lenis body {
 
   .feature-story-page {
     background:
-      linear-gradient(180deg, rgba(5, 7, 13, 0.7), rgba(3, 5, 10, 0.96) 34%, rgba(3, 4, 8, 1)),
-      radial-gradient(ellipse at 50% 0%, rgba(199, 180, 255, 0.12), transparent 42%);
+      linear-gradient(180deg, rgba(5, 7, 13, 0.28), rgba(3, 5, 10, 0.58) 34%, rgba(3, 4, 8, 0.7)),
+      radial-gradient(ellipse at 50% 0%, rgba(199, 180, 255, 0.1), transparent 42%);
   }
 
   .feature-story-hero {
     position: relative;
     isolation: isolate;
     background:
-      linear-gradient(140deg, rgba(17, 20, 33, 0.92), rgba(5, 7, 13, 0.96) 64%),
+      linear-gradient(140deg, rgba(17, 20, 33, 0.74), rgba(5, 7, 13, 0.82) 64%),
       radial-gradient(ellipse at 78% 18%, var(--premium-glow-emerald), transparent 42%),
       radial-gradient(ellipse at 18% 8%, var(--premium-glow-lavender), transparent 46%);
     box-shadow: var(--premium-shadow);
@@ -8583,11 +8645,15 @@ html.lenis body {
     min-height: clamp(24rem, 52vh, 36rem);
   }
 
+  .download-cinematic--static-surface {
+    min-height: var(--download-cinema-scroll-vh, 620vh);
+  }
+
   .download-cinematic__loading {
     display: grid;
     min-height: clamp(24rem, 52vh, 36rem);
     align-content: center;
-    gap: 1rem;
+    gap: 1.4rem;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 1.25rem;
     background:
@@ -8596,13 +8662,48 @@ html.lenis body {
     padding: clamp(1.2rem, 3vw, 2rem);
   }
 
-  .download-cinematic__loading h2 {
-    max-width: 34rem;
-    font-family: var(--font-headline);
-    font-size: clamp(1.8rem, 3vw, 3rem);
-    font-weight: 850;
-    line-height: 1.04;
-    color: #fff;
+  .download-cinematic__loading-film {
+    display: grid;
+    gap: clamp(0.8rem, 1.6vw, 1.2rem);
+    min-height: clamp(18rem, 42vh, 28rem);
+  }
+
+  .download-cinematic__loading-film span {
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 1rem;
+    background:
+      linear-gradient(115deg, rgba(255, 255, 255, 0.09), transparent 32%),
+      radial-gradient(circle at 18% 28%, rgba(199, 180, 255, 0.22), transparent 30%),
+      radial-gradient(circle at 78% 52%, rgba(116, 241, 169, 0.14), transparent 28%),
+      rgba(255, 255, 255, 0.035);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .download-cinematic__loading-film span:nth-child(2) {
+    margin-left: 12%;
+    opacity: 0.7;
+  }
+
+  .download-cinematic__loading-film span:nth-child(3) {
+    margin-right: 18%;
+    opacity: 0.48;
+  }
+
+  .download-cinematic__loading-rails {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  .download-cinematic__loading-rails span {
+    height: 0.38rem;
+    width: clamp(2rem, 7vw, 5rem);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .download-cinematic__loading-rails span:first-child {
+    background: linear-gradient(90deg, rgba(199, 180, 255, 0.72), rgba(116, 241, 169, 0.58));
   }
 
   .download-cinematic__stage {
@@ -8617,6 +8718,34 @@ html.lenis body {
     background: #020305;
     color: #fff;
     contain: layout paint;
+  }
+
+  .download-cinematic__stage--static-surface .download-cinematic__source-callouts {
+    opacity: 0.82;
+  }
+
+  .download-cinematic__stage--static-surface .download-cinematic__practical-light {
+    opacity: 0.65;
+  }
+
+  .download-cinematic__stage--static-surface .download-cinematic__source-callout:nth-child(1) {
+    right: 25%;
+    top: 23%;
+  }
+
+  .download-cinematic__stage--static-surface .download-cinematic__source-callout:nth-child(2) {
+    left: 38%;
+    bottom: 30%;
+  }
+
+  .download-cinematic__stage--static-surface .download-cinematic__source-callout:nth-child(3) {
+    left: 43%;
+    bottom: 24%;
+  }
+
+  .download-cinematic__stage--static-surface .download-cinematic__source-callout:nth-child(4) {
+    right: 24%;
+    bottom: 31%;
   }
 
   @media (min-width: 1024px) {
@@ -8670,12 +8799,59 @@ html.lenis body {
     overflow: hidden;
   }
 
+  .download-cinematic__stage-fallback {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: grid;
+    gap: 1.2rem;
+    align-content: center;
+    padding: clamp(1.5rem, 4vw, 4rem);
+    background:
+      radial-gradient(ellipse at 50% 40%, rgba(255, 200, 87, 0.12), transparent 42%),
+      linear-gradient(180deg, rgba(4, 7, 12, 0.96), rgba(1, 3, 7, 0.98));
+    opacity: 1;
+    pointer-events: none;
+    transition: opacity 420ms ease;
+  }
+
+  .download-cinematic__stage-fallback--hidden {
+    opacity: 0;
+  }
+
+  .download-cinematic__stage-fallback span {
+    height: clamp(5.2rem, 16vh, 9rem);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.15rem;
+    background:
+      linear-gradient(115deg, rgba(255, 255, 255, 0.08), transparent 32%),
+      radial-gradient(circle at 18% 28%, rgba(199, 180, 255, 0.18), transparent 30%),
+      radial-gradient(circle at 78% 52%, rgba(116, 241, 169, 0.12), transparent 28%),
+      rgba(255, 255, 255, 0.035);
+  }
+
+  .download-cinematic__stage-fallback span:nth-child(2) {
+    margin-left: 12%;
+    opacity: 0.72;
+  }
+
+  .download-cinematic__stage-fallback span:nth-child(3) {
+    margin-right: 18%;
+    opacity: 0.5;
+  }
+
   .download-cinematic__plate {
     margin: 0;
     overflow: hidden;
     background: #020305;
+    opacity: 1;
     transform-origin: 54% 52%;
     will-change: opacity, transform;
+  }
+
+  .download-cinematic__plate--signal,
+  .download-cinematic__plate--screen {
+    opacity: 0;
   }
 
   .download-cinematic__plate::after {
@@ -8711,6 +8887,7 @@ html.lenis body {
   .download-cinematic__blackout {
     z-index: 8;
     background: #000;
+    opacity: 0.05;
     pointer-events: none;
   }
 
@@ -8852,6 +9029,7 @@ html.lenis body {
     position: absolute;
     inset: 0;
     z-index: 11;
+    opacity: 0;
     pointer-events: none;
   }
 
@@ -8883,6 +9061,7 @@ html.lenis body {
 
   .download-cinematic__signal-overlay {
     z-index: 12;
+    opacity: 0;
     pointer-events: none;
     mix-blend-mode: screen;
   }
@@ -8961,6 +9140,7 @@ html.lenis body {
     width: 47.2%;
     height: auto;
     aspect-ratio: 2.06;
+    opacity: 0;
     overflow: hidden;
     border-radius: 0.18rem;
     background: #020408;
@@ -9011,10 +9191,12 @@ html.lenis body {
     padding: clamp(1.2rem, 2.2vw, 1.8rem);
     text-align: left;
     backdrop-filter: blur(18px);
+    opacity: 0;
     pointer-events: none;
   }
 
   .download-cinematic__ready-panel.is-active {
+    opacity: 1;
     pointer-events: auto;
   }
 
@@ -9141,8 +9323,10 @@ html.lenis body {
     }
 
     .download-home-logo-stage {
+      position: sticky;
+      top: 5.25rem;
       align-self: start;
-      min-height: clamp(34rem, 74vh, 48rem);
+      min-height: min(clamp(34rem, 74vh, 48rem), calc(100svh - 6.5rem));
     }
 
     .download-studio-hero__panel-stack {

@@ -18,7 +18,7 @@ const pretextEditorialSource = readFileSync(
 );
 
 test("ai is the canonical route and stem-separation redirects for compatibility", () => {
-  assert.match(appSource, /<Route path="\/ai" element=\{withPageLoader\(<StemSeparationPage \/>\)\} \/>/);
+  assert.match(appSource, /<Route path="\/ai" element=\{withRouteFallback\(<StemSeparationPage \/>\)\} \/>/);
   assert.match(appSource, /<Route path="\/stem-separation" element=\{<Navigate to="\/ai" replace \/>\} \/>/);
   assert.match(aiDataSource, /path: "\/ai"/);
   assert.match(aiDataSource, /OpenStudio AI/);
@@ -183,8 +183,9 @@ test("ai desktop has a dedicated webgl stage with a reduced mobile fallback", ()
 
 test("ai page has distinct neural studio scroll choreography primitives", () => {
   assert.match(aiPageSource, /ScrollTrigger\.create/);
-  assert.match(aiPageSource, /pin: stage/);
-  assert.match(aiPageSource, /pinSpacing: false/);
+  assert.doesNotMatch(aiPageSource, /pin: stage/);
+  assert.doesNotMatch(aiPageSource, /pinSpacing: false/);
+  assert.doesNotMatch(aiPageSource, /ai-neural-page overflow-hidden/);
   assert.match(aiPageSource, /data-ai-token/);
   assert.match(aiPageSource, /data-ai-neural-lab/);
   assert.match(aiPageSource, /data-ai-neural-hud/);
@@ -239,7 +240,7 @@ test("pretext editorial field uses fragment forces and avoids per-frame dom text
   assert.match(pretextEditorialSource, /data-pretext-force-object/);
   assert.match(pretextEditorialSource, /AI_OBJECT_LABELS = \["signal"\]/);
   assert.doesNotMatch(pretextEditorialSource, /AI_OBJECT_LABELS = \["prompt"/);
-  assert.match(pretextEditorialSource, /useReducedMotion/);
+  assert.match(pretextEditorialSource, /usePrefersReducedMotion/);
   assert.match(pretextEditorialSource, /measureText/);
   assert.doesNotMatch(pretextEditorialSource, /querySelectorAll/);
   assert.doesNotMatch(pretextEditorialSource, /Math\.random/);

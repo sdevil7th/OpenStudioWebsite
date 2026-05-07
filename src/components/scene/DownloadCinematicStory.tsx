@@ -9,6 +9,7 @@ import {
   downloadCinematicSourceLabels,
   type DownloadCinematicPlateId,
 } from "@/data/downloadCinematic";
+import { getResponsiveImageAttributes, type AssetPriorityTier } from "@/lib/assetLoading";
 import { useScrollScene } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 
@@ -43,43 +44,78 @@ const sourceCalloutPositions: CSSProperties[] = [
 
 const CinematicPlate = ({
   className,
-  loading = "lazy",
+  eager = false,
+  enabled = true,
+  onReady,
   plateId,
+  tier = "story-next",
 }: {
   className?: string;
-  loading?: "eager" | "lazy";
+  eager?: boolean;
+  enabled?: boolean;
+  onReady?: () => void;
   plateId: DownloadCinematicPlateId;
+  tier?: AssetPriorityTier;
 }) => {
   const plate = downloadCinematicPlates[plateId];
+  const imageAttributes = {
+    ...getResponsiveImageAttributes(plate.src, tier, {
+      maxWidth: tier === "story-active" ? 1280 : 960,
+      sizes: "(min-width: 1024px) 100vw, 92vw",
+    }),
+    ...(eager ? { loading: "eager" as const } : null),
+  };
 
   return (
     <figure
       className={cn("download-cinematic__plate", className)}
       data-download-cinematic-asset={plate.id}
     >
-      <img
-        alt={plate.alt}
-        decoding="async"
-        height={plate.height}
-        loading={loading}
-        src={plate.src}
-        width={plate.width}
-      />
+      {enabled ? (
+        <img
+          {...imageAttributes}
+          alt={plate.alt}
+          height={plate.height}
+          onLoad={onReady}
+          width={plate.width}
+        />
+      ) : null}
     </figure>
   );
 };
 
-const OpenStudioScreenPicture = ({ className }: { className?: string }) => (
-  <picture className={cn("download-cinematic__screen-picture", className)}>
-    <source srcSet={downloadCinematicScreenshot.webpSrc} type="image/webp" />
-    <img
-      alt={downloadCinematicScreenshot.alt}
-      decoding="async"
-      loading="lazy"
-      src={downloadCinematicScreenshot.src}
-    />
-  </picture>
-);
+const OpenStudioScreenPicture = ({
+  className,
+  eager = false,
+  enabled = true,
+}: {
+  className?: string;
+  eager?: boolean;
+  enabled?: boolean;
+}) => {
+  const sourceAttributes = getResponsiveImageAttributes(downloadCinematicScreenshot.webpSrc, "story-next", {
+    maxWidth: 1280,
+    sizes: "(min-width: 1024px) 42vw, 92vw",
+  });
+  const imageAttributes = {
+    ...getResponsiveImageAttributes(downloadCinematicScreenshot.src, "story-next", {
+      maxWidth: 1280,
+      sizes: "(min-width: 1024px) 42vw, 92vw",
+    }),
+    ...(eager ? { loading: "eager" as const } : null),
+  };
+
+  return (
+    <picture className={cn("download-cinematic__screen-picture", className)}>
+      {enabled ? (
+        <>
+          <source sizes={sourceAttributes.sizes} srcSet={sourceAttributes.srcSet} type="image/webp" />
+          <img {...imageAttributes} alt={downloadCinematicScreenshot.alt} />
+        </>
+      ) : null}
+    </picture>
+  );
+};
 
 const SourceCallouts = () => (
   <div className="download-cinematic__source-callouts" aria-hidden="true">
@@ -143,16 +179,18 @@ const DownloadCinematicStory = ({
   const sectionRef = useRef<HTMLElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const [activeSceneIndex, setActiveSceneIndex] = useState(0);
+  const [firstPlateReady, setFirstPlateReady] = useState(false);
   const [staticOnly, setStaticOnly] = useState(initialStaticMode);
   const activeScene = downloadCinematicScenes[activeSceneIndex] ?? downloadCinematicScenes[0]!;
+  const signalPlateEnabled = firstPlateReady || activeSceneIndex >= 1;
+  const screenPlateEnabled = activeSceneIndex >= 2;
 
   useScrollScene(sectionRef, ({ isDesktop, prefersReducedMotion, gsap, ScrollTrigger }) => {
     const section = sectionRef.current;
-    const stage = stageRef.current;
 
     if (!section) return undefined;
 
-    if (prefersReducedMotion || !isDesktop || !stage) {
+    if (prefersReducedMotion || !isDesktop || !stageRef.current) {
       setStaticOnly(true);
       setActiveSceneIndex(0);
       section.style.setProperty("--download-cinema-progress", "0");
@@ -168,9 +206,6 @@ const DownloadCinematicStory = ({
         trigger: section,
         start: "top top",
         end: "bottom bottom",
-        pin: stage,
-        pinSpacing: false,
-        anticipatePin: 1,
         scrub: 0.9,
         invalidateOnRefresh: true,
         onUpdate: (self) => {
@@ -217,13 +252,11 @@ const DownloadCinematicStory = ({
       .to(q(".download-cinematic__ready-panel"), { autoAlpha: 1, y: 0, scale: 1, duration: 0.16 }, 0.84)
       .to(q(".download-cinematic__blackout"), { autoAlpha: 0.38, duration: 0.14 }, 0.86);
 
-    ScrollTrigger.refresh();
-
     return () => {
       timeline.scrollTrigger?.kill();
       timeline.kill();
     };
-  });
+  }, { delay: 180, runOnInput: false, timeout: 900 });
 
   return (
     <section
@@ -243,9 +276,34 @@ const DownloadCinematicStory = ({
           ref={stageRef}
         >
           <div className="download-cinematic__film">
-            <CinematicPlate className="download-cinematic__plate--wide" loading="eager" plateId="studioWide" />
-            <CinematicPlate className="download-cinematic__plate--signal" plateId="signalCloseup" />
-            <CinematicPlate className="download-cinematic__plate--screen" plateId="screenReveal" />
+            <CinematicPlate
+              className="download-cinematic__plate--wide"
+              eager
+              onReady={() => setFirstPlateReady(true)}
+              plateId="studioWide"
+              tier="story-active"
+            />
+            <CinematicPlate
+              className="download-cinematic__plate--signal"
+              enabled={signalPlateEnabled}
+              plateId="signalCloseup"
+            />
+            <CinematicPlate
+              className="download-cinematic__plate--screen"
+              enabled={screenPlateEnabled}
+              plateId="screenReveal"
+            />
+          </div>
+          <div
+            className={cn(
+              "download-cinematic__stage-fallback",
+              firstPlateReady && "download-cinematic__stage-fallback--hidden",
+            )}
+            aria-hidden="true"
+          >
+            <span />
+            <span />
+            <span />
           </div>
           <div className="download-cinematic__blackout" aria-hidden="true" />
           <div className="download-cinematic__grain" aria-hidden="true" />
@@ -253,7 +311,7 @@ const DownloadCinematicStory = ({
           <SourceCallouts />
           <SignalOverlay />
           <div className="download-cinematic__screen-composite" data-download-cinematic-screen-reveal>
-            <OpenStudioScreenPicture />
+            <OpenStudioScreenPicture enabled={screenPlateEnabled} />
             <span aria-hidden="true" />
           </div>
           <ChapterRail activeSceneIndex={activeSceneIndex} />

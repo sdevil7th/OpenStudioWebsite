@@ -14,12 +14,19 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { lazy, Suspense, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, type CSSProperties, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import PageSeo from "@/components/PageSeo";
+import DeferredClientStage from "@/components/DeferredClientStage";
 import BrandLogoConstructScene from "@/components/brand/BrandLogoConstructScene";
 import SectionReveal from "@/components/motion/SectionReveal";
 import { Button } from "@/components/ui/button";
 import { designMedia } from "@/data/designMedia";
+import {
+  downloadCinematicPlates,
+  downloadCinematicScenes,
+  downloadCinematicScreenshot,
+  downloadCinematicSourceLabels,
+} from "@/data/downloadCinematic";
 import {
   downloadHero,
   downloadHeroSignals,
@@ -29,7 +36,10 @@ import {
 } from "@/data/downloads";
 import { externalLinks } from "@/data/siteLinks";
 import { useGithubRepoSnapshot } from "@/hooks/useGithubRepoSnapshot";
+import { getResponsiveImageAttributes } from "@/lib/assetLoading";
 import { useScrollScene } from "@/lib/gsap";
+import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
+import { warmScheduledImages } from "@/lib/imageScheduler";
 import { formatGithubDate } from "@/lib/github";
 import { cn } from "@/lib/utils";
 
@@ -82,7 +92,74 @@ const platformStudioCopy: Record<DownloadPlatform, PlatformStudioCopy> = {
 
 const platformOrder: DownloadPlatform[] = ["windows", "macos", "linux"];
 const LOGO_SCROLL_TARGET_PROGRESS = 0.66;
+const DOWNLOAD_CINEMATIC_SCROLL_VH = 620;
 const DownloadCinematicStory = lazy(() => import("@/components/scene/DownloadCinematicStory"));
+
+const DownloadCinematicStaticSurface = () => {
+  const openingScene = downloadCinematicScenes[0]!;
+  const studioPlate = downloadCinematicPlates.studioWide;
+
+  return (
+    <section
+      className="download-cinematic download-cinematic--static-surface"
+      data-download-cinema
+      data-download-cinematic-story
+      style={{ "--download-cinema-scroll-vh": `${DOWNLOAD_CINEMATIC_SCROLL_VH}vh` } as CSSProperties}
+    >
+      <div className="download-cinematic__stage download-cinematic__stage--static-surface" aria-hidden="true">
+        <div className="download-cinematic__film">
+          <figure
+            className="download-cinematic__plate download-cinematic__plate--wide"
+            data-download-cinematic-asset={studioPlate.id}
+          >
+            <img
+              {...getResponsiveImageAttributes(studioPlate.src, "story-active", {
+                maxWidth: 1440,
+                sizes: "100vw",
+              })}
+              alt={studioPlate.alt}
+              height={studioPlate.height}
+              width={studioPlate.width}
+            />
+          </figure>
+        </div>
+        <div className="download-cinematic__blackout" />
+        <div className="download-cinematic__grain" />
+        <div className="download-cinematic__practical-light" />
+        <div className="download-cinematic__source-callouts">
+          {downloadCinematicSourceLabels.map((label, index) => (
+            <span
+              className="download-cinematic__source-callout"
+              data-source-index={index + 1}
+              key={`download-cinematic-static-source-${label}`}
+            >
+              <i />
+              {label}
+            </span>
+          ))}
+        </div>
+        <div className="download-cinematic__chapter-rail">
+          {downloadCinematicScenes.map((scene, index) => (
+            <span
+              className={index === 0 ? "is-active" : undefined}
+              data-download-cinematic-chip
+              key={`download-cinematic-static-${scene.id}`}
+            >
+              <i>{String(index + 1).padStart(2, "0")}</i>
+              {scene.id}
+            </span>
+          ))}
+        </div>
+        <div className="download-cinematic__scene-copy" data-download-cinematic-copy data-scene={openingScene.id}>
+          <span>{openingScene.eyebrow}</span>
+          <h2>{openingScene.headline}</h2>
+          <p>{openingScene.description}</p>
+          <strong>{openingScene.metric}</strong>
+        </div>
+      </div>
+    </section>
+  );
+};
 
 const detectBrowserPlatform = (): BrowserPlatform => {
   if (typeof navigator === "undefined") {
@@ -166,37 +243,12 @@ const DownloadPage = () => {
   const recommendedPlatform = browserToDownloadPlatform(browserPlatform);
   const activeDownloadItem = downloadsById[activePlatform];
 
-  useScrollScene(pageRef, ({ prefersReducedMotion, isDesktop, gsap, ScrollTrigger }) => {
+  useScrollScene(pageRef, ({ prefersReducedMotion, gsap }) => {
     if (prefersReducedMotion) {
-      setLogoProgress(0.5);
       return;
     }
 
     const cleanups: Array<() => void> = [];
-
-    if (isDesktop) {
-      setLogoProgress(0);
-      const logoScrollTrigger = ScrollTrigger.create({
-        trigger: "[data-download-studio-hero]",
-        start: "top top+=96",
-        endTrigger: "[data-download-panel-stack]",
-        end: "bottom bottom-=96",
-        pin: "[data-download-logo-pin-stage]",
-        pinSpacing: false,
-        anticipatePin: 1,
-        scrub: 0.7,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          setLogoProgress(
-            Number((self.progress * LOGO_SCROLL_TARGET_PROGRESS).toFixed(3)),
-          );
-        },
-      });
-
-      cleanups.push(() => logoScrollTrigger.kill());
-    } else {
-      setLogoProgress(0.5);
-    }
 
     const cardIntro = gsap.from("[data-download-hero-card]", {
       y: 34,
@@ -211,7 +263,7 @@ const DownloadPage = () => {
     });
 
     return () => cleanups.forEach((cleanup) => cleanup());
-  });
+  }, { delay: 420, runOnInput: false, timeout: 1400 });
 
   const downloadInstructions: Record<
     DownloadPlatform,
@@ -337,6 +389,92 @@ const DownloadPage = () => {
     const timeout = window.setTimeout(() => setCopyState("idle"), 2000);
     return () => window.clearTimeout(timeout);
   }, [copyState]);
+
+  useEffect(() => {
+    const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const desktopQuery = window.matchMedia("(min-width: 1024px)");
+    let frame = 0;
+
+    const syncLogoProgress = () => {
+      frame = 0;
+
+      if (reduceMotionQuery.matches || !desktopQuery.matches) {
+        setLogoProgress(0.5);
+        return;
+      }
+
+      const hero = document.querySelector<HTMLElement>("[data-download-studio-hero]");
+      if (!hero) {
+        return;
+      }
+
+      const rect = hero.getBoundingClientRect();
+      const startOffset = 96;
+      const scrollRange = Math.max(1, hero.offsetHeight - window.innerHeight + startOffset + 160);
+      const progress = Math.max(0, Math.min(1, (startOffset - rect.top) / scrollRange));
+      const nextProgress = Number((progress * LOGO_SCROLL_TARGET_PROGRESS).toFixed(3));
+      setLogoProgress((previous) =>
+        Math.abs(previous - nextProgress) < 0.004 ? previous : nextProgress,
+      );
+    };
+
+    const requestSync = () => {
+      if (frame) {
+        return;
+      }
+
+      frame = window.requestAnimationFrame(syncLogoProgress);
+    };
+
+    requestSync();
+    window.addEventListener("scroll", requestSync, { passive: true });
+    window.addEventListener("resize", requestSync);
+    reduceMotionQuery.addEventListener("change", requestSync);
+    desktopQuery.addEventListener("change", requestSync);
+
+    return () => {
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
+      window.removeEventListener("scroll", requestSync);
+      window.removeEventListener("resize", requestSync);
+      reduceMotionQuery.removeEventListener("change", requestSync);
+      desktopQuery.removeEventListener("change", requestSync);
+    };
+  }, []);
+
+  useEffect(
+    () =>
+      scheduleAfterInitialLoad(
+        () => {
+          warmScheduledImages([downloadCinematicPlates.studioWide.src], {
+            group: "cinematicFirstFrame",
+            maxWidth: 1280,
+            priority: "active",
+            route: "/download",
+            slot: "cinematic",
+            tier: "story-active",
+          });
+          warmScheduledImages(
+            [
+              downloadCinematicPlates.signalCloseup.src,
+              downloadCinematicPlates.screenReveal.src,
+              downloadCinematicScreenshot.webpSrc,
+            ],
+            {
+              group: "nearby",
+              maxWidth: 960,
+              priority: "next",
+              route: "/download",
+              slot: "cinematic",
+              tier: "story-next",
+            },
+          );
+        },
+        { delay: 700, runOnInput: false, timeout: 1800 },
+      ),
+    [],
+  );
 
   const handleConfirmDownload = () => {
     if (!activeInstruction || typeof window === "undefined") {
@@ -562,21 +700,19 @@ const DownloadPage = () => {
           </div>
         </SectionReveal>
 
-        <Suspense
-          fallback={
-            <section className="download-cinematic download-cinematic--loading" data-download-cinema data-download-cinematic-story>
-              <div className="download-cinematic__loading">
-                <div className="design-badge design-badge-secondary w-fit">Studio workflow</div>
-                <h2>Preparing the studio filmstrip.</h2>
-              </div>
-            </section>
-          }
+        <DeferredClientStage
+          fallback={<DownloadCinematicStaticSurface />}
+          idleDelay={520}
+          idleTimeout={1800}
+          rootMargin="1400px 0px"
         >
-          <DownloadCinematicStory
-            activePlatformLabel={activeDownloadItem.label}
-            onDownload={() => setPendingDownload(activePlatform)}
-          />
-        </Suspense>
+          <Suspense fallback={<DownloadCinematicStaticSurface />}>
+            <DownloadCinematicStory
+              activePlatformLabel={activeDownloadItem.label}
+              onDownload={() => setPendingDownload(activePlatform)}
+            />
+          </Suspense>
+        </DeferredClientStage>
 
         <section className="download-requirements" data-download-requirements>
           <div className="download-section-header">
@@ -624,11 +760,12 @@ const DownloadPage = () => {
 
         <SectionReveal className="download-ai-callout" data-download-outro>
           <img
+            {...getResponsiveImageAttributes(designMedia.downloadWorkspace.src, "below-fold", {
+              maxWidth: 1280,
+              sizes: "(min-width: 1024px) 44vw, 100vw",
+            })}
             alt={designMedia.downloadWorkspace.alt}
             className="download-ai-callout__image"
-            decoding="async"
-            loading="lazy"
-            src={designMedia.downloadWorkspace.src}
           />
           <div className="download-ai-callout__content">
             <div className="design-badge design-badge-secondary w-fit">

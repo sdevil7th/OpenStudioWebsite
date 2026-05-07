@@ -12,6 +12,7 @@ import {
   type FeatureSceneCompositorState,
 } from "@/components/scene/FeatureSceneCompositor";
 import type { AccentTone, FeatureChapter } from "@/data/marketing";
+import { loadScheduledImage } from "@/lib/imageScheduler";
 import { cn } from "@/lib/utils";
 
 interface FeatureStoryUnifiedTransitionProps {
@@ -29,6 +30,8 @@ interface SweepParticle {
 }
 
 const DPR_FALLBACK = 1;
+const DPR_LIMIT = 1.5;
+const INACTIVE_POLL_MS = 90;
 
 const accentRgb: Record<AccentTone, [number, number, number]> = {
   lavender: [199, 180, 255],
@@ -46,18 +49,38 @@ const syncCanvasSize = (target: HTMLCanvasElement, width: number, height: number
 
 const isImageReady = (image: HTMLImageElement | undefined) => Boolean(image?.complete && image.naturalWidth > 0);
 
-const ensureImageSource = (images: Map<string, HTMLImageElement>, src: string) => {
+const ensureImageSource = (
+  images: Map<string, HTMLImageElement>,
+  pending: Set<string>,
+  src: string,
+  priority: "active" | "next" | "idle" = "idle",
+  width?: number,
+  height?: number,
+) => {
   const existing = images.get(src);
-  if (existing) {
+  if (existing || pending.has(src)) {
     return existing;
   }
 
-  const image = new Image();
-  image.decoding = "async";
-  image.loading = "eager";
-  image.src = src;
-  images.set(src, image);
-  return image;
+  pending.add(src);
+  void loadScheduledImage(src, {
+    fit: "cover",
+    group: "transitionUpcoming",
+    height,
+    maxWidth: priority === "active" ? 960 : 768,
+    priority,
+    slot: "transition-mask",
+    tier: priority === "active" ? "story-active" : "story-next",
+    width,
+  })
+    .then((image) => {
+      images.set(src, image);
+    })
+    .finally(() => {
+      pending.delete(src);
+    });
+
+  return undefined;
 };
 
 const collectTransitionSources = (chapter: FeatureChapter) =>
@@ -85,27 +108,8 @@ const buildParticles = (count: number): SweepParticle[] =>
 const FeatureStoryUnifiedTransition = ({ chapters, stateRef, className }: FeatureStoryUnifiedTransitionProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imagesRef = useRef<Map<string, HTMLImageElement>>(new Map());
+  const pendingImagesRef = useRef<Set<string>>(new Set());
   const particlesRef = useRef<SweepParticle[]>(buildParticles(42));
-
-  useEffect(() => {
-    const loadChapter = (index: number) => {
-      const chapter = chapters[index];
-      if (!chapter) {
-        return;
-      }
-
-      collectTransitionSources(chapter).forEach((src) => ensureImageSource(imagesRef.current, src));
-    };
-
-    loadChapter(0);
-    loadChapter(1);
-
-    const idleId = window.setTimeout(() => {
-      chapters.forEach((_, index) => loadChapter(index));
-    }, 1800);
-
-    return () => window.clearTimeout(idleId);
-  }, [chapters]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -119,29 +123,49 @@ const FeatureStoryUnifiedTransition = ({ chapters, stateRef, className }: Featur
     }
 
     let rafId = 0;
+    let inactiveTimer = 0;
+    let drewActiveFrame = false;
     const renderStartedAt = performance.now();
 
+    const scheduleRender = (delay = 0) => {
+      if (delay > 0) {
+        inactiveTimer = window.setTimeout(() => {
+          inactiveTimer = 0;
+          rafId = window.requestAnimationFrame(render);
+        }, delay);
+        return;
+      }
+
+      rafId = window.requestAnimationFrame(render);
+    };
+
     const render = () => {
-      const bounds = canvas.getBoundingClientRect();
-      const width = Math.max(1, bounds.width);
-      const height = Math.max(1, bounds.height);
-      const dpr = window.devicePixelRatio || DPR_FALLBACK;
-      const pixelWidth = Math.max(1, Math.round(width * dpr));
-      const pixelHeight = Math.max(1, Math.round(height * dpr));
-      syncCanvasSize(canvas, pixelWidth, pixelHeight);
-
-      context.setTransform(dpr, 0, 0, dpr, 0, 0);
-      context.clearRect(0, 0, width, height);
-
       const state = stateRef.current;
       const portalOpacity = Number.parseFloat(
         document.documentElement.style.getPropertyValue("--feature-story-portal-opacity") || "0",
       );
 
       if (portalOpacity <= 0.001 || state.reducedMotion || state.transitionActive <= 0.001) {
-        rafId = window.requestAnimationFrame(render);
+        if (drewActiveFrame) {
+          context.setTransform(1, 0, 0, 1, 0, 0);
+          context.clearRect(0, 0, canvas.width, canvas.height);
+          drewActiveFrame = false;
+        }
+        scheduleRender(INACTIVE_POLL_MS);
         return;
       }
+
+      const bounds = canvas.getBoundingClientRect();
+      const width = Math.max(1, bounds.width);
+      const height = Math.max(1, bounds.height);
+      const dpr = Math.min(window.devicePixelRatio || DPR_FALLBACK, DPR_LIMIT);
+      const pixelWidth = Math.max(1, Math.round(width * dpr));
+      const pixelHeight = Math.max(1, Math.round(height * dpr));
+      syncCanvasSize(canvas, pixelWidth, pixelHeight);
+
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+      context.clearRect(0, 0, width, height);
+      drewActiveFrame = true;
 
       const fromIndex = clamp(state.fromIndex ?? state.activeIndex ?? 0, 0, chapters.length - 1);
       const toIndex = clamp(state.toIndex ?? state.nextIndex ?? fromIndex, 0, chapters.length - 1);
@@ -149,18 +173,29 @@ const FeatureStoryUnifiedTransition = ({ chapters, stateRef, className }: Featur
       const toChapter = chapters[toIndex] ?? fromChapter;
 
       if (!fromChapter || !toChapter || fromIndex === toIndex) {
-        rafId = window.requestAnimationFrame(render);
+        scheduleRender(INACTIVE_POLL_MS);
         return;
+      }
+
+      collectTransitionSources(fromChapter).forEach((src) =>
+        ensureImageSource(imagesRef.current, pendingImagesRef.current, src, "active", width, height),
+      );
+      if (toChapter !== fromChapter) {
+        collectTransitionSources(toChapter).forEach((src) =>
+          ensureImageSource(imagesRef.current, pendingImagesRef.current, src, "next", width, height),
+        );
       }
 
       const authoredBridge = fromChapter.transitionProfile?.authoredBridge;
       if (!authoredBridge) {
-        rafId = window.requestAnimationFrame(render);
+        scheduleRender(INACTIVE_POLL_MS);
         return;
       }
 
       const transitionSources = collectTransitionSources(fromChapter);
-      transitionSources.forEach((src) => ensureImageSource(imagesRef.current, src));
+      transitionSources.forEach((src) =>
+        ensureImageSource(imagesRef.current, pendingImagesRef.current, src, "active", width, height),
+      );
 
       const phases = getTransitionPhases(fromChapter.transitionProfile);
       const progress = clamp(state.transitionProgress ?? 0, 0, 1);
@@ -173,7 +208,7 @@ const FeatureStoryUnifiedTransition = ({ chapters, stateRef, className }: Featur
       const overlayAlpha = clamp(portalOpacity * (sweep * 0.56 + collapse * 0.1) * (1 - settle * 0.24), 0, 0.58);
 
       if (overlayAlpha <= 0.004) {
-        rafId = window.requestAnimationFrame(render);
+        scheduleRender();
         return;
       }
 
@@ -286,12 +321,15 @@ const FeatureStoryUnifiedTransition = ({ chapters, stateRef, className }: Featur
       });
       context.restore();
 
-      rafId = window.requestAnimationFrame(render);
+      scheduleRender();
     };
 
-    rafId = window.requestAnimationFrame(render);
+    scheduleRender();
 
-    return () => window.cancelAnimationFrame(rafId);
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      window.clearTimeout(inactiveTimer);
+    };
   }, [chapters, stateRef]);
 
   return createPortal(

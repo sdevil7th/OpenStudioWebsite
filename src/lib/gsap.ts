@@ -37,6 +37,11 @@ type ScrollSceneSetup = (options: ScrollSceneOptions) => void | (() => void);
 export const useScrollScene = <T extends HTMLElement>(
   scope: RefObject<T>,
   setup: ScrollSceneSetup,
+  {
+    delay,
+    runOnInput = false,
+    timeout,
+  }: { delay?: number; runOnInput?: boolean; timeout?: number } = {},
 ) => {
   const prefersReducedMotion = usePrefersReducedMotion();
   const setupRef = useRef(setup);
@@ -71,7 +76,7 @@ export const useScrollScene = <T extends HTMLElement>(
           }, element);
         });
       },
-      { runOnInput: false },
+      { delay, runOnInput, timeout },
     );
 
     return () => {
@@ -80,5 +85,5 @@ export const useScrollScene = <T extends HTMLElement>(
       cleanup?.();
       context?.revert();
     };
-  }, [prefersReducedMotion, scope]);
+  }, [delay, prefersReducedMotion, runOnInput, scope, timeout]);
 };

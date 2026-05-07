@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, type MutableRefObject, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
 import {
   ArrowRight,
   Layers3,
@@ -13,6 +13,7 @@ import ChapterProgress from "@/components/ChapterProgress";
 import DeferredClientStage from "@/components/DeferredClientStage";
 import PageSeo from "@/components/PageSeo";
 import SectionReveal from "@/components/motion/SectionReveal";
+import FeaturesStoryBackdrop from "@/components/scene/FeaturesStoryBackdrop";
 import { Button } from "@/components/ui/button";
 import {
   featureChapters,
@@ -23,7 +24,9 @@ import {
 } from "@/data/features";
 import type { FeatureChapter } from "@/data/marketing";
 import type { FeatureSceneCompositorState } from "@/components/scene/FeatureSceneCompositor";
+import { getResponsiveImageAttributes } from "@/lib/assetLoading";
 import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
+import { warmScheduledImages } from "@/lib/imageScheduler";
 import { useScrollScene } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 
@@ -31,24 +34,6 @@ const ChapterIntroOverlay = lazy(() => import("@/components/scene/ChapterIntroOv
 const FeatureSceneCompositor = lazy(() => import("@/components/scene/FeatureSceneCompositor"));
 const FeatureSceneWebGLStage = lazy(() => import("@/components/scene/FeatureSceneWebGLStage"));
 const FeatureStoryUnifiedTransition = lazy(() => import("@/components/scene/FeatureStoryUnifiedTransition"));
-const FeaturesStoryBackdrop = lazy(() => import("@/components/scene/FeaturesStoryBackdrop"));
-
-const DeferredAfterIntro = ({ children, delay = 700 }: { children: ReactNode; delay?: number }) => {
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    if (ready) {
-      return;
-    }
-
-    return scheduleAfterInitialLoad(
-      () => setReady(true),
-      { delay, runOnInput: false, timeout: 1800 },
-    );
-  }, [delay, ready]);
-
-  return ready ? children : null;
-};
 
 const accentBadgeClass = {
   lavender: "border-primary/25 bg-primary/10 text-primary",
@@ -79,6 +64,14 @@ const FeatureSceneStaticFallback = ({ className }: { className?: string }) => (
     <span className="feature-story-static-stage__rail" />
     <span className="feature-story-static-stage__panel feature-story-static-stage__panel--primary" />
     <span className="feature-story-static-stage__panel feature-story-static-stage__panel--secondary" />
+  </div>
+);
+
+const FeatureStoryTransitionFallback = () => (
+  <div className="feature-story-transition-fallback" aria-hidden="true">
+    <span />
+    <span />
+    <span />
   </div>
 );
 
@@ -369,6 +362,10 @@ const FeatureMobileCard = ({
 }) => {
   const Icon = chapterIcons[chapter.id] ?? Sparkles;
   const accentKey = chapter.accent ?? "lavender";
+  const primaryImageAttributes = getResponsiveImageAttributes(chapter.sceneBase.asset.src, "story-active", {
+    maxWidth: 960,
+    sizes: "100vw",
+  });
 
   return (
     <div
@@ -390,6 +387,7 @@ const FeatureMobileCard = ({
         <div className="feature-story-mobile-primary">
           {loadMedia ? (
             <img
+              {...primaryImageAttributes}
               alt={chapter.sceneBase.asset.alt}
               className={cn(
                 "h-full w-full",
@@ -397,10 +395,6 @@ const FeatureMobileCard = ({
                   ? "object-contain"
                   : "object-cover",
               )}
-              decoding="async"
-              fetchpriority="low"
-              loading="lazy"
-              src={chapter.sceneBase.asset.src}
             />
           ) : null}
         </div>
@@ -416,6 +410,10 @@ const FeatureMobileCard = ({
             >
               {loadMedia ? (
                 <img
+                  {...getResponsiveImageAttributes(fragment.asset.src, "story-next", {
+                    maxWidth: 768,
+                    sizes: "50vw",
+                  })}
                   alt={fragment.asset.alt}
                   className={cn(
                     "h-full w-full",
@@ -423,10 +421,6 @@ const FeatureMobileCard = ({
                       ? "object-contain"
                       : "object-cover",
                   )}
-                  decoding="async"
-                  fetchpriority="low"
-                  loading="lazy"
-                  src={fragment.asset.src}
                 />
               ) : null}
             </div>
@@ -521,21 +515,40 @@ const FeaturesPage = () => {
     return () => mediaQuery.removeEventListener("change", syncMobileMedia);
   }, []);
 
-  useEffect(() => {
-    if (typeof document === "undefined" || !("fonts" in document)) {
-      return;
-    }
-    let cancelled = false;
-    document.fonts.ready.then(() => {
-      if (cancelled) {
-        return;
-      }
-      ScrollTrigger.refresh();
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  useEffect(
+    () =>
+      scheduleAfterInitialLoad(
+        () => {
+          const firstChapter = featureChapters[0];
+          const nextChapter = featureChapters[1];
+          const firstFrameSources = [
+            firstChapter?.sceneBase.asset.src,
+            ...(firstChapter?.sceneFragments.map((fragment) => fragment.asset.src) ?? []),
+            nextChapter?.sceneBase.asset.src,
+          ].filter((src): src is string => Boolean(src));
+
+          warmScheduledImages([...new Set(firstFrameSources)], {
+            group: "cinematicFirstFrame",
+            maxWidth: 1280,
+            priority: "active",
+            route: "/features",
+            slot: "cinematic",
+            tier: "story-active",
+          });
+
+          warmScheduledImages(collectFeatureTransitionSources(firstChapter).slice(0, 3), {
+            group: "transitionUpcoming",
+            maxWidth: 960,
+            priority: "next",
+            route: "/features",
+            slot: "transition-mask",
+            tier: "story-next",
+          });
+        },
+        { delay: 320, runOnInput: false, timeout: 1400 },
+      ),
+    [],
+  );
 
   useScrollScene(
     pageRef,
@@ -744,6 +757,11 @@ const FeaturesPage = () => {
       };
 
       let crawlRefreshFrame = 0;
+      let crawlRefreshTimeout = 0;
+      let lastCrawlRefreshScrollAt = 0;
+      const markCrawlRefreshScroll = () => {
+        lastCrawlRefreshScrollAt = performance.now();
+      };
       const measureDetailCrawlsAndRefresh = (refreshScrollTrigger = false) => {
         measureDetailCrawlPanels();
 
@@ -754,11 +772,22 @@ const FeaturesPage = () => {
         crawlRefreshFrame = window.requestAnimationFrame(() => {
           crawlRefreshFrame = 0;
           syncStoryRects();
-          ScrollTrigger.refresh();
+          const refresh = () => {
+            crawlRefreshTimeout = 0;
+            ScrollTrigger.refresh();
+          };
+
+          if (performance.now() - lastCrawlRefreshScrollAt < 180) {
+            crawlRefreshTimeout = window.setTimeout(refresh, 220);
+            return;
+          }
+
+          refresh();
         });
       };
 
       measureDetailCrawlsAndRefresh();
+      window.addEventListener("scroll", markCrawlRefreshScroll, { passive: true });
 
       const crawlResizeObserver =
         typeof ResizeObserver === "undefined"
@@ -785,10 +814,14 @@ const FeaturesPage = () => {
       const handleCrawlResize = () => measureDetailCrawlsAndRefresh(true);
       window.addEventListener("resize", handleCrawlResize);
       cleanups.push(() => {
+        window.removeEventListener("scroll", markCrawlRefreshScroll);
         window.removeEventListener("resize", handleCrawlResize);
         crawlResizeObserver?.disconnect();
         if (crawlRefreshFrame) {
           window.cancelAnimationFrame(crawlRefreshFrame);
+        }
+        if (crawlRefreshTimeout) {
+          window.clearTimeout(crawlRefreshTimeout);
         }
       });
 
@@ -801,18 +834,6 @@ const FeaturesPage = () => {
         });
         cleanups.push(() => {
           fontsCancelled = true;
-        });
-      }
-
-      if (viewport && shell) {
-        ScrollTrigger.create({
-          trigger: viewport,
-          start: "top top+=92",
-          end: "bottom bottom-=24",
-          pin: shell,
-          pinSpacing: false,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
         });
       }
 
@@ -927,7 +948,6 @@ const FeaturesPage = () => {
           const pointerTarget = shell ?? viewport ?? storyCanvas;
 
           const tickPointer = () => {
-            syncStoryRects();
             pointerState.currentX = lerpValue(
               pointerState.currentX,
               pointerState.targetX,
@@ -1291,7 +1311,10 @@ const FeaturesPage = () => {
         document.documentElement.style.setProperty(
           "--feature-story-portal-opacity",
           inTransition
-            ? `${clampProgress((destructionProgress * 0.05 + bridge * 0.04) * (1 - readableProgress))}`
+            ? `${clampProgress(
+                (collapse * 0.12 + destructionProgress * 0.28 + bridge * 0.36) *
+                  (1 - readableProgress * 0.72),
+              )}`
             : "0",
         );
 
@@ -1446,6 +1469,7 @@ const FeaturesPage = () => {
         cleanups.forEach((cleanup) => cleanup());
       };
     },
+    { delay: 320, runOnInput: false, timeout: 1400 },
   );
 
   const activeProgress = clampProgress(progressById[activeChapter.id]);
@@ -1459,16 +1483,14 @@ const FeaturesPage = () => {
       id="main-content"
     >
       <PageSeo {...featurePageSeo} />
-      <DeferredAfterIntro delay={520}>
-        <Suspense fallback={null}>
-          <FeaturesStoryBackdrop
-            chapter={activeChapter}
-            chapters={featureChapters}
-            progress={activeProgress}
-            stateRef={compositorStateRef}
-          />
-        </Suspense>
-      </DeferredAfterIntro>
+      <Suspense fallback={<div className="feature-story-backdrop feature-story-backdrop--fallback" aria-hidden="true" />}>
+        <FeaturesStoryBackdrop
+          chapter={activeChapter}
+          chapters={featureChapters}
+          progress={activeProgress}
+          stateRef={compositorStateRef}
+        />
+      </Suspense>
 
       <div className="page-frame-wide relative">
         <section
@@ -1501,12 +1523,12 @@ const FeaturesPage = () => {
             <div className="feature-story-hero-visual grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(18rem,0.92fr)]">
               <div className="feature-story-hero-stage feature-story-hero-stage--primary overflow-hidden rounded-[2rem] border border-white/10">
                 <img
+                  {...getResponsiveImageAttributes(featureChapters[0]!.sceneBase.asset.src, "hero/eager", {
+                    maxWidth: 1600,
+                    sizes: "(min-width: 1280px) 48vw, 100vw",
+                  })}
                   alt={featureChapters[0]!.sceneBase.asset.alt}
                   className="h-[22rem] w-full object-cover md:h-[27rem] xl:h-[31rem]"
-                  decoding="async"
-                  fetchpriority="high"
-                  loading="eager"
-                  src={featureChapters[0]!.sceneBase.asset.src}
                 />
               </div>
               <div className="grid gap-4">
@@ -1536,12 +1558,12 @@ const FeaturesPage = () => {
                 </div>
                 <div className="feature-story-hero-stage feature-story-hero-stage--secondary overflow-hidden rounded-[1.8rem] border border-white/10 bg-black/36">
                   <img
+                    {...getResponsiveImageAttributes(featureChapters[3]!.sceneBase.asset.src, "near-fold", {
+                      maxWidth: 960,
+                      sizes: "(min-width: 1280px) 22vw, 60vw",
+                    })}
                     alt={featureChapters[3]!.sceneBase.asset.alt}
                     className="h-52 w-full object-cover"
-                    decoding="async"
-                    fetchpriority="low"
-                    loading="lazy"
-                    src={featureChapters[3]!.sceneBase.asset.src}
                   />
                 </div>
               </div>
@@ -1552,12 +1574,12 @@ const FeaturesPage = () => {
         <section className="feature-story-viewport">
           <DeferredClientStage
             className="feature-story-deferred-layer"
-            fallback={null}
-            idleDelay={2400}
-            idleTimeout={4200}
-            rootMargin="240px 0px"
+            fallback={<FeatureStoryTransitionFallback />}
+            idleDelay={520}
+            idleTimeout={1800}
+            rootMargin="1400px 0px"
           >
-            <Suspense fallback={null}>
+            <Suspense fallback={<FeatureStoryTransitionFallback />}>
               <FeatureStoryUnifiedTransition
                 chapters={featureChapters}
                 stateRef={compositorStateRef}
@@ -1606,9 +1628,9 @@ const FeaturesPage = () => {
                   <DeferredClientStage
                     className="h-full"
                     fallback={<FeatureSceneStaticFallback />}
-                    idleDelay={2600}
-                    idleTimeout={4600}
-                    rootMargin="240px 0px"
+                    idleDelay={720}
+                    idleTimeout={2200}
+                    rootMargin="1400px 0px"
                   >
                     <Suspense
                       fallback={<FeatureSceneStaticFallback />}
@@ -1742,5 +1764,15 @@ const FeaturesPage = () => {
     </main>
   );
 };
+
+const collectFeatureTransitionSources = (chapter?: FeatureChapter) =>
+  [
+    chapter?.transitionProfile?.curatedMatteSrc,
+    chapter?.transitionProfile?.authoredBridge?.collapseFieldSrc,
+    chapter?.transitionProfile?.authoredBridge?.remnantEtchedSrc,
+    chapter?.transitionProfile?.authoredBridge?.voidCoreSrc,
+    chapter?.transitionProfile?.authoredBridge?.voidEdgeSrc,
+    chapter?.transitionProfile?.authoredBridge?.arrivalMatteSrc,
+  ].filter((src): src is string => Boolean(src));
 
 export default FeaturesPage;

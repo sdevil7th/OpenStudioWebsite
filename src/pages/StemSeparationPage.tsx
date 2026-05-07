@@ -347,7 +347,7 @@ const StemSeparationPage = () => {
     pointer: { x: 0, y: 0 },
     audioEnergy: 0,
     reducedMotion: false,
-  });
+  }, { delay: 360, runOnInput: false, timeout: 1400 });
   const globalProgressRef = useRef(0);
   const phaseProgressRef = useRef(0);
   const [activePhaseIndex, setActivePhaseIndex] = useState(0);
@@ -479,20 +479,6 @@ const StemSeparationPage = () => {
     }
 
     if (isDesktop) {
-      const stage = document.querySelector<HTMLElement>("[data-ai-neural-stage-wrap]");
-      if (stage) {
-        const pinTrigger = ScrollTrigger.create({
-          trigger: "[data-ai-neural-lab]",
-          start: "top top",
-          end: "bottom bottom",
-          pin: stage,
-          pinSpacing: false,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-        });
-        cleanups.push(() => pinTrigger.kill());
-      }
-
       const trigger = ScrollTrigger.create({
         trigger: "[data-ai-neural-lab]",
         start: "top top",
@@ -686,14 +672,14 @@ const StemSeparationPage = () => {
   return (
     <main
       ref={pageRef}
-      className="design-page-main ai-page-main ai-neural-page overflow-hidden route-appear"
+      className="design-page-main ai-page-main ai-neural-page route-appear"
       id="main-content"
     >
       <PageSeo {...stemSeparationSeo} />
 
       {/* Act 0 — Genesis Hero */}
       <section className="ai-genesis-section" data-ai-genesis>
-        <DeferredClientStage className="absolute inset-0" fallback={<AiGenesisFallbackStage />} idleDelay={2200} rootMargin="0px">
+        <DeferredClientStage className="absolute inset-0" fallback={<AiGenesisFallbackStage />} idleDelay={620} idleTimeout={1800} rootMargin="0px">
           <Suspense fallback={<AiGenesisFallbackStage />}>
             <AiGenesisStage progressRef={genesisProgressRef} pointerRef={genesisPointerRef} />
           </Suspense>
@@ -757,7 +743,7 @@ const StemSeparationPage = () => {
       {/* Act 1 — Dual pillars */}
       <section className="ai-pillars-section" data-ai-pillars>
         <div className="ai-pillars-canvas">
-          <DeferredClientStage className="absolute inset-0" fallback={<AiSignalFallbackStage />} idleDelay={2400} rootMargin="0px">
+          <DeferredClientStage className="absolute inset-0" fallback={<AiSignalFallbackStage />} idleDelay={720} idleTimeout={2000} rootMargin="1400px 0px">
             <Suspense fallback={<AiSignalFallbackStage />}>
               <AiSignalWebGLStage progressRef={pillarsProgressRef} sectionPhaseRef={pillarsPhaseRef} />
             </Suspense>
@@ -801,8 +787,9 @@ const StemSeparationPage = () => {
           <DeferredClientStage
             className="absolute inset-0"
             fallback={<NeuralFallbackInstrument phase={activePhase} />}
-            idleDelay={2400}
-            rootMargin="0px"
+            idleDelay={720}
+            idleTimeout={2000}
+            rootMargin="1400px 0px"
           >
             <Suspense fallback={<NeuralFallbackInstrument phase={activePhase} />}>
               <AiNeuralStudioStage
@@ -828,7 +815,7 @@ const StemSeparationPage = () => {
       {/* Act 3 — Architecture Orbit */}
       <section className="ai-arch-section" data-ai-arch data-ai-neural-details>
         <div className="ai-arch-canvas">
-          <DeferredClientStage className="absolute inset-0" fallback={<AiArchitectureFallbackStage />} idleDelay={2400} rootMargin="0px">
+          <DeferredClientStage className="absolute inset-0" fallback={<AiArchitectureFallbackStage />} idleDelay={720} idleTimeout={2000} rootMargin="1400px 0px">
             <Suspense fallback={<AiArchitectureFallbackStage />}>
               <AiArchitectureOrbit activeNode={archActiveNode} pointerRef={archPointerRef} />
             </Suspense>
@@ -918,7 +905,7 @@ const StemSeparationPage = () => {
       {/* Act 4 — Use case constellation */}
       <section className="ai-usecases-section" data-ai-usecases>
         <div className="ai-usecases-canvas">
-          <DeferredClientStage className="absolute inset-0" fallback={<AiUseCaseFallbackStage />} idleDelay={2400} rootMargin="0px">
+          <DeferredClientStage className="absolute inset-0" fallback={<AiUseCaseFallbackStage />} idleDelay={720} idleTimeout={2000} rootMargin="1400px 0px">
             <Suspense fallback={<AiUseCaseFallbackStage />}>
               <AiUseCaseConstellation activeIndex={useCaseActive} pointerRef={useCasePointerRef} />
             </Suspense>
@@ -951,7 +938,7 @@ const StemSeparationPage = () => {
       {/* Act 5 — Outro collapse / final CTA */}
       <section className="ai-outro-section ai-final-section" data-ai-outro>
         <div className="ai-outro-canvas">
-          <DeferredClientStage className="absolute inset-0" fallback={<AiOutroFallbackStage />} idleDelay={2400} rootMargin="0px">
+          <DeferredClientStage className="absolute inset-0" fallback={<AiOutroFallbackStage />} idleDelay={720} idleTimeout={2000} rootMargin="1400px 0px">
             <Suspense fallback={<AiOutroFallbackStage />}>
               <AiOutroStage collapseRef={outroCollapseRef} />
             </Suspense>

@@ -29,6 +29,8 @@ const pillarMedia = [
   designMedia.homeUspCode,
 ];
 
+const HOME_LOGO_ASSEMBLED_PROGRESS = 0.62;
+
 const HomeLogoAmbientField = ({ progress }: { progress: number }) => {
   const atmosphereStyle = {
     "--home-logo-atmosphere-opacity": (0.78 + Math.min(progress, 0.8) * 0.12).toFixed(3),
@@ -101,7 +103,8 @@ const HomePage = () => {
       const travel = Number.isFinite(scrollRange)
         ? Math.max(1, scrollRange)
         : Math.max(1, section.offsetHeight - window.innerHeight);
-      const progress = Math.max(0, Math.min(1, -rect.top / travel));
+      const scrollProgress = Math.max(0, Math.min(1, -rect.top / travel));
+      const progress = Math.min(scrollProgress, HOME_LOGO_ASSEMBLED_PROGRESS);
       writeProgress(progress);
     };
 

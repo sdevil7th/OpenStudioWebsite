@@ -48,10 +48,10 @@ test("download preview removes abstract command-deck scenes and reuses the homep
   assert.match(downloadPageSource, /BrandLogoConstructScene/);
   assert.match(downloadPageSource, /data-download-logo-stage/);
   assert.match(downloadPageSource, /LOGO_SCROLL_TARGET_PROGRESS = 0\.66/);
-  assert.match(downloadPageSource, /ScrollTrigger\.create\(\{[\s\S]*endTrigger: "\[data-download-panel-stack\]"/);
-  assert.match(downloadPageSource, /pin: "\[data-download-logo-pin-stage\]"/);
-  assert.match(downloadPageSource, /pinSpacing: false/);
-  assert.doesNotMatch(downloadPageSource, /requestAnimationFrame/);
+  assert.match(downloadPageSource, /syncLogoProgress/);
+  assert.match(downloadPageSource, /requestAnimationFrame\(syncLogoProgress\)/);
+  assert.doesNotMatch(downloadPageSource, /pin: "\[data-download-logo-pin-stage\]"/);
+  assert.doesNotMatch(downloadPageSource, /pinSpacing: false/);
   assert.doesNotMatch(downloadPageSource, /LOGO_INTRO_/);
   assert.match(downloadPageSource, /size="intro"/);
   assert.match(downloadPageSource, /data-download-studio-hero/);
@@ -79,6 +79,11 @@ test("download hero keeps the sticky logo column before the scrolling platform p
 test("download cinematic story uses generated studio plates and GSAP instead of WebGL props", () => {
   assert.match(downloadPageSource, /DownloadCinematicStory/);
   assert.match(downloadPageSource, /lazy\(\(\) => import\("@\/components\/scene\/DownloadCinematicStory"\)\)/);
+  assert.match(downloadPageSource, /DeferredClientStage[\s\S]*fallback=\{<DownloadCinematicStaticSurface \/>/);
+  assert.match(downloadPageSource, /rootMargin="1400px 0px"/);
+  assert.match(downloadPageSource, /warmScheduledImages/);
+  assert.doesNotMatch(downloadPageSource, /Preparing the studio filmstrip/);
+  assert.match(downloadPageSource, /download-cinematic--static-surface/);
   assert.match(downloadPageSource, /data-download-cinema/);
   assert.match(downloadPageSource, /data-download-cinematic-story/);
   assert.doesNotMatch(downloadPageSource, /StudioEvolutionScene/);
@@ -104,8 +109,8 @@ test("download cinematic story uses generated studio plates and GSAP instead of 
   );
 
   assert.match(downloadCinematicSource, /gsap\.timeline\(\{/);
-  assert.match(downloadCinematicSource, /pin: stage/);
-  assert.match(downloadCinematicSource, /pinSpacing: false/);
+  assert.doesNotMatch(downloadCinematicSource, /pin: stage/);
+  assert.doesNotMatch(downloadCinematicSource, /pinSpacing: false/);
   assert.match(downloadCinematicSource, /prefersReducedMotion \|\| !isDesktop/);
   assert.match(downloadCinematicSource, /data-download-cinematic-timeline/);
   assert.match(downloadCinematicSource, /data-download-cinematic-asset/);
@@ -118,6 +123,9 @@ test("download cinematic story uses generated studio plates and GSAP instead of 
   assert.match(downloadCinematicSource, /downloadCinematicSourceLabels/);
   assert.match(downloadCinematicSource, /downloadCinematicScreenshot\.webpSrc/);
   assert.match(downloadCinematicSource, /downloadCinematicScreenshot\.src/);
+  assert.match(downloadCinematicSource, /getResponsiveImageAttributes/);
+  assert.match(downloadCinematicSource, /firstPlateReady/);
+  assert.match(downloadCinematicSource, /download-cinematic__stage-fallback/);
   assert.equal(existsSync(new URL("../public/assets/openstudio/screenshots/recording-session.webp", import.meta.url)), true);
   assert.equal(existsSync(new URL("../public/assets/openstudio/download-cinematic/studio-wide.webp", import.meta.url)), true);
   assert.equal(existsSync(new URL("../public/assets/openstudio/download-cinematic/signal-closeup.webp", import.meta.url)), true);
@@ -130,6 +138,7 @@ test("download cinematic story uses generated studio plates and GSAP instead of 
 
   assert.match(cssSource, /\.download-cinematic/);
   assert.match(cssSource, /min-height: var\(--download-cinema-scroll-vh, 620vh\)/);
+  assert.match(cssSource, /\.download-cinematic--static-surface/);
   assert.match(cssSource, /@media \(min-width: 1024px\)[\s\S]*\.download-cinematic[\s\S]*width: 100vw/);
   assert.match(cssSource, /\.download-cinematic[\s\S]*margin-left: calc\(50% - 50vw\)/);
   assert.match(cssSource, /\.download-cinematic__stage[\s\S]*height: 100svh/);
@@ -140,6 +149,9 @@ test("download cinematic story uses generated studio plates and GSAP instead of 
   assert.match(cssSource, /\.download-cinematic__screen-composite/);
   assert.match(cssSource, /\.download-cinematic__ready-panel/);
   assert.match(cssSource, /\.download-cinematic__fallback/);
+  assert.match(cssSource, /\.download-cinematic__loading-film/);
+  assert.match(cssSource, /\.download-cinematic__loading-rails/);
+  assert.match(cssSource, /\.download-cinematic__stage-fallback/);
   assert.match(cssSource, /\.download-cinematic__fallback-media/);
   assert.match(cssSource, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.download-cinematic__fallback/);
   assert.doesNotMatch(cssSource, /\.download-cinematic__room/);
