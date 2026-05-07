@@ -30,7 +30,7 @@ import {
 } from "@/data/downloads";
 import { externalLinks } from "@/data/siteLinks";
 import { useGithubRepoSnapshot } from "@/hooks/useGithubRepoSnapshot";
-import { gsap, ScrollTrigger, useScrollScene } from "@/lib/gsap";
+import { useScrollScene } from "@/lib/gsap";
 import { formatGithubDate } from "@/lib/github";
 import { cn } from "@/lib/utils";
 
@@ -167,7 +167,7 @@ const DownloadPage = () => {
   const recommendedPlatform = browserToDownloadPlatform(browserPlatform);
   const activeDownloadItem = downloadsById[activePlatform];
 
-  useScrollScene(pageRef, ({ prefersReducedMotion, isDesktop }) => {
+  useScrollScene(pageRef, ({ prefersReducedMotion, isDesktop, gsap, ScrollTrigger }) => {
     if (prefersReducedMotion) {
       setLogoProgress(0.5);
       return;

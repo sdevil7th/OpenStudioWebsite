@@ -10,7 +10,7 @@ import { githubCallout, githubHero, githubHighlights, githubPillars, githubSeo }
 import { externalLinks } from "@/data/siteLinks";
 import { useGithubRepoSnapshot } from "@/hooks/useGithubRepoSnapshot";
 import { formatGithubDate, formatGithubNumber, formatLanguageMix } from "@/lib/github";
-import { gsap, useScrollScene } from "@/lib/gsap";
+import { useScrollScene } from "@/lib/gsap";
 
 const GithubPage = () => {
   const pageRef = useRef<HTMLElement | null>(null);
@@ -20,7 +20,7 @@ const GithubPage = () => {
     : "No GitHub releases published yet";
   const visibleContributorLabel = `${formatGithubNumber(snapshot.stats.contributorCount)} visible ${snapshot.stats.contributorCount === 1 ? "contributor" : "contributors"}`;
 
-  useScrollScene(pageRef, ({ prefersReducedMotion }) => {
+  useScrollScene(pageRef, ({ prefersReducedMotion, gsap }) => {
     if (!prefersReducedMotion) {
       gsap.from("[data-github-title]", {
         y: 18,

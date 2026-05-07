@@ -215,12 +215,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           "react-vendor": ["react", "react-dom", "react-router-dom"],
-          "animation-vendor": ["framer-motion"],
           "webgl-vendor": ["three"],
-          "ui-vendor": [
-            "@radix-ui/react-dialog",
-            "@radix-ui/react-aspect-ratio",
-          ],
         },
       },
     },

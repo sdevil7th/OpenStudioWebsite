@@ -369,7 +369,9 @@ const FeatureSceneWebGLStage = ({ chapters, stateRef, fallback, className }: Fea
     scene.fog = new THREE.FogExp2(0x02040a, 0.05);
     const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 80);
     camera.position.set(0, 0, 17);
-    const records: ChapterRecord[] = [];
+    const records: Array<ChapterRecord | undefined> = Array(chapters.length);
+    const loadingChapters = new Set<number>();
+    const loadTimers: number[] = [];
     const loader = new THREE.TextureLoader();
     const renderStartTime = performance.now();
 
@@ -435,6 +437,52 @@ const FeatureSceneWebGLStage = ({ chapters, stateRef, fallback, className }: Fea
       return { group, planes, particles, accent };
     };
 
+    const disposeRecord = (record: ChapterRecord) => {
+      record.planes.forEach((plane) => {
+        plane.mesh.geometry.dispose();
+        plane.mesh.material.uniforms.uTexture.value?.dispose?.();
+        plane.mesh.material.dispose();
+      });
+      record.particles.points.geometry.dispose();
+      record.particles.points.material.dispose();
+      scene.remove(record.group);
+    };
+
+    const loadChapterAt = async (chapterIndex: number) => {
+      const normalizedIndex = clamp(chapterIndex, 0, chapters.length - 1);
+      const chapter = chapters[normalizedIndex];
+
+      if (!chapter || records[normalizedIndex] || loadingChapters.has(normalizedIndex)) {
+        return;
+      }
+
+      loadingChapters.add(normalizedIndex);
+      try {
+        const record = await makeChapter(chapter, normalizedIndex);
+        if (disposed) {
+          disposeRecord(record);
+          return;
+        }
+        records[normalizedIndex] = record;
+      } finally {
+        loadingChapters.delete(normalizedIndex);
+      }
+    };
+
+    const loadRemainingChapters = () => {
+      chapters.forEach((_, index) => {
+        if (records[index]) {
+          return;
+        }
+
+        loadTimers.push(
+          window.setTimeout(() => {
+            void loadChapterAt(index);
+          }, 260 + index * 180),
+        );
+      });
+    };
+
     const applyPlaneState = (
       plane: PlaneRecord,
       record: ChapterRecord,
@@ -483,6 +531,8 @@ const FeatureSceneWebGLStage = ({ chapters, stateRef, fallback, className }: Fea
       const direction = state.transitionDirection === -1 ? -1 : 1;
       const fromIndex = clamp(state.fromIndex ?? state.activeIndex ?? 0, 0, chapters.length - 1);
       const toIndex = clamp(state.toIndex ?? state.nextIndex ?? fromIndex, 0, chapters.length - 1);
+      void loadChapterAt(fromIndex);
+      void loadChapterAt(toIndex);
       const hasTransition = state.transitionActive > 0.001 && fromIndex !== toIndex;
       const loosen = hasTransition ? clamp(state.loosenProgress ?? phase(progress, 0.22, 0.36), 0, 1) : 0;
       const destruction = hasTransition ? clamp(state.destructionProgress ?? phase(progress, 0.36, 0.72), 0, 1) : 0;
@@ -490,6 +540,10 @@ const FeatureSceneWebGLStage = ({ chapters, stateRef, fallback, className }: Fea
       const readable = hasTransition ? clamp(state.readableProgress ?? phase(progress, 0.9, 1), 0, 1) : 1;
 
       records.forEach((record, index) => {
+        if (!record) {
+          return;
+        }
+
         record.group.visible = false;
         let visible = index === (state.visualOwnerIndex ?? state.activeIndex) ? 1 : 0;
         let incoming = false;
@@ -531,16 +585,19 @@ const FeatureSceneWebGLStage = ({ chapters, stateRef, fallback, className }: Fea
       rafId = window.requestAnimationFrame(render);
     };
 
-    Promise.all(chapters.map((chapter, index) => makeChapter(chapter, index)))
-      .then((chapterRecords) => {
+    const initialIndex = clamp(stateRef.current.activeIndex ?? 0, 0, chapters.length - 1);
+    const initialNextIndex = clamp(stateRef.current.nextIndex ?? initialIndex + 1, 0, chapters.length - 1);
+
+    Promise.all([loadChapterAt(initialIndex), loadChapterAt(initialNextIndex)])
+      .then(() => {
         if (disposed) {
           return;
         }
-        records.push(...chapterRecords);
         setFailed(false);
         setReady(true);
         resize();
         render();
+        loadRemainingChapters();
       })
       .catch(() => {
         if (!disposed) {
@@ -553,16 +610,13 @@ const FeatureSceneWebGLStage = ({ chapters, stateRef, fallback, className }: Fea
 
     return () => {
       disposed = true;
+      loadTimers.forEach((timer) => window.clearTimeout(timer));
       window.cancelAnimationFrame(rafId);
       window.removeEventListener("resize", resize);
       records.forEach((record) => {
-        record.planes.forEach((plane) => {
-          plane.mesh.geometry.dispose();
-          plane.mesh.material.uniforms.uTexture.value?.dispose?.();
-          plane.mesh.material.dispose();
-        });
-        record.particles.points.geometry.dispose();
-        record.particles.points.material.dispose();
+        if (record) {
+          disposeRecord(record);
+        }
       });
       renderer?.dispose();
     };

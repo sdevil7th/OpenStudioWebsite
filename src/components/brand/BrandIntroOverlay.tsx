@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { useReducedMotion } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import BrandLogoConstructScene from "@/components/brand/BrandLogoConstructScene";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 export const BRAND_INTRO_DURATION_MS = 1500;
 const OUTRO_DURATION_MS = 260;
@@ -25,12 +25,12 @@ export const shouldPlayInitialIntro = (pathname: string, force = false) => {
     return false;
   }
 
-  return true;
+  return !window.__openstudioBootLoaderActive;
 };
 
 const BrandIntroOverlay = ({ force = false, onVisibilityChange }: BrandIntroOverlayProps) => {
   const location = useLocation();
-  const reducedMotion = useReducedMotion();
+  const reducedMotion = usePrefersReducedMotion();
   const [visible, setVisible] = useState(() => shouldPlayInitialIntro(location.pathname, force));
   const [leaving, setLeaving] = useState(false);
   const [progress, setProgress] = useState(0);

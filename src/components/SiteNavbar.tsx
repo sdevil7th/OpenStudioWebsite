@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Download, Menu } from "lucide-react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { BRANDING_ASSETS, SITE_NAME } from "@/constants/site";
 import { mainNavigation } from "@/data/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+
+const MobileNavSheet = lazy(() => import("@/components/MobileNavSheet"));
 
 const navItemClass = ({ isActive }: { isActive: boolean }) =>
   cn(
@@ -14,11 +14,9 @@ const navItemClass = ({ isActive }: { isActive: boolean }) =>
     isActive && "site-nav-link--active",
   );
 
-const isNavigationItemActive = (pathname: string, to: string) =>
-  pathname === to || (to !== "/" && pathname.startsWith(`${to}/`));
-
 const SiteNavbar = () => {
   const [open, setOpen] = useState(false);
+  const [mobileNavRequested, setMobileNavRequested] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
 
@@ -32,17 +30,25 @@ const SiteNavbar = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 1279px)");
+
+    if (mediaQuery.matches) {
+      setMobileNavRequested(true);
+    }
+  }, []);
+
+  const requestMobileNav = () => setMobileNavRequested(true);
+
   return (
-    <motion.header
+    <header
       className={cn(
         "fixed inset-x-0 top-0 z-50 px-4 transition-[background-color,border-color,box-shadow,padding] duration-500 ease-out md:px-8",
+        "animate-[site_nav_enter_0.7s_cubic-bezier(0.16,1,0.3,1)_both]",
         scrolled
           ? "border-b border-white/10 bg-background/86 shadow-[0_18px_40px_rgba(0,0,0,0.32)] backdrop-blur-2xl"
           : "border-b border-transparent bg-background/42 backdrop-blur-xl",
       )}
-      initial={{ opacity: 0, y: -22 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
     >
       <div
         className={cn(
@@ -71,53 +77,33 @@ const SiteNavbar = () => {
             </Link>
           </Button>
         </nav>
-        <div className="xl:hidden">
-          <Sheet onOpenChange={setOpen} open={open}>
-            <SheetTrigger asChild>
-              <Button aria-label="Open navigation" size="icon" variant="outline">
-                <Menu className="h-4 w-4" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="panel-surface border-white/10" side="right">
-              <SheetHeader className="mb-8">
-                <SheetTitle>Navigate OpenStudio</SheetTitle>
-                <SheetDescription>
-                  Product overview, feature breakdown, release surface, GitHub story, and project contact live here.
-                </SheetDescription>
-              </SheetHeader>
-              <div className="flex flex-col gap-3">
-                <Link className="font-headline text-xl font-semibold tracking-tight text-white" to="/">
-                  <span className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-[1rem] border border-white/10 bg-white/[0.04]">
-                      <img alt={`${SITE_NAME} icon`} className="h-7 w-7 object-contain" decoding="async" src={BRANDING_ASSETS.mark} />
-                    </span>
-                    <span>{SITE_NAME}</span>
-                  </span>
-                </Link>
-                {mainNavigation.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    className={cn(
-                      "site-mobile-nav-link",
-                      isNavigationItemActive(location.pathname, item.to)
-                        ? "site-mobile-nav-link--active"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
-                    onClick={() => setOpen(false)}
-                    to={item.to}
-                  >
-                    {item.label}
-                  </NavLink>
-                ))}
-                <Button asChild className="mt-4" onClick={() => setOpen(false)}>
-                  <Link to="/download">Get Started</Link>
+        <div className="xl:hidden" onFocus={requestMobileNav} onPointerEnter={requestMobileNav}>
+          {mobileNavRequested ? (
+            <Suspense
+              fallback={
+                <Button aria-label="Open navigation" onClick={requestMobileNav} size="icon" variant="outline">
+                  <Menu className="h-4 w-4" />
                 </Button>
-              </div>
-            </SheetContent>
-          </Sheet>
+              }
+            >
+              <MobileNavSheet onOpenChange={setOpen} open={open} pathname={location.pathname} />
+            </Suspense>
+          ) : (
+            <Button
+              aria-label="Open navigation"
+              onClick={() => {
+                setMobileNavRequested(true);
+                setOpen(true);
+              }}
+              size="icon"
+              variant="outline"
+            >
+              <Menu className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
-    </motion.header>
+    </header>
   );
 };
 

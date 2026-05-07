@@ -110,7 +110,8 @@ const DawCockpitScene = ({ accent = "lavender", className, density = 1 }: DawCoc
                     alt={screenshots.arrangementOverviewWide.alt}
                     className="h-[20rem] w-full object-cover object-top md:h-[26rem] 2xl:h-[30rem]"
                     decoding="async"
-                    loading="eager"
+                    fetchPriority="low"
+                    loading="lazy"
                     src={screenshots.arrangementOverviewWide.src}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/20 to-transparent" />

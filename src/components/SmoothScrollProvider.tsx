@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { useReducedMotion } from "framer-motion";
-import Lenis from "lenis";
-import { registerGsap, ScrollTrigger, gsap } from "@/lib/gsap";
+import type Lenis from "lenis";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { loadGsap } from "@/lib/gsap";
 
 interface SmoothScrollContextValue {
   lenis: Lenis | null;
@@ -16,7 +16,7 @@ interface SmoothScrollProviderProps {
 }
 
 const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) => {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = usePrefersReducedMotion();
   const [lenis, setLenis] = useState<Lenis | null>(null);
 
   useEffect(() => {
@@ -26,31 +26,61 @@ const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) => {
       return;
     }
 
-    registerGsap();
+    let cancelled = false;
+    let cleanup: (() => void) | undefined;
 
-    const lenisInstance = new Lenis({
-      duration: 1.1,
-      smoothWheel: true,
-      syncTouch: false,
-      touchMultiplier: 1.2,
-      easing: (value) => Math.min(1, 1.001 - Math.pow(2, -10 * value)),
-    });
+    const startSmoothScroll = async () => {
+      const [{ default: LenisConstructor }, { gsap, ScrollTrigger }] = await Promise.all([
+        import("lenis"),
+        loadGsap(),
+      ]);
 
-    setLenis(lenisInstance);
-    const updateScroll = () => ScrollTrigger.update();
-    const tick = (time: number) => {
-      lenisInstance.raf(time * 1000);
+      if (cancelled) {
+        return;
+      }
+
+      const lenisInstance = new LenisConstructor({
+        duration: 1.1,
+        smoothWheel: true,
+        syncTouch: false,
+        touchMultiplier: 1.2,
+        easing: (value) => Math.min(1, 1.001 - Math.pow(2, -10 * value)),
+      });
+
+      setLenis(lenisInstance);
+      const updateScroll = () => ScrollTrigger.update();
+      const tick = (time: number) => {
+        lenisInstance.raf(time * 1000);
+      };
+
+      lenisInstance.on("scroll", updateScroll);
+      gsap.ticker.add(tick);
+      gsap.ticker.lagSmoothing(0);
+
+      cleanup = () => {
+        lenisInstance.off("scroll", updateScroll);
+        gsap.ticker.remove(tick);
+        lenisInstance.destroy();
+        setLenis(null);
+      };
     };
 
-    lenisInstance.on("scroll", updateScroll);
-    gsap.ticker.add(tick);
-    gsap.ticker.lagSmoothing(0);
+    const scheduleStart = () => {
+      window.setTimeout(() => {
+        void startSmoothScroll();
+      }, 80);
+    };
+
+    if (window.__openstudioAppReady) {
+      scheduleStart();
+    } else {
+      window.addEventListener("openstudio:app-ready", scheduleStart, { once: true });
+    }
 
     return () => {
-      lenisInstance.off("scroll", updateScroll);
-      gsap.ticker.remove(tick);
-      lenisInstance.destroy();
-      setLenis(null);
+      cancelled = true;
+      window.removeEventListener("openstudio:app-ready", scheduleStart);
+      cleanup?.();
     };
   }, [prefersReducedMotion]);
 

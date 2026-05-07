@@ -21,7 +21,7 @@ import {
   homeWorkflowSteps,
 } from "@/data/home";
 import { externalLinks } from "@/data/siteLinks";
-import { ScrollTrigger, gsap, useScrollScene } from "@/lib/gsap";
+import { type ScrollTriggerInstance, useScrollScene } from "@/lib/gsap";
 
 const pillarMedia = [
   designMedia.homeUspStems,
@@ -33,9 +33,9 @@ const HomePage = () => {
   const pageRef = useRef<HTMLElement | null>(null);
   const [logoProgress, setLogoProgress] = useState(0);
 
-  useScrollScene(pageRef, ({ prefersReducedMotion, isDesktop }) => {
-    let logoTrigger: ScrollTrigger | undefined;
-    let logoPinTrigger: ScrollTrigger | undefined;
+  useScrollScene(pageRef, ({ prefersReducedMotion, isDesktop, gsap, ScrollTrigger }) => {
+    let logoTrigger: ScrollTriggerInstance | undefined;
+    let logoPinTrigger: ScrollTriggerInstance | undefined;
 
     if (prefersReducedMotion) {
       setLogoProgress(0.5);

@@ -34,6 +34,7 @@ const ScreenshotFrame = ({ screenshot, ratio = 16 / 10, className, variant = "ch
                 fitMode === "contain" ? "object-contain p-2 md:p-3" : "object-cover",
               )}
               decoding="async"
+              fetchPriority={variant === "hero" ? "high" : "low"}
               initial={{ scale: 1.08, opacity: 0.74, rotateX: -5 }}
               loading={variant === "hero" ? "eager" : "lazy"}
               style={{ objectPosition: screenshot.focalPosition ?? "center center" }}

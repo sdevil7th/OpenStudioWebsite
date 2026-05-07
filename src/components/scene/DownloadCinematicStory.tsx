@@ -9,7 +9,7 @@ import {
   downloadCinematicSourceLabels,
   type DownloadCinematicPlateId,
 } from "@/data/downloadCinematic";
-import { gsap, ScrollTrigger, useScrollScene } from "@/lib/gsap";
+import { useScrollScene } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 
 const DOWNLOAD_CINEMATIC_SCROLL_VH = 620;
@@ -146,7 +146,7 @@ const DownloadCinematicStory = ({
   const [staticOnly, setStaticOnly] = useState(initialStaticMode);
   const activeScene = downloadCinematicScenes[activeSceneIndex] ?? downloadCinematicScenes[0]!;
 
-  useScrollScene(sectionRef, ({ isDesktop, prefersReducedMotion }) => {
+  useScrollScene(sectionRef, ({ isDesktop, prefersReducedMotion, gsap, ScrollTrigger }) => {
     const section = sectionRef.current;
     const stage = stageRef.current;
 

@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Orbitron:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,500;1,9..144,600;1,9..144,700&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Orbitron:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,500;1,9..144,600;1,9..144,700&display=swap"
+      />
+    </noscript>
     <link rel="icon" href="/assets/openstudio/branding/icon.svg" type="image/svg+xml" />
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/openstudio/branding/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/openstudio/branding/favicon-16x16.png" />
@@ -67,7 +79,70 @@
     </script>
   </head>
   <body class="dark">
+    <div id="openstudio-boot-loader" role="status" aria-live="polite">
+      <div class="os-boot__ambient" aria-hidden="true"></div>
+      <div class="os-boot__content">
+        <div class="os-boot__mark" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <strong>OpenStudio</strong>
+        <p>Preparing the production surface</p>
+      </div>
+      <div class="os-boot__progress" aria-hidden="true"><span></span></div>
+    </div>
     <div id="root"></div>
+    <script>
+      (() => {
+        const loader = document.getElementById("openstudio-boot-loader");
+        if (!loader) return;
+
+        window.__openstudioBootLoaderActive = true;
+        window.__openstudioBootLoaderDismissed = false;
+
+        const startedAt = performance.now();
+        const minimumVisibleMs = 420;
+        const fallbackMs = 4500;
+        let routeReady = false;
+        let hidden = false;
+        let fallbackTimer = 0;
+
+        const finish = () => {
+          if (hidden || !routeReady) return;
+
+          const elapsed = performance.now() - startedAt;
+          if (elapsed < minimumVisibleMs) {
+            window.setTimeout(finish, minimumVisibleMs - elapsed);
+            return;
+          }
+
+          hidden = true;
+          window.clearTimeout(fallbackTimer);
+          loader.classList.add("os-boot--complete");
+          window.setTimeout(() => {
+            loader.remove();
+            window.__openstudioBootLoaderActive = false;
+            window.__openstudioBootLoaderDismissed = true;
+            window.dispatchEvent(new CustomEvent("openstudio:boot-hidden"));
+          }, window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 90 : 320);
+        };
+
+        window.addEventListener(
+          "openstudio:app-ready",
+          () => {
+            routeReady = true;
+            finish();
+          },
+          { once: true },
+        );
+
+        fallbackTimer = window.setTimeout(() => {
+          routeReady = true;
+          finish();
+        }, fallbackMs);
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

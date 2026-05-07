@@ -9,13 +9,13 @@ import { designMedia } from "@/data/designMedia";
 import { releaseChannels, releasePrinciples, releaseSyncPanel, releaseTimeline, releasesHero, releasesSeo } from "@/data/releases";
 import { useGithubRepoSnapshot } from "@/hooks/useGithubRepoSnapshot";
 import { formatGithubDate } from "@/lib/github";
-import { gsap, ScrollTrigger, useScrollScene } from "@/lib/gsap";
+import { useScrollScene } from "@/lib/gsap";
 
 const ReleasesPage = () => {
   const pageRef = useRef<HTMLElement | null>(null);
   const { snapshot, status } = useGithubRepoSnapshot();
 
-  useScrollScene(pageRef, ({ prefersReducedMotion }) => {
+  useScrollScene(pageRef, ({ prefersReducedMotion, gsap, ScrollTrigger }) => {
     gsap.fromTo(
       "[data-releases-hero] > *",
       { y: 24, autoAlpha: 0 },

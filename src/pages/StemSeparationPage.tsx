@@ -5,17 +5,13 @@ import {
   Download,
   ShieldCheck,
 } from "lucide-react";
-import { memo, useRef, useState } from "react";
+import { lazy, memo, Suspense, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import DeferredClientStage from "@/components/DeferredClientStage";
 import PageSeo from "@/components/PageSeo";
 import PretextEditorialField from "@/components/motion/PretextEditorialField";
 import SectionReveal from "@/components/motion/SectionReveal";
-import AiNeuralStudioStage, { type AiNeuralStudioState } from "@/components/scene/AiNeuralStudioStage";
-import AiSignalWebGLStage from "@/components/scene/AiSignalWebGLStage";
-import AiGenesisStage from "@/components/scene/AiGenesisStage";
-import AiArchitectureOrbit from "@/components/scene/AiArchitectureOrbit";
-import AiUseCaseConstellation from "@/components/scene/AiUseCaseConstellation";
-import AiOutroStage from "@/components/scene/AiOutroStage";
+import type { AiNeuralStudioState } from "@/components/scene/AiNeuralStudioStage";
 import { Button } from "@/components/ui/button";
 import {
   aiArchitectureNodes,
@@ -31,8 +27,15 @@ import {
   stemUseCases,
   type AiNeuralStudioPhase,
 } from "@/data/stemSeparation";
-import { gsap, ScrollTrigger, useScrollScene } from "@/lib/gsap";
+import { useScrollScene } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
+
+const AiArchitectureOrbit = lazy(() => import("@/components/scene/AiArchitectureOrbit"));
+const AiGenesisStage = lazy(() => import("@/components/scene/AiGenesisStage"));
+const AiNeuralStudioStage = lazy(() => import("@/components/scene/AiNeuralStudioStage"));
+const AiOutroStage = lazy(() => import("@/components/scene/AiOutroStage"));
+const AiSignalWebGLStage = lazy(() => import("@/components/scene/AiSignalWebGLStage"));
+const AiUseCaseConstellation = lazy(() => import("@/components/scene/AiUseCaseConstellation"));
 
 const heroTokens = ["BS Roformer", "6 stems", "spectrogram", "ACE-Step", "lyrics", "seed", "full decode", "WAV"];
 const stemRibbonLabels = [
@@ -43,6 +46,51 @@ const stemRibbonLabels = [
   { label: "Piano", color: "#dff8ff" },
   { label: "Other", color: "#43f2a2" },
 ];
+
+const AiGenesisFallbackStage = () => (
+  <div className="ai-genesis-stage ai-genesis-stage--failed" data-ai-genesis-stage>
+    <div className="ai-genesis-stage__fallback" aria-hidden="true">
+      <div className="ai-genesis-stage__fallback-wave" />
+      <div className="ai-genesis-stage__fallback-wave ai-genesis-stage__fallback-wave--alt" />
+      <div className="ai-genesis-stage__fallback-core" />
+    </div>
+  </div>
+);
+
+const AiSignalFallbackStage = () => (
+  <div className="ai-signal-webgl-stage ai-signal-webgl-stage--failed" data-ai-webgl-stage>
+    <div className="ai-signal-webgl-stage__fallback" aria-hidden="true">
+      <div className="ai-signal-webgl-stage__fallback-wave ai-signal-webgl-stage__fallback-wave--stem" />
+      <div className="ai-signal-webgl-stage__fallback-core" />
+      <div className="ai-signal-webgl-stage__fallback-wave ai-signal-webgl-stage__fallback-wave--music" />
+    </div>
+  </div>
+);
+
+const AiArchitectureFallbackStage = () => (
+  <div className="ai-arch-stage ai-arch-stage--failed" data-ai-arch-stage>
+    <div className="ai-arch-stage__fallback" aria-hidden="true">
+      <div className="ai-arch-stage__fallback-core" />
+      <div className="ai-arch-stage__fallback-ring" />
+    </div>
+  </div>
+);
+
+const AiUseCaseFallbackStage = () => (
+  <div className="ai-constellation-stage ai-constellation-stage--failed" data-ai-constellation-stage>
+    <div className="ai-constellation-stage__fallback" aria-hidden="true">
+      <div className="ai-constellation-stage__fallback-glow" />
+    </div>
+  </div>
+);
+
+const AiOutroFallbackStage = () => (
+  <div className="ai-outro-stage ai-outro-stage--failed" data-ai-outro-stage>
+    <div className="ai-outro-stage__fallback" aria-hidden="true">
+      <div className="ai-outro-stage__fallback-core" />
+    </div>
+  </div>
+);
 
 const clampProgress = (value?: number) => {
   if (typeof value !== "number" || Number.isNaN(value)) {
@@ -270,7 +318,7 @@ const StemSeparationPage = () => {
 
   const activePhase = aiNeuralStudioPhases[activePhaseIndex] ?? aiNeuralStudioPhases[0]!;
 
-  useScrollScene(pageRef, ({ prefersReducedMotion, isDesktop }) => {
+  useScrollScene(pageRef, ({ prefersReducedMotion, isDesktop, gsap, ScrollTrigger }) => {
     const cleanups: Array<() => void> = [];
     studioStateRef.current.reducedMotion = prefersReducedMotion;
 
@@ -603,7 +651,11 @@ const StemSeparationPage = () => {
 
       {/* Act 0 — Genesis Hero */}
       <section className="ai-genesis-section" data-ai-genesis>
-        <AiGenesisStage progressRef={genesisProgressRef} pointerRef={genesisPointerRef} />
+        <DeferredClientStage className="absolute inset-0" fallback={<AiGenesisFallbackStage />} rootMargin="1200px 0px">
+          <Suspense fallback={<AiGenesisFallbackStage />}>
+            <AiGenesisStage progressRef={genesisProgressRef} pointerRef={genesisPointerRef} />
+          </Suspense>
+        </DeferredClientStage>
         <div className="ai-genesis-overlay" data-ai-genesis-headline>
           <div className="ai-genesis-overlay__inner">
             <span className="ai-genesis-overlay__eyebrow">{aiGenesisCopy.eyebrow}</span>
@@ -663,7 +715,11 @@ const StemSeparationPage = () => {
       {/* Act 1 — Dual pillars */}
       <section className="ai-pillars-section" data-ai-pillars>
         <div className="ai-pillars-canvas">
-          <AiSignalWebGLStage progressRef={pillarsProgressRef} sectionPhaseRef={pillarsPhaseRef} />
+          <DeferredClientStage className="absolute inset-0" fallback={<AiSignalFallbackStage />} rootMargin="900px 0px">
+            <Suspense fallback={<AiSignalFallbackStage />}>
+              <AiSignalWebGLStage progressRef={pillarsProgressRef} sectionPhaseRef={pillarsPhaseRef} />
+            </Suspense>
+          </DeferredClientStage>
         </div>
         <div className="page-frame-wide ai-pillars-grid">
           <header className="ai-pillars-header">
@@ -700,11 +756,19 @@ const StemSeparationPage = () => {
       {/* Act 2 — Neural Studio Lab (pinned WebGL centerpiece) */}
       <section className="ai-neural-lab" data-ai-neural-lab id="ai-neural-lab">
         <div className="ai-neural-stage-wrap" data-ai-neural-stage-wrap>
-          <AiNeuralStudioStage
+          <DeferredClientStage
+            className="absolute inset-0"
             fallback={<NeuralFallbackInstrument phase={activePhase} />}
-            phases={aiNeuralStudioPhases}
-            stateRef={studioStateRef}
-          />
+            rootMargin="1000px 0px"
+          >
+            <Suspense fallback={<NeuralFallbackInstrument phase={activePhase} />}>
+              <AiNeuralStudioStage
+                fallback={<NeuralFallbackInstrument phase={activePhase} />}
+                phases={aiNeuralStudioPhases}
+                stateRef={studioStateRef}
+              />
+            </Suspense>
+          </DeferredClientStage>
           <NeuralCinematicExplainer activePhase={activePhase} />
           <NeuralHud activePhase={activePhase} />
         </div>
@@ -721,7 +785,11 @@ const StemSeparationPage = () => {
       {/* Act 3 — Architecture Orbit */}
       <section className="ai-arch-section" data-ai-arch data-ai-neural-details>
         <div className="ai-arch-canvas">
-          <AiArchitectureOrbit activeNode={archActiveNode} pointerRef={archPointerRef} />
+          <DeferredClientStage className="absolute inset-0" fallback={<AiArchitectureFallbackStage />} rootMargin="900px 0px">
+            <Suspense fallback={<AiArchitectureFallbackStage />}>
+              <AiArchitectureOrbit activeNode={archActiveNode} pointerRef={archPointerRef} />
+            </Suspense>
+          </DeferredClientStage>
         </div>
         <div className="page-frame-wide ai-arch-grid">
           <header className="ai-arch-header" data-ai-neural-detail>
@@ -807,7 +875,11 @@ const StemSeparationPage = () => {
       {/* Act 4 — Use case constellation */}
       <section className="ai-usecases-section" data-ai-usecases>
         <div className="ai-usecases-canvas">
-          <AiUseCaseConstellation activeIndex={useCaseActive} pointerRef={useCasePointerRef} />
+          <DeferredClientStage className="absolute inset-0" fallback={<AiUseCaseFallbackStage />} rootMargin="900px 0px">
+            <Suspense fallback={<AiUseCaseFallbackStage />}>
+              <AiUseCaseConstellation activeIndex={useCaseActive} pointerRef={useCasePointerRef} />
+            </Suspense>
+          </DeferredClientStage>
         </div>
         <div className="page-frame-wide ai-usecases-grid">
           <header className="ai-usecases-header">
@@ -836,7 +908,11 @@ const StemSeparationPage = () => {
       {/* Act 5 — Outro collapse / final CTA */}
       <section className="ai-outro-section ai-final-section" data-ai-outro>
         <div className="ai-outro-canvas">
-          <AiOutroStage collapseRef={outroCollapseRef} />
+          <DeferredClientStage className="absolute inset-0" fallback={<AiOutroFallbackStage />} rootMargin="900px 0px">
+            <Suspense fallback={<AiOutroFallbackStage />}>
+              <AiOutroStage collapseRef={outroCollapseRef} />
+            </Suspense>
+          </DeferredClientStage>
         </div>
         <SectionReveal className="page-frame-wide ai-outro-shell">
           <div className="ai-outro-cta ai-outro-cta--premium">

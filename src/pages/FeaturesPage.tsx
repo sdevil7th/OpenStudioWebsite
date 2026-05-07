@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -11,11 +11,11 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import ChapterProgress from "@/components/ChapterProgress";
+import DeferredClientStage from "@/components/DeferredClientStage";
 import PageSeo from "@/components/PageSeo";
 import FeatureSceneCompositor, {
   type FeatureSceneCompositorState,
 } from "@/components/scene/FeatureSceneCompositor";
-import FeatureSceneWebGLStage from "@/components/scene/FeatureSceneWebGLStage";
 import FeatureStoryUnifiedTransition from "@/components/scene/FeatureStoryUnifiedTransition";
 import FeaturesStoryBackdrop from "@/components/scene/FeaturesStoryBackdrop";
 import ChapterIntroOverlay from "@/components/scene/ChapterIntroOverlay";
@@ -29,8 +29,10 @@ import {
   featuresFinalCta,
 } from "@/data/features";
 import type { FeatureChapter } from "@/data/marketing";
-import { gsap, ScrollTrigger, useScrollScene } from "@/lib/gsap";
+import { useScrollScene } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
+
+const FeatureSceneWebGLStage = lazy(() => import("@/components/scene/FeatureSceneWebGLStage"));
 
 const accentBadgeClass = {
   lavender: "border-primary/25 bg-primary/10 text-primary",
@@ -492,7 +494,7 @@ const FeaturesPage = () => {
 
   useScrollScene(
     pageRef,
-    ({ prefersReducedMotion: reduceMotion, isDesktop }) => {
+    ({ prefersReducedMotion: reduceMotion, isDesktop, gsap, ScrollTrigger }) => {
       const useDesktopStory =
         isDesktop && window.matchMedia("(min-width: 1280px)").matches;
       const cleanups: Array<() => void> = [];
@@ -1542,16 +1544,36 @@ const FeaturesPage = () => {
 
               <div className="feature-story-shell-stage">
                 <div className="feature-story-canvas">
-                  <FeatureSceneWebGLStage
-                    chapters={featureChapters}
+                  <DeferredClientStage
+                    className="h-full"
                     fallback={
                       <FeatureSceneCompositor
                         chapters={featureChapters}
                         stateRef={compositorStateRef}
                       />
                     }
-                    stateRef={compositorStateRef}
-                  />
+                    rootMargin="250px 0px"
+                  >
+                    <Suspense
+                      fallback={
+                        <FeatureSceneCompositor
+                          chapters={featureChapters}
+                          stateRef={compositorStateRef}
+                        />
+                      }
+                    >
+                      <FeatureSceneWebGLStage
+                        chapters={featureChapters}
+                        fallback={
+                          <FeatureSceneCompositor
+                            chapters={featureChapters}
+                            stateRef={compositorStateRef}
+                          />
+                        }
+                        stateRef={compositorStateRef}
+                      />
+                    </Suspense>
+                  </DeferredClientStage>
                   <div className="feature-story-panel-stack">
                     {featureChapters.map((chapter, index) => (
                       <FeatureStoryPanel
