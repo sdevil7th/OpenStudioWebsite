@@ -604,18 +604,20 @@ const DownloadPage = () => {
                 className="download-hero-platform-grid"
                 data-download-platforms
               >
-                {platformOrder.map((platform) => {
+                {platformOrder.map((platform, index) => {
                   const item = downloadsById[platform];
                   const copy = platformStudioCopy[platform];
                   const Icon = copy.icon;
                   const isActive = activePlatform === platform;
                   const isRecommended = recommendedPlatform === platform;
+                  const isLastItem = index === platformOrder.length - 1;
 
                   return (
                     <article
                       className={cn(
                         "download-platform-card download-platform-card--hero",
                         isActive && "download-platform-card--active",
+                        isLastItem && "mb-8",
                       )}
                       data-download-hero-card
                       data-platform={platform}
@@ -835,7 +837,9 @@ const DownloadPage = () => {
               <Sparkles className="h-3.5 w-3.5" />
               Optional AI tooling
             </div>
-            <h2>Install the DAW first. Add AI only when the project needs it.</h2>
+            <h2>
+              Install the DAW first. Add AI only when the project needs it.
+            </h2>
             <p>
               {snapshot.latestRelease
                 ? `GitHub release ${snapshot.latestRelease.tagName} was published ${formatGithubDate(snapshot.latestRelease.publishedAt)}. The base installer stays focused on the DAW, while optional AI tools remain a separate setup for stem separation and generation workflows.`

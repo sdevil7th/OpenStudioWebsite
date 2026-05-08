@@ -347,7 +347,7 @@ const StemSeparationPage = () => {
     pointer: { x: 0, y: 0 },
     audioEnergy: 0,
     reducedMotion: false,
-  }, { delay: 360, runOnInput: false, timeout: 1400 });
+  });
   const globalProgressRef = useRef(0);
   const phaseProgressRef = useRef(0);
   const [activePhaseIndex, setActivePhaseIndex] = useState(0);
@@ -363,9 +363,11 @@ const StemSeparationPage = () => {
 
   const activePhase = aiNeuralStudioPhases[activePhaseIndex] ?? aiNeuralStudioPhases[0]!;
 
-  useScrollScene(pageRef, ({ prefersReducedMotion, isDesktop, gsap, ScrollTrigger }) => {
-    const cleanups: Array<() => void> = [];
-    studioStateRef.current.reducedMotion = prefersReducedMotion;
+  useScrollScene(
+    pageRef,
+    ({ prefersReducedMotion, isDesktop, gsap, ScrollTrigger }) => {
+      const cleanups: Array<() => void> = [];
+      studioStateRef.current.reducedMotion = prefersReducedMotion;
 
     if (!prefersReducedMotion) {
       gsap.fromTo(
@@ -395,17 +397,23 @@ const StemSeparationPage = () => {
         },
       );
 
-      gsap.from("[data-ai-neural-detail]", {
-        y: 28,
-        opacity: 0,
-        duration: 0.74,
-        stagger: 0.08,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: "[data-ai-neural-details]",
-          start: "top 80%",
+      gsap.fromTo(
+        "[data-ai-neural-detail]",
+        { y: 28, autoAlpha: 0 },
+        {
+          y: 0,
+          autoAlpha: 1,
+          clearProps: "transform,opacity,visibility",
+          duration: 0.74,
+          stagger: 0.08,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: "[data-ai-neural-details]",
+            start: "top 80%",
+            once: true,
+          },
         },
-      });
+      );
 
       gsap.fromTo(
         "[data-ai-genesis-headline] .ai-genesis-overlay__line",
@@ -479,27 +487,33 @@ const StemSeparationPage = () => {
     }
 
     if (isDesktop) {
+      const syncNeuralProgress = (progress: number) => {
+        const nextProgress = clampProgress(progress);
+        const nextIndex = phaseIndexForProgress(nextProgress);
+        const nextPhase = aiNeuralStudioPhases[nextIndex] ?? aiNeuralStudioPhases[0]!;
+        const nextPhaseProgress = phaseProgressFor(nextPhase, nextProgress);
+
+        studioStateRef.current.globalProgress = nextProgress;
+        studioStateRef.current.phaseIndex = nextIndex;
+        studioStateRef.current.phaseProgress = nextPhaseProgress;
+        studioStateRef.current.audioEnergy = 0.4 + Math.sin(nextProgress * Math.PI * 4) * 0.18 + nextPhaseProgress * 0.16;
+        globalProgressRef.current = nextProgress;
+        phaseProgressRef.current = nextPhaseProgress;
+        setActivePhaseIndex((previous) => (previous === nextIndex ? previous : nextIndex));
+      };
+
       const trigger = ScrollTrigger.create({
         trigger: "[data-ai-neural-lab]",
         start: "top top",
         end: "bottom bottom",
         scrub: true,
         onUpdate: (self) => {
-          const nextProgress = clampProgress(self.progress);
-          const nextIndex = phaseIndexForProgress(nextProgress);
-          const nextPhase = aiNeuralStudioPhases[nextIndex] ?? aiNeuralStudioPhases[0]!;
-          const nextPhaseProgress = phaseProgressFor(nextPhase, nextProgress);
-
-          studioStateRef.current.globalProgress = nextProgress;
-          studioStateRef.current.phaseIndex = nextIndex;
-          studioStateRef.current.phaseProgress = nextPhaseProgress;
-          studioStateRef.current.audioEnergy = 0.4 + Math.sin(nextProgress * Math.PI * 4) * 0.18 + nextPhaseProgress * 0.16;
-          globalProgressRef.current = nextProgress;
-          phaseProgressRef.current = nextPhaseProgress;
-          setActivePhaseIndex((previous) => (previous === nextIndex ? previous : nextIndex));
+          syncNeuralProgress(self.progress);
         },
       });
       cleanups.push(() => trigger.kill());
+      ScrollTrigger.refresh();
+      syncNeuralProgress(trigger.progress);
 
       const genesisTrigger = ScrollTrigger.create({
         trigger: "[data-ai-genesis]",
@@ -687,8 +701,10 @@ const StemSeparationPage = () => {
     hudFrame = window.requestAnimationFrame(tickHud);
     cleanups.push(() => window.cancelAnimationFrame(hudFrame));
 
-    return () => cleanups.forEach((cleanup) => cleanup());
-  });
+      return () => cleanups.forEach((cleanup) => cleanup());
+    },
+    { delay: 360, runOnInput: true, timeout: 1400 },
+  );
 
   return (
     <main
@@ -860,13 +876,12 @@ const StemSeparationPage = () => {
                   archActiveNode === index && "ai-arch-node-card--active",
                 )}
                 data-ai-arch-card
-                data-ai-neural-detail
                 key={node.id}
               >
                 <span className="ai-arch-node-card__index">{String(index + 1).padStart(2, "0")}</span>
                 <span className="ai-arch-node-card__role">{node.role}</span>
                 <h3 className="ai-arch-node-card__label">{node.label}</h3>
-                <AiKineticText className="ai-arch-node-card__description" text={node.description} />
+                <p className="ai-arch-node-card__description">{node.description}</p>
               </article>
             ))}
           </div>
