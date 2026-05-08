@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { SITE_NAME, SITE_URL } from "@/constants/site";
 import { footerNavigation } from "@/data/navigation";
-import { contactProfile, externalLinks, footerUtilityLinks } from "@/data/siteLinks";
+import { contactProfile, footerUtilityLinks } from "@/data/siteLinks";
 
 const SiteFooter = () => {
   return (
@@ -16,11 +16,6 @@ const SiteFooter = () => {
               {item.label}
             </Link>
           ))}
-          {externalLinks.repository ? (
-            <a className="transition hover:text-primary" href={externalLinks.repository} rel="noreferrer" target="_blank">
-              Repository
-            </a>
-          ) : null}
           {footerUtilityLinks.map((item) =>
             item.href && item.href.startsWith("/") ? (
               <Link className="transition hover:text-primary" key={item.label} to={item.href}>

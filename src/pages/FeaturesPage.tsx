@@ -98,19 +98,21 @@ const lerpValue = (start: number, end: number, progress: number) =>
 const easeOutCubic = (value: number) =>
   1 - Math.pow(1 - clampProgress(value), 3);
 
-const DEFAULT_COLLAPSE = 0.22;
-const DEFAULT_VOID_PEAK = 0.72;
-const DEFAULT_ARRIVAL = 0.9;
-const DEFAULT_SETTLE = 1;
-const INTRO_END = 0.22;
-const STORY_CUE_START = 0.22;
-const STORY_LOOSEN_START = 0.22;
-const STORY_DESTRUCTION_START = 0.36;
-const STORY_REASSEMBLY_START = 0.72;
-const STORY_PANEL_IN_START = 0.9;
-const STORY_PANEL_SETTLE_END = 1;
-const STORY_VISUAL_SETTLE_START = 1;
-const STORY_SCROLL_STOP_DELAY = 90;
+const DEFAULT_COLLAPSE = 0.18;
+const DEFAULT_VOID_PEAK = 0.56;
+const DEFAULT_ARRIVAL = 0.72;
+const DEFAULT_SETTLE = 0.88;
+const INTRO_END = 0.18;
+const STORY_CUE_START = 0.16;
+const STORY_LOOSEN_START = 0.16;
+const STORY_DESTRUCTION_START = 0.3;
+const STORY_REASSEMBLY_START = 0.58;
+const STORY_PANEL_IN_START = 0.72;
+const STORY_PANEL_SETTLE_END = 0.88;
+const STORY_VISUAL_SETTLE_START = 0.9;
+const STORY_SCROLL_STOP_DELAY = 45;
+const STORY_CHAPTER_START_INSET = 160;
+const STORY_CHAPTER_END_OFFSET = 112;
 
 const phaseProgress = (value: number, start: number, end: number) => {
   if (end <= start) {
@@ -581,8 +583,8 @@ const FeaturesPage = () => {
 
         ScrollTrigger.create({
           trigger: target,
-          start: useDesktopStory ? "top top+=112" : "top center+=80",
-          end: useDesktopStory ? "bottom bottom-=160" : "bottom center",
+          start: useDesktopStory ? "top bottom-=160" : "top center+=80",
+          end: useDesktopStory ? "bottom top+=112" : "bottom center",
           onEnter: () => {
             if (!useDesktopStory) {
               setActiveId(chapterId);
@@ -1036,35 +1038,37 @@ const FeaturesPage = () => {
 
       const markerProgress = (marker: HTMLElement) => {
         const rect = marker.getBoundingClientRect();
-        const startOffset = 112;
-        const endOffset = window.innerHeight - 160;
-        const travel = Math.max(1, rect.height - endOffset + startOffset);
-        return clampProgress((startOffset - rect.top) / travel);
+        const startLine = window.innerHeight - STORY_CHAPTER_START_INSET;
+        const endLine = STORY_CHAPTER_END_OFFSET;
+        const travel = Math.max(1, rect.height + startLine - endLine);
+        return clampProgress((startLine - rect.top) / travel);
       };
 
       const getActiveMarkerState = () => {
+        const startLine = window.innerHeight - STORY_CHAPTER_START_INSET;
+        const endLine = STORY_CHAPTER_END_OFFSET;
         const states = markers.map((marker, index) => ({
           index,
           progress: markerProgress(marker),
           rect: marker.getBoundingClientRect(),
         }));
-        const active =
-          states.find(
+        const active = [...states]
+          .reverse()
+          .find(
             (state) =>
-              state.rect.top <= 112 &&
-              state.rect.bottom >= window.innerHeight - 160,
+              state.rect.top <= startLine && state.rect.bottom >= endLine,
           ) ?? states.find((state) => state.progress > 0 && state.progress < 1);
 
         if (active) {
           return active;
         }
 
-        const beforeFirst = states[0] && states[0].rect.top > 112;
+        const beforeFirst = states[0] && states[0].rect.top > startLine;
         if (beforeFirst) {
           return { index: 0, progress: 0, rect: states[0]!.rect };
         }
 
-        const upcoming = states.find((state) => state.rect.top > 112);
+        const upcoming = states.find((state) => state.rect.top > startLine);
         if (upcoming) {
           const previousIndex = Math.max(0, upcoming.index - 1);
           const previous = states[previousIndex];
@@ -1165,7 +1169,7 @@ const FeaturesPage = () => {
           : 1;
         const scrollStoppedFor = now - storyController.lastScrollTime;
         const settleProgress = clampProgress(
-          (scrollStoppedFor - STORY_SCROLL_STOP_DELAY) / 620,
+          (scrollStoppedFor - STORY_SCROLL_STOP_DELAY) / 340,
         );
         const isAuthoredBridge = Boolean(
           chapter.transitionProfile?.authoredBridge,
@@ -1322,10 +1326,9 @@ const FeaturesPage = () => {
           hasNextPanel && progress >= phases.voidPeak
             ? markerState.index + 1
             : markerState.index;
-        const visualOwnerId = featureChapters[visualOwnerIndex]?.id;
-        if (visualOwnerId && visualOwnerId !== storyController.activeId) {
-          storyController.activeId = visualOwnerId;
-          setActiveId(visualOwnerId);
+        if (chapter.id !== storyController.activeId) {
+          storyController.activeId = chapter.id;
+          setActiveId(chapter.id);
         }
 
         const currentPanelExit = hasNextPanel

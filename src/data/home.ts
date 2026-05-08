@@ -83,7 +83,7 @@ export const homeHero = {
   title: "Craft Sound Faster",
   supportLine: "Complex things made simple",
   description:
-    "OpenStudio combines recording, MIDI, pitch editing, plugin hosting, detached mixer workflow, optional stem separation, and scripting in one native DAW. Features often split across multiple tools stay connected inside the project.",
+    "OpenStudio is an OpenSource native DAW where multitrack recording, MIDI, pitch editing, plugin hosting, optional stem separation, and scripting stay connected inside one project.",
   primaryCta: {
     label: "Download OpenStudio",
     to: "/download",
@@ -99,19 +99,20 @@ export const homeHero = {
 };
 
 export const homeHeroProof = [
-  "Built-in stem separation",
+  "Multitrack recording",
   "Graphical pitch editing",
-  "Detached mixer workflow",
-  "Native plugin windows",
+  "VST3 / CLAP / LV2 hosting",
+  "AI stem separation",
 ];
 
 export const homeProofBarItems = [
-  "Built-in stem separation",
+  "Multitrack recording",
   "Graphical pitch editing",
-  "Detached mixer workflow",
   "VST3 / CLAP / LV2 hosting",
-  "Input FX / Track FX / Master FX",
+  "AI stem separation",
+  "MIDI piano roll",
   "Lua scripting",
+  "Input / Track / Master FX",
   "Optional ARA hosting",
 ];
 
@@ -119,11 +120,11 @@ export const homeOriginStory = {
   eyebrow: "Open project direction",
   title: "A serious DAW, shaped through public iteration.",
   description:
-    "OpenStudio is being shaped as a native DAW with a visually modern surface and a grounded production story. The public site should make that feel intentional: serious audio workflows, integrated advanced tools, and a direct connection between product ambition, releases, and the real repository.",
+    "OpenStudio is an OpenSource native DAW with a modern surface, serious audio workflows, and a public development model people can inspect before they commit.",
   points: [
     "Native DAW positioning instead of a browser-first compromise.",
-    "Advanced workflow depth framed as part of the session, not a detached utility story.",
-    "Release claims kept honest around optional AI tooling, packaging, and installer trust.",
+    "Advanced workflow depth stays part of the session instead of becoming a separate utility story.",
+    "Release claims stay honest around optional AI tooling, packaging, and installer trust.",
   ],
 };
 
@@ -153,30 +154,30 @@ export const homePillars = [
     title: "A real mix and plugin workflow",
     eyebrow: "See the session clearly",
     description:
-      "Detached mixing, channel strips, sends, automation, input FX, and native plugin windows make the mix stage feel like a real desktop production environment.",
-    points: ["Detached mixer behavior", "VST3 / CLAP / LV2 hosting"],
+      "Channel strips, sends, automation, input FX, and native plugin windows make the mix stage feel like a real desktop production environment.",
+    points: ["Channel strips and sends", "VST3 / CLAP / LV2 hosting"],
   },
 ];
 
 export const homeCapabilityGrid = [
   {
-    title: "Hyper-scale recording",
-    description: "Track live takes, shape arrangements, and keep the session responsive as projects grow.",
+    title: "Native recording core",
+    description: "Record armed tracks, monitor inputs, punch ranges, and waveform previews in a project built for real sessions.",
     accent: "emerald",
   },
   {
-    title: "Mixer architecture",
-    description: "Channel strips, meters, sends, and FX stay legible when the session turns into a real mix.",
+    title: "Plugin and FX depth",
+    description: "Host VST3, CLAP, and LV2 plugins alongside input FX, track FX, master FX, presets, and native editor windows.",
     accent: "lavender",
   },
   {
-    title: "Plugin hosting",
-    description: "Keep instruments and FX windows visually close to the tracks they change.",
+    title: "Pitch, MIDI, and stems",
+    description: "Graphical pitch tools, piano roll editing, MIDI recording, and optional AI stem separation stay inside the same workflow.",
     accent: "amber",
   },
   {
-    title: "Collaborative future",
-    description: "The product story stays open to documentation, contribution, and public iteration.",
+    title: "OpenSource / AGPLv3",
+    description: "The source is available under GNU AGPLv3 so users can inspect, modify, and contribute with the license clearly visible.",
     accent: "frost",
   },
 ];
@@ -246,9 +247,9 @@ export const homeWorkflowSteps: StoryStep[] = [
     eyebrow: "Finish",
     title: "Mix with a real mixer, real plugin workflow, and a clean render path.",
     description:
-      "When the session gets dense, OpenStudio keeps the mix readable. Detached mixer behavior, plugin windows, FX chains, automation, and export all stay within reach.",
+      "When the session gets dense, OpenStudio keeps the mix readable. Channel strips, plugin windows, FX chains, automation, and export all stay within reach.",
     bullets: [
-      "Keep channel strips and metering visible in a mixer workflow that can detach from the main view.",
+      "Keep channel strips, metering, sends, and routing visible while the project grows.",
       "Use input FX, track FX, master FX, sends, and automation where they make sense.",
       "Render to WAV, AIFF, or FLAC without leaving the project environment.",
     ],

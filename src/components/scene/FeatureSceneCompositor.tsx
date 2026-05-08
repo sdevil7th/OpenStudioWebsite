@@ -107,10 +107,10 @@ interface VoidField {
 const DPR_FALLBACK = 1;
 const DPR_LIMIT = 1.5;
 const TAU = Math.PI * 2;
-const DEFAULT_COLLAPSE = 0.22;
-const DEFAULT_VOID_PEAK = 0.72;
-const DEFAULT_ARRIVAL = 0.9;
-const DEFAULT_SETTLE = 1;
+const DEFAULT_COLLAPSE = 0.18;
+const DEFAULT_VOID_PEAK = 0.56;
+const DEFAULT_ARRIVAL = 0.72;
+const DEFAULT_SETTLE = 0.88;
 
 export const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 export const lerp = (start: number, end: number, progress: number) => start + (end - start) * progress;

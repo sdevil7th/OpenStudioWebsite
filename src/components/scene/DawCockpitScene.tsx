@@ -27,7 +27,7 @@ const showcaseCards = [
   },
 ];
 
-const heroPills = ["Multitrack recording", "Pitch editing", "Detached mixer", "VST3 / CLAP / LV2"];
+const heroPills = ["Multitrack recording", "Pitch editing", "VST3 / CLAP / LV2", "AI stem separation"];
 
 const DawCockpitScene = ({ accent = "lavender", className, density = 1 }: DawCockpitSceneProps) => {
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -76,7 +76,7 @@ const DawCockpitScene = ({ accent = "lavender", className, density = 1 }: DawCoc
         <SoundField accent={accent} className="opacity-75" density={density} showGrid={false} showNodes showWave />
 
         <div className="daw-cockpit-tilt relative z-10" ref={tiltRef}>
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.18fr)_minmax(20rem,0.82fr)]">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)]">
             <div
               className="daw-cockpit-reveal design-window-shell rounded-[2rem] border border-white/10 bg-black/45"
               style={{ "--daw-reveal-delay": "60ms" } as CSSProperties}
@@ -109,8 +109,8 @@ const DawCockpitScene = ({ accent = "lavender", className, density = 1 }: DawCoc
                     ))}
                   </div>
                   <div className="absolute inset-x-5 bottom-5 rounded-[1.35rem] border border-white/10 bg-black/52 p-4 backdrop-blur-xl">
-                    <div className="font-mono text-[0.58rem] uppercase tracking-[0.26em] text-secondary">{screenshots.arrangementOverviewWide.label}</div>
-                    <p className="mt-2 max-w-2xl text-sm leading-6 text-white/74">{screenshots.arrangementOverviewWide.caption}</p>
+                    <div className="font-mono text-[0.58rem] uppercase tracking-[0.26em] text-secondary">Arrangement view</div>
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-white/74">Record, edit, tune, route plugins, and shape MIDI from one project surface.</p>
                   </div>
                 </div>
 
@@ -118,15 +118,17 @@ const DawCockpitScene = ({ accent = "lavender", className, density = 1 }: DawCoc
                   <div className="rounded-[1.45rem] border border-white/10 bg-black/35 p-4 md:p-5">
                     <div className="flex items-center justify-between gap-4">
                       <div>
-                        <div className="font-mono text-[0.58rem] uppercase tracking-[0.26em] text-primary">Detached mixer workflow</div>
-                        <p className="mt-2 text-sm leading-6 text-white/72">{screenshots.mixerMeters.caption}</p>
+                        <div className="font-mono text-[0.58rem] uppercase tracking-[0.26em] text-primary">Mixer and routing</div>
+                        <p className="mt-2 text-sm leading-6 text-white/72">
+                          Channel strips, meters, sends, and FX chains stay readable as the production turns into a real mix.
+                        </p>
                       </div>
                       <div className="hidden h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-secondary md:flex">
                         <SlidersHorizontal className="h-5 w-5" />
                       </div>
                     </div>
                     <div className="mt-5 overflow-hidden rounded-[1.2rem] border border-white/10">
-                      <img alt={screenshots.mixerMeters.alt} className="h-28 w-full object-cover object-center" decoding="async" loading="lazy" src={screenshots.mixerMeters.src} />
+                      <img alt={screenshots.mixerMeters.alt} className="h-32 w-full object-cover object-center" decoding="async" loading="lazy" src={screenshots.mixerMeters.src} />
                     </div>
                     <div className="mt-4 flex h-16 items-end gap-2">
                       {mixerBars.map((height, index) => (
@@ -154,8 +156,8 @@ const DawCockpitScene = ({ accent = "lavender", className, density = 1 }: DawCoc
                     <div className="mt-4 grid gap-3">
                       {[
                         "Record takes and trim directly on the timeline.",
-                        "Edit MIDI and pitch without leaving the song.",
-                        "Keep plugins and mixing visible in the same project.",
+                        "Edit MIDI notes and pitch decisions without leaving the song.",
+                        "Open native plugin editors beside the tracks they shape.",
                       ].map((item) => (
                         <div className="rounded-[1rem] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-6 text-white/72" key={item}>
                           {item}
@@ -187,12 +189,12 @@ const DawCockpitScene = ({ accent = "lavender", className, density = 1 }: DawCoc
                   <img
                     {...getResponsiveImageAttributes(asset.src, "below-fold", {
                       maxWidth: 960,
-                      sizes: "(min-width: 1280px) 28vw, 100vw",
+                      sizes: "(min-width: 1280px) 32vw, 100vw",
                     })}
                     alt={asset.alt}
-                    className="h-64 w-full object-cover object-top"
+                    className="h-72 w-full object-cover object-top 2xl:h-80"
                   />
-                  <div className="px-4 py-4">
+                  <div className="px-5 py-5">
                     <div className="font-headline text-base font-semibold text-white">{asset.label}</div>
                     <p className="mt-2 text-sm leading-6 text-white/70">{asset.caption}</p>
                   </div>

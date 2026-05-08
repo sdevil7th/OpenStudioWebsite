@@ -641,30 +641,51 @@ const StemSeparationPage = () => {
     attachStagePointer("[data-ai-usecases]", useCasePointerRef);
 
     // HUD percentage / progress-bar live updates via direct DOM (no React re-render per scroll tick).
-    const globalPctEl = document.querySelector<HTMLElement>("[data-ai-neural-global-pct]");
-    const phasePctEl = document.querySelector<HTMLElement>("[data-ai-neural-phase-pct]");
-    const progressBarEl = document.querySelector<HTMLElement>("[data-ai-neural-progress-bar]");
-    if (globalPctEl || phasePctEl || progressBarEl) {
-      let lastG = -1;
-      let lastP = -1;
-      let hudFrame = 0;
-      const tickHud = () => {
-        const g = Math.round(globalProgressRef.current * 100);
-        const p = Math.round(phaseProgressRef.current * 100);
-        if (g !== lastG) {
-          lastG = g;
-          if (globalPctEl) globalPctEl.textContent = `${String(g).padStart(2, "0")}%`;
-          if (progressBarEl) progressBarEl.style.width = `${Math.max(6, g)}%`;
+    let hudElements:
+      | {
+          globalPctEl: HTMLElement | null;
+          phasePctEl: HTMLElement | null;
+          progressBarEl: HTMLElement | null;
         }
-        if (p !== lastP) {
-          lastP = p;
-          if (phasePctEl) phasePctEl.textContent = `${String(p).padStart(2, "0")}%`;
-        }
-        hudFrame = window.requestAnimationFrame(tickHud);
+      | undefined;
+    const resolveHudElements = () => {
+      if (
+        hudElements?.globalPctEl?.isConnected &&
+        hudElements.phasePctEl?.isConnected &&
+        hudElements.progressBarEl?.isConnected
+      ) {
+        return hudElements;
+      }
+
+      const root = pageRef.current;
+      hudElements = {
+        globalPctEl: root?.querySelector<HTMLElement>("[data-ai-neural-global-pct]") ?? null,
+        phasePctEl: root?.querySelector<HTMLElement>("[data-ai-neural-phase-pct]") ?? null,
+        progressBarEl: root?.querySelector<HTMLElement>("[data-ai-neural-progress-bar]") ?? null,
       };
+      return hudElements;
+    };
+    let lastHudGlobal = -1;
+    let lastHudPhase = -1;
+    let hudFrame = 0;
+    const tickHud = () => {
+      const { globalPctEl, phasePctEl, progressBarEl } = resolveHudElements();
+      const g = Math.round(globalProgressRef.current * 100);
+      const p = Math.round(phaseProgressRef.current * 100);
+
+      if (g !== lastHudGlobal || globalPctEl?.textContent === "00%") {
+        lastHudGlobal = g;
+        if (globalPctEl) globalPctEl.textContent = `${String(g).padStart(2, "0")}%`;
+        if (progressBarEl) progressBarEl.style.width = `${Math.max(6, g)}%`;
+      }
+      if (p !== lastHudPhase || phasePctEl?.textContent === "00%") {
+        lastHudPhase = p;
+        if (phasePctEl) phasePctEl.textContent = `${String(p).padStart(2, "0")}%`;
+      }
       hudFrame = window.requestAnimationFrame(tickHud);
-      cleanups.push(() => window.cancelAnimationFrame(hudFrame));
-    }
+    };
+    hudFrame = window.requestAnimationFrame(tickHud);
+    cleanups.push(() => window.cancelAnimationFrame(hudFrame));
 
     return () => cleanups.forEach((cleanup) => cleanup());
   });
@@ -799,8 +820,8 @@ const StemSeparationPage = () => {
               />
             </Suspense>
           </DeferredClientStage>
-          <NeuralCinematicExplainer activePhase={activePhase} />
-          <NeuralHud activePhase={activePhase} />
+          <NeuralCinematicExplainer activePhase={activePhase} key={`explainer-${activePhase.id}`} />
+          <NeuralHud activePhase={activePhase} key={`hud-${activePhase.id}`} />
         </div>
       </section>
 

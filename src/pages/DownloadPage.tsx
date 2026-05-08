@@ -14,7 +14,16 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { lazy, Suspense, type CSSProperties, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  type CSSProperties,
+  type ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import PageSeo from "@/components/PageSeo";
 import DeferredClientStage from "@/components/DeferredClientStage";
 import BrandLogoConstructScene from "@/components/brand/BrandLogoConstructScene";
@@ -93,7 +102,9 @@ const platformStudioCopy: Record<DownloadPlatform, PlatformStudioCopy> = {
 const platformOrder: DownloadPlatform[] = ["windows", "macos", "linux"];
 const LOGO_SCROLL_TARGET_PROGRESS = 0.66;
 const DOWNLOAD_CINEMATIC_SCROLL_VH = 620;
-const DownloadCinematicStory = lazy(() => import("@/components/scene/DownloadCinematicStory"));
+const DownloadCinematicStory = lazy(
+  () => import("@/components/scene/DownloadCinematicStory"),
+);
 
 const DownloadCinematicStaticSurface = () => {
   const openingScene = downloadCinematicScenes[0]!;
@@ -104,19 +115,30 @@ const DownloadCinematicStaticSurface = () => {
       className="download-cinematic download-cinematic--static-surface"
       data-download-cinema
       data-download-cinematic-story
-      style={{ "--download-cinema-scroll-vh": `${DOWNLOAD_CINEMATIC_SCROLL_VH}vh` } as CSSProperties}
+      style={
+        {
+          "--download-cinema-scroll-vh": `${DOWNLOAD_CINEMATIC_SCROLL_VH}vh`,
+        } as CSSProperties
+      }
     >
-      <div className="download-cinematic__stage download-cinematic__stage--static-surface" aria-hidden="true">
+      <div
+        className="download-cinematic__stage download-cinematic__stage--static-surface"
+        aria-hidden="true"
+      >
         <div className="download-cinematic__film">
           <figure
             className="download-cinematic__plate download-cinematic__plate--wide"
             data-download-cinematic-asset={studioPlate.id}
           >
             <img
-              {...getResponsiveImageAttributes(studioPlate.src, "story-active", {
-                maxWidth: 1440,
-                sizes: "100vw",
-              })}
+              {...getResponsiveImageAttributes(
+                studioPlate.src,
+                "story-active",
+                {
+                  maxWidth: 1440,
+                  sizes: "100vw",
+                },
+              )}
               alt={studioPlate.alt}
               height={studioPlate.height}
               width={studioPlate.width}
@@ -150,7 +172,11 @@ const DownloadCinematicStaticSurface = () => {
             </span>
           ))}
         </div>
-        <div className="download-cinematic__scene-copy" data-download-cinematic-copy data-scene={openingScene.id}>
+        <div
+          className="download-cinematic__scene-copy"
+          data-download-cinematic-copy
+          data-scene={openingScene.id}
+        >
           <span>{openingScene.eyebrow}</span>
           <h2>{openingScene.headline}</h2>
           <p>{openingScene.description}</p>
@@ -196,7 +222,8 @@ const detectBrowserPlatform = (): BrowserPlatform => {
 
 const browserToDownloadPlatform = (
   platform: BrowserPlatform,
-): DownloadPlatform => (platform === "macos" || platform === "linux" ? platform : "windows");
+): DownloadPlatform =>
+  platform === "macos" || platform === "linux" ? platform : "windows";
 
 const copyText = async (value: string) => {
   if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
@@ -224,10 +251,9 @@ const DownloadPage = () => {
   const [logoProgress, setLogoProgress] = useState(0);
   const downloadsById = useMemo(
     () =>
-      Object.fromEntries(platformDownloads.map((item) => [item.id, item])) as Record<
-        DownloadPlatform,
-        (typeof platformDownloads)[number]
-      >,
+      Object.fromEntries(
+        platformDownloads.map((item) => [item.id, item]),
+      ) as Record<DownloadPlatform, (typeof platformDownloads)[number]>,
     [],
   );
   const { snapshot } = useGithubRepoSnapshot();
@@ -243,27 +269,31 @@ const DownloadPage = () => {
   const recommendedPlatform = browserToDownloadPlatform(browserPlatform);
   const activeDownloadItem = downloadsById[activePlatform];
 
-  useScrollScene(pageRef, ({ prefersReducedMotion, gsap }) => {
-    if (prefersReducedMotion) {
-      return;
-    }
+  useScrollScene(
+    pageRef,
+    ({ prefersReducedMotion, gsap }) => {
+      if (prefersReducedMotion) {
+        return;
+      }
 
-    const cleanups: Array<() => void> = [];
+      const cleanups: Array<() => void> = [];
 
-    const cardIntro = gsap.from("[data-download-hero-card]", {
-      y: 34,
-      opacity: 0,
-      duration: 0.78,
-      stagger: 0.08,
-      ease: "power3.out",
-    });
+      const cardIntro = gsap.from("[data-download-hero-card]", {
+        y: 34,
+        opacity: 0,
+        duration: 0.78,
+        stagger: 0.08,
+        ease: "power3.out",
+      });
 
-    cleanups.push(() => {
-      cardIntro.kill();
-    });
+      cleanups.push(() => {
+        cardIntro.kill();
+      });
 
-    return () => cleanups.forEach((cleanup) => cleanup());
-  }, { delay: 420, runOnInput: false, timeout: 1400 });
+      return () => cleanups.forEach((cleanup) => cleanup());
+    },
+    { delay: 420, runOnInput: false, timeout: 1400 },
+  );
 
   const downloadInstructions: Record<
     DownloadPlatform,
@@ -284,7 +314,8 @@ const DownloadPage = () => {
       eyebrow: "Before you open the installer",
       summary: (
         <>
-          When Windows warns that OpenStudio is from an untrusted publisher, click{" "}
+          When Windows warns that OpenStudio is from an untrusted publisher,
+          click{" "}
           <span className="rounded-md border border-amber-300/40 bg-amber-300/18 px-2 py-0.5 font-mono text-[0.72rem] font-bold uppercase tracking-[0.14em] text-amber-100">
             More info
           </span>{" "}
@@ -329,7 +360,8 @@ const DownloadPage = () => {
           <span className="rounded-md border border-orange-300/40 bg-orange-300/18 px-2 py-0.5 font-mono text-[0.72rem] font-bold uppercase tracking-[0.14em] text-orange-100">
             broken
           </span>
-          , remove the quarantine flag with the command below and then launch the app again.
+          , remove the quarantine flag with the command below and then launch
+          the app again.
         </>
       ),
       confirmLabel: "I understand, download for macOS",
@@ -348,9 +380,9 @@ const DownloadPage = () => {
       eyebrow: "Before you launch the app",
       summary: (
         <>
-          Linux downloads ship as a self-contained AppImage tested on Ubuntu 22.04+. Make the file
-          executable, run it directly, and use the optional install flag if you want desktop
-          integration.
+          Linux downloads ship as a self-contained AppImage tested on Ubuntu
+          22.04+. Make the file executable, run it directly, and use the
+          optional install flag if you want desktop integration.
         </>
       ),
       confirmLabel: "Download AppImage",
@@ -391,7 +423,9 @@ const DownloadPage = () => {
   }, [copyState]);
 
   useEffect(() => {
-    const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const reduceMotionQuery = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    );
     const desktopQuery = window.matchMedia("(min-width: 1024px)");
     let frame = 0;
 
@@ -403,16 +437,26 @@ const DownloadPage = () => {
         return;
       }
 
-      const hero = document.querySelector<HTMLElement>("[data-download-studio-hero]");
+      const hero = document.querySelector<HTMLElement>(
+        "[data-download-studio-hero]",
+      );
       if (!hero) {
         return;
       }
 
       const rect = hero.getBoundingClientRect();
       const startOffset = 96;
-      const scrollRange = Math.max(1, hero.offsetHeight - window.innerHeight + startOffset + 160);
-      const progress = Math.max(0, Math.min(1, (startOffset - rect.top) / scrollRange));
-      const nextProgress = Number((progress * LOGO_SCROLL_TARGET_PROGRESS).toFixed(3));
+      const scrollRange = Math.max(
+        1,
+        hero.offsetHeight - window.innerHeight + startOffset + 160,
+      );
+      const progress = Math.max(
+        0,
+        Math.min(1, (startOffset - rect.top) / scrollRange),
+      );
+      const nextProgress = Number(
+        (progress * LOGO_SCROLL_TARGET_PROGRESS).toFixed(3),
+      );
       setLogoProgress((previous) =>
         Math.abs(previous - nextProgress) < 0.004 ? previous : nextProgress,
       );
@@ -509,11 +553,11 @@ const DownloadPage = () => {
       <div className="download-page__backdrop" aria-hidden="true" />
 
       <div className="mx-auto max-w-7xl px-5 pb-24 md:px-10">
-        <section
-          className="download-studio-hero"
-          data-download-studio-hero
-        >
-          <div className="download-home-logo-stage" data-download-logo-pin-stage>
+        <section className="download-studio-hero" data-download-studio-hero>
+          <div
+            className="download-home-logo-stage"
+            data-download-logo-pin-stage
+          >
             <div data-download-logo-stage>
               <BrandLogoConstructScene
                 label="OpenStudio logo construction for download preview"
@@ -524,7 +568,10 @@ const DownloadPage = () => {
             </div>
           </div>
 
-          <div className="download-studio-hero__panel-stack" data-download-panel-stack>
+          <div
+            className="download-studio-hero__panel-stack"
+            data-download-panel-stack
+          >
             <div className="download-studio-hero__copy">
               <div className="design-badge download-studio-hero__badge w-fit">
                 <CheckCircle2 className="h-3.5 w-3.5 text-secondary" />
@@ -553,7 +600,10 @@ const DownloadPage = () => {
                 ))}
               </div>
 
-              <div className="download-hero-platform-grid" data-download-platforms>
+              <div
+                className="download-hero-platform-grid"
+                data-download-platforms
+              >
                 {platformOrder.map((platform) => {
                   const item = downloadsById[platform];
                   const copy = platformStudioCopy[platform];
@@ -650,7 +700,8 @@ const DownloadPage = () => {
                   Open source release path
                 </h2>
                 <p className="mt-2 max-w-xl text-sm leading-7 text-white/64">
-                  Stable buttons resolve through download endpoints while the public repository and release status stay visible.
+                  Stable buttons resolve through download endpoints while the
+                  public repository and release status stay visible.
                 </p>
               </div>
             </div>
@@ -721,11 +772,15 @@ const DownloadPage = () => {
             </div>
             <h2>Built for the session you actually run.</h2>
             <p>
-              The base app stays lean, but dense sessions, plugin chains, and optional local AI tools benefit from extra CPU,
-              memory, and SSD headroom.
+              The base app stays lean, but dense sessions, plugin chains, and
+              optional local AI tools benefit from extra CPU, memory, and SSD
+              headroom.
             </p>
           </div>
-          <div className="download-requirements__table-wrap" data-download-requirements-table>
+          <div
+            className="download-requirements__table-wrap"
+            data-download-requirements-table
+          >
             <div className="download-requirements__table-meta">
               <span>System Requirements</span>
               <strong>REV 2026.04 · Desktop</strong>
@@ -744,11 +799,15 @@ const DownloadPage = () => {
                   <tr key={item.component}>
                     <th scope="row">{item.component}</th>
                     <td>
-                      <span className="download-requirements__mobile-label">Minimum</span>
+                      <span className="download-requirements__mobile-label">
+                        Minimum
+                      </span>
                       {item.minimum}
                     </td>
                     <td>
-                      <span className="download-requirements__mobile-label">Recommended</span>
+                      <span className="download-requirements__mobile-label">
+                        Recommended
+                      </span>
                       <strong>{item.recommended}</strong>
                     </td>
                   </tr>
@@ -760,10 +819,14 @@ const DownloadPage = () => {
 
         <SectionReveal className="download-ai-callout" data-download-outro>
           <img
-            {...getResponsiveImageAttributes(designMedia.downloadWorkspace.src, "below-fold", {
-              maxWidth: 1280,
-              sizes: "(min-width: 1024px) 44vw, 100vw",
-            })}
+            {...getResponsiveImageAttributes(
+              designMedia.downloadWorkspace.src,
+              "below-fold",
+              {
+                maxWidth: 1280,
+                sizes: "(min-width: 1024px) 44vw, 100vw",
+              },
+            )}
             alt={designMedia.downloadWorkspace.alt}
             className="download-ai-callout__image"
           />
@@ -772,23 +835,16 @@ const DownloadPage = () => {
               <Sparkles className="h-3.5 w-3.5" />
               Optional AI tooling
             </div>
-            <h2>Base installer first. AI runtime only when you ask for it.</h2>
+            <h2>Install the DAW first. Add AI only when the project needs it.</h2>
             <p>
               {snapshot.latestRelease
-                ? `GitHub release ${snapshot.latestRelease.tagName} was published ${formatGithubDate(snapshot.latestRelease.publishedAt)}. The base installer stays honest, and optional AI tooling remains a separate setup step for stem and generation workflows.`
-                : "The base installer stays honest, Windows, macOS, and Linux ship through stable endpoints, and optional AI tooling remains a clearly separate step while GitHub Releases prepares for its first asset-backed publish."}
+                ? `GitHub release ${snapshot.latestRelease.tagName} was published ${formatGithubDate(snapshot.latestRelease.publishedAt)}. The base installer stays focused on the DAW, while optional AI tools remain a separate setup for stem separation and generation workflows.`
+                : "The base installer stays focused on the DAW for Windows, macOS, and Linux. Optional AI tools remain a separate setup, so users are never surprised by extra runtime requirements."}
             </p>
             <div className="download-ai-callout__signals">
-              <span>
-                <Sparkline />
-                Optional AI tools separate
-              </span>
-              <span>
-                <ArrowRight className="h-3.5 w-3.5" />
-                {snapshot.latestRelease
-                  ? "GitHub release path active"
-                  : "GitHub release path warming up"}
-              </span>
+              <span>Base installer stays lean</span>
+              <span>Optional AI setup is separate</span>
+              <span>Release notes stay visible</span>
             </div>
           </div>
         </SectionReveal>
@@ -868,7 +924,8 @@ const DownloadPage = () => {
             </div>
 
             <p className="mt-5 text-sm leading-7 text-white/58">
-              Confirming means you understand that OpenStudio may require these manual trust steps before it opens normally on your platform.
+              Confirming means you understand that OpenStudio may require these
+              manual trust steps before it opens normally on your platform.
             </p>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
@@ -894,17 +951,5 @@ const DownloadPage = () => {
     </main>
   );
 };
-
-const Sparkline = () => (
-  <div className="flex h-4 items-end gap-1">
-    {[45, 80, 60, 100].map((height, index) => (
-      <span
-        className="eq-bar w-1 rounded-full bg-secondary"
-        key={height}
-        style={{ animationDelay: `${index * 0.08}s`, height: `${height}%` }}
-      />
-    ))}
-  </div>
-);
 
 export default DownloadPage;
