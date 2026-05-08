@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Activity, ArrowRight, Clock3, FileText, GitBranch, GitFork, Github, Shield, Star, Users } from "lucide-react";
 import { useRef } from "react";
 import { Link } from "react-router-dom";
@@ -10,7 +9,7 @@ import { githubCallout, githubHero, githubHighlights, githubPillars, githubSeo }
 import { externalLinks } from "@/data/siteLinks";
 import { useGithubRepoSnapshot } from "@/hooks/useGithubRepoSnapshot";
 import { formatGithubDate, formatGithubNumber, formatLanguageMix } from "@/lib/github";
-import { gsap, useScrollScene } from "@/lib/gsap";
+import { useScrollScene } from "@/lib/gsap";
 
 const GithubPage = () => {
   const pageRef = useRef<HTMLElement | null>(null);
@@ -20,7 +19,7 @@ const GithubPage = () => {
     : "No GitHub releases published yet";
   const visibleContributorLabel = `${formatGithubNumber(snapshot.stats.contributorCount)} visible ${snapshot.stats.contributorCount === 1 ? "contributor" : "contributors"}`;
 
-  useScrollScene(pageRef, ({ prefersReducedMotion }) => {
+  useScrollScene(pageRef, ({ prefersReducedMotion, gsap }) => {
     if (!prefersReducedMotion) {
       gsap.from("[data-github-title]", {
         y: 18,
@@ -57,13 +56,10 @@ const GithubPage = () => {
   });
 
   return (
-    <motion.main
+    <main
       ref={pageRef}
-      animate={{ opacity: 1 }}
-      className="design-page-main"
+      className="design-page-main route-appear"
       id="main-content"
-      initial={{ opacity: 0 }}
-      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
       <PageSeo {...githubSeo} />
 
@@ -277,7 +273,7 @@ const GithubPage = () => {
           </SectionReveal>
         </section>
       </div>
-    </motion.main>
+    </main>
   );
 };
 

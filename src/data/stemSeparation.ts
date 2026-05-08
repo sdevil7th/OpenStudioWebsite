@@ -115,7 +115,7 @@ export const aiNeuralStudioPhases: AiNeuralStudioPhase[] = [
       "The soft outer field marks the local runtime boundary around the session.",
     ],
     accent: "frost",
-    scrollRange: [0, 0.2],
+    scrollRange: [0, 0.18],
   },
   {
     id: "separate",
@@ -140,7 +140,7 @@ export const aiNeuralStudioPhases: AiNeuralStudioPhase[] = [
       "The result is useful for remix prep, cleanup, practice, arrangement changes, and processing.",
     ],
     accent: "emerald",
-    scrollRange: [0.2, 0.44],
+    scrollRange: [0.18, 0.38],
   },
   {
     id: "generate",
@@ -165,7 +165,7 @@ export const aiNeuralStudioPhases: AiNeuralStudioPhase[] = [
       "Full VAE decode remains the quality line before generated material becomes a WAV.",
     ],
     accent: "amber",
-    scrollRange: [0.44, 0.68],
+    scrollRange: [0.38, 0.58],
   },
   {
     id: "commit",
@@ -190,7 +190,7 @@ export const aiNeuralStudioPhases: AiNeuralStudioPhase[] = [
       "The synchronized stack represents audio the producer can keep editing, routing, processing, and rendering.",
     ],
     accent: "emerald",
-    scrollRange: [0.68, 1],
+    scrollRange: [0.58, 1],
   },
 ];
 

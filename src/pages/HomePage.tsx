@@ -1,18 +1,14 @@
-import { motion } from "framer-motion";
-import { ArrowRight, Download, Github, Sparkles } from "lucide-react";
-import { useRef, useState } from "react";
+import { Download, Github, Sparkles } from "lucide-react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import PageSeo from "@/components/PageSeo";
 import BrandLogoConstructScene from "@/components/brand/BrandLogoConstructScene";
 import SectionReveal from "@/components/motion/SectionReveal";
 import DawCockpitScene from "@/components/scene/DawCockpitScene";
-import SoundField from "@/components/scene/SoundField";
 import { Button } from "@/components/ui/button";
 import { BRANDING_ASSETS } from "@/constants/site";
 import { designMedia } from "@/data/designMedia";
 import {
-  homeCapabilityGrid,
-  homeFinalCta,
   homeHero,
   homeOriginStory,
   homePillars,
@@ -21,7 +17,8 @@ import {
   homeWorkflowSteps,
 } from "@/data/home";
 import { externalLinks } from "@/data/siteLinks";
-import { ScrollTrigger, gsap, useScrollScene } from "@/lib/gsap";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { useScrollScene } from "@/lib/gsap";
 
 const pillarMedia = [
   designMedia.homeUspStems,
@@ -29,62 +26,132 @@ const pillarMedia = [
   designMedia.homeUspCode,
 ];
 
+const HOME_LOGO_ASSEMBLED_PROGRESS = 0.62;
+
+const renderOpenSourceText = (text: string) =>
+  text.split(/(OpenSource)/g).map((part, index) =>
+    part === "OpenSource" ? (
+      <span className="open-source-highlight" key={`${part}-${index}`}>
+        {part}
+      </span>
+    ) : (
+      part
+    ),
+  );
+
+const HomeLogoAmbientField = ({ progress }: { progress: number }) => {
+  const atmosphereStyle = {
+    "--home-logo-atmosphere-opacity": (
+      0.78 +
+      Math.min(progress, 0.8) * 0.12
+    ).toFixed(3),
+    "--home-logo-progress": progress.toFixed(3),
+  } as CSSProperties;
+
+  return (
+    <div
+      className="home-logo-atmosphere"
+      aria-hidden="true"
+      style={atmosphereStyle}
+    >
+      <span className="home-logo-atmosphere__curtain home-logo-atmosphere__curtain--one" />
+      <span className="home-logo-atmosphere__curtain home-logo-atmosphere__curtain--two" />
+      <span className="home-logo-atmosphere__curtain home-logo-atmosphere__curtain--three" />
+      <span className="home-logo-atmosphere__curtain home-logo-atmosphere__curtain--four" />
+      <span className="home-logo-atmosphere__beam home-logo-atmosphere__beam--one" />
+      <span className="home-logo-atmosphere__beam home-logo-atmosphere__beam--two" />
+      <span className="home-logo-atmosphere__beam home-logo-atmosphere__beam--three" />
+      <span className="home-logo-atmosphere__ring home-logo-atmosphere__ring--one" />
+      <span className="home-logo-atmosphere__ring home-logo-atmosphere__ring--two" />
+      <span className="home-logo-atmosphere__streak home-logo-atmosphere__streak--one" />
+      <span className="home-logo-atmosphere__streak home-logo-atmosphere__streak--two" />
+      <span className="home-logo-atmosphere__shimmer" />
+    </div>
+  );
+};
+
 const HomePage = () => {
   const pageRef = useRef<HTMLElement | null>(null);
+  const logoSectionRef = useRef<HTMLElement | null>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
   const [logoProgress, setLogoProgress] = useState(0);
 
-  useScrollScene(pageRef, ({ prefersReducedMotion, isDesktop }) => {
-    let logoTrigger: ScrollTrigger | undefined;
-    let logoPinTrigger: ScrollTrigger | undefined;
+  useEffect(() => {
+    const section = logoSectionRef.current;
+
+    if (!section) {
+      return;
+    }
 
     if (prefersReducedMotion) {
       setLogoProgress(0.5);
-    } else if (isDesktop) {
-      logoPinTrigger = ScrollTrigger.create({
-        trigger: "[data-home-logo-scroll-section]",
-        start: "top top+=96",
-        end: "bottom top",
-        pin: "[data-home-logo-pin-stage]",
-        pinSpacing: true,
-        anticipatePin: 1,
-        invalidateOnRefresh: true,
-      });
-
-      logoTrigger = ScrollTrigger.create({
-        trigger: "[data-home-logo-scroll-section]",
-        start: "top top",
-        end: "bottom top",
-        scrub: 0.7,
-        onUpdate: (self) => {
-          setLogoProgress(Number(self.progress.toFixed(3)));
-        },
-      });
-    } else {
-      setLogoProgress(0.5);
+      section.style.setProperty("--home-logo-progress", "0.500");
+      return;
     }
 
-    if (!prefersReducedMotion) {
-      gsap
-        .timeline({ defaults: { ease: "power3.out" } })
-        .from("[data-home-hero-eyebrow]", { y: 18, duration: 0.48 })
-        .from("[data-home-hero-title]", { y: 14, duration: 0.52 }, 0.06)
-        .from("[data-home-hero-support]", { y: 12, duration: 0.32 }, 0.12)
-        .from("[data-home-hero-body]", { y: 14, duration: 0.38 }, 0.16)
-        .from(
-          "[data-home-hero-action]",
-          { y: 12, stagger: 0.08, duration: 0.34 },
-          0.18,
-        )
-        .from(
-          "[data-home-proof-item]",
-          { y: 16, opacity: 0, stagger: 0.05, duration: 0.38 },
-          0.32,
-        )
-        .from(
-          "[data-home-logo-stage]",
-          { y: 28, opacity: 0, scale: 0.97, duration: 0.72 },
-          0.1,
-        );
+    let frame = 0;
+    let lastProgress = -1;
+    const desktopQuery = window.matchMedia("(min-width: 1280px)");
+
+    const writeProgress = (value: number) => {
+      const rounded = Number(value.toFixed(3));
+
+      section.style.setProperty("--home-logo-progress", rounded.toFixed(3));
+      if (rounded !== lastProgress) {
+        lastProgress = rounded;
+        setLogoProgress(rounded);
+      }
+    };
+
+    const update = () => {
+      frame = 0;
+
+      if (!desktopQuery.matches) {
+        writeProgress(0.5);
+        return;
+      }
+
+      const rect = section.getBoundingClientRect();
+      const scrollRange = Number.parseFloat(
+        window
+          .getComputedStyle(section)
+          .getPropertyValue("--home-logo-scroll-range"),
+      );
+      const travel = Number.isFinite(scrollRange)
+        ? Math.max(1, scrollRange)
+        : Math.max(1, section.offsetHeight - window.innerHeight);
+      const scrollProgress = Math.max(0, Math.min(1, -rect.top / travel));
+      const progress = Math.min(scrollProgress, HOME_LOGO_ASSEMBLED_PROGRESS);
+      writeProgress(progress);
+    };
+
+    const requestUpdate = () => {
+      if (frame) {
+        return;
+      }
+
+      frame = window.requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+    desktopQuery.addEventListener("change", requestUpdate);
+
+    return () => {
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
+
+      window.removeEventListener("scroll", requestUpdate);
+      window.removeEventListener("resize", requestUpdate);
+      desktopQuery.removeEventListener("change", requestUpdate);
+    };
+  }, [prefersReducedMotion]);
+
+  useScrollScene(pageRef, ({ prefersReducedMotion, gsap }) => {
+    if (prefersReducedMotion) {
+      return undefined;
     }
 
     gsap.from("[data-home-card]", {
@@ -119,33 +186,31 @@ const HomePage = () => {
         );
       });
 
-    return () => {
-      logoPinTrigger?.kill();
-      logoTrigger?.kill();
-    };
+    return undefined;
   });
 
   return (
-    <motion.main
-      ref={pageRef}
-      animate={{ opacity: 1 }}
-      className="relative"
-      id="main-content"
-      initial={{ opacity: 0 }}
-      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-    >
+    <main ref={pageRef} className="relative" id="main-content">
       <PageSeo {...homeSeo} />
 
       <section
-        className="home-logo-scroll-section relative min-h-[auto] overflow-hidden px-4 pb-12 pt-24 md:px-8 xl:min-h-[214vh] xl:px-12"
+        className="home-logo-scroll-section relative min-h-[auto] px-4 pb-12 pt-24 md:px-8 xl:px-12 xl:pb-0"
         data-home-logo-scroll-section
+        ref={logoSectionRef}
+        style={
+          { "--home-logo-progress": logoProgress.toFixed(3) } as CSSProperties
+        }
       >
         <div className="absolute inset-0 design-mesh-bg" />
+        <HomeLogoAmbientField progress={logoProgress} />
         <div className="floating-audio-orb left-[5%] top-[10%] h-72 w-72 bg-primary/24" />
         <div className="floating-audio-orb bottom-[6%] right-[6%] h-[32rem] w-[32rem] bg-secondary/18 [animation-delay:-2s]" />
         {/* <SoundField accent="lavender" density={1.15} showGrid={false} /> */}
 
-        <div className="home-logo-sticky-stage page-frame-wide relative z-10" data-home-logo-pin-stage>
+        <div
+          className="home-logo-sticky-stage page-frame-wide relative z-10"
+          data-home-logo-pin-stage
+        >
           <div className="grid gap-10 xl:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] xl:items-center">
             <div className="xl:hidden" data-home-logo-stage>
               <BrandLogoConstructScene progress={0.5} size="compact" />
@@ -165,7 +230,7 @@ const HomePage = () => {
                 {homeHero.title}
               </h1>
               <p
-                className="mt-5 font-headline text-sm uppercase tracking-[0.34em] text-white/54 md:text-base"
+                className="home-hero-support mt-5 font-headline text-sm uppercase md:text-base"
                 data-home-hero-support
               >
                 {homeHero.supportLine}
@@ -174,7 +239,7 @@ const HomePage = () => {
                 className="mt-6 max-w-4xl font-headline text-xl leading-relaxed text-white/76 md:text-2xl 2xl:text-[1.7rem]"
                 data-home-hero-body
               >
-                {homeHero.description}
+                {renderOpenSourceText(homeHero.description)}
               </p>
 
               <div
@@ -182,19 +247,32 @@ const HomePage = () => {
                 data-home-hero-actions
               >
                 <span className="home-action-slot" data-home-hero-action>
-                  <Button asChild className="h-auto min-w-[min(100%,17rem)] px-10 py-4 text-base font-bold">
+                  <Button
+                    asChild
+                    className="h-auto min-w-[min(100%,17rem)] px-10 py-4 text-base font-bold"
+                  >
                     <Link to={homeHero.primaryCta.to}>
                       <span className="openstudio-button__icon">
                         <Download className="h-4 w-4" />
                       </span>
-                      <span className="openstudio-button__label">{homeHero.primaryCta.label}</span>
+                      <span className="openstudio-button__label">
+                        {homeHero.primaryCta.label}
+                      </span>
                     </Link>
                   </Button>
                 </span>
                 {externalLinks.repository ? (
                   <span className="home-action-slot" data-home-hero-action>
-                    <Button asChild className="h-auto min-w-[min(100%,11rem)] px-10 py-4 text-base font-semibold" variant="outline">
-                      <a href={externalLinks.repository} rel="noreferrer" target="_blank">
+                    <Button
+                      asChild
+                      className="h-auto min-w-[min(100%,11rem)] px-10 py-4 text-base font-semibold"
+                      variant="outline"
+                    >
+                      <a
+                        href={externalLinks.repository}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
                         <span className="openstudio-button__icon">
                           <Github className="h-4 w-4" />
                         </span>
@@ -204,7 +282,11 @@ const HomePage = () => {
                   </span>
                 ) : (
                   <span className="home-action-slot" data-home-hero-action>
-                    <Button asChild className="h-auto min-w-[min(100%,11rem)] px-10 py-4 text-base font-semibold" variant="outline">
+                    <Button
+                      asChild
+                      className="h-auto min-w-[min(100%,11rem)] px-10 py-4 text-base font-semibold"
+                      variant="outline"
+                    >
                       <Link to="/github">
                         <span className="openstudio-button__icon">
                           <Github className="h-4 w-4" />
@@ -219,11 +301,11 @@ const HomePage = () => {
               <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:max-w-3xl">
                 {homeProofBarItems.slice(0, 4).map((item) => (
                   <div
-                    className="design-glass-panel rounded-[1.4rem] px-4 py-3 text-sm text-white/76"
+                    className="home-proof-card"
                     data-home-proof-item
                     key={item}
                   >
-                    {item}
+                    <span>{item}</span>
                   </div>
                 ))}
               </div>
@@ -238,11 +320,11 @@ const HomePage = () => {
 
       <section className="px-4 py-10 md:px-8 xl:px-12">
         <div className="page-frame-wide">
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem] xl:items-end">
+          <div className="grid gap-6">
             <DawCockpitScene accent="lavender" />
-            <div className="flex flex-wrap items-center gap-4 rounded-[1.5rem] border border-white/10 bg-black/30 px-5 py-4 xl:flex-col xl:items-start">
+            <div className="home-session-strip">
               <div className="flex items-center gap-4">
-                <div className="flex aspect-square w-14 items-center justify-center rounded-[1rem] border border-white/10 bg-white/[0.04] p-3">
+                <div className="home-session-strip__mark">
                   <img
                     alt="OpenStudio icon"
                     className="h-full w-full object-contain"
@@ -255,12 +337,14 @@ const HomePage = () => {
                     OpenStudio live session
                   </div>
                   <div className="font-mono text-[0.62rem] uppercase tracking-[0.24em] text-white/36">
-                    recording, MIDI, mixing, plugin hosting
+                    recording, MIDI, pitch, plugins, scripting
                   </div>
                 </div>
               </div>
               <div className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-secondary">
-                Windows + macOS + Linux | optional AI tools separate
+                {renderOpenSourceText(
+                  "Windows + macOS + Linux | OpenSource / AGPLv3 | optional AI tools separate",
+                )}
               </div>
             </div>
           </div>
@@ -274,11 +358,13 @@ const HomePage = () => {
               <div className="design-badge design-badge-secondary w-fit">
                 {homeOriginStory.eyebrow}
               </div>
-              <h2 className="section-display max-w-xl font-headline font-bold text-white">
-                Open Source. Product-Led. Built in Public.
+              <h2 className="home-origin-title section-display max-w-xl font-headline font-bold text-white">
+                {renderOpenSourceText(
+                  "OpenSource. Product-led. Built in public.",
+                )}
               </h2>
               <p className="max-w-xl text-lg leading-8 text-white/66">
-                {homeOriginStory.description}
+                {renderOpenSourceText(homeOriginStory.description)}
               </p>
               <div className="grid gap-4">
                 {homeOriginStory.points.map((point) => (
@@ -299,26 +385,29 @@ const HomePage = () => {
             </div>
 
             <div
-              className="relative overflow-hidden rounded-[2.3rem] border border-white/10"
+              className="home-origin-media-panel relative min-h-[34rem] overflow-hidden rounded-[2.3rem] border border-white/10 bg-black/20 p-5 md:p-6"
               data-home-origin-media
             >
               <img
                 alt={designMedia.homeStoryServer.alt}
-                className="h-full w-full object-cover grayscale contrast-125"
+                className="absolute inset-0 h-full w-full object-cover opacity-58 grayscale contrast-125"
                 data-parallax-image
                 decoding="async"
                 loading="lazy"
                 src={designMedia.homeStoryServer.src}
               />
-              <div className="absolute inset-0 bg-gradient-to-tr from-primary/16 via-transparent to-secondary/10 mix-blend-screen" />
-              <div className="absolute inset-x-6 bottom-6 rounded-[1.4rem] border border-white/10 bg-black/40 p-5 backdrop-blur-xl">
+              <div className="absolute inset-0 bg-gradient-to-tr from-black/48 via-black/8 to-secondary/8" />
+              <div className="home-origin-license-card">
                 <div className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-secondary">
-                  Public direction
+                  License
                 </div>
-                <p className="mt-3 max-w-md text-sm leading-7 text-white/72">
-                  The site, release surface, and repository all reinforce the
-                  same story: real desktop workflows, visible tradeoffs, and a
-                  project people can inspect before they commit.
+                <div className="mt-4 font-headline text-2xl font-bold text-white">
+                  GNU AGPLv3
+                </div>
+                <p className="mt-3 text-sm leading-7 text-white/76">
+                  {renderOpenSourceText(
+                    "OpenSource by default, with source access and license terms visible before people download, modify, or contribute.",
+                  )}
                 </p>
               </div>
             </div>
@@ -337,10 +426,10 @@ const HomePage = () => {
                 Scroll Through the Session
               </h2>
             </div>
-            <p className="max-w-2xl text-sm leading-7 text-white/62">
-              These are not isolated feature bullets. They are the moments that
-              make the whole project feel cohesive when you move from
-              composition to finishing work.
+            <p className="home-workflow-note max-w-2xl text-sm leading-7">
+              Move from a first take to pitch work, stems, plugins, MIDI, and
+              final render without losing the shape of the song. Each card is a
+              production moment, not a disconnected feature bullet.
             </p>
           </div>
 
@@ -432,117 +521,65 @@ const HomePage = () => {
       </section>
 
       <section className="px-4 py-14 md:px-8 xl:px-12">
-        <div className="page-frame-wide grid gap-4 md:grid-cols-4 md:grid-rows-2">
-          <SectionReveal
-            className="design-panel relative overflow-hidden rounded-[2.5rem] p-10 md:col-span-2 md:row-span-2"
-            delay={0.02}
-          >
-            <SoundField
-              accent="emerald"
-              density={0.9}
-              showGrid={false}
-              showNodes={false}
-            />
-            <div className="relative z-10 flex h-full flex-col justify-between">
-              <div>
-                <h3 className="font-display text-4xl font-bold text-white">
-                  {homeCapabilityGrid[0]?.title ?? "Hyper-scale recording"}
-                </h3>
-                <p className="mt-4 max-w-sm text-sm leading-7 text-white/68">
-                  {homeCapabilityGrid[0]?.description}
-                </p>
+        <div className="page-frame-wide">
+          <SectionReveal className="home-aurora-cta" delay={0.02}>
+            <div className="home-aurora-cta__content flex flex-col items-center text-center">
+              <div className="design-badge design-badge-secondary w-fit">
+                Ready when the session is
               </div>
-              <div className="mt-12 border-t border-white/10 pt-8">
-                <div className="flex h-32 items-end gap-2">
-                  {[60, 82, 100, 40, 90, 50, 72, 100, 34].map(
-                    (height, index) => (
-                      <div
-                        className="eq-bar w-2 rounded-full bg-secondary"
-                        key={height}
-                        style={{
-                          animationDelay: `${index * 0.08}s`,
-                          height: `${height}%`,
-                          opacity: Math.max(0.25, height / 100),
-                        }}
-                      />
-                    ),
-                  )}
-                </div>
-              </div>
-            </div>
-          </SectionReveal>
-
-          <SectionReveal
-            className="design-panel flex items-center justify-between rounded-[2.5rem] p-10 md:col-span-2"
-            delay={0.08}
-          >
-            <div>
-              <h3 className="font-headline text-2xl font-bold text-white">
-                {homeCapabilityGrid[1]?.title ?? "Mixer architecture"}
-              </h3>
-              <p className="mt-3 max-w-md text-sm leading-7 text-white/66">
-                {homeCapabilityGrid[1]?.description}
+              <h2 className="mt-6 font-headline text-4xl font-bold leading-tight text-white md:text-6xl">
+                Download OpenStudio or inspect the project on GitHub.
+              </h2>
+              <p className="mt-5 max-w-3xl text-sm leading-7 text-white/72 md:text-base">
+                {renderOpenSourceText(
+                  "Start with the native DAW, then go deeper into the OpenSource code, AGPLv3 license, releases, and roadmap whenever you want the full picture.",
+                )}
               </p>
+              <div className="w-full mt-8 flex flex-col gap-3 sm:flex-row items-center justify-center">
+                <Button
+                  asChild
+                  className="h-auto px-8 py-4 text-base font-bold"
+                >
+                  <Link to="/download">
+                    <span className="openstudio-button__icon">
+                      <Download className="h-4 w-4" />
+                    </span>
+                    <span className="openstudio-button__label">
+                      Download OpenStudio
+                    </span>
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  className="h-auto px-8 py-4 text-base font-semibold"
+                  variant="outline"
+                >
+                  {externalLinks.repository ? (
+                    <a
+                      href={externalLinks.repository}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      <span className="openstudio-button__icon">
+                        <Github className="h-4 w-4" />
+                      </span>
+                      <span className="openstudio-button__label">GitHub</span>
+                    </a>
+                  ) : (
+                    <Link to="/github">
+                      <span className="openstudio-button__icon">
+                        <Github className="h-4 w-4" />
+                      </span>
+                      <span className="openstudio-button__label">GitHub</span>
+                    </Link>
+                  )}
+                </Button>
+              </div>
             </div>
-            <div className="hidden h-16 w-16 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-primary md:flex">
-              <Sparkles className="h-8 w-8" />
-            </div>
-          </SectionReveal>
-
-          <SectionReveal
-            className="design-panel flex flex-col items-center justify-center gap-4 rounded-[2.5rem] p-8 text-center"
-            delay={0.12}
-          >
-            <Github className="h-10 w-10 text-accent" />
-            <h3 className="font-headline text-xl font-bold text-white">
-              {homeCapabilityGrid[2]?.title ?? "Plugin hosting"}
-            </h3>
-          </SectionReveal>
-
-          <SectionReveal
-            className="design-panel flex flex-col items-center justify-center gap-4 rounded-[2.5rem] border border-primary/20 bg-primary/10 p-8 text-center"
-            delay={0.16}
-          >
-            <ArrowRight className="h-10 w-10 text-primary" />
-            <h3 className="font-headline text-xl font-bold text-primary">
-              {homeCapabilityGrid[3]?.title ?? "Collaborative future"}
-            </h3>
           </SectionReveal>
         </div>
       </section>
-
-      <section className="px-4 pb-20 md:px-8 xl:px-12">
-        <SectionReveal className="scroll-spotlight page-frame-narrow relative overflow-hidden rounded-[2.75rem] border border-primary/20 p-12 text-center md:p-16">
-          <div className="absolute inset-0 bg-primary/5" />
-          <div className="relative z-10">
-            <div className="design-badge design-badge-secondary mx-auto mb-6 w-fit">
-              Open project, real workflow
-            </div>
-            <h2 className="font-display text-4xl font-bold text-white md:text-6xl">
-              Build in the Same Session
-            </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-white/66">
-              {homeFinalCta.description}
-            </p>
-            <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
-              <Button asChild className="rounded-2xl px-10">
-                <Link to={homeFinalCta.primaryCta.to}>
-                  {homeFinalCta.primaryCta.label}
-                </Link>
-              </Button>
-              <Button asChild className="rounded-2xl px-10" variant="outline">
-                <Link to={homeFinalCta.secondaryCta.to}>
-                  {homeFinalCta.secondaryCta.label}
-                </Link>
-              </Button>
-            </div>
-            <div className="mt-8 font-mono text-[0.68rem] uppercase tracking-[0.3em] text-white/34">
-              Windows + macOS + Linux live | optional AI tools separate
-            </div>
-          </div>
-        </SectionReveal>
-      </section>
-    </motion.main>
+    </main>
   );
 };
 

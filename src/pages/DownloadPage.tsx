@@ -1,5 +1,4 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { motion } from "framer-motion";
 import {
   ArrowRight,
   Check,
@@ -15,12 +14,28 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { lazy, Suspense, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  type CSSProperties,
+  type ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import PageSeo from "@/components/PageSeo";
+import DeferredClientStage from "@/components/DeferredClientStage";
 import BrandLogoConstructScene from "@/components/brand/BrandLogoConstructScene";
 import SectionReveal from "@/components/motion/SectionReveal";
 import { Button } from "@/components/ui/button";
 import { designMedia } from "@/data/designMedia";
+import {
+  downloadCinematicPlates,
+  downloadCinematicScenes,
+  downloadCinematicScreenshot,
+  downloadCinematicSourceLabels,
+} from "@/data/downloadCinematic";
 import {
   downloadHero,
   downloadHeroSignals,
@@ -30,7 +45,10 @@ import {
 } from "@/data/downloads";
 import { externalLinks } from "@/data/siteLinks";
 import { useGithubRepoSnapshot } from "@/hooks/useGithubRepoSnapshot";
-import { gsap, ScrollTrigger, useScrollScene } from "@/lib/gsap";
+import { getResponsiveImageAttributes } from "@/lib/assetLoading";
+import { useScrollScene } from "@/lib/gsap";
+import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
+import { warmScheduledImages } from "@/lib/imageScheduler";
 import { formatGithubDate } from "@/lib/github";
 import { cn } from "@/lib/utils";
 
@@ -83,7 +101,91 @@ const platformStudioCopy: Record<DownloadPlatform, PlatformStudioCopy> = {
 
 const platformOrder: DownloadPlatform[] = ["windows", "macos", "linux"];
 const LOGO_SCROLL_TARGET_PROGRESS = 0.66;
-const DownloadCinematicStory = lazy(() => import("@/components/scene/DownloadCinematicStory"));
+const DOWNLOAD_CINEMATIC_SCROLL_VH = 620;
+const DownloadCinematicStory = lazy(
+  () => import("@/components/scene/DownloadCinematicStory"),
+);
+
+const DownloadCinematicStaticSurface = () => {
+  const openingScene = downloadCinematicScenes[0]!;
+  const studioPlate = downloadCinematicPlates.studioWide;
+
+  return (
+    <section
+      className="download-cinematic download-cinematic--static-surface"
+      data-download-cinema
+      data-download-cinematic-story
+      style={
+        {
+          "--download-cinema-scroll-vh": `${DOWNLOAD_CINEMATIC_SCROLL_VH}vh`,
+        } as CSSProperties
+      }
+    >
+      <div
+        className="download-cinematic__stage download-cinematic__stage--static-surface"
+        aria-hidden="true"
+      >
+        <div className="download-cinematic__film">
+          <figure
+            className="download-cinematic__plate download-cinematic__plate--wide"
+            data-download-cinematic-asset={studioPlate.id}
+          >
+            <img
+              {...getResponsiveImageAttributes(
+                studioPlate.src,
+                "story-active",
+                {
+                  maxWidth: 1440,
+                  sizes: "100vw",
+                },
+              )}
+              alt={studioPlate.alt}
+              height={studioPlate.height}
+              width={studioPlate.width}
+            />
+          </figure>
+        </div>
+        <div className="download-cinematic__blackout" />
+        <div className="download-cinematic__grain" />
+        <div className="download-cinematic__practical-light" />
+        <div className="download-cinematic__source-callouts">
+          {downloadCinematicSourceLabels.map((label, index) => (
+            <span
+              className="download-cinematic__source-callout"
+              data-source-index={index + 1}
+              key={`download-cinematic-static-source-${label}`}
+            >
+              <i />
+              {label}
+            </span>
+          ))}
+        </div>
+        <div className="download-cinematic__chapter-rail">
+          {downloadCinematicScenes.map((scene, index) => (
+            <span
+              className={index === 0 ? "is-active" : undefined}
+              data-download-cinematic-chip
+              key={`download-cinematic-static-${scene.id}`}
+            >
+              <i>{String(index + 1).padStart(2, "0")}</i>
+              {scene.id}
+            </span>
+          ))}
+        </div>
+        <div
+          className="download-cinematic__scene-copy"
+          data-download-cinematic-copy
+          data-scene={openingScene.id}
+        >
+          <span>{openingScene.eyebrow}</span>
+          <h2>{openingScene.headline}</h2>
+          <p>{openingScene.description}</p>
+          <strong>{openingScene.metric}</strong>
+        </div>
+      </div>
+    </section>
+  );
+};
 
 const detectBrowserPlatform = (): BrowserPlatform => {
   if (typeof navigator === "undefined") {
@@ -120,7 +222,8 @@ const detectBrowserPlatform = (): BrowserPlatform => {
 
 const browserToDownloadPlatform = (
   platform: BrowserPlatform,
-): DownloadPlatform => (platform === "macos" || platform === "linux" ? platform : "windows");
+): DownloadPlatform =>
+  platform === "macos" || platform === "linux" ? platform : "windows";
 
 const copyText = async (value: string) => {
   if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
@@ -148,10 +251,9 @@ const DownloadPage = () => {
   const [logoProgress, setLogoProgress] = useState(0);
   const downloadsById = useMemo(
     () =>
-      Object.fromEntries(platformDownloads.map((item) => [item.id, item])) as Record<
-        DownloadPlatform,
-        (typeof platformDownloads)[number]
-      >,
+      Object.fromEntries(
+        platformDownloads.map((item) => [item.id, item]),
+      ) as Record<DownloadPlatform, (typeof platformDownloads)[number]>,
     [],
   );
   const { snapshot } = useGithubRepoSnapshot();
@@ -167,52 +269,31 @@ const DownloadPage = () => {
   const recommendedPlatform = browserToDownloadPlatform(browserPlatform);
   const activeDownloadItem = downloadsById[activePlatform];
 
-  useScrollScene(pageRef, ({ prefersReducedMotion, isDesktop }) => {
-    if (prefersReducedMotion) {
-      setLogoProgress(0.5);
-      return;
-    }
+  useScrollScene(
+    pageRef,
+    ({ prefersReducedMotion, gsap }) => {
+      if (prefersReducedMotion) {
+        return;
+      }
 
-    const cleanups: Array<() => void> = [];
+      const cleanups: Array<() => void> = [];
 
-    if (isDesktop) {
-      setLogoProgress(0);
-      const logoScrollTrigger = ScrollTrigger.create({
-        trigger: "[data-download-studio-hero]",
-        start: "top top+=96",
-        endTrigger: "[data-download-panel-stack]",
-        end: "bottom bottom-=96",
-        pin: "[data-download-logo-pin-stage]",
-        pinSpacing: false,
-        anticipatePin: 1,
-        scrub: 0.7,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          setLogoProgress(
-            Number((self.progress * LOGO_SCROLL_TARGET_PROGRESS).toFixed(3)),
-          );
-        },
+      const cardIntro = gsap.from("[data-download-hero-card]", {
+        y: 34,
+        opacity: 0,
+        duration: 0.78,
+        stagger: 0.08,
+        ease: "power3.out",
       });
 
-      cleanups.push(() => logoScrollTrigger.kill());
-    } else {
-      setLogoProgress(0.5);
-    }
+      cleanups.push(() => {
+        cardIntro.kill();
+      });
 
-    const cardIntro = gsap.from("[data-download-hero-card]", {
-      y: 34,
-      opacity: 0,
-      duration: 0.78,
-      stagger: 0.08,
-      ease: "power3.out",
-    });
-
-    cleanups.push(() => {
-      cardIntro.kill();
-    });
-
-    return () => cleanups.forEach((cleanup) => cleanup());
-  });
+      return () => cleanups.forEach((cleanup) => cleanup());
+    },
+    { delay: 420, runOnInput: false, timeout: 1400 },
+  );
 
   const downloadInstructions: Record<
     DownloadPlatform,
@@ -233,7 +314,8 @@ const DownloadPage = () => {
       eyebrow: "Before you open the installer",
       summary: (
         <>
-          When Windows warns that OpenStudio is from an untrusted publisher, click{" "}
+          When Windows warns that OpenStudio is from an untrusted publisher,
+          click{" "}
           <span className="rounded-md border border-amber-300/40 bg-amber-300/18 px-2 py-0.5 font-mono text-[0.72rem] font-bold uppercase tracking-[0.14em] text-amber-100">
             More info
           </span>{" "}
@@ -278,7 +360,8 @@ const DownloadPage = () => {
           <span className="rounded-md border border-orange-300/40 bg-orange-300/18 px-2 py-0.5 font-mono text-[0.72rem] font-bold uppercase tracking-[0.14em] text-orange-100">
             broken
           </span>
-          , remove the quarantine flag with the command below and then launch the app again.
+          , remove the quarantine flag with the command below and then launch
+          the app again.
         </>
       ),
       confirmLabel: "I understand, download for macOS",
@@ -297,9 +380,9 @@ const DownloadPage = () => {
       eyebrow: "Before you launch the app",
       summary: (
         <>
-          Linux downloads ship as a self-contained AppImage tested on Ubuntu 22.04+. Make the file
-          executable, run it directly, and use the optional install flag if you want desktop
-          integration.
+          Linux downloads ship as a self-contained AppImage tested on Ubuntu
+          22.04+. Make the file executable, run it directly, and use the
+          optional install flag if you want desktop integration.
         </>
       ),
       confirmLabel: "Download AppImage",
@@ -339,6 +422,104 @@ const DownloadPage = () => {
     return () => window.clearTimeout(timeout);
   }, [copyState]);
 
+  useEffect(() => {
+    const reduceMotionQuery = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    );
+    const desktopQuery = window.matchMedia("(min-width: 1024px)");
+    let frame = 0;
+
+    const syncLogoProgress = () => {
+      frame = 0;
+
+      if (reduceMotionQuery.matches || !desktopQuery.matches) {
+        setLogoProgress(0.5);
+        return;
+      }
+
+      const hero = document.querySelector<HTMLElement>(
+        "[data-download-studio-hero]",
+      );
+      if (!hero) {
+        return;
+      }
+
+      const rect = hero.getBoundingClientRect();
+      const startOffset = 96;
+      const scrollRange = Math.max(
+        1,
+        hero.offsetHeight - window.innerHeight + startOffset + 160,
+      );
+      const progress = Math.max(
+        0,
+        Math.min(1, (startOffset - rect.top) / scrollRange),
+      );
+      const nextProgress = Number(
+        (progress * LOGO_SCROLL_TARGET_PROGRESS).toFixed(3),
+      );
+      setLogoProgress((previous) =>
+        Math.abs(previous - nextProgress) < 0.004 ? previous : nextProgress,
+      );
+    };
+
+    const requestSync = () => {
+      if (frame) {
+        return;
+      }
+
+      frame = window.requestAnimationFrame(syncLogoProgress);
+    };
+
+    requestSync();
+    window.addEventListener("scroll", requestSync, { passive: true });
+    window.addEventListener("resize", requestSync);
+    reduceMotionQuery.addEventListener("change", requestSync);
+    desktopQuery.addEventListener("change", requestSync);
+
+    return () => {
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
+      window.removeEventListener("scroll", requestSync);
+      window.removeEventListener("resize", requestSync);
+      reduceMotionQuery.removeEventListener("change", requestSync);
+      desktopQuery.removeEventListener("change", requestSync);
+    };
+  }, []);
+
+  useEffect(
+    () =>
+      scheduleAfterInitialLoad(
+        () => {
+          warmScheduledImages([downloadCinematicPlates.studioWide.src], {
+            group: "cinematicFirstFrame",
+            maxWidth: 1280,
+            priority: "active",
+            route: "/download",
+            slot: "cinematic",
+            tier: "story-active",
+          });
+          warmScheduledImages(
+            [
+              downloadCinematicPlates.signalCloseup.src,
+              downloadCinematicPlates.screenReveal.src,
+              downloadCinematicScreenshot.webpSrc,
+            ],
+            {
+              group: "nearby",
+              maxWidth: 960,
+              priority: "next",
+              route: "/download",
+              slot: "cinematic",
+              tier: "story-next",
+            },
+          );
+        },
+        { delay: 700, runOnInput: false, timeout: 1800 },
+      ),
+    [],
+  );
+
   const handleConfirmDownload = () => {
     if (!activeInstruction || typeof window === "undefined") {
       return;
@@ -362,24 +543,21 @@ const DownloadPage = () => {
   };
 
   return (
-    <motion.main
+    <main
       ref={pageRef}
-      animate={{ opacity: 1, y: 0 }}
-      className="design-page-main download-page"
+      className="design-page-main download-page route-appear"
       id="main-content"
-      initial={{ opacity: 0, y: 18 }}
-      transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
     >
       <PageSeo {...downloadSeo} />
 
       <div className="download-page__backdrop" aria-hidden="true" />
 
       <div className="mx-auto max-w-7xl px-5 pb-24 md:px-10">
-        <section
-          className="download-studio-hero"
-          data-download-studio-hero
-        >
-          <div className="download-home-logo-stage" data-download-logo-pin-stage>
+        <section className="download-studio-hero" data-download-studio-hero>
+          <div
+            className="download-home-logo-stage"
+            data-download-logo-pin-stage
+          >
             <div data-download-logo-stage>
               <BrandLogoConstructScene
                 label="OpenStudio logo construction for download preview"
@@ -390,7 +568,10 @@ const DownloadPage = () => {
             </div>
           </div>
 
-          <div className="download-studio-hero__panel-stack" data-download-panel-stack>
+          <div
+            className="download-studio-hero__panel-stack"
+            data-download-panel-stack
+          >
             <div className="download-studio-hero__copy">
               <div className="design-badge download-studio-hero__badge w-fit">
                 <CheckCircle2 className="h-3.5 w-3.5 text-secondary" />
@@ -419,19 +600,24 @@ const DownloadPage = () => {
                 ))}
               </div>
 
-              <div className="download-hero-platform-grid" data-download-platforms>
-                {platformOrder.map((platform) => {
+              <div
+                className="download-hero-platform-grid"
+                data-download-platforms
+              >
+                {platformOrder.map((platform, index) => {
                   const item = downloadsById[platform];
                   const copy = platformStudioCopy[platform];
                   const Icon = copy.icon;
                   const isActive = activePlatform === platform;
                   const isRecommended = recommendedPlatform === platform;
+                  const isLastItem = index === platformOrder.length - 1;
 
                   return (
                     <article
                       className={cn(
                         "download-platform-card download-platform-card--hero",
                         isActive && "download-platform-card--active",
+                        isLastItem && "mb-8",
                       )}
                       data-download-hero-card
                       data-platform={platform}
@@ -516,7 +702,8 @@ const DownloadPage = () => {
                   Open source release path
                 </h2>
                 <p className="mt-2 max-w-xl text-sm leading-7 text-white/64">
-                  Stable buttons resolve through download endpoints while the public repository and release status stay visible.
+                  Stable buttons resolve through download endpoints while the
+                  public repository and release status stay visible.
                 </p>
               </div>
             </div>
@@ -566,21 +753,19 @@ const DownloadPage = () => {
           </div>
         </SectionReveal>
 
-        <Suspense
-          fallback={
-            <section className="download-cinematic download-cinematic--loading" data-download-cinema data-download-cinematic-story>
-              <div className="download-cinematic__loading">
-                <div className="design-badge design-badge-secondary w-fit">Studio workflow</div>
-                <h2>Preparing the studio filmstrip.</h2>
-              </div>
-            </section>
-          }
+        <DeferredClientStage
+          fallback={<DownloadCinematicStaticSurface />}
+          idleDelay={520}
+          idleTimeout={1800}
+          rootMargin="1400px 0px"
         >
-          <DownloadCinematicStory
-            activePlatformLabel={activeDownloadItem.label}
-            onDownload={() => setPendingDownload(activePlatform)}
-          />
-        </Suspense>
+          <Suspense fallback={<DownloadCinematicStaticSurface />}>
+            <DownloadCinematicStory
+              activePlatformLabel={activeDownloadItem.label}
+              onDownload={() => setPendingDownload(activePlatform)}
+            />
+          </Suspense>
+        </DeferredClientStage>
 
         <section className="download-requirements" data-download-requirements>
           <div className="download-section-header">
@@ -589,11 +774,15 @@ const DownloadPage = () => {
             </div>
             <h2>Built for the session you actually run.</h2>
             <p>
-              The base app stays lean, but dense sessions, plugin chains, and optional local AI tools benefit from extra CPU,
-              memory, and SSD headroom.
+              The base app stays lean, but dense sessions, plugin chains, and
+              optional local AI tools benefit from extra CPU, memory, and SSD
+              headroom.
             </p>
           </div>
-          <div className="download-requirements__table-wrap" data-download-requirements-table>
+          <div
+            className="download-requirements__table-wrap"
+            data-download-requirements-table
+          >
             <div className="download-requirements__table-meta">
               <span>System Requirements</span>
               <strong>REV 2026.04 · Desktop</strong>
@@ -612,11 +801,15 @@ const DownloadPage = () => {
                   <tr key={item.component}>
                     <th scope="row">{item.component}</th>
                     <td>
-                      <span className="download-requirements__mobile-label">Minimum</span>
+                      <span className="download-requirements__mobile-label">
+                        Minimum
+                      </span>
                       {item.minimum}
                     </td>
                     <td>
-                      <span className="download-requirements__mobile-label">Recommended</span>
+                      <span className="download-requirements__mobile-label">
+                        Recommended
+                      </span>
                       <strong>{item.recommended}</strong>
                     </td>
                   </tr>
@@ -628,34 +821,34 @@ const DownloadPage = () => {
 
         <SectionReveal className="download-ai-callout" data-download-outro>
           <img
+            {...getResponsiveImageAttributes(
+              designMedia.downloadWorkspace.src,
+              "below-fold",
+              {
+                maxWidth: 1280,
+                sizes: "(min-width: 1024px) 44vw, 100vw",
+              },
+            )}
             alt={designMedia.downloadWorkspace.alt}
             className="download-ai-callout__image"
-            decoding="async"
-            loading="lazy"
-            src={designMedia.downloadWorkspace.src}
           />
           <div className="download-ai-callout__content">
             <div className="design-badge design-badge-secondary w-fit">
               <Sparkles className="h-3.5 w-3.5" />
               Optional AI tooling
             </div>
-            <h2>Base installer first. AI runtime only when you ask for it.</h2>
+            <h2>
+              Install the DAW first. Add AI only when the project needs it.
+            </h2>
             <p>
               {snapshot.latestRelease
-                ? `GitHub release ${snapshot.latestRelease.tagName} was published ${formatGithubDate(snapshot.latestRelease.publishedAt)}. The base installer stays honest, and optional AI tooling remains a separate setup step for stem and generation workflows.`
-                : "The base installer stays honest, Windows, macOS, and Linux ship through stable endpoints, and optional AI tooling remains a clearly separate step while GitHub Releases prepares for its first asset-backed publish."}
+                ? `GitHub release ${snapshot.latestRelease.tagName} was published ${formatGithubDate(snapshot.latestRelease.publishedAt)}. The base installer stays focused on the DAW, while optional AI tools remain a separate setup for stem separation and generation workflows.`
+                : "The base installer stays focused on the DAW for Windows, macOS, and Linux. Optional AI tools remain a separate setup, so users are never surprised by extra runtime requirements."}
             </p>
             <div className="download-ai-callout__signals">
-              <span>
-                <Sparkline />
-                Optional AI tools separate
-              </span>
-              <span>
-                <ArrowRight className="h-3.5 w-3.5" />
-                {snapshot.latestRelease
-                  ? "GitHub release path active"
-                  : "GitHub release path warming up"}
-              </span>
+              <span>Base installer stays lean</span>
+              <span>Optional AI setup is separate</span>
+              <span>Release notes stay visible</span>
             </div>
           </div>
         </SectionReveal>
@@ -735,7 +928,8 @@ const DownloadPage = () => {
             </div>
 
             <p className="mt-5 text-sm leading-7 text-white/58">
-              Confirming means you understand that OpenStudio may require these manual trust steps before it opens normally on your platform.
+              Confirming means you understand that OpenStudio may require these
+              manual trust steps before it opens normally on your platform.
             </p>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
@@ -758,20 +952,8 @@ const DownloadPage = () => {
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
-    </motion.main>
+    </main>
   );
 };
-
-const Sparkline = () => (
-  <div className="flex h-4 items-end gap-1">
-    {[45, 80, 60, 100].map((height, index) => (
-      <span
-        className="eq-bar w-1 rounded-full bg-secondary"
-        key={height}
-        style={{ animationDelay: `${index * 0.08}s`, height: `${height}%` }}
-      />
-    ))}
-  </div>
-);
 
 export default DownloadPage;

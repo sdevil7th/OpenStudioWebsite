@@ -31,7 +31,7 @@ const OgCardPage = () => {
     >
       {/* Background - hero timeline screenshot */}
       <img
-        src="/assets/openstudio/screenshots/hero-timeline.png"
+        src="/assets/openstudio/screenshots/hero-timeline.webp"
         alt=""
         aria-hidden="true"
         className="absolute inset-0 h-full w-full object-cover opacity-60"

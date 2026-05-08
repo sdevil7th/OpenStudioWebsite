@@ -2,6 +2,19 @@
   command = "npm run build"
   publish = "dist"
 
+[functions]
+  included_files = ["public/assets/openstudio/generated/image-manifest.json"]
+
+[[headers]]
+  for = "/assets/openstudio/generated/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
 [[redirects]]
   from = "/download/windows/latest"
   to = "/.netlify/functions/download-latest-windows"

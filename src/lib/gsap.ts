@@ -1,20 +1,35 @@
-import { type RefObject, useLayoutEffect, useRef } from "react";
-import { useReducedMotion } from "framer-motion";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { type RefObject, useEffect, useRef } from "react";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
 
-let pluginsRegistered = false;
+type GsapRuntime = {
+  gsap: typeof import("gsap").gsap;
+  ScrollTrigger: typeof import("gsap/ScrollTrigger").ScrollTrigger;
+};
 
-export const registerGsap = () => {
-  if (!pluginsRegistered) {
-    gsap.registerPlugin(ScrollTrigger);
-    pluginsRegistered = true;
-  }
+let gsapRuntimePromise: Promise<GsapRuntime> | undefined;
+
+export type ScrollTriggerInstance = import("gsap/ScrollTrigger").ScrollTrigger;
+
+export const loadGsap = () => {
+  gsapRuntimePromise ??= Promise.all([import("gsap"), import("gsap/ScrollTrigger")]).then(
+    ([gsapModule, scrollTriggerModule]) => {
+      const { gsap } = gsapModule;
+      const { ScrollTrigger } = scrollTriggerModule;
+
+      gsap.registerPlugin(ScrollTrigger);
+      return { gsap, ScrollTrigger };
+    },
+  );
+
+  return gsapRuntimePromise;
 };
 
 interface ScrollSceneOptions {
   isDesktop: boolean;
   prefersReducedMotion: boolean;
+  gsap: GsapRuntime["gsap"];
+  ScrollTrigger: GsapRuntime["ScrollTrigger"];
 }
 
 type ScrollSceneSetup = (options: ScrollSceneOptions) => void | (() => void);
@@ -22,35 +37,53 @@ type ScrollSceneSetup = (options: ScrollSceneOptions) => void | (() => void);
 export const useScrollScene = <T extends HTMLElement>(
   scope: RefObject<T>,
   setup: ScrollSceneSetup,
+  {
+    delay,
+    runOnInput = false,
+    timeout,
+  }: { delay?: number; runOnInput?: boolean; timeout?: number } = {},
 ) => {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = usePrefersReducedMotion();
   const setupRef = useRef(setup);
 
   setupRef.current = setup;
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const element = scope.current;
 
     if (!element) {
       return;
     }
 
-    registerGsap();
-
+    let active = true;
     let cleanup: void | (() => void);
+    let context: { revert: () => void } | undefined;
 
-    const context = gsap.context(() => {
-      cleanup = setupRef.current({
-        isDesktop: window.matchMedia("(min-width: 1024px)").matches,
-        prefersReducedMotion,
-      });
-    }, element);
+    const cancelSchedule = scheduleAfterInitialLoad(
+      () => {
+        void loadGsap().then(({ gsap, ScrollTrigger }) => {
+          if (!active) {
+            return;
+          }
+
+          context = gsap.context(() => {
+            cleanup = setupRef.current({
+              gsap,
+              ScrollTrigger,
+              isDesktop: window.matchMedia("(min-width: 1024px)").matches,
+              prefersReducedMotion,
+            });
+          }, element);
+        });
+      },
+      { delay, runOnInput, timeout },
+    );
 
     return () => {
+      active = false;
+      cancelSchedule();
       cleanup?.();
-      context.revert();
+      context?.revert();
     };
-  }, [prefersReducedMotion, scope]);
+  }, [delay, prefersReducedMotion, runOnInput, scope, timeout]);
 };
-
-export { gsap, ScrollTrigger };

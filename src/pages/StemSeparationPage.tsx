@@ -1,21 +1,15 @@
-import { motion } from "framer-motion";
 import {
   ArrowRight,
   BrainCircuit,
   Download,
   ShieldCheck,
 } from "lucide-react";
-import { memo, useRef, useState } from "react";
+import { lazy, memo, Suspense, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import DeferredClientStage from "@/components/DeferredClientStage";
 import PageSeo from "@/components/PageSeo";
-import PretextEditorialField from "@/components/motion/PretextEditorialField";
 import SectionReveal from "@/components/motion/SectionReveal";
-import AiNeuralStudioStage, { type AiNeuralStudioState } from "@/components/scene/AiNeuralStudioStage";
-import AiSignalWebGLStage from "@/components/scene/AiSignalWebGLStage";
-import AiGenesisStage from "@/components/scene/AiGenesisStage";
-import AiArchitectureOrbit from "@/components/scene/AiArchitectureOrbit";
-import AiUseCaseConstellation from "@/components/scene/AiUseCaseConstellation";
-import AiOutroStage from "@/components/scene/AiOutroStage";
+import type { AiNeuralStudioState } from "@/components/scene/AiNeuralStudioStage";
 import { Button } from "@/components/ui/button";
 import {
   aiArchitectureNodes,
@@ -31,8 +25,16 @@ import {
   stemUseCases,
   type AiNeuralStudioPhase,
 } from "@/data/stemSeparation";
-import { gsap, ScrollTrigger, useScrollScene } from "@/lib/gsap";
+import { useScrollScene } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
+
+const AiArchitectureOrbit = lazy(() => import("@/components/scene/AiArchitectureOrbit"));
+const AiGenesisStage = lazy(() => import("@/components/scene/AiGenesisStage"));
+const AiNeuralStudioStage = lazy(() => import("@/components/scene/AiNeuralStudioStage"));
+const AiOutroStage = lazy(() => import("@/components/scene/AiOutroStage"));
+const AiSignalWebGLStage = lazy(() => import("@/components/scene/AiSignalWebGLStage"));
+const AiUseCaseConstellation = lazy(() => import("@/components/scene/AiUseCaseConstellation"));
+const PretextEditorialField = lazy(() => import("@/components/motion/PretextEditorialField"));
 
 const heroTokens = ["BS Roformer", "6 stems", "spectrogram", "ACE-Step", "lyrics", "seed", "full decode", "WAV"];
 const stemRibbonLabels = [
@@ -43,6 +45,51 @@ const stemRibbonLabels = [
   { label: "Piano", color: "#dff8ff" },
   { label: "Other", color: "#43f2a2" },
 ];
+
+const AiGenesisFallbackStage = () => (
+  <div className="ai-genesis-stage ai-genesis-stage--failed" data-ai-genesis-stage>
+    <div className="ai-genesis-stage__fallback" aria-hidden="true">
+      <div className="ai-genesis-stage__fallback-wave" />
+      <div className="ai-genesis-stage__fallback-wave ai-genesis-stage__fallback-wave--alt" />
+      <div className="ai-genesis-stage__fallback-core" />
+    </div>
+  </div>
+);
+
+const AiSignalFallbackStage = () => (
+  <div className="ai-signal-webgl-stage ai-signal-webgl-stage--failed" data-ai-webgl-stage>
+    <div className="ai-signal-webgl-stage__fallback" aria-hidden="true">
+      <div className="ai-signal-webgl-stage__fallback-wave ai-signal-webgl-stage__fallback-wave--stem" />
+      <div className="ai-signal-webgl-stage__fallback-core" />
+      <div className="ai-signal-webgl-stage__fallback-wave ai-signal-webgl-stage__fallback-wave--music" />
+    </div>
+  </div>
+);
+
+const AiArchitectureFallbackStage = () => (
+  <div className="ai-arch-stage ai-arch-stage--failed" data-ai-arch-stage>
+    <div className="ai-arch-stage__fallback" aria-hidden="true">
+      <div className="ai-arch-stage__fallback-core" />
+      <div className="ai-arch-stage__fallback-ring" />
+    </div>
+  </div>
+);
+
+const AiUseCaseFallbackStage = () => (
+  <div className="ai-constellation-stage ai-constellation-stage--failed" data-ai-constellation-stage>
+    <div className="ai-constellation-stage__fallback" aria-hidden="true">
+      <div className="ai-constellation-stage__fallback-glow" />
+    </div>
+  </div>
+);
+
+const AiOutroFallbackStage = () => (
+  <div className="ai-outro-stage ai-outro-stage--failed" data-ai-outro-stage>
+    <div className="ai-outro-stage__fallback" aria-hidden="true">
+      <div className="ai-outro-stage__fallback-core" />
+    </div>
+  </div>
+);
 
 const clampProgress = (value?: number) => {
   if (typeof value !== "number" || Number.isNaN(value)) {
@@ -64,15 +111,61 @@ const phaseProgressFor = (phase: AiNeuralStudioPhase, progress: number) => {
   return end <= start ? 1 : clampProgress((progress - start) / (end - start));
 };
 
-const AiKineticText = ({ className, text }: { className?: string; text: string }) => (
-  <PretextEditorialField
-    className={["ai-editorial-copy", className].filter(Boolean).join(" ")}
-    forceCount={2}
-    text={text}
-    variant="ai"
-    visibleObjects
-  />
+const AiKineticTextFallback = ({ className, text }: { className?: string; text: string }) => (
+  <p className={cn("ai-editorial-copy", className)}>{text}</p>
 );
+
+const AiKineticText = ({ className, text }: { className?: string; text: string }) => {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [shouldRender, setShouldRender] = useState(false);
+
+  useEffect(() => {
+    if (shouldRender) {
+      return;
+    }
+
+    const element = ref.current;
+    if (!element) {
+      return;
+    }
+
+    if (!("IntersectionObserver" in window)) {
+      const id = window.setTimeout(() => setShouldRender(true), 600);
+      return () => window.clearTimeout(id);
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setShouldRender(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "280px 0px", threshold: 0.01 },
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [shouldRender]);
+
+  return (
+    <div ref={ref}>
+      {shouldRender ? (
+        <Suspense fallback={<AiKineticTextFallback className={className} text={text} />}>
+          <PretextEditorialField
+            className={cn("ai-editorial-copy", className)}
+            forceCount={2}
+            text={text}
+            variant="ai"
+            visibleObjects
+          />
+        </Suspense>
+      ) : (
+        <AiKineticTextFallback className={className} text={text} />
+      )}
+    </div>
+  );
+};
 
 const TokenOrbit = () => (
   <div className="ai-token-orbit ai-neural-token-strip" aria-hidden="true">
@@ -270,9 +363,11 @@ const StemSeparationPage = () => {
 
   const activePhase = aiNeuralStudioPhases[activePhaseIndex] ?? aiNeuralStudioPhases[0]!;
 
-  useScrollScene(pageRef, ({ prefersReducedMotion, isDesktop }) => {
-    const cleanups: Array<() => void> = [];
-    studioStateRef.current.reducedMotion = prefersReducedMotion;
+  useScrollScene(
+    pageRef,
+    ({ prefersReducedMotion, isDesktop, gsap, ScrollTrigger }) => {
+      const cleanups: Array<() => void> = [];
+      studioStateRef.current.reducedMotion = prefersReducedMotion;
 
     if (!prefersReducedMotion) {
       gsap.fromTo(
@@ -302,17 +397,23 @@ const StemSeparationPage = () => {
         },
       );
 
-      gsap.from("[data-ai-neural-detail]", {
-        y: 28,
-        opacity: 0,
-        duration: 0.74,
-        stagger: 0.08,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: "[data-ai-neural-details]",
-          start: "top 80%",
+      gsap.fromTo(
+        "[data-ai-neural-detail]",
+        { y: 28, autoAlpha: 0 },
+        {
+          y: 0,
+          autoAlpha: 1,
+          clearProps: "transform,opacity,visibility",
+          duration: 0.74,
+          stagger: 0.08,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: "[data-ai-neural-details]",
+            start: "top 80%",
+            once: true,
+          },
         },
-      });
+      );
 
       gsap.fromTo(
         "[data-ai-genesis-headline] .ai-genesis-overlay__line",
@@ -386,19 +487,20 @@ const StemSeparationPage = () => {
     }
 
     if (isDesktop) {
-      const stage = document.querySelector<HTMLElement>("[data-ai-neural-stage-wrap]");
-      if (stage) {
-        const pinTrigger = ScrollTrigger.create({
-          trigger: "[data-ai-neural-lab]",
-          start: "top top",
-          end: "bottom bottom",
-          pin: stage,
-          pinSpacing: false,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-        });
-        cleanups.push(() => pinTrigger.kill());
-      }
+      const syncNeuralProgress = (progress: number) => {
+        const nextProgress = clampProgress(progress);
+        const nextIndex = phaseIndexForProgress(nextProgress);
+        const nextPhase = aiNeuralStudioPhases[nextIndex] ?? aiNeuralStudioPhases[0]!;
+        const nextPhaseProgress = phaseProgressFor(nextPhase, nextProgress);
+
+        studioStateRef.current.globalProgress = nextProgress;
+        studioStateRef.current.phaseIndex = nextIndex;
+        studioStateRef.current.phaseProgress = nextPhaseProgress;
+        studioStateRef.current.audioEnergy = 0.4 + Math.sin(nextProgress * Math.PI * 4) * 0.18 + nextPhaseProgress * 0.16;
+        globalProgressRef.current = nextProgress;
+        phaseProgressRef.current = nextPhaseProgress;
+        setActivePhaseIndex((previous) => (previous === nextIndex ? previous : nextIndex));
+      };
 
       const trigger = ScrollTrigger.create({
         trigger: "[data-ai-neural-lab]",
@@ -406,21 +508,12 @@ const StemSeparationPage = () => {
         end: "bottom bottom",
         scrub: true,
         onUpdate: (self) => {
-          const nextProgress = clampProgress(self.progress);
-          const nextIndex = phaseIndexForProgress(nextProgress);
-          const nextPhase = aiNeuralStudioPhases[nextIndex] ?? aiNeuralStudioPhases[0]!;
-          const nextPhaseProgress = phaseProgressFor(nextPhase, nextProgress);
-
-          studioStateRef.current.globalProgress = nextProgress;
-          studioStateRef.current.phaseIndex = nextIndex;
-          studioStateRef.current.phaseProgress = nextPhaseProgress;
-          studioStateRef.current.audioEnergy = 0.4 + Math.sin(nextProgress * Math.PI * 4) * 0.18 + nextPhaseProgress * 0.16;
-          globalProgressRef.current = nextProgress;
-          phaseProgressRef.current = nextPhaseProgress;
-          setActivePhaseIndex((previous) => (previous === nextIndex ? previous : nextIndex));
+          syncNeuralProgress(self.progress);
         },
       });
       cleanups.push(() => trigger.kill());
+      ScrollTrigger.refresh();
+      syncNeuralProgress(trigger.progress);
 
       const genesisTrigger = ScrollTrigger.create({
         trigger: "[data-ai-genesis]",
@@ -562,48 +655,72 @@ const StemSeparationPage = () => {
     attachStagePointer("[data-ai-usecases]", useCasePointerRef);
 
     // HUD percentage / progress-bar live updates via direct DOM (no React re-render per scroll tick).
-    const globalPctEl = document.querySelector<HTMLElement>("[data-ai-neural-global-pct]");
-    const phasePctEl = document.querySelector<HTMLElement>("[data-ai-neural-phase-pct]");
-    const progressBarEl = document.querySelector<HTMLElement>("[data-ai-neural-progress-bar]");
-    if (globalPctEl || phasePctEl || progressBarEl) {
-      let lastG = -1;
-      let lastP = -1;
-      let hudFrame = 0;
-      const tickHud = () => {
-        const g = Math.round(globalProgressRef.current * 100);
-        const p = Math.round(phaseProgressRef.current * 100);
-        if (g !== lastG) {
-          lastG = g;
-          if (globalPctEl) globalPctEl.textContent = `${String(g).padStart(2, "0")}%`;
-          if (progressBarEl) progressBarEl.style.width = `${Math.max(6, g)}%`;
+    let hudElements:
+      | {
+          globalPctEl: HTMLElement | null;
+          phasePctEl: HTMLElement | null;
+          progressBarEl: HTMLElement | null;
         }
-        if (p !== lastP) {
-          lastP = p;
-          if (phasePctEl) phasePctEl.textContent = `${String(p).padStart(2, "0")}%`;
-        }
-        hudFrame = window.requestAnimationFrame(tickHud);
-      };
-      hudFrame = window.requestAnimationFrame(tickHud);
-      cleanups.push(() => window.cancelAnimationFrame(hudFrame));
-    }
+      | undefined;
+    const resolveHudElements = () => {
+      if (
+        hudElements?.globalPctEl?.isConnected &&
+        hudElements.phasePctEl?.isConnected &&
+        hudElements.progressBarEl?.isConnected
+      ) {
+        return hudElements;
+      }
 
-    return () => cleanups.forEach((cleanup) => cleanup());
-  });
+      const root = pageRef.current;
+      hudElements = {
+        globalPctEl: root?.querySelector<HTMLElement>("[data-ai-neural-global-pct]") ?? null,
+        phasePctEl: root?.querySelector<HTMLElement>("[data-ai-neural-phase-pct]") ?? null,
+        progressBarEl: root?.querySelector<HTMLElement>("[data-ai-neural-progress-bar]") ?? null,
+      };
+      return hudElements;
+    };
+    let lastHudGlobal = -1;
+    let lastHudPhase = -1;
+    let hudFrame = 0;
+    const tickHud = () => {
+      const { globalPctEl, phasePctEl, progressBarEl } = resolveHudElements();
+      const g = Math.round(globalProgressRef.current * 100);
+      const p = Math.round(phaseProgressRef.current * 100);
+
+      if (g !== lastHudGlobal || globalPctEl?.textContent === "00%") {
+        lastHudGlobal = g;
+        if (globalPctEl) globalPctEl.textContent = `${String(g).padStart(2, "0")}%`;
+        if (progressBarEl) progressBarEl.style.width = `${Math.max(6, g)}%`;
+      }
+      if (p !== lastHudPhase || phasePctEl?.textContent === "00%") {
+        lastHudPhase = p;
+        if (phasePctEl) phasePctEl.textContent = `${String(p).padStart(2, "0")}%`;
+      }
+      hudFrame = window.requestAnimationFrame(tickHud);
+    };
+    hudFrame = window.requestAnimationFrame(tickHud);
+    cleanups.push(() => window.cancelAnimationFrame(hudFrame));
+
+      return () => cleanups.forEach((cleanup) => cleanup());
+    },
+    { delay: 360, runOnInput: true, timeout: 1400 },
+  );
 
   return (
-    <motion.main
+    <main
       ref={pageRef}
-      animate={{ opacity: 1 }}
-      className="design-page-main ai-page-main ai-neural-page overflow-hidden"
+      className="design-page-main ai-page-main ai-neural-page route-appear"
       id="main-content"
-      initial={{ opacity: 0 }}
-      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
       <PageSeo {...stemSeparationSeo} />
 
       {/* Act 0 — Genesis Hero */}
       <section className="ai-genesis-section" data-ai-genesis>
-        <AiGenesisStage progressRef={genesisProgressRef} pointerRef={genesisPointerRef} />
+        <DeferredClientStage className="absolute inset-0" fallback={<AiGenesisFallbackStage />} idleDelay={620} idleTimeout={1800} rootMargin="0px">
+          <Suspense fallback={<AiGenesisFallbackStage />}>
+            <AiGenesisStage progressRef={genesisProgressRef} pointerRef={genesisPointerRef} />
+          </Suspense>
+        </DeferredClientStage>
         <div className="ai-genesis-overlay" data-ai-genesis-headline>
           <div className="ai-genesis-overlay__inner">
             <span className="ai-genesis-overlay__eyebrow">{aiGenesisCopy.eyebrow}</span>
@@ -663,7 +780,11 @@ const StemSeparationPage = () => {
       {/* Act 1 — Dual pillars */}
       <section className="ai-pillars-section" data-ai-pillars>
         <div className="ai-pillars-canvas">
-          <AiSignalWebGLStage progressRef={pillarsProgressRef} sectionPhaseRef={pillarsPhaseRef} />
+          <DeferredClientStage className="absolute inset-0" fallback={<AiSignalFallbackStage />} idleDelay={720} idleTimeout={2000} rootMargin="1400px 0px">
+            <Suspense fallback={<AiSignalFallbackStage />}>
+              <AiSignalWebGLStage progressRef={pillarsProgressRef} sectionPhaseRef={pillarsPhaseRef} />
+            </Suspense>
+          </DeferredClientStage>
         </div>
         <div className="page-frame-wide ai-pillars-grid">
           <header className="ai-pillars-header">
@@ -700,13 +821,23 @@ const StemSeparationPage = () => {
       {/* Act 2 — Neural Studio Lab (pinned WebGL centerpiece) */}
       <section className="ai-neural-lab" data-ai-neural-lab id="ai-neural-lab">
         <div className="ai-neural-stage-wrap" data-ai-neural-stage-wrap>
-          <AiNeuralStudioStage
+          <DeferredClientStage
+            className="absolute inset-0"
             fallback={<NeuralFallbackInstrument phase={activePhase} />}
-            phases={aiNeuralStudioPhases}
-            stateRef={studioStateRef}
-          />
-          <NeuralCinematicExplainer activePhase={activePhase} />
-          <NeuralHud activePhase={activePhase} />
+            idleDelay={720}
+            idleTimeout={2000}
+            rootMargin="1400px 0px"
+          >
+            <Suspense fallback={<NeuralFallbackInstrument phase={activePhase} />}>
+              <AiNeuralStudioStage
+                fallback={<NeuralFallbackInstrument phase={activePhase} />}
+                phases={aiNeuralStudioPhases}
+                stateRef={studioStateRef}
+              />
+            </Suspense>
+          </DeferredClientStage>
+          <NeuralCinematicExplainer activePhase={activePhase} key={`explainer-${activePhase.id}`} />
+          <NeuralHud activePhase={activePhase} key={`hud-${activePhase.id}`} />
         </div>
       </section>
 
@@ -721,7 +852,11 @@ const StemSeparationPage = () => {
       {/* Act 3 — Architecture Orbit */}
       <section className="ai-arch-section" data-ai-arch data-ai-neural-details>
         <div className="ai-arch-canvas">
-          <AiArchitectureOrbit activeNode={archActiveNode} pointerRef={archPointerRef} />
+          <DeferredClientStage className="absolute inset-0" fallback={<AiArchitectureFallbackStage />} idleDelay={720} idleTimeout={2000} rootMargin="1400px 0px">
+            <Suspense fallback={<AiArchitectureFallbackStage />}>
+              <AiArchitectureOrbit activeNode={archActiveNode} pointerRef={archPointerRef} />
+            </Suspense>
+          </DeferredClientStage>
         </div>
         <div className="page-frame-wide ai-arch-grid">
           <header className="ai-arch-header" data-ai-neural-detail>
@@ -741,13 +876,12 @@ const StemSeparationPage = () => {
                   archActiveNode === index && "ai-arch-node-card--active",
                 )}
                 data-ai-arch-card
-                data-ai-neural-detail
                 key={node.id}
               >
                 <span className="ai-arch-node-card__index">{String(index + 1).padStart(2, "0")}</span>
                 <span className="ai-arch-node-card__role">{node.role}</span>
                 <h3 className="ai-arch-node-card__label">{node.label}</h3>
-                <AiKineticText className="ai-arch-node-card__description" text={node.description} />
+                <p className="ai-arch-node-card__description">{node.description}</p>
               </article>
             ))}
           </div>
@@ -807,7 +941,11 @@ const StemSeparationPage = () => {
       {/* Act 4 — Use case constellation */}
       <section className="ai-usecases-section" data-ai-usecases>
         <div className="ai-usecases-canvas">
-          <AiUseCaseConstellation activeIndex={useCaseActive} pointerRef={useCasePointerRef} />
+          <DeferredClientStage className="absolute inset-0" fallback={<AiUseCaseFallbackStage />} idleDelay={720} idleTimeout={2000} rootMargin="1400px 0px">
+            <Suspense fallback={<AiUseCaseFallbackStage />}>
+              <AiUseCaseConstellation activeIndex={useCaseActive} pointerRef={useCasePointerRef} />
+            </Suspense>
+          </DeferredClientStage>
         </div>
         <div className="page-frame-wide ai-usecases-grid">
           <header className="ai-usecases-header">
@@ -836,7 +974,11 @@ const StemSeparationPage = () => {
       {/* Act 5 — Outro collapse / final CTA */}
       <section className="ai-outro-section ai-final-section" data-ai-outro>
         <div className="ai-outro-canvas">
-          <AiOutroStage collapseRef={outroCollapseRef} />
+          <DeferredClientStage className="absolute inset-0" fallback={<AiOutroFallbackStage />} idleDelay={720} idleTimeout={2000} rootMargin="1400px 0px">
+            <Suspense fallback={<AiOutroFallbackStage />}>
+              <AiOutroStage collapseRef={outroCollapseRef} />
+            </Suspense>
+          </DeferredClientStage>
         </div>
         <SectionReveal className="page-frame-wide ai-outro-shell">
           <div className="ai-outro-cta ai-outro-cta--premium">
@@ -867,7 +1009,7 @@ const StemSeparationPage = () => {
           </div>
         </SectionReveal>
       </section>
-    </motion.main>
+    </main>
   );
 };
 

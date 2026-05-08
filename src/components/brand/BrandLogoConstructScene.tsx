@@ -1,5 +1,5 @@
 import { useMemo, type CSSProperties } from "react";
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
 
 export interface BrandLogoPiece {
@@ -200,7 +200,7 @@ const BrandLogoConstructScene = ({
   showWordmark = false,
   size = "hero",
 }: BrandLogoConstructSceneProps) => {
-  const reducedMotion = useReducedMotion();
+  const reducedMotion = usePrefersReducedMotion();
   const clampedProgress = reducedMotion ? 0.5 : clampProgress(progress);
   const assembled = phase(clampedProgress, 0.34, 0.58) * (1 - phase(clampedProgress, 0.7, 1));
   const sortedPieces = useMemo(() => [...BRAND_LOGO_PIECES].sort((a, b) => a.order - b.order), []);

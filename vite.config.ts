@@ -8,10 +8,19 @@ import {
   type AiRuntimePlatform,
   resolveAiRuntimeDownloadUrl,
 } from "./shared/ai-runtime-manifest";
+import { buildAssetPlan, type AssetPlanRequest, type ImageManifest } from "./shared/asset-image-plan";
 import { GITHUB_RELEASES_URL, fetchGithubRepoSnapshot, resolveLatestReleaseAssetUrl } from "./shared/github-api";
 
 const AI_RUNTIME_MANIFEST_PATH = path.resolve(__dirname, "public", "releases", "ai-runtime", "latest.json");
 const AI_RUNTIME_DEPLOY_INPUT_PATH = path.resolve(__dirname, "release-input", "releases", "ai-runtime", "latest.json");
+const OPENSTUDIO_IMAGE_MANIFEST_PATH = path.resolve(
+  __dirname,
+  "public",
+  "assets",
+  "openstudio",
+  "generated",
+  "image-manifest.json",
+);
 
 const parseMacosArchitecture = (value: string | null): AiRuntimeMacosArchitecture | null => {
   if (!value) {
@@ -67,7 +76,10 @@ const githubDevBridge = () => ({
     middlewares: {
       use: (
         handler: (
-          req: { url?: string },
+          req: AsyncIterable<Uint8Array | string> & {
+            headers?: Record<string, string | string[] | undefined>;
+            url?: string;
+          },
           res: {
             statusCode: number;
             setHeader: (name: string, value: string) => void;
@@ -82,6 +94,40 @@ const githubDevBridge = () => ({
       const requestUrl = req.url ?? "";
       const url = new URL(requestUrl, "http://localhost");
       const pathname = url.pathname;
+
+      if (pathname === "/.netlify/functions/assets-graphql") {
+        try {
+          const chunks: Uint8Array[] = [];
+          for await (const chunk of req) {
+            chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+          }
+          const body = Buffer.concat(chunks).toString("utf8");
+          const payload = body
+            ? (JSON.parse(body) as { variables?: { input?: AssetPlanRequest; request?: AssetPlanRequest } & AssetPlanRequest })
+            : {};
+          const manifest = JSON.parse(await fs.readFile(OPENSTUDIO_IMAGE_MANIFEST_PATH, "utf8")) as ImageManifest;
+          const hostHeader = req.headers?.host;
+          const host = Array.isArray(hostHeader) ? hostHeader[0] : hostHeader;
+          const plan = buildAssetPlan(payload.variables?.input ?? payload.variables?.request ?? payload.variables ?? {}, manifest, {
+            host: host ?? "localhost",
+          });
+
+          res.statusCode = 200;
+          res.setHeader("Cache-Control", "no-store");
+          res.setHeader("Content-Type", "application/json; charset=utf-8");
+          res.end(JSON.stringify({ data: { imagePlan: plan } }));
+          return;
+        } catch (error) {
+          res.statusCode = 400;
+          res.setHeader("Content-Type", "application/json; charset=utf-8");
+          res.end(
+            JSON.stringify({
+              errors: [{ message: error instanceof Error ? error.message : "Unable to create image plan." }],
+            }),
+          );
+          return;
+        }
+      }
 
       if (pathname === "/.netlify/functions/github-repo") {
         try {
@@ -159,6 +205,8 @@ const githubDevBridge = () => ({
 
         try {
           if (isAiRuntimeRequest) {
+            const userAgentHeader = req.headers?.["user-agent"];
+            const userAgent = Array.isArray(userAgentHeader) ? userAgentHeader.join(" ") : (userAgentHeader ?? "");
             const architecture =
               platform === "macos"
                 ? pathname.includes("/macos/arm64/") ||
@@ -167,7 +215,7 @@ const githubDevBridge = () => ({
                   : pathname.includes("/macos/x64/") ||
                       pathname === "/.netlify/functions/download-latest-ai-runtime-macos-x64"
                     ? "x64"
-                    : inferMacosArchitectureFromRequest(url, req.headers?.["user-agent"] ?? "")
+                    : inferMacosArchitectureFromRequest(url, userAgent)
                 : undefined;
             const redirectTarget =
               (await resolveDevAiRuntimeRedirectTarget(platform, architecture)) ?? GITHUB_RELEASES_URL;
@@ -199,12 +247,27 @@ const githubDevBridge = () => ({
   },
 });
 
+const nonBlockingAppCss = () => ({
+  name: "openstudio-nonblocking-app-css",
+  enforce: "post" as const,
+  transformIndexHtml(html: string) {
+    return html.replace(
+      /<link\s+rel="stylesheet"([^>]*?)href="([^"]*\/assets\/index-[^"]+\.css)"([^>]*)>/g,
+      (_match, beforeHref: string, href: string, afterHref: string) =>
+        [
+          `<link rel="preload" as="style"${beforeHref}href="${href}"${afterHref} data-openstudio-app-css onload="this.onload=null;this.rel='stylesheet';this.dataset.openstudioAppCssReady='true';window.__openstudioMarkAppCssReady&&window.__openstudioMarkAppCssReady()" onerror="this.dataset.openstudioAppCssReady='true';window.__openstudioMarkAppCssReady&&window.__openstudioMarkAppCssReady()">`,
+          `<noscript><link rel="stylesheet"${beforeHref}href="${href}"${afterHref}></noscript>`,
+        ].join("\n    "),
+    );
+  },
+});
+
 export default defineConfig({
   server: {
     host: "::",
     port: 8080,
   },
-  plugins: [react(), githubDevBridge()],
+  plugins: [react(), githubDevBridge(), nonBlockingAppCss()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -213,14 +276,41 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          "react-vendor": ["react", "react-dom", "react-router-dom"],
-          "animation-vendor": ["framer-motion"],
-          "webgl-vendor": ["three"],
-          "ui-vendor": [
-            "@radix-ui/react-dialog",
-            "@radix-ui/react-aspect-ratio",
-          ],
+        manualChunks(id) {
+          const normalizedId = id.replace(/\\/g, "/");
+
+          if (
+            normalizedId.includes("/node_modules/react/") ||
+            normalizedId.includes("/node_modules/react-dom/") ||
+            normalizedId.includes("/node_modules/react-router-dom/") ||
+            normalizedId.includes("/node_modules/@remix-run/router/")
+          ) {
+            return "react-vendor";
+          }
+
+          if (normalizedId.includes("/node_modules/three/")) {
+            return "webgl-vendor";
+          }
+
+          if (normalizedId.includes("/node_modules/gsap/")) {
+            return "gsap-vendor";
+          }
+
+          if (normalizedId.includes("/node_modules/lenis/")) {
+            return "lenis-vendor";
+          }
+
+          if (normalizedId.includes("/node_modules/@radix-ui/")) {
+            return "radix-vendor";
+          }
+
+          if (normalizedId.includes("/node_modules/@chenglou/pretext/")) {
+            return "pretext-engine";
+          }
+
+          if (normalizedId.includes("/node_modules/framer-motion/")) {
+            return "framer-motion";
+          }
         },
       },
     },

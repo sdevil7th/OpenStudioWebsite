@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type MutableRefObject } from "react";
-import { useReducedMotion } from "framer-motion";
 import * as THREE from "three";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
 
 const STEM_COLORS = ["#ff5c5c", "#f5d444", "#56db6d", "#3ad7ff", "#6f7aff", "#f686ff"] as const;
@@ -96,7 +96,7 @@ const AiSignalWebGLStage = ({ className, progressRef, sectionPhaseRef }: AiSigna
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fallbackProgress = useRef(0);
   const fallbackPhase = useRef(0);
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {

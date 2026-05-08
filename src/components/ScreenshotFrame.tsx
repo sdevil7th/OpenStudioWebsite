@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { getResponsiveImageAttributes } from "@/lib/assetLoading";
 import { cn } from "@/lib/utils";
 import type { ScreenshotAsset } from "@/data/screenshots";
 
@@ -17,6 +17,14 @@ const ScreenshotFrame = ({ screenshot, ratio = 16 / 10, className, variant = "ch
     variant === "hero" ? "rounded-[2rem]" : variant === "gallery" ? "rounded-[1.75rem]" : "rounded-[1.6rem]";
   const minimal = variant === "minimal";
   const fitMode = screenshot.fit ?? (minimal ? "contain" : "cover");
+  const imageAttributes = getResponsiveImageAttributes(
+    screenshot.src,
+    variant === "hero" ? "hero/eager" : "below-fold",
+    {
+      maxWidth: variant === "hero" ? 1600 : 1280,
+      sizes: variant === "hero" ? "(min-width: 1024px) 52vw, 100vw" : "(min-width: 1024px) 42vw, 100vw",
+    },
+  );
 
   return (
     <div className={cn(minimal ? "overflow-hidden" : "spotlight-border panel-surface overflow-hidden", heightClass, className)}>
@@ -26,20 +34,14 @@ const ScreenshotFrame = ({ screenshot, ratio = 16 / 10, className, variant = "ch
           {!minimal ? <div className="scanlines absolute inset-0" /> : null}
           {!minimal ? <div className="grid-overlay absolute inset-0 opacity-30" /> : null}
           {!hasError ? (
-            <motion.img
-              src={screenshot.src}
+            <img
+              {...imageAttributes}
               alt={screenshot.alt}
               className={cn(
-                "h-full w-full",
+                "screenshot-frame__image h-full w-full",
                 fitMode === "contain" ? "object-contain p-2 md:p-3" : "object-cover",
               )}
-              decoding="async"
-              initial={{ scale: 1.08, opacity: 0.74, rotateX: -5 }}
-              loading={variant === "hero" ? "eager" : "lazy"}
               style={{ objectPosition: screenshot.focalPosition ?? "center center" }}
-              whileInView={{ scale: 1, opacity: 1, rotateX: 0 }}
-              viewport={{ once: true, amount: 0.4 }}
-              transition={{ duration: 1.15, ease: [0.16, 1, 0.3, 1] }}
               onError={() => setHasError(true)}
             />
           ) : null}

@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { ArrowRight, Clock3, Download, FileText, GitBranch, Megaphone, ShieldCheck, Sparkles } from "lucide-react";
 import { useRef } from "react";
 import { Link } from "react-router-dom";
@@ -9,13 +8,13 @@ import { designMedia } from "@/data/designMedia";
 import { releaseChannels, releasePrinciples, releaseSyncPanel, releaseTimeline, releasesHero, releasesSeo } from "@/data/releases";
 import { useGithubRepoSnapshot } from "@/hooks/useGithubRepoSnapshot";
 import { formatGithubDate } from "@/lib/github";
-import { gsap, ScrollTrigger, useScrollScene } from "@/lib/gsap";
+import { useScrollScene } from "@/lib/gsap";
 
 const ReleasesPage = () => {
   const pageRef = useRef<HTMLElement | null>(null);
   const { snapshot, status } = useGithubRepoSnapshot();
 
-  useScrollScene(pageRef, ({ prefersReducedMotion }) => {
+  useScrollScene(pageRef, ({ prefersReducedMotion, gsap, ScrollTrigger }) => {
     gsap.fromTo(
       "[data-releases-hero] > *",
       { y: 24, autoAlpha: 0 },
@@ -105,13 +104,10 @@ const ReleasesPage = () => {
   });
 
   return (
-    <motion.main
+    <main
       ref={pageRef}
-      animate={{ opacity: 1 }}
-      className="design-page-main audio-scan-grid"
+      className="design-page-main audio-scan-grid route-appear"
       id="main-content"
-      initial={{ opacity: 0 }}
-      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
       <PageSeo {...releasesSeo} />
 
@@ -332,7 +328,7 @@ const ReleasesPage = () => {
           </SectionReveal>
         </section>
       </div>
-    </motion.main>
+    </main>
   );
 };
 

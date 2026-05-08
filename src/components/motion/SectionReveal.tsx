@@ -1,25 +1,54 @@
-import type { HTMLMotionProps } from "framer-motion";
-import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useRef, useState, type CSSProperties, type HTMLAttributes } from "react";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
 
-interface SectionRevealProps extends HTMLMotionProps<"div"> {
+interface SectionRevealProps extends HTMLAttributes<HTMLDivElement> {
   delay?: number;
 }
 
-const SectionReveal = ({ children, className, delay = 0, ...props }: SectionRevealProps) => {
-  const prefersReducedMotion = useReducedMotion();
+const SectionReveal = ({ children, className, delay = 0, style, ...props }: SectionRevealProps) => {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const [visible, setVisible] = useState(Boolean(prefersReducedMotion));
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      setVisible(true);
+      return;
+    }
+
+    const element = ref.current;
+    if (!element || !("IntersectionObserver" in window)) {
+      setVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) {
+          return;
+        }
+
+        setVisible(true);
+        observer.disconnect();
+      },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.18 },
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [prefersReducedMotion]);
 
   return (
-    <motion.div
-      className={cn(className)}
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
-      transition={prefersReducedMotion ? undefined : { duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] }}
-      viewport={{ once: true, amount: 0.2 }}
-      whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+    <div
+      className={cn("section-reveal", className)}
+      data-section-reveal={visible ? "visible" : "hidden"}
+      ref={ref}
+      style={{ ...style, ["--section-reveal-delay" as string]: `${delay}s` } as CSSProperties}
       {...props}
     >
       {children}
-    </motion.div>
+    </div>
   );
 };
 

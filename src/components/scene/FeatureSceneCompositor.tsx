@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { FeatureChapter, FeatureSceneFragment, FeatureTransitionProfile } from "@/data/marketing";
 import type { ScreenshotAsset } from "@/data/screenshots";
+import { loadScheduledImage } from "@/lib/imageScheduler";
 import { cn } from "@/lib/utils";
 
 export interface FeatureSceneCompositorState {
@@ -104,11 +105,12 @@ interface VoidField {
 }
 
 const DPR_FALLBACK = 1;
+const DPR_LIMIT = 1.5;
 const TAU = Math.PI * 2;
-const DEFAULT_COLLAPSE = 0.22;
-const DEFAULT_VOID_PEAK = 0.72;
-const DEFAULT_ARRIVAL = 0.9;
-const DEFAULT_SETTLE = 1;
+const DEFAULT_COLLAPSE = 0.18;
+const DEFAULT_VOID_PEAK = 0.56;
+const DEFAULT_ARRIVAL = 0.72;
+const DEFAULT_SETTLE = 0.88;
 
 export const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 export const lerp = (start: number, end: number, progress: number) => start + (end - start) * progress;
@@ -1201,14 +1203,24 @@ export const drawTransitionAsset = (
   context.restore();
 };
 
-const collectChapterSources = (chapter: FeatureChapter, includeTransition = false) => {
-  const sources = [chapter.sceneBase.asset.src, ...chapter.sceneFragments.map((fragment) => fragment.asset.src)];
+const collectChapterSources = (chapter: FeatureChapter, includeTransition = false, includeFragments = true) => {
+  const sources = [
+    chapter.sceneBase.asset.src,
+    ...(includeFragments ? chapter.sceneFragments.map((fragment) => fragment.asset.src) : []),
+  ];
 
   if (includeTransition) {
     [
       chapter.transitionProfile?.curatedMatteSrc,
       chapter.transitionProfile?.collapseMaskSrc,
       chapter.transitionProfile?.voidBridgeSrc,
+      chapter.transitionProfile?.remnantMaskSrc,
+      chapter.transitionProfile?.arrivalMatteSrc,
+      chapter.transitionProfile?.authoredBridge?.collapseFieldSrc,
+      chapter.transitionProfile?.authoredBridge?.remnantEtchedSrc,
+      chapter.transitionProfile?.authoredBridge?.voidCoreSrc,
+      chapter.transitionProfile?.authoredBridge?.voidEdgeSrc,
+      chapter.transitionProfile?.authoredBridge?.arrivalMatteSrc,
     ].forEach((src) => {
       if (src) {
         sources.push(src);
@@ -1219,18 +1231,45 @@ const collectChapterSources = (chapter: FeatureChapter, includeTransition = fals
   return sources;
 };
 
-const ensureImageSource = (images: Map<string, HTMLImageElement>, src: string) => {
+const ensureImageSource = (
+  images: Map<string, HTMLImageElement>,
+  pending: Set<string>,
+  src: string,
+  priority: "active" | "next" | "idle" = "idle",
+  {
+    height,
+    includeTransition = false,
+    width,
+  }: {
+    height?: number;
+    includeTransition?: boolean;
+    width?: number;
+  } = {},
+) => {
   const existing = images.get(src);
-  if (existing) {
+  if (existing || pending.has(src)) {
     return existing;
   }
 
-  const image = new Image();
-  image.decoding = "async";
-  image.loading = "eager";
-  image.src = src;
-  images.set(src, image);
-  return image;
+  pending.add(src);
+  void loadScheduledImage(src, {
+    fit: "cover",
+    group: includeTransition ? "transitionUpcoming" : priority === "active" ? "cinematicFirstFrame" : "nearby",
+    height,
+    maxWidth: includeTransition ? 960 : priority === "active" ? 1280 : 960,
+    priority,
+    slot: includeTransition ? "transition-mask" : priority === "active" ? "cinematic" : "panel",
+    tier: priority === "active" ? "story-active" : "story-next",
+    width,
+  })
+    .then((image) => {
+      images.set(src, image);
+    })
+    .finally(() => {
+      pending.delete(src);
+    });
+
+  return undefined;
 };
 
 const FeatureSceneCompositor = ({ chapters, stateRef, className }: FeatureSceneCompositorProps) => {
@@ -1243,6 +1282,7 @@ const FeatureSceneCompositor = ({ chapters, stateRef, className }: FeatureSceneC
   const ringCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const overlayCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const imagesRef = useRef<Map<string, HTMLImageElement>>(new Map());
+  const pendingImagesRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const loadChapter = (index: number, includeTransition = false) => {
@@ -1251,20 +1291,20 @@ const FeatureSceneCompositor = ({ chapters, stateRef, className }: FeatureSceneC
         return;
       }
 
-      collectChapterSources(chapter, includeTransition).forEach((src) => ensureImageSource(imagesRef.current, src));
+      const width = typeof window === "undefined" ? 960 : window.innerWidth;
+      const height = typeof window === "undefined" ? 640 : window.innerHeight;
+
+      collectChapterSources(chapter, includeTransition, index === 0).forEach((src) =>
+        ensureImageSource(imagesRef.current, pendingImagesRef.current, src, index === 0 ? "active" : "next", {
+          height,
+          includeTransition,
+          width,
+        }),
+      );
     };
 
-    loadChapter(0, true);
-    loadChapter(1, true);
-
-    const idleLoader = () => {
-      chapters.forEach((_, index) => loadChapter(index, index <= 2));
-    };
-    const idleId = window.setTimeout(idleLoader, 4200);
-
-    return () => {
-      window.clearTimeout(idleId);
-    };
+    loadChapter(0);
+    loadChapter(1);
   }, [chapters]);
 
   useEffect(() => {
@@ -1295,12 +1335,18 @@ const FeatureSceneCompositor = ({ chapters, stateRef, className }: FeatureSceneC
 
     let animationFrame = 0;
     const renderStartTime = performance.now();
+    let stageVisible = true;
 
     const render = () => {
+      if (!stageVisible || document.visibilityState === "hidden") {
+        animationFrame = 0;
+        return;
+      }
+
       const bounds = canvas.getBoundingClientRect();
       const drawWidth = Math.max(1, bounds.width);
       const drawHeight = Math.max(1, bounds.height);
-      const devicePixelRatio = window.devicePixelRatio || DPR_FALLBACK;
+      const devicePixelRatio = Math.min(window.devicePixelRatio || DPR_FALLBACK, DPR_LIMIT);
       const pixelWidth = Math.max(1, Math.round(drawWidth * devicePixelRatio));
       const pixelHeight = Math.max(1, Math.round(drawHeight * devicePixelRatio));
       syncCanvasSize(canvas, pixelWidth, pixelHeight);
@@ -1382,14 +1428,30 @@ const FeatureSceneCompositor = ({ chapters, stateRef, className }: FeatureSceneC
         handoff > 0.001;
 
       if (shouldWarmNearbyChapters) {
-        [visualOwnerIndex - 1, activeIndex, visualOwnerIndex, nextIndex, visualOwnerIndex + 1].forEach((index) => {
+        [activeIndex, visualOwnerIndex, nextIndex].forEach((index) => {
           const chapter = chapters[index];
           if (!chapter) {
             return;
           }
 
-          collectChapterSources(chapter, Math.abs(index - visualOwnerIndex) <= 1).forEach((src) =>
-            ensureImageSource(imagesRef.current, src),
+          const includeTransition = currentState.transitionActive > 0.04;
+          const includeFragments = index === activeIndex || index === visualOwnerIndex || includeTransition;
+
+          collectChapterSources(chapter, includeTransition, includeFragments).forEach((src) =>
+            ensureImageSource(
+              imagesRef.current,
+              pendingImagesRef.current,
+              src,
+              index === activeIndex || index === visualOwnerIndex ? "active" : "next",
+              {
+                height: drawHeight,
+                includeTransition:
+                  includeTransition &&
+                  src !== chapter.sceneBase.asset.src &&
+                  !chapter.sceneFragments.some((fragment) => fragment.asset.src === src),
+                width: drawWidth,
+              },
+            ),
           );
         });
       }
@@ -1913,10 +1975,32 @@ const FeatureSceneCompositor = ({ chapters, stateRef, className }: FeatureSceneC
       animationFrame = window.requestAnimationFrame(render);
     };
 
-    render();
+    const requestRender = () => {
+      if (animationFrame || !stageVisible || document.visibilityState === "hidden") {
+        return;
+      }
+
+      animationFrame = window.requestAnimationFrame(render);
+    };
+
+    const stageObserver =
+      typeof IntersectionObserver === "undefined"
+        ? undefined
+        : new IntersectionObserver(
+            ([entry]) => {
+              stageVisible = Boolean(entry?.isIntersecting);
+              requestRender();
+            },
+            { rootMargin: "420px 0px", threshold: 0.01 },
+          );
+    stageObserver?.observe(canvas);
+    document.addEventListener("visibilitychange", requestRender);
+    requestRender();
 
     return () => {
       window.cancelAnimationFrame(animationFrame);
+      stageObserver?.disconnect();
+      document.removeEventListener("visibilitychange", requestRender);
     };
   }, [chapters, stateRef]);
 

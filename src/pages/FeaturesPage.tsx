@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
 import {
   ArrowRight,
   Layers3,
@@ -11,15 +10,10 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import ChapterProgress from "@/components/ChapterProgress";
+import DeferredClientStage from "@/components/DeferredClientStage";
 import PageSeo from "@/components/PageSeo";
-import FeatureSceneCompositor, {
-  type FeatureSceneCompositorState,
-} from "@/components/scene/FeatureSceneCompositor";
-import FeatureSceneWebGLStage from "@/components/scene/FeatureSceneWebGLStage";
-import FeatureStoryUnifiedTransition from "@/components/scene/FeatureStoryUnifiedTransition";
-import FeaturesStoryBackdrop from "@/components/scene/FeaturesStoryBackdrop";
-import ChapterIntroOverlay from "@/components/scene/ChapterIntroOverlay";
 import SectionReveal from "@/components/motion/SectionReveal";
+import FeaturesStoryBackdrop from "@/components/scene/FeaturesStoryBackdrop";
 import { Button } from "@/components/ui/button";
 import {
   featureChapters,
@@ -29,8 +23,17 @@ import {
   featuresFinalCta,
 } from "@/data/features";
 import type { FeatureChapter } from "@/data/marketing";
-import { gsap, ScrollTrigger, useScrollScene } from "@/lib/gsap";
+import type { FeatureSceneCompositorState } from "@/components/scene/FeatureSceneCompositor";
+import { getResponsiveImageAttributes } from "@/lib/assetLoading";
+import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
+import { warmScheduledImages } from "@/lib/imageScheduler";
+import { useScrollScene } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
+
+const ChapterIntroOverlay = lazy(() => import("@/components/scene/ChapterIntroOverlay"));
+const FeatureSceneCompositor = lazy(() => import("@/components/scene/FeatureSceneCompositor"));
+const FeatureSceneWebGLStage = lazy(() => import("@/components/scene/FeatureSceneWebGLStage"));
+const FeatureStoryUnifiedTransition = lazy(() => import("@/components/scene/FeatureStoryUnifiedTransition"));
 
 const accentBadgeClass = {
   lavender: "border-primary/25 bg-primary/10 text-primary",
@@ -47,6 +50,41 @@ const chapterIcons: Record<string, LucideIcon> = {
   automation: Settings2,
 };
 
+interface FeatureSceneCompositorSurfaceProps {
+  chapters: FeatureChapter[];
+  className?: string;
+  stateRef: MutableRefObject<FeatureSceneCompositorState>;
+}
+
+const FeatureSceneStaticFallback = ({ className }: { className?: string }) => (
+  <div className={cn("feature-story-static-stage", className)} aria-hidden="true">
+    <span className="feature-story-static-stage__wash" />
+    <span className="feature-story-static-stage__beam feature-story-static-stage__beam--one" />
+    <span className="feature-story-static-stage__beam feature-story-static-stage__beam--two" />
+    <span className="feature-story-static-stage__rail" />
+    <span className="feature-story-static-stage__panel feature-story-static-stage__panel--primary" />
+    <span className="feature-story-static-stage__panel feature-story-static-stage__panel--secondary" />
+  </div>
+);
+
+const FeatureStoryTransitionFallback = () => (
+  <div className="feature-story-transition-fallback" aria-hidden="true">
+    <span />
+    <span />
+    <span />
+  </div>
+);
+
+const FeatureSceneCompositorSurface = ({
+  chapters,
+  className,
+  stateRef,
+}: FeatureSceneCompositorSurfaceProps) => (
+  <Suspense fallback={<FeatureSceneStaticFallback className={className} />}>
+    <FeatureSceneCompositor chapters={chapters} className={className} stateRef={stateRef} />
+  </Suspense>
+);
+
 const clampProgress = (value?: number) => {
   if (typeof value !== "number" || Number.isNaN(value)) {
     return 0;
@@ -60,19 +98,21 @@ const lerpValue = (start: number, end: number, progress: number) =>
 const easeOutCubic = (value: number) =>
   1 - Math.pow(1 - clampProgress(value), 3);
 
-const DEFAULT_COLLAPSE = 0.22;
-const DEFAULT_VOID_PEAK = 0.72;
-const DEFAULT_ARRIVAL = 0.9;
-const DEFAULT_SETTLE = 1;
-const INTRO_END = 0.22;
-const STORY_CUE_START = 0.22;
-const STORY_LOOSEN_START = 0.22;
-const STORY_DESTRUCTION_START = 0.36;
-const STORY_REASSEMBLY_START = 0.72;
-const STORY_PANEL_IN_START = 0.9;
-const STORY_PANEL_SETTLE_END = 1;
-const STORY_VISUAL_SETTLE_START = 1;
-const STORY_SCROLL_STOP_DELAY = 90;
+const DEFAULT_COLLAPSE = 0.18;
+const DEFAULT_VOID_PEAK = 0.56;
+const DEFAULT_ARRIVAL = 0.72;
+const DEFAULT_SETTLE = 0.88;
+const INTRO_END = 0.18;
+const STORY_CUE_START = 0.16;
+const STORY_LOOSEN_START = 0.16;
+const STORY_DESTRUCTION_START = 0.3;
+const STORY_REASSEMBLY_START = 0.58;
+const STORY_PANEL_IN_START = 0.72;
+const STORY_PANEL_SETTLE_END = 0.88;
+const STORY_VISUAL_SETTLE_START = 0.9;
+const STORY_SCROLL_STOP_DELAY = 45;
+const STORY_CHAPTER_START_INSET = 160;
+const STORY_CHAPTER_END_OFFSET = 112;
 
 const phaseProgress = (value: number, start: number, end: number) => {
   if (end <= start) {
@@ -324,6 +364,10 @@ const FeatureMobileCard = ({
 }) => {
   const Icon = chapterIcons[chapter.id] ?? Sparkles;
   const accentKey = chapter.accent ?? "lavender";
+  const primaryImageAttributes = getResponsiveImageAttributes(chapter.sceneBase.asset.src, "story-active", {
+    maxWidth: 960,
+    sizes: "100vw",
+  });
 
   return (
     <div
@@ -345,6 +389,7 @@ const FeatureMobileCard = ({
         <div className="feature-story-mobile-primary">
           {loadMedia ? (
             <img
+              {...primaryImageAttributes}
               alt={chapter.sceneBase.asset.alt}
               className={cn(
                 "h-full w-full",
@@ -352,9 +397,6 @@ const FeatureMobileCard = ({
                   ? "object-contain"
                   : "object-cover",
               )}
-              decoding="async"
-              loading={index === 0 ? "eager" : "lazy"}
-              src={chapter.sceneBase.asset.src}
             />
           ) : null}
         </div>
@@ -370,6 +412,10 @@ const FeatureMobileCard = ({
             >
               {loadMedia ? (
                 <img
+                  {...getResponsiveImageAttributes(fragment.asset.src, "story-next", {
+                    maxWidth: 768,
+                    sizes: "50vw",
+                  })}
                   alt={fragment.asset.alt}
                   className={cn(
                     "h-full w-full",
@@ -377,9 +423,6 @@ const FeatureMobileCard = ({
                       ? "object-contain"
                       : "object-cover",
                   )}
-                  decoding="async"
-                  loading={index === 0 ? "eager" : "lazy"}
-                  src={fragment.asset.src}
                 />
               ) : null}
             </div>
@@ -474,25 +517,44 @@ const FeaturesPage = () => {
     return () => mediaQuery.removeEventListener("change", syncMobileMedia);
   }, []);
 
-  useEffect(() => {
-    if (typeof document === "undefined" || !("fonts" in document)) {
-      return;
-    }
-    let cancelled = false;
-    document.fonts.ready.then(() => {
-      if (cancelled) {
-        return;
-      }
-      ScrollTrigger.refresh();
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  useEffect(
+    () =>
+      scheduleAfterInitialLoad(
+        () => {
+          const firstChapter = featureChapters[0];
+          const nextChapter = featureChapters[1];
+          const firstFrameSources = [
+            firstChapter?.sceneBase.asset.src,
+            ...(firstChapter?.sceneFragments.map((fragment) => fragment.asset.src) ?? []),
+            nextChapter?.sceneBase.asset.src,
+          ].filter((src): src is string => Boolean(src));
+
+          warmScheduledImages([...new Set(firstFrameSources)], {
+            group: "cinematicFirstFrame",
+            maxWidth: 1280,
+            priority: "active",
+            route: "/features",
+            slot: "cinematic",
+            tier: "story-active",
+          });
+
+          warmScheduledImages(collectFeatureTransitionSources(firstChapter).slice(0, 3), {
+            group: "transitionUpcoming",
+            maxWidth: 960,
+            priority: "next",
+            route: "/features",
+            slot: "transition-mask",
+            tier: "story-next",
+          });
+        },
+        { delay: 320, runOnInput: false, timeout: 1400 },
+      ),
+    [],
+  );
 
   useScrollScene(
     pageRef,
-    ({ prefersReducedMotion: reduceMotion, isDesktop }) => {
+    ({ prefersReducedMotion: reduceMotion, isDesktop, gsap, ScrollTrigger }) => {
       const useDesktopStory =
         isDesktop && window.matchMedia("(min-width: 1280px)").matches;
       const cleanups: Array<() => void> = [];
@@ -521,8 +583,8 @@ const FeaturesPage = () => {
 
         ScrollTrigger.create({
           trigger: target,
-          start: useDesktopStory ? "top top+=112" : "top center+=80",
-          end: useDesktopStory ? "bottom bottom-=160" : "bottom center",
+          start: useDesktopStory ? "top bottom-=160" : "top center+=80",
+          end: useDesktopStory ? "bottom top+=112" : "bottom center",
           onEnter: () => {
             if (!useDesktopStory) {
               setActiveId(chapterId);
@@ -697,6 +759,11 @@ const FeaturesPage = () => {
       };
 
       let crawlRefreshFrame = 0;
+      let crawlRefreshTimeout = 0;
+      let lastCrawlRefreshScrollAt = 0;
+      const markCrawlRefreshScroll = () => {
+        lastCrawlRefreshScrollAt = performance.now();
+      };
       const measureDetailCrawlsAndRefresh = (refreshScrollTrigger = false) => {
         measureDetailCrawlPanels();
 
@@ -707,11 +774,22 @@ const FeaturesPage = () => {
         crawlRefreshFrame = window.requestAnimationFrame(() => {
           crawlRefreshFrame = 0;
           syncStoryRects();
-          ScrollTrigger.refresh();
+          const refresh = () => {
+            crawlRefreshTimeout = 0;
+            ScrollTrigger.refresh();
+          };
+
+          if (performance.now() - lastCrawlRefreshScrollAt < 180) {
+            crawlRefreshTimeout = window.setTimeout(refresh, 220);
+            return;
+          }
+
+          refresh();
         });
       };
 
       measureDetailCrawlsAndRefresh();
+      window.addEventListener("scroll", markCrawlRefreshScroll, { passive: true });
 
       const crawlResizeObserver =
         typeof ResizeObserver === "undefined"
@@ -738,10 +816,14 @@ const FeaturesPage = () => {
       const handleCrawlResize = () => measureDetailCrawlsAndRefresh(true);
       window.addEventListener("resize", handleCrawlResize);
       cleanups.push(() => {
+        window.removeEventListener("scroll", markCrawlRefreshScroll);
         window.removeEventListener("resize", handleCrawlResize);
         crawlResizeObserver?.disconnect();
         if (crawlRefreshFrame) {
           window.cancelAnimationFrame(crawlRefreshFrame);
+        }
+        if (crawlRefreshTimeout) {
+          window.clearTimeout(crawlRefreshTimeout);
         }
       });
 
@@ -754,18 +836,6 @@ const FeaturesPage = () => {
         });
         cleanups.push(() => {
           fontsCancelled = true;
-        });
-      }
-
-      if (viewport && shell) {
-        ScrollTrigger.create({
-          trigger: viewport,
-          start: "top top+=92",
-          end: "bottom bottom-=24",
-          pin: shell,
-          pinSpacing: false,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
         });
       }
 
@@ -880,7 +950,6 @@ const FeaturesPage = () => {
           const pointerTarget = shell ?? viewport ?? storyCanvas;
 
           const tickPointer = () => {
-            syncStoryRects();
             pointerState.currentX = lerpValue(
               pointerState.currentX,
               pointerState.targetX,
@@ -969,35 +1038,37 @@ const FeaturesPage = () => {
 
       const markerProgress = (marker: HTMLElement) => {
         const rect = marker.getBoundingClientRect();
-        const startOffset = 112;
-        const endOffset = window.innerHeight - 160;
-        const travel = Math.max(1, rect.height - endOffset + startOffset);
-        return clampProgress((startOffset - rect.top) / travel);
+        const startLine = window.innerHeight - STORY_CHAPTER_START_INSET;
+        const endLine = STORY_CHAPTER_END_OFFSET;
+        const travel = Math.max(1, rect.height + startLine - endLine);
+        return clampProgress((startLine - rect.top) / travel);
       };
 
       const getActiveMarkerState = () => {
+        const startLine = window.innerHeight - STORY_CHAPTER_START_INSET;
+        const endLine = STORY_CHAPTER_END_OFFSET;
         const states = markers.map((marker, index) => ({
           index,
           progress: markerProgress(marker),
           rect: marker.getBoundingClientRect(),
         }));
-        const active =
-          states.find(
+        const active = [...states]
+          .reverse()
+          .find(
             (state) =>
-              state.rect.top <= 112 &&
-              state.rect.bottom >= window.innerHeight - 160,
+              state.rect.top <= startLine && state.rect.bottom >= endLine,
           ) ?? states.find((state) => state.progress > 0 && state.progress < 1);
 
         if (active) {
           return active;
         }
 
-        const beforeFirst = states[0] && states[0].rect.top > 112;
+        const beforeFirst = states[0] && states[0].rect.top > startLine;
         if (beforeFirst) {
           return { index: 0, progress: 0, rect: states[0]!.rect };
         }
 
-        const upcoming = states.find((state) => state.rect.top > 112);
+        const upcoming = states.find((state) => state.rect.top > startLine);
         if (upcoming) {
           const previousIndex = Math.max(0, upcoming.index - 1);
           const previous = states[previousIndex];
@@ -1098,7 +1169,7 @@ const FeaturesPage = () => {
           : 1;
         const scrollStoppedFor = now - storyController.lastScrollTime;
         const settleProgress = clampProgress(
-          (scrollStoppedFor - STORY_SCROLL_STOP_DELAY) / 620,
+          (scrollStoppedFor - STORY_SCROLL_STOP_DELAY) / 340,
         );
         const isAuthoredBridge = Boolean(
           chapter.transitionProfile?.authoredBridge,
@@ -1244,7 +1315,10 @@ const FeaturesPage = () => {
         document.documentElement.style.setProperty(
           "--feature-story-portal-opacity",
           inTransition
-            ? `${clampProgress((destructionProgress * 0.05 + bridge * 0.04) * (1 - readableProgress))}`
+            ? `${clampProgress(
+                (collapse * 0.12 + destructionProgress * 0.28 + bridge * 0.36) *
+                  (1 - readableProgress * 0.72),
+              )}`
             : "0",
         );
 
@@ -1252,10 +1326,9 @@ const FeaturesPage = () => {
           hasNextPanel && progress >= phases.voidPeak
             ? markerState.index + 1
             : markerState.index;
-        const visualOwnerId = featureChapters[visualOwnerIndex]?.id;
-        if (visualOwnerId && visualOwnerId !== storyController.activeId) {
-          storyController.activeId = visualOwnerId;
-          setActiveId(visualOwnerId);
+        if (chapter.id !== storyController.activeId) {
+          storyController.activeId = chapter.id;
+          setActiveId(chapter.id);
         }
 
         const currentPanelExit = hasNextPanel
@@ -1399,6 +1472,7 @@ const FeaturesPage = () => {
         cleanups.forEach((cleanup) => cleanup());
       };
     },
+    { delay: 320, runOnInput: false, timeout: 1400 },
   );
 
   const activeProgress = clampProgress(progressById[activeChapter.id]);
@@ -1406,25 +1480,20 @@ const FeaturesPage = () => {
   const HeroChapterIcon = chapterIcons[featureChapters[0]?.id ?? ""] ?? Layers3;
 
   return (
-    <motion.main
+    <main
       ref={pageRef}
-      animate={{ opacity: 1 }}
-      className="design-page-main feature-story-page"
+      className="design-page-main feature-story-page route-appear"
       id="main-content"
-      initial={{ opacity: 0 }}
-      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
       <PageSeo {...featurePageSeo} />
-      <FeaturesStoryBackdrop
-        chapter={activeChapter}
-        chapters={featureChapters}
-        progress={activeProgress}
-        stateRef={compositorStateRef}
-      />
-      <FeatureStoryUnifiedTransition
-        chapters={featureChapters}
-        stateRef={compositorStateRef}
-      />
+      <Suspense fallback={<div className="feature-story-backdrop feature-story-backdrop--fallback" aria-hidden="true" />}>
+        <FeaturesStoryBackdrop
+          chapter={activeChapter}
+          chapters={featureChapters}
+          progress={activeProgress}
+          stateRef={compositorStateRef}
+        />
+      </Suspense>
 
       <div className="page-frame-wide relative">
         <section
@@ -1457,11 +1526,12 @@ const FeaturesPage = () => {
             <div className="feature-story-hero-visual grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(18rem,0.92fr)]">
               <div className="feature-story-hero-stage feature-story-hero-stage--primary overflow-hidden rounded-[2rem] border border-white/10">
                 <img
+                  {...getResponsiveImageAttributes(featureChapters[0]!.sceneBase.asset.src, "hero/eager", {
+                    maxWidth: 1600,
+                    sizes: "(min-width: 1280px) 48vw, 100vw",
+                  })}
                   alt={featureChapters[0]!.sceneBase.asset.alt}
                   className="h-[22rem] w-full object-cover md:h-[27rem] xl:h-[31rem]"
-                  decoding="async"
-                  loading="eager"
-                  src={featureChapters[0]!.sceneBase.asset.src}
                 />
               </div>
               <div className="grid gap-4">
@@ -1491,11 +1561,12 @@ const FeaturesPage = () => {
                 </div>
                 <div className="feature-story-hero-stage feature-story-hero-stage--secondary overflow-hidden rounded-[1.8rem] border border-white/10 bg-black/36">
                   <img
+                    {...getResponsiveImageAttributes(featureChapters[3]!.sceneBase.asset.src, "near-fold", {
+                      maxWidth: 960,
+                      sizes: "(min-width: 1280px) 22vw, 60vw",
+                    })}
                     alt={featureChapters[3]!.sceneBase.asset.alt}
                     className="h-52 w-full object-cover"
-                    decoding="async"
-                    loading="lazy"
-                    src={featureChapters[3]!.sceneBase.asset.src}
                   />
                 </div>
               </div>
@@ -1504,6 +1575,21 @@ const FeaturesPage = () => {
         </section>
 
         <section className="feature-story-viewport">
+          <DeferredClientStage
+            className="feature-story-deferred-layer"
+            fallback={<FeatureStoryTransitionFallback />}
+            idleDelay={520}
+            idleTimeout={1800}
+            rootMargin="1400px 0px"
+          >
+            <Suspense fallback={<FeatureStoryTransitionFallback />}>
+              <FeatureStoryUnifiedTransition
+                chapters={featureChapters}
+                stateRef={compositorStateRef}
+              />
+            </Suspense>
+          </DeferredClientStage>
+
           <div className="feature-story-shell-sticky hidden xl:block">
             <div className="feature-story-shell-grid">
               <aside className="feature-story-rail-panel">
@@ -1542,16 +1628,28 @@ const FeaturesPage = () => {
 
               <div className="feature-story-shell-stage">
                 <div className="feature-story-canvas">
-                  <FeatureSceneWebGLStage
-                    chapters={featureChapters}
-                    fallback={
-                      <FeatureSceneCompositor
+                  <DeferredClientStage
+                    className="h-full"
+                    fallback={<FeatureSceneStaticFallback />}
+                    idleDelay={720}
+                    idleTimeout={2200}
+                    rootMargin="1400px 0px"
+                  >
+                    <Suspense
+                      fallback={<FeatureSceneStaticFallback />}
+                    >
+                      <FeatureSceneWebGLStage
                         chapters={featureChapters}
+                        fallback={
+                          <FeatureSceneCompositorSurface
+                            chapters={featureChapters}
+                            stateRef={compositorStateRef}
+                          />
+                        }
                         stateRef={compositorStateRef}
                       />
-                    }
-                    stateRef={compositorStateRef}
-                  />
+                    </Suspense>
+                  </DeferredClientStage>
                   <div className="feature-story-panel-stack">
                     {featureChapters.map((chapter, index) => (
                       <FeatureStoryPanel
@@ -1570,10 +1668,12 @@ const FeaturesPage = () => {
                       />
                     ))}
                   </div>
-                  <ChapterIntroOverlay
-                    chapters={featureChapters}
-                    stateRef={compositorStateRef}
-                  />
+                  <Suspense fallback={null}>
+                    <ChapterIntroOverlay
+                      chapters={featureChapters}
+                      stateRef={compositorStateRef}
+                    />
+                  </Suspense>
                 </div>
               </div>
             </div>
@@ -1664,8 +1764,18 @@ const FeaturesPage = () => {
           </SectionReveal>
         </section>
       </div>
-    </motion.main>
+    </main>
   );
 };
+
+const collectFeatureTransitionSources = (chapter?: FeatureChapter) =>
+  [
+    chapter?.transitionProfile?.curatedMatteSrc,
+    chapter?.transitionProfile?.authoredBridge?.collapseFieldSrc,
+    chapter?.transitionProfile?.authoredBridge?.remnantEtchedSrc,
+    chapter?.transitionProfile?.authoredBridge?.voidCoreSrc,
+    chapter?.transitionProfile?.authoredBridge?.voidEdgeSrc,
+    chapter?.transitionProfile?.authoredBridge?.arrivalMatteSrc,
+  ].filter((src): src is string => Boolean(src));
 
 export default FeaturesPage;

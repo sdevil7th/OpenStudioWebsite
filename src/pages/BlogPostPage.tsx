@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { ArrowLeft, BookOpen, Clock3, FileText } from "lucide-react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import { Link, useParams } from "react-router-dom";
@@ -77,12 +76,9 @@ const BlogPostPage = () => {
   }
 
   return (
-    <motion.main
-      animate={{ opacity: 1 }}
-      className="design-page-main audio-scan-grid"
+    <main
+      className="design-page-main audio-scan-grid route-appear"
       id="main-content"
-      initial={{ opacity: 0 }}
-      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
       <PageSeo
         description={post.summary}
@@ -165,17 +161,14 @@ const BlogPostPage = () => {
           </section>
         ) : null}
       </div>
-    </motion.main>
+    </main>
   );
 };
 
 const BlogPostNotFound = ({ slug }: { slug?: string }) => (
-  <motion.main
-    animate={{ opacity: 1, y: 0 }}
-    className="flex min-h-screen items-center px-4 pb-16 pt-28 md:px-6 md:pt-32"
+  <main
+    className="flex min-h-screen items-center px-4 pb-16 pt-28 md:px-6 md:pt-32 route-appear"
     id="main-content"
-    initial={{ opacity: 0, y: 18 }}
-    transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
   >
     <PageSeo
       description="That OpenStudio blog post could not be found. Return to the blog archive to browse the available engineering notes."
@@ -197,7 +190,7 @@ const BlogPostNotFound = ({ slug }: { slug?: string }) => (
         </Button>
       </div>
     </div>
-  </motion.main>
+  </main>
 );
 
 export default BlogPostPage;

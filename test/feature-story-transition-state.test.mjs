@@ -11,21 +11,34 @@ const webglSource = readFileSync(
   new URL("../src/components/scene/FeatureSceneWebGLStage.tsx", import.meta.url),
   "utf8",
 );
+const transitionSource = readFileSync(
+  new URL("../src/components/scene/FeatureStoryUnifiedTransition.tsx", import.meta.url),
+  "utf8",
+);
+const imageSchedulerSource = readFileSync(new URL("../src/lib/imageScheduler.ts", import.meta.url), "utf8");
 const featureSource = readFileSync(new URL("../src/data/features.ts", import.meta.url), "utf8");
 const packageSource = readFileSync(new URL("../package.json", import.meta.url), "utf8");
 const cssSource = readFileSync(new URL("../src/index.css", import.meta.url), "utf8");
+const withoutCommentLines = (source) =>
+  source
+    .split("\n")
+    .filter((line) => !line.trimStart().startsWith("//"))
+    .join("\n");
+const pageCodeSource = withoutCommentLines(pageSource);
+const featureCodeSource = withoutCommentLines(featureSource);
+const compositorCodeSource = withoutCommentLines(compositorSource);
 
 const chapterCount = 5;
 const phases = {
-  cueStart: 0.22,
-  collapseStart: 0.22,
-  loosenStart: 0.22,
-  destructionStart: 0.36,
-  voidPeak: 0.72,
-  arrivalStart: 0.9,
-  panelInStart: 0.9,
-  visualSettleStart: 1,
-  settleEnd: 1,
+  cueStart: 0.16,
+  collapseStart: 0.18,
+  loosenStart: 0.16,
+  destructionStart: 0.3,
+  voidPeak: 0.56,
+  arrivalStart: 0.72,
+  panelInStart: 0.72,
+  visualSettleStart: 0.9,
+  settleEnd: 0.88,
 };
 
 const clamp = (value) => Math.max(0, Math.min(1, value));
@@ -39,7 +52,7 @@ const transitionStateAt = ({ chapterIndex, progress, direction = 1, stoppedFor =
   const currentPanelOpacity = hasNext ? 1 - phaseProgress(clamped, phases.cueStart, phases.destructionStart + 0.16) : 1;
   const nextPanelOpacity = hasNext ? easeOutCubic(phaseProgress(clamped, phases.panelInStart, phases.settleEnd)) : 0;
   const transitionActive = hasNext && clamped >= phases.collapseStart && clamped < phases.visualSettleStart ? 1 : 0;
-  const settleProgress = clamp((stoppedFor - 90) / 620);
+  const settleProgress = clamp((stoppedFor - 45) / 340);
   const loosenProgress = hasNext ? phaseProgress(clamped, phases.loosenStart, phases.destructionStart) : 0;
   const destructionProgress = hasNext ? phaseProgress(clamped, phases.destructionStart, phases.voidPeak) : 0;
   const reassemblyProgress = hasNext ? phaseProgress(clamped, phases.voidPeak, phases.arrivalStart) : 1;
@@ -76,18 +89,30 @@ test("feature story uses one canonical controller instead of per-marker timeline
 });
 
 test("feature story transition timings occupy most of the chapter", () => {
-  assert.match(pageSource, /STORY_CUE_START = 0\.22/);
-  assert.match(pageSource, /STORY_DESTRUCTION_START = 0\.36/);
-  assert.match(pageSource, /STORY_REASSEMBLY_START = 0\.72/);
-  assert.match(pageSource, /STORY_PANEL_IN_START = 0\.9/);
-  assert.match(compositorSource, /const DEFAULT_COLLAPSE = 0\.22/);
-  assert.match(compositorSource, /const DEFAULT_VOID_PEAK = 0\.72/);
-  assert.match(compositorSource, /const DEFAULT_ARRIVAL = 0\.9/);
-  assert.match(featureSource, /collapseStart: 0\.22/);
-  assert.match(featureSource, /voidPeak: 0\.72/);
-  assert.match(featureSource, /arrivalStart: 0\.9/);
-  assert.match(featureSource, /settleEnd: 1/);
-  assert.match(featureSource, /scrollSpan: 2(?:6|8|9|86|92)|scrollSpan: 300/);
+  assert.doesNotMatch(pageSource, /Legacy regression anchors/);
+  assert.doesNotMatch(featureSource, /Legacy regression anchors/);
+  assert.match(pageCodeSource, /^const DEFAULT_COLLAPSE = 0\.18;$/m);
+  assert.match(pageCodeSource, /^const DEFAULT_VOID_PEAK = 0\.56;$/m);
+  assert.match(pageCodeSource, /^const DEFAULT_ARRIVAL = 0\.72;$/m);
+  assert.match(pageCodeSource, /^const DEFAULT_SETTLE = 0\.88;$/m);
+  assert.match(pageCodeSource, /^const STORY_CUE_START = 0\.16;$/m);
+  assert.match(pageCodeSource, /^const STORY_DESTRUCTION_START = 0\.3;$/m);
+  assert.match(pageCodeSource, /^const STORY_REASSEMBLY_START = 0\.58;$/m);
+  assert.match(pageCodeSource, /^const STORY_PANEL_IN_START = 0\.72;$/m);
+  assert.match(pageCodeSource, /^const STORY_VISUAL_SETTLE_START = 0\.9;$/m);
+  assert.match(pageCodeSource, /^const STORY_SCROLL_STOP_DELAY = 45;$/m);
+  assert.match(compositorCodeSource, /^const DEFAULT_COLLAPSE = 0\.18;$/m);
+  assert.match(compositorCodeSource, /^const DEFAULT_VOID_PEAK = 0\.56;$/m);
+  assert.match(compositorCodeSource, /^const DEFAULT_ARRIVAL = 0\.72;$/m);
+  assert.match(compositorCodeSource, /^const DEFAULT_SETTLE = 0\.88;$/m);
+  assert.equal(
+    [...featureCodeSource.matchAll(/^\s+scrollSpan: (\d+),$/gm)].map((match) => Number(match[1])).join(","),
+    "212,204,216,212,190",
+  );
+  assert.equal([...featureCodeSource.matchAll(/^\s+collapseStart: 0\.18,$/gm)].length, chapterCount);
+  assert.equal([...featureCodeSource.matchAll(/^\s+voidPeak: 0\.56,$/gm)].length, chapterCount);
+  assert.equal([...featureCodeSource.matchAll(/^\s+arrivalStart: 0\.72,$/gm)].length, chapterCount);
+  assert.equal([...featureCodeSource.matchAll(/^\s+settleEnd: 0\.88,$/gm)].length, chapterCount);
 });
 
 test("webgl stage is the desktop primary renderer with the canvas fallback retained", () => {
@@ -98,6 +123,31 @@ test("webgl stage is the desktop primary renderer with the canvas fallback retai
   assert.match(webglSource, /ShaderMaterial/);
   assert.match(webglSource, /Points/);
   assert.match(webglSource, /prefers-reduced-motion: reduce/);
+  assert.match(webglSource, /resolveImageAssetUrl/);
+  assert.doesNotMatch(webglSource, /Promise\.all\(\[loadChapterAt/);
+  assert.doesNotMatch(webglSource, /Promise\.all\(\s*chapter\.sceneFragments/);
+});
+
+test("feature story image loading is priority scheduled instead of bulk eager", () => {
+  assert.match(compositorSource, /loadScheduledImage/);
+  assert.match(transitionSource, /loadScheduledImage/);
+  assert.match(imageSchedulerSource, /MAX_IDLE_IMAGE_DECODE = 2/);
+  assert.match(imageSchedulerSource, /MAX_SCROLL_IMAGE_DECODE = 1/);
+  assert.match(imageSchedulerSource, /resolveImageAssetUrl/);
+  assert.match(imageSchedulerSource, /getGeneratedImageFallbackSrc/);
+  assert.match(imageSchedulerSource, /loadImageWithFallbacks/);
+  assert.match(imageSchedulerSource, /shouldLoadHeavyMedia/);
+  assert.doesNotMatch(compositorSource, /image\.loading\s*=\s*"eager"/);
+  assert.doesNotMatch(transitionSource, /image\.loading\s*=\s*"eager"/);
+  assert.doesNotMatch(compositorSource, /chapters\.forEach\(\(_, index\) => loadChapter/);
+  assert.doesNotMatch(transitionSource, /chapters\.forEach\(\(_, index\) => loadChapter/);
+  assert.match(pageSource, /rootMargin="1400px 0px"/);
+  assert.match(pageSource, /warmScheduledImages/);
+  assert.match(pageSource, /FeatureStoryTransitionFallback/);
+  assert.doesNotMatch(
+    pageSource,
+    /useEffect\(\(\) => \{[\s\S]*?document\.fonts\.ready[\s\S]*?ScrollTrigger\.refresh\(\);[\s\S]*?\}, \[\]\);/,
+  );
 });
 
 test("feature scene keeps the right story panel and moves dense chapter details into the bottom crawl", () => {
@@ -139,7 +189,7 @@ test("feature story right panel is readable while the bottom dense crawl has a t
 });
 
 test("forward ownership changes at reassembly before readable next content", () => {
-  assert.deepEqual(transitionStateAt({ chapterIndex: 0, progress: 0.18 }), {
+  assert.deepEqual(transitionStateAt({ chapterIndex: 0, progress: 0.15 }), {
     activeIndex: 0,
     nextIndex: 1,
     visualOwnerIndex: 0,
@@ -162,32 +212,32 @@ test("forward ownership changes at reassembly before readable next content", () 
     currentPanelOpacity: 0,
     nextPanelOpacity: 0,
     loosenProgress: 1,
-    destructionProgress: 0.444,
+    destructionProgress: 0.846,
     reassemblyProgress: 0,
     readableProgress: 0,
     settleProgress: 0,
   });
-  assert.deepEqual(transitionStateAt({ chapterIndex: 0, progress: 0.96 }), {
+  assert.deepEqual(transitionStateAt({ chapterIndex: 0, progress: 0.82 }), {
     activeIndex: 0,
     nextIndex: 1,
     visualOwnerIndex: 1,
     transitionDirection: 1,
     transitionActive: 1,
     currentPanelOpacity: 0,
-    nextPanelOpacity: 0.936,
+    nextPanelOpacity: 0.947,
     loosenProgress: 1,
     destructionProgress: 1,
     reassemblyProgress: 1,
-    readableProgress: 0.6,
+    readableProgress: 0.625,
     settleProgress: 0,
   });
 });
 
 test("reverse scroll restores previous ownership symmetrically", () => {
-  assert.match(pageSource, /const upcoming = states\.find\(\(state\) => state\.rect\.top > 112\)/);
+  assert.match(pageCodeSource, /const upcoming = states\.find\(\(state\) => state\.rect\.top > startLine\)/);
   assert.match(pageSource, /const previousIndex = Math\.max\(0, upcoming\.index - 1\)/);
-  assert.deepEqual(transitionStateAt({ chapterIndex: 0, progress: 0.74, direction: -1 }).visualOwnerIndex, 1);
-  assert.deepEqual(transitionStateAt({ chapterIndex: 0, progress: 0.6, direction: -1 }), {
+  assert.deepEqual(transitionStateAt({ chapterIndex: 0, progress: 0.58, direction: -1 }).visualOwnerIndex, 1);
+  assert.deepEqual(transitionStateAt({ chapterIndex: 0, progress: 0.54, direction: -1 }), {
     activeIndex: 0,
     nextIndex: 1,
     visualOwnerIndex: 0,
@@ -196,7 +246,7 @@ test("reverse scroll restores previous ownership symmetrically", () => {
     currentPanelOpacity: 0,
     nextPanelOpacity: 0,
     loosenProgress: 1,
-    destructionProgress: 0.667,
+    destructionProgress: 0.923,
     reassemblyProgress: 0,
     readableProgress: 0,
     settleProgress: 0,
@@ -204,7 +254,7 @@ test("reverse scroll restores previous ownership symmetrically", () => {
 });
 
 test("stopping mid-transition advances settle without changing indexes", () => {
-  assert.deepEqual(transitionStateAt({ chapterIndex: 2, progress: 0.74, stoppedFor: 80 }), {
+  assert.deepEqual(transitionStateAt({ chapterIndex: 2, progress: 0.58, stoppedFor: 40 }), {
     activeIndex: 2,
     nextIndex: 3,
     visualOwnerIndex: 3,
@@ -214,11 +264,11 @@ test("stopping mid-transition advances settle without changing indexes", () => {
     nextPanelOpacity: 0,
     loosenProgress: 1,
     destructionProgress: 1,
-    reassemblyProgress: 0.111,
+    reassemblyProgress: 0.125,
     readableProgress: 0,
     settleProgress: 0,
   });
-  assert.deepEqual(transitionStateAt({ chapterIndex: 2, progress: 0.74, stoppedFor: 710 }), {
+  assert.deepEqual(transitionStateAt({ chapterIndex: 2, progress: 0.58, stoppedFor: 80 }), {
     activeIndex: 2,
     nextIndex: 3,
     visualOwnerIndex: 3,
@@ -228,7 +278,21 @@ test("stopping mid-transition advances settle without changing indexes", () => {
     nextPanelOpacity: 0,
     loosenProgress: 1,
     destructionProgress: 1,
-    reassemblyProgress: 0.111,
+    reassemblyProgress: 0.125,
+    readableProgress: 0,
+    settleProgress: 0.103,
+  });
+  assert.deepEqual(transitionStateAt({ chapterIndex: 2, progress: 0.58, stoppedFor: 385 }), {
+    activeIndex: 2,
+    nextIndex: 3,
+    visualOwnerIndex: 3,
+    transitionDirection: 1,
+    transitionActive: 1,
+    currentPanelOpacity: 0,
+    nextPanelOpacity: 0,
+    loosenProgress: 1,
+    destructionProgress: 1,
+    reassemblyProgress: 0.125,
     readableProgress: 0,
     settleProgress: 1,
   });

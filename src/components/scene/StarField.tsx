@@ -59,6 +59,7 @@ const makeStars = (count: number, width: number, height: number): Star[] => {
 };
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+const FRAME_INTERVAL_MS = 1000 / 30;
 
 const StarField = ({ stateRef, accentByIndex, density = 1, className }: StarFieldProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -75,7 +76,7 @@ const StarField = ({ stateRef, accentByIndex, density = 1, className }: StarFiel
 
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const hardware = navigator.hardwareConcurrency ?? 4;
-    const targetCount = Math.round((hardware >= 4 ? 180 : 90) * density);
+    const targetCount = Math.round((hardware >= 4 ? 220 : 120) * density);
     let stars: Star[] = [];
     let width = 0;
     let height = 0;
@@ -84,8 +85,7 @@ const StarField = ({ stateRef, accentByIndex, density = 1, className }: StarFiel
     let currentAccent: [number, number, number] = ACCENT_TO_RGB.lavender;
     const startTime = performance.now();
     let rafId = 0;
-    let frameGate = 0;
-    const frameSkip = hardware < 4 ? 1 : 0; // render every other frame on low-power
+    let lastPaintAt = 0;
 
     const resize = () => {
       const bounds = canvas.getBoundingClientRect();
@@ -105,16 +105,14 @@ const StarField = ({ stateRef, accentByIndex, density = 1, className }: StarFiel
       }
     };
 
-    const render = () => {
-      resize();
-
-      if (frameSkip > 0) {
-        frameGate = (frameGate + 1) % (frameSkip + 1);
-        if (frameGate !== 0) {
-          rafId = window.requestAnimationFrame(render);
-          return;
-        }
+    const render = (now: number) => {
+      if (now - lastPaintAt < FRAME_INTERVAL_MS) {
+        rafId = window.requestAnimationFrame(render);
+        return;
       }
+      lastPaintAt = now;
+
+      resize();
 
       const dpr = window.devicePixelRatio || 1;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -137,7 +135,7 @@ const StarField = ({ stateRef, accentByIndex, density = 1, className }: StarFiel
       const pointerActive = (state.pointerActive ?? 0) * (1 - (state.burnProgress ?? 0) * 0.4);
       const pointerX = (state.pointerX ?? 0) * pointerActive * 18;
       const pointerY = (state.pointerY ?? 0) * pointerActive * 12;
-      const energy = (0.46 + introProgress * 0.24 + sceneProgress * 0.12) * (1 - transitionActive * 0.96);
+      const energy = (0.68 + introProgress * 0.18 + sceneProgress * 0.1) * (1 - transitionActive * 0.82);
 
       for (const star of stars) {
         const driftT = prefersReducedMotion ? 0 : time * 0.035;

@@ -21,6 +21,7 @@ const ACCENT_STROKE: Record<AccentTone, string> = {
   emerald: "rgba(116,241,169,0.7)",
   frost: "rgba(185,231,255,0.7)",
 };
+const FRAME_INTERVAL_MS = 1000 / 24;
 
 const mulberry32 = (seed: number) => {
   let state = seed >>> 0;
@@ -113,8 +114,15 @@ const ConstellationField = ({ chapters, stateRef, className }: ConstellationFiel
 
   useEffect(() => {
     let rafId = 0;
+    let lastPaintAt = 0;
 
-    const render = () => {
+    const render = (now: number) => {
+      if (now - lastPaintAt < FRAME_INTERVAL_MS) {
+        rafId = window.requestAnimationFrame(render);
+        return;
+      }
+      lastPaintAt = now;
+
       const state = stateRef.current;
       const activeIndex = Math.max(0, Math.min(chapters.length - 1, state.activeIndex ?? 0));
       const intro = Math.max(0, Math.min(1, state.introProgress ?? 0));
@@ -148,19 +156,21 @@ const ConstellationField = ({ chapters, stateRef, className }: ConstellationFiel
 
         // Layer opacity — fades in during intro, holds during scene, dims at handoff
         const layerOpacity =
-          0.55 * Math.min(1, intro * 1.6) * (1 - handoff * 0.7) * (1 - transitionActive * 0.94);
+          (0.2 + 0.38 * Math.min(1, intro * 1.35 + scene * 0.45)) *
+          (1 - handoff * 0.7) *
+          (1 - transitionActive * 0.88);
         layer.style.opacity = String(layerOpacity);
 
         if (path) {
           // draw as intro→scene advance, fade at handoff
-          const drawProgress = Math.min(1, intro * 0.55 + scene * 0.8);
+          const drawProgress = Math.max(0.38, Math.min(1, intro * 0.55 + scene * 0.8));
           path.style.strokeDashoffset = `${length * (1 - drawProgress)}`;
           path.style.opacity = String(1 - handoff * 0.85);
         }
 
         if (nodeGroup) {
           // nodes appear as the stroke reaches them; simple mapping
-          nodeGroup.style.opacity = String(Math.min(1, intro * 1.3 + scene * 0.3) * (1 - handoff * 0.85));
+          nodeGroup.style.opacity = String((0.28 + Math.min(0.72, intro * 1.1 + scene * 0.24)) * (1 - handoff * 0.85));
         }
       });
 

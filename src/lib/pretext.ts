@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Variants } from "framer-motion";
 import {
   clearCache,
   layoutWithLines,
@@ -8,7 +7,9 @@ import {
 
 export const PRETEXT_ENGINE = "@chenglou/pretext";
 
-export const pretextContainer: Variants = {
+type MotionVariantMap = Record<string, unknown>;
+
+export const pretextContainer: MotionVariantMap = {
   hidden: {},
   visible: {
     transition: {
@@ -18,7 +19,7 @@ export const pretextContainer: Variants = {
   },
 };
 
-export const pretextLine: Variants = {
+export const pretextLine: MotionVariantMap = {
   hidden: {
     opacity: 0,
     y: 48,
@@ -37,7 +38,7 @@ export const pretextLine: Variants = {
   },
 };
 
-export const pretextCaption: Variants = {
+export const pretextCaption: MotionVariantMap = {
   hidden: {
     opacity: 0,
     y: 18,
@@ -56,7 +57,7 @@ export const pretextCaption: Variants = {
   },
 };
 
-export const pretextMedia: Variants = {
+export const pretextMedia: MotionVariantMap = {
   hidden: {
     opacity: 0,
     y: 34,
@@ -77,7 +78,7 @@ export const pretextMedia: Variants = {
   },
 };
 
-export const pretextTrustNote: Variants = {
+export const pretextTrustNote: MotionVariantMap = {
   hidden: {
     opacity: 0,
     y: 16,

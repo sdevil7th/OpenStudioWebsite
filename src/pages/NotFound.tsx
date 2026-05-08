@@ -1,15 +1,11 @@
-import { motion } from "framer-motion";
 import { ArrowLeft, Download } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const NotFound = () => (
-  <motion.main
-    className="flex min-h-screen items-center px-4 pb-16 pt-28 md:px-6 md:pt-32"
+  <main
+    className="flex min-h-screen items-center px-4 pb-16 pt-28 md:px-6 md:pt-32 route-appear"
     id="main-content"
-    initial={{ opacity: 0, y: 18 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
   >
     <div className="mx-auto max-w-3xl border border-white/10 p-8 text-center md:p-12">
       <p className="signal-label mb-4">404</p>
@@ -32,7 +28,7 @@ const NotFound = () => (
         </Button>
       </div>
     </div>
-  </motion.main>
+  </main>
 );
 
 export default NotFound;
