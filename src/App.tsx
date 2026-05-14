@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState, type ReactElement, type ReactNode 
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import SiteShell from "@/components/SiteShell";
+import { trackPageView } from "@/lib/analytics";
 import { preloadModuleOnce } from "@/lib/runtimePreloadRegistry";
 
 const loadContactPage = () => preloadModuleOnce("route:contact", () => import("@/pages/ContactPage"));
@@ -116,6 +117,7 @@ const RouteReadySignal = ({ children }: { children: ReactNode }) => {
             detail: { pathname: location.pathname },
           }),
         );
+        trackPageView(`${location.pathname}${location.search}`);
       });
     });
 
@@ -123,7 +125,7 @@ const RouteReadySignal = ({ children }: { children: ReactNode }) => {
       window.cancelAnimationFrame(firstFrame);
       window.cancelAnimationFrame(secondFrame);
     };
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
   return children;
 };

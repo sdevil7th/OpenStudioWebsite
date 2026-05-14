@@ -4,6 +4,27 @@ import SectionReveal from "@/components/motion/SectionReveal";
 import { Button } from "@/components/ui/button";
 import { contactAvailability, contactHero, contactMethods, contactSeo } from "@/data/contact";
 import { contactProfile, externalLinks } from "@/data/siteLinks";
+import { trackEvent } from "@/lib/analytics";
+
+const trackContactEmailClick = (source: string, contactType: string) => {
+  trackEvent("contact_email_clicked", {
+    contact_type: contactType,
+    source,
+  });
+};
+
+const trackContactLinkClick = (
+  eventName: string,
+  source: string,
+  linkLabel: string,
+  linkUrl?: string,
+) => {
+  trackEvent(eventName, {
+    link_label: linkLabel,
+    link_url: linkUrl,
+    source,
+  });
+};
 
 const ContactPage = () => (
   <main
@@ -28,11 +49,29 @@ const ContactPage = () => (
                   <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.03] px-5 py-5" key={method.label}>
                     <p className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white/38">{method.label}</p>
                     {method.href ? (
-                      <a className="mt-3 block font-headline text-xl font-semibold text-white transition hover:text-primary" href={method.href} rel="noreferrer" target={method.href.startsWith("http") ? "_blank" : undefined}>
+                      <a
+                        className="mt-3 block break-words font-headline text-xl font-semibold text-white transition hover:text-primary"
+                        href={method.href}
+                        onClick={() => {
+                          if (method.href?.startsWith("mailto:")) {
+                            trackContactEmailClick("contact_method_card", "primary");
+                            return;
+                          }
+
+                          trackContactLinkClick(
+                            "external_link_clicked",
+                            "contact_method_card",
+                            method.label,
+                            method.href,
+                          );
+                        }}
+                        rel="noreferrer"
+                        target={method.href.startsWith("http") ? "_blank" : undefined}
+                      >
                         {method.value}
                       </a>
                     ) : (
-                      <p className="mt-3 font-headline text-xl font-semibold text-white">{method.value}</p>
+                      <p className="mt-3 break-words font-headline text-xl font-semibold text-white">{method.value}</p>
                     )}
                     <p className="mt-3 text-sm leading-7 text-white/60">{method.note}</p>
                   </div>
@@ -41,14 +80,29 @@ const ContactPage = () => (
 
               <div className="mt-8 flex flex-wrap gap-4">
                 <Button asChild className="rounded-2xl px-8 py-4">
-                  <a href={`mailto:${contactProfile.email}`}>
+                  <a
+                    href={`mailto:${contactProfile.email}`}
+                    onClick={() => trackContactEmailClick("contact_hero_cta", "primary")}
+                  >
                     <Mail className="h-4 w-4" />
                     Email maintainer
                   </a>
                 </Button>
                 {externalLinks.maintainerGithub ? (
                   <Button asChild className="rounded-2xl px-8 py-4" variant="outline">
-                    <a href={externalLinks.maintainerGithub} rel="noreferrer" target="_blank">
+                    <a
+                      href={externalLinks.maintainerGithub}
+                      onClick={() =>
+                        trackContactLinkClick(
+                          "github_link_clicked",
+                          "contact_hero_cta",
+                          "Maintainer GitHub",
+                          externalLinks.maintainerGithub,
+                        )
+                      }
+                      rel="noreferrer"
+                      target="_blank"
+                    >
                       <Github className="h-4 w-4" />
                       Maintainer GitHub
                     </a>
@@ -70,8 +124,34 @@ const ContactPage = () => (
                 </div>
 
                 <div className="mt-8 grid gap-4">
-                  <InfoRow icon={Mail} label="Primary contact" value={contactProfile.email} />
-                  <InfoRow icon={LinkIcon} label="Website" value={contactProfile.website.replace("https://", "")} />
+                  <InfoRow
+                    icon={Mail}
+                    label="Primary contact"
+                    value={contactProfile.email}
+                    href={externalLinks.contactEmail}
+                    onClick={() => trackContactEmailClick("contact_info_row", "primary")}
+                  />
+                  <InfoRow
+                    icon={Mail}
+                    label="Maintainer fallback"
+                    value={contactProfile.personalEmail}
+                    href={`mailto:${contactProfile.personalEmail}`}
+                    onClick={() => trackContactEmailClick("contact_info_row", "personal_fallback")}
+                  />
+                  <InfoRow
+                    icon={LinkIcon}
+                    label="Website"
+                    value={contactProfile.website.replace("https://", "")}
+                    href={contactProfile.website}
+                    onClick={() =>
+                      trackContactLinkClick(
+                        "external_link_clicked",
+                        "contact_info_row",
+                        "Website",
+                        contactProfile.website,
+                      )
+                    }
+                  />
                   <InfoRow icon={MapPin} label="Location" value={contactProfile.location} />
                 </div>
 
@@ -88,7 +168,20 @@ const ContactPage = () => (
 
                 <div className="mt-8 grid gap-3 sm:grid-cols-2">
                   {externalLinks.repository ? (
-                    <a className="rounded-[1.4rem] border border-white/10 bg-white/[0.03] px-4 py-4 text-left transition hover:border-primary/30 hover:bg-white/[0.05]" href={externalLinks.repository} rel="noreferrer" target="_blank">
+                    <a
+                      className="rounded-[1.4rem] border border-white/10 bg-white/[0.03] px-4 py-4 text-left transition hover:border-primary/30 hover:bg-white/[0.05]"
+                      href={externalLinks.repository}
+                      onClick={() =>
+                        trackContactLinkClick(
+                          "github_link_clicked",
+                          "contact_resource_card",
+                          "Repository",
+                          externalLinks.repository,
+                        )
+                      }
+                      rel="noreferrer"
+                      target="_blank"
+                    >
                       <div className="flex items-center gap-3 font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white/42">
                         <Code2 className="h-4 w-4 text-primary" />
                         Repository
@@ -97,7 +190,20 @@ const ContactPage = () => (
                     </a>
                   ) : null}
                   {externalLinks.documentation ? (
-                    <a className="rounded-[1.4rem] border border-white/10 bg-white/[0.03] px-4 py-4 text-left transition hover:border-secondary/30 hover:bg-white/[0.05]" href={externalLinks.documentation} rel="noreferrer" target="_blank">
+                    <a
+                      className="rounded-[1.4rem] border border-white/10 bg-white/[0.03] px-4 py-4 text-left transition hover:border-secondary/30 hover:bg-white/[0.05]"
+                      href={externalLinks.documentation}
+                      onClick={() =>
+                        trackContactLinkClick(
+                          "documentation_link_clicked",
+                          "contact_resource_card",
+                          "Documentation",
+                          externalLinks.documentation,
+                        )
+                      }
+                      rel="noreferrer"
+                      target="_blank"
+                    >
                       <div className="flex items-center gap-3 font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white/42">
                         <FileText className="h-4 w-4 text-secondary" />
                         Documentation
@@ -149,7 +255,10 @@ const ContactPage = () => (
               </p>
             </div>
             <Button asChild className="rounded-2xl px-8 py-4">
-              <a href={`mailto:${contactProfile.email}`}>
+              <a
+                href={`mailto:${contactProfile.email}`}
+                onClick={() => trackContactEmailClick("contact_outro_cta", "primary")}
+              >
                 Start the conversation
                 <ArrowRight className="h-4 w-4" />
               </a>
@@ -165,16 +274,30 @@ interface InfoRowProps {
   icon: typeof Mail;
   label: string;
   value: string;
+  href?: string;
+  onClick?: () => void;
 }
 
-const InfoRow = ({ icon: Icon, label, value }: InfoRowProps) => (
+const InfoRow = ({ icon: Icon, label, value, href, onClick }: InfoRowProps) => (
   <div className="flex items-start gap-4 rounded-[1.3rem] border border-white/10 bg-black/20 px-4 py-4">
     <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04]">
       <Icon className="h-4 w-4 text-primary" />
     </div>
     <div>
       <div className="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white/38">{label}</div>
-      <div className="mt-2 text-sm leading-7 text-white/74">{value}</div>
+      {href ? (
+        <a
+          className="mt-2 block break-words text-sm leading-7 text-white/74 transition hover:text-primary"
+          href={href}
+          onClick={onClick}
+          rel={href.startsWith("http") ? "noreferrer" : undefined}
+          target={href.startsWith("http") ? "_blank" : undefined}
+        >
+          {value}
+        </a>
+      ) : (
+        <div className="mt-2 break-words text-sm leading-7 text-white/74">{value}</div>
+      )}
     </div>
   </div>
 );

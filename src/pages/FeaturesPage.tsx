@@ -25,6 +25,7 @@ import {
 import type { FeatureChapter } from "@/data/marketing";
 import type { FeatureSceneCompositorState } from "@/components/scene/FeatureSceneCompositor";
 import { getResponsiveImageAttributes } from "@/lib/assetLoading";
+import { trackEvent } from "@/lib/analytics";
 import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
 import { warmScheduledImages } from "@/lib/imageScheduler";
 import { useScrollScene } from "@/lib/gsap";
@@ -1743,18 +1744,45 @@ const FeaturesPage = () => {
               </div>
               <div className="feature-story-exit__actions flex flex-col gap-3 sm:flex-row lg:flex-col">
                 <Button asChild className="rounded-2xl px-8">
-                  <Link to={featuresFinalCta.primaryCta.to}>
+                  <Link
+                    onClick={() =>
+                      trackEvent("internal_link_clicked", {
+                        destination_path: featuresFinalCta.primaryCta.to,
+                        link_label: featuresFinalCta.primaryCta.label,
+                        source: "features_final_cta",
+                      })
+                    }
+                    to={featuresFinalCta.primaryCta.to}
+                  >
                     {featuresFinalCta.primaryCta.label}
                   </Link>
                 </Button>
                 <Button asChild className="rounded-2xl px-8" variant="outline">
-                  <Link to={featuresFinalCta.secondaryCta.to}>
+                  <Link
+                    onClick={() =>
+                      trackEvent("primary_cta_clicked", {
+                        cta_name: "download_openstudio",
+                        destination_path: featuresFinalCta.secondaryCta.to,
+                        source: "features_final_cta",
+                      })
+                    }
+                    to={featuresFinalCta.secondaryCta.to}
+                  >
                     {featuresFinalCta.secondaryCta.label}
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
                 <Button asChild className="rounded-2xl px-8" variant="ghost">
-                  <Link to="/github">
+                  <Link
+                    onClick={() =>
+                      trackEvent("internal_link_clicked", {
+                        destination_path: "/github",
+                        link_label: "Explore GitHub",
+                        source: "features_final_cta",
+                      })
+                    }
+                    to="/github"
+                  >
                     <Sparkles className="h-4 w-4" />
                     Explore GitHub
                   </Link>

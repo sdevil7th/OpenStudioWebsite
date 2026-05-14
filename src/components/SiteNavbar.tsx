@@ -3,6 +3,7 @@ import { Download, Menu } from "lucide-react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { BRANDING_ASSETS, SITE_NAME } from "@/constants/site";
 import { mainNavigation } from "@/data/navigation";
+import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -71,7 +72,16 @@ const SiteNavbar = () => {
             </NavLink>
           ))}
           <Button asChild className="ml-2 rounded-full px-5 2xl:px-6">
-            <Link to="/download">
+            <Link
+              onClick={() =>
+                trackEvent("primary_cta_clicked", {
+                  cta_name: "get_started",
+                  destination_path: "/download",
+                  source: "site_nav",
+                })
+              }
+              to="/download"
+            >
               <Download className="h-4 w-4" />
               Get Started
             </Link>
@@ -81,7 +91,17 @@ const SiteNavbar = () => {
           {mobileNavRequested ? (
             <Suspense
               fallback={
-                <Button aria-label="Open navigation" onClick={requestMobileNav} size="icon" variant="outline">
+                <Button
+                  aria-label="Open navigation"
+                  onClick={() => {
+                    requestMobileNav();
+                    trackEvent("mobile_nav_opened", {
+                      source: "site_nav_fallback",
+                    });
+                  }}
+                  size="icon"
+                  variant="outline"
+                >
                   <Menu className="h-4 w-4" />
                 </Button>
               }
@@ -94,6 +114,9 @@ const SiteNavbar = () => {
               onClick={() => {
                 setMobileNavRequested(true);
                 setOpen(true);
+                trackEvent("mobile_nav_opened", {
+                  source: "site_nav",
+                });
               }}
               size="icon"
               variant="outline"

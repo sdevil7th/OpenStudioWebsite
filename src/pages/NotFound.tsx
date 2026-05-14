@@ -1,6 +1,7 @@
 import { ArrowLeft, Download } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { trackEvent } from "@/lib/analytics";
 
 const NotFound = () => (
   <main
@@ -21,7 +22,16 @@ const NotFound = () => (
           </Link>
         </Button>
         <Button asChild>
-          <Link to="/download">
+          <Link
+            onClick={() =>
+              trackEvent("primary_cta_clicked", {
+                cta_name: "go_to_download",
+                destination_path: "/download",
+                source: "not_found_page",
+              })
+            }
+            to="/download"
+          >
             <Download className="h-4 w-4" />
             Go to download
           </Link>
