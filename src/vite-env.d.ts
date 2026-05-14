@@ -7,4 +7,13 @@ interface Window {
   __openstudioLoaderReady?: boolean;
   __openstudioFirstRouteReveal?: boolean;
   __openstudioMarkAppCssReady?: () => void;
+  clarity?: ((...args: unknown[]) => void) & { q?: unknown[][] };
+  dataLayer?: unknown[];
+  gtag?: (...args: unknown[]) => void;
+}
+
+interface ImportMetaEnv {
+  readonly VITE_ANALYTICS_ENABLED?: "true" | "false";
+  readonly VITE_CLARITY_PROJECT_ID?: string;
+  readonly VITE_GA_MEASUREMENT_ID?: string;
 }

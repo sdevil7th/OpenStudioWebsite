@@ -39,10 +39,20 @@ export interface ExternalLinkMap {
   maintainerGithub?: string;
 }
 
+export interface ProjectEmailMap {
+  contact: string;
+  support: string;
+  admin: string;
+  personal: string;
+}
+
 export interface ContactProfile {
   name: string;
   role: string;
   email: string;
+  supportEmail: string;
+  adminEmail: string;
+  personalEmail: string;
   website: string;
   heroTitle: string;
   summary: string;
@@ -95,6 +105,7 @@ export interface GithubReleaseAssetSummary {
   name: string;
   size: number;
   downloadUrl: string;
+  downloadCount: number;
 }
 
 export interface GithubReleaseSummary {

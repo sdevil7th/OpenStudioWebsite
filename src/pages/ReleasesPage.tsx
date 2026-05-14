@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { designMedia } from "@/data/designMedia";
 import { releaseChannels, releasePrinciples, releaseSyncPanel, releaseTimeline, releasesHero, releasesSeo } from "@/data/releases";
 import { useGithubRepoSnapshot } from "@/hooks/useGithubRepoSnapshot";
+import { trackEvent } from "@/lib/analytics";
 import { formatGithubDate } from "@/lib/github";
 import { useScrollScene } from "@/lib/gsap";
 
@@ -315,10 +316,30 @@ const ReleasesPage = () => {
               </div>
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Button asChild className="rounded-2xl px-8 py-4">
-                  <Link to="/download">Download OpenStudio</Link>
+                  <Link
+                    onClick={() =>
+                      trackEvent("primary_cta_clicked", {
+                        cta_name: "download_openstudio",
+                        destination_path: "/download",
+                        source: "releases_page_cta",
+                      })
+                    }
+                    to="/download"
+                  >
+                    Download OpenStudio
+                  </Link>
                 </Button>
                 <Button asChild className="rounded-2xl px-8 py-4" variant="outline">
-                  <Link to="/github">
+                  <Link
+                    onClick={() =>
+                      trackEvent("internal_link_clicked", {
+                        destination_path: "/github",
+                        link_label: "Explore GitHub",
+                        source: "releases_page_cta",
+                      })
+                    }
+                    to="/github"
+                  >
                     Explore GitHub
                     <ArrowRight className="h-4 w-4" />
                   </Link>

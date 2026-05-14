@@ -18,6 +18,7 @@ import {
 } from "@/data/home";
 import { externalLinks } from "@/data/siteLinks";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { trackEvent } from "@/lib/analytics";
 import { useScrollScene } from "@/lib/gsap";
 
 const pillarMedia = [
@@ -251,7 +252,16 @@ const HomePage = () => {
                     asChild
                     className="h-auto min-w-[min(100%,17rem)] px-10 py-4 text-base font-bold"
                   >
-                    <Link to={homeHero.primaryCta.to}>
+                    <Link
+                      onClick={() =>
+                        trackEvent("primary_cta_clicked", {
+                          cta_name: "download_openstudio",
+                          destination_path: homeHero.primaryCta.to,
+                          source: "home_hero",
+                        })
+                      }
+                      to={homeHero.primaryCta.to}
+                    >
                       <span className="openstudio-button__icon">
                         <Download className="h-4 w-4" />
                       </span>
@@ -540,7 +550,16 @@ const HomePage = () => {
                   asChild
                   className="h-auto px-8 py-4 text-base font-bold"
                 >
-                  <Link to="/download">
+                  <Link
+                    onClick={() =>
+                      trackEvent("primary_cta_clicked", {
+                        cta_name: "download_openstudio",
+                        destination_path: "/download",
+                        source: "home_release_cta",
+                      })
+                    }
+                    to="/download"
+                  >
                     <span className="openstudio-button__icon">
                       <Download className="h-4 w-4" />
                     </span>

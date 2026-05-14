@@ -8,6 +8,7 @@ import { designMedia } from "@/data/designMedia";
 import { githubCallout, githubHero, githubHighlights, githubPillars, githubSeo } from "@/data/github";
 import { externalLinks } from "@/data/siteLinks";
 import { useGithubRepoSnapshot } from "@/hooks/useGithubRepoSnapshot";
+import { trackEvent } from "@/lib/analytics";
 import { formatGithubDate, formatGithubNumber, formatLanguageMix } from "@/lib/github";
 import { useScrollScene } from "@/lib/gsap";
 
@@ -261,10 +262,32 @@ const GithubPage = () => {
             </div>
             <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
               <Button asChild className="rounded-full px-10 py-4">
-                <Link to="/download">Download OpenStudio</Link>
+                <Link
+                  onClick={() =>
+                    trackEvent("primary_cta_clicked", {
+                      cta_name: "download_openstudio",
+                      destination_path: "/download",
+                      source: "github_page_cta",
+                    })
+                  }
+                  to="/download"
+                >
+                  Download OpenStudio
+                </Link>
               </Button>
               <Button asChild className="rounded-full px-10 py-4" variant="outline">
-                <a href={externalLinks.repository ?? snapshot.repositoryUrl} rel="noreferrer" target="_blank">
+                <a
+                  href={externalLinks.repository ?? snapshot.repositoryUrl}
+                  onClick={() =>
+                    trackEvent("github_link_clicked", {
+                      link_label: "Explore repository",
+                      link_url: externalLinks.repository ?? snapshot.repositoryUrl,
+                      source: "github_page_cta",
+                    })
+                  }
+                  rel="noreferrer"
+                  target="_blank"
+                >
                   Explore repository
                   <ArrowRight className="h-4 w-4" />
                 </a>

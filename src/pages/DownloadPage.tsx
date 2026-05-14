@@ -46,6 +46,7 @@ import {
 import { externalLinks } from "@/data/siteLinks";
 import { useGithubRepoSnapshot } from "@/hooks/useGithubRepoSnapshot";
 import { getResponsiveImageAttributes } from "@/lib/assetLoading";
+import { trackEvent } from "@/lib/analytics";
 import { useScrollScene } from "@/lib/gsap";
 import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
 import { warmScheduledImages } from "@/lib/imageScheduler";
@@ -54,6 +55,7 @@ import { cn } from "@/lib/utils";
 
 type BrowserPlatform = "windows" | "macos" | "linux" | "other";
 type DownloadPlatform = "windows" | "macos" | "linux";
+type DownloadIntentSource = "cinematic_story" | "platform_card";
 type CopyState = "idle" | "copied" | "error";
 
 interface PlatformStudioCopy {
@@ -265,7 +267,10 @@ const DownloadPage = () => {
   );
   const [pendingDownload, setPendingDownload] =
     useState<DownloadPlatform | null>(null);
+  const [pendingDownloadSource, setPendingDownloadSource] =
+    useState<DownloadIntentSource | null>(null);
   const [copyState, setCopyState] = useState<CopyState>("idle");
+  const downloadCloseTrackedRef = useRef(false);
   const recommendedPlatform = browserToDownloadPlatform(browserPlatform);
   const activeDownloadItem = downloadsById[activePlatform];
 
@@ -520,12 +525,64 @@ const DownloadPage = () => {
     [],
   );
 
-  const handleConfirmDownload = () => {
-    if (!activeInstruction || typeof window === "undefined") {
-      return;
+  const getDownloadEventParams = (
+    platform: DownloadPlatform,
+    source: DownloadIntentSource | string = pendingDownloadSource ?? "unknown",
+  ) => {
+    const item = downloadsById[platform];
+
+    return {
+      artifact_type: item.artifactType,
+      detected_platform: browserPlatform,
+      download_label: item.label,
+      download_url: item.href,
+      is_recommended_platform: recommendedPlatform === platform,
+      platform,
+      recommended_platform: recommendedPlatform,
+      source,
+    };
+  };
+
+  const openDownloadDialog = (
+    platform: DownloadPlatform,
+    source: DownloadIntentSource,
+  ) => {
+    downloadCloseTrackedRef.current = false;
+    setPendingDownloadSource(source);
+    setPendingDownload(platform);
+    trackEvent("download_modal_opened", getDownloadEventParams(platform, source));
+  };
+
+  const closeDownloadDialog = (closeReason: string) => {
+    if (pendingDownload && !downloadCloseTrackedRef.current) {
+      downloadCloseTrackedRef.current = true;
+      trackEvent("download_cancelled", {
+        ...getDownloadEventParams(pendingDownload),
+        close_reason: closeReason,
+      });
     }
 
     setPendingDownload(null);
+    setPendingDownloadSource(null);
+  };
+
+  const handleSelectPlatform = (platform: DownloadPlatform) => {
+    trackEvent("download_platform_selected", {
+      ...getDownloadEventParams(platform, "focus_button"),
+      previous_platform: activePlatform,
+    });
+    setActivePlatform(platform);
+  };
+
+  const handleConfirmDownload = () => {
+    if (!activeInstruction || !pendingDownload || typeof window === "undefined") {
+      return;
+    }
+
+    downloadCloseTrackedRef.current = true;
+    trackEvent("download_confirmed", getDownloadEventParams(pendingDownload));
+    setPendingDownload(null);
+    setPendingDownloadSource(null);
     window.location.assign(activeInstruction.href);
   };
 
@@ -537,8 +594,14 @@ const DownloadPage = () => {
     try {
       await copyText(activeInstruction.command);
       setCopyState("copied");
+      trackEvent("download_install_command_copied", {
+        platform: pendingDownload ?? "unknown",
+      });
     } catch {
       setCopyState("error");
+      trackEvent("download_install_command_copy_failed", {
+        platform: pendingDownload ?? "unknown",
+      });
     }
   };
 
@@ -655,7 +718,7 @@ const DownloadPage = () => {
                       <div className="download-platform-card__actions">
                         <Button
                           className="h-auto flex-1 px-6 py-4 font-bold"
-                          onClick={() => setPendingDownload(platform)}
+                          onClick={() => openDownloadDialog(platform, "platform_card")}
                           type="button"
                           variant={isActive ? "default" : "outline"}
                         >
@@ -671,7 +734,7 @@ const DownloadPage = () => {
                         <Button
                           aria-label={`Focus ${item.label} release path`}
                           className="h-12 w-12 rounded-2xl p-0"
-                          onClick={() => setActivePlatform(platform)}
+                          onClick={() => handleSelectPlatform(platform)}
                           size="icon"
                           type="button"
                           variant="ghost"
@@ -734,6 +797,13 @@ const DownloadPage = () => {
                 >
                   <a
                     href={externalLinks.repository}
+                    onClick={() =>
+                      trackEvent("github_link_clicked", {
+                        link_label: "View GitHub",
+                        link_url: externalLinks.repository,
+                        source: "download_source_strip",
+                      })
+                    }
                     rel="noreferrer"
                     target="_blank"
                   >
@@ -762,7 +832,7 @@ const DownloadPage = () => {
           <Suspense fallback={<DownloadCinematicStaticSurface />}>
             <DownloadCinematicStory
               activePlatformLabel={activeDownloadItem.label}
-              onDownload={() => setPendingDownload(activePlatform)}
+              onDownload={() => openDownloadDialog(activePlatform, "cinematic_story")}
             />
           </Suspense>
         </DeferredClientStage>
@@ -855,7 +925,7 @@ const DownloadPage = () => {
       </div>
 
       <Dialog.Root
-        onOpenChange={(open) => !open && setPendingDownload(null)}
+        onOpenChange={(open) => !open && closeDownloadDialog("dialog_dismiss")}
         open={pendingDownload !== null}
       >
         <Dialog.Portal>
@@ -871,7 +941,7 @@ const DownloadPage = () => {
             <button
               aria-label="Close download instructions"
               className="absolute right-4 top-4 rounded-full border border-white/10 p-2 text-white/55 transition hover:text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-              onClick={() => setPendingDownload(null)}
+              onClick={() => closeDownloadDialog("close_button")}
               type="button"
             >
               <X className="h-4 w-4" />
@@ -934,7 +1004,7 @@ const DownloadPage = () => {
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
               <Button
-                onClick={() => setPendingDownload(null)}
+                onClick={() => closeDownloadDialog("cancel_button")}
                 type="button"
                 variant="ghost"
               >

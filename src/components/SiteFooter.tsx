@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { SITE_NAME, SITE_URL } from "@/constants/site";
 import { footerNavigation } from "@/data/navigation";
 import { contactProfile, footerUtilityLinks } from "@/data/siteLinks";
+import { trackEvent } from "@/lib/analytics";
 
 const SiteFooter = () => {
   return (
@@ -38,7 +39,16 @@ const SiteFooter = () => {
             ),
           )}
         </div>
-        <a className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-secondary transition hover:text-primary" href={`mailto:${contactProfile.email}`}>
+        <a
+          className="break-words font-mono text-[0.62rem] uppercase tracking-[0.22em] text-secondary transition hover:text-primary md:text-right"
+          href={`mailto:${contactProfile.email}`}
+          onClick={() =>
+            trackEvent("contact_email_clicked", {
+              contact_type: "primary",
+              source: "site_footer",
+            })
+          }
+        >
           {contactProfile.email}
         </a>
       </div>
