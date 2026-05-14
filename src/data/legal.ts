@@ -1,5 +1,5 @@
 import type { SeoMeta } from "@/data/marketing";
-import { externalLinks } from "@/data/siteLinks";
+import { externalLinks, projectEmails } from "@/data/siteLinks";
 
 export interface LegalSection {
   title: string;
@@ -40,8 +40,8 @@ export const privacyDocument: LegalDocument = {
     path: "/privacy",
   },
   facts: [
-    { label: "Last updated", value: "April 16, 2026" },
-    { label: "Analytics", value: "None" },
+    { label: "Last updated", value: "May 14, 2026" },
+    { label: "Analytics", value: "Google Analytics 4 and Microsoft Clarity" },
     { label: "Software license", value: "GNU AGPLv3" },
     { label: "AI tools", value: "Optional, user-installed only" },
   ],
@@ -57,7 +57,7 @@ export const privacyDocument: LegalDocument = {
       title: "Information the website may collect",
       paragraphs: [
         "The website may generate standard server or hosting logs such as IP address, browser type, referrer, pages visited, and timestamps. That information is retained only as needed for infrastructure operation, security, and availability.",
-        "OpenStudio does not use tracking pixels, ad networks, or dedicated analytics vendors on the public site.",
+        "The website uses Google Analytics 4 and Microsoft Clarity to understand aggregate traffic, page views, referrers, approximate location, device type, browser, operating system, engagement with public pages, download flow interactions, outbound links, contact and repository link clicks, and interaction patterns such as clicks, scrolling, heatmaps, and session replays. OpenStudio does not use advertising pixels or remarketing on the public site.",
       ],
     },
     {
@@ -78,13 +78,13 @@ export const privacyDocument: LegalDocument = {
       title: "Third-party services",
       paragraphs: [
         "Release artifacts are hosted through GitHub at github.com/sdevil7th/OpenStudio, so GitHub's own privacy policy applies when you access release assets there.",
-        "OpenStudio does not integrate advertising, remarketing, or marketing automation vendors into the current website or desktop product flow.",
+        "Google Analytics and Microsoft Clarity may process website analytics events for openstudio.org.in. OpenStudio does not integrate advertising, remarketing, or marketing automation vendors into the current website or desktop product flow.",
       ],
     },
     {
       title: "Contact",
       paragraphs: [
-        "If you have privacy questions about the OpenStudio website or desktop application, contact sdevil7th@gmail.com.",
+        `If you have privacy questions about the OpenStudio website or desktop application, contact ${projectEmails.support}.`,
       ],
     },
   ],
@@ -116,7 +116,7 @@ export const securityDocument: LegalDocument = {
   },
   facts: [
     { label: "Last updated", value: "April 16, 2026" },
-    { label: "Disclosure contact", value: "sdevil7th@gmail.com" },
+    { label: "Disclosure contact", value: projectEmails.support },
     { label: "Response target", value: "Best-effort, typically within 7 days" },
     { label: "Bug bounty", value: "None currently" },
   ],
@@ -143,7 +143,7 @@ export const securityDocument: LegalDocument = {
     {
       title: "Reporting a vulnerability",
       paragraphs: [
-        "Email sdevil7th@gmail.com with the subject line \"Security: OpenStudio\" if you believe you found a vulnerability in the OpenStudio desktop app, website, release artifacts, or update metadata.",
+        `Email ${projectEmails.support} with the subject line "Security: OpenStudio" if you believe you found a vulnerability in the OpenStudio desktop app, website, release artifacts, or update metadata.`,
         "Please include a clear description of the issue, reproduction steps, affected version, affected platform such as Windows, macOS, or Linux, and how you discovered it. Please allow up to 7 days for an initial response before public disclosure.",
       ],
     },
@@ -170,7 +170,7 @@ export const securityDocument: LegalDocument = {
     },
   ],
   links: [
-    { label: "Email project contact", href: externalLinks.contactEmail ?? "mailto:sdevil7th@gmail.com" },
+    { label: "Email disclosure contact", href: `mailto:${projectEmails.support}` },
     {
       label: "GitHub repository",
       href: externalLinks.repository ?? "/github",
@@ -195,7 +195,7 @@ export const termsDocument: LegalDocument = {
     { label: "Last updated", value: "April 16, 2026" },
     { label: "Software license", value: "GNU AGPLv3" },
     { label: "Third-party notices", value: "LICENSE and THIRD_PARTY_LICENSES.md in the repo" },
-    { label: "Contact", value: "sdevil7th@gmail.com" },
+    { label: "Contact", value: projectEmails.contact },
   ],
   sections: [
     {

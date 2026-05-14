@@ -1,4 +1,11 @@
-import type { ContactProfile, ExternalLinkMap } from "@/data/marketing";
+import type { ContactProfile, ExternalLinkMap, ProjectEmailMap } from "@/data/marketing";
+
+export const projectEmails: ProjectEmailMap = {
+  contact: "contact@openstudio.org.in",
+  support: "support@openstudio.org.in",
+  admin: "admin@openstudio.org.in",
+  personal: "sdevil7th@gmail.com",
+};
 
 export const externalLinks: ExternalLinkMap = {
   repository: "https://github.com/sdevil7th/OpenStudio",
@@ -8,14 +15,17 @@ export const externalLinks: ExternalLinkMap = {
   terms: "/terms",
   changelog: "/releases",
   contactSite: "https://sourav-das.in",
-  contactEmail: "mailto:sdevil7th@gmail.com",
+  contactEmail: `mailto:${projectEmails.contact}`,
   maintainerGithub: "https://github.com/sdevil7th",
 };
 
 export const contactProfile: ContactProfile = {
   name: "Sourav Das",
   role: "Maintainer, design systems, audio product direction",
-  email: "sdevil7th@gmail.com",
+  email: projectEmails.contact,
+  supportEmail: projectEmails.support,
+  adminEmail: projectEmails.admin,
+  personalEmail: projectEmails.personal,
   website: "https://sourav-das.in",
   heroTitle: "Project contact for OpenStudio.",
   summary:

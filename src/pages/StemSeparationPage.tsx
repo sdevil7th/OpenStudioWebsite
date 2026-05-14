@@ -25,6 +25,7 @@ import {
   stemUseCases,
   type AiNeuralStudioPhase,
 } from "@/data/stemSeparation";
+import { trackEvent } from "@/lib/analytics";
 import { useScrollScene } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 
@@ -756,13 +757,31 @@ const StemSeparationPage = () => {
             </div>
             <div className="ai-genesis-overlay__cta">
               <Button asChild className="rounded-2xl px-7">
-                <Link to={aiGenesisCopy.primaryCta.to}>
+                <Link
+                  onClick={() =>
+                    trackEvent("primary_cta_clicked", {
+                      cta_name: "download_openstudio",
+                      destination_path: aiGenesisCopy.primaryCta.to,
+                      source: "ai_genesis_cta",
+                    })
+                  }
+                  to={aiGenesisCopy.primaryCta.to}
+                >
                   <Download className="h-4 w-4" />
                   {aiGenesisCopy.primaryCta.label}
                 </Link>
               </Button>
               <Button asChild className="rounded-2xl px-7" variant="outline">
-                <a href={aiGenesisCopy.secondaryCta.to}>
+                <a
+                  href={aiGenesisCopy.secondaryCta.to}
+                  onClick={() =>
+                    trackEvent("internal_anchor_clicked", {
+                      destination_path: aiGenesisCopy.secondaryCta.to,
+                      link_label: aiGenesisCopy.secondaryCta.label,
+                      source: "ai_genesis_cta",
+                    })
+                  }
+                >
                   {aiGenesisCopy.secondaryCta.label}
                   <ArrowRight className="h-4 w-4" />
                 </a>
@@ -994,13 +1013,31 @@ const StemSeparationPage = () => {
             </div>
             <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
               <Button asChild className="rounded-2xl px-8">
-                <Link to={aiOutroCopy.primaryCta.to}>
+                <Link
+                  onClick={() =>
+                    trackEvent("primary_cta_clicked", {
+                      cta_name: "download_openstudio",
+                      destination_path: aiOutroCopy.primaryCta.to,
+                      source: "ai_outro_cta",
+                    })
+                  }
+                  to={aiOutroCopy.primaryCta.to}
+                >
                   <Download className="h-4 w-4" />
                   {aiOutroCopy.primaryCta.label}
                 </Link>
               </Button>
               <Button asChild className="rounded-2xl px-8" variant="outline">
-                <Link to={aiOutroCopy.secondaryCta.to}>
+                <Link
+                  onClick={() =>
+                    trackEvent("internal_link_clicked", {
+                      destination_path: aiOutroCopy.secondaryCta.to,
+                      link_label: aiOutroCopy.secondaryCta.label,
+                      source: "ai_outro_cta",
+                    })
+                  }
+                  to={aiOutroCopy.secondaryCta.to}
+                >
                   {aiOutroCopy.secondaryCta.label}
                   <ArrowRight className="h-4 w-4" />
                 </Link>

@@ -2,6 +2,7 @@ import { Menu } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 import { BRANDING_ASSETS, SITE_NAME } from "@/constants/site";
 import { mainNavigation } from "@/data/navigation";
+import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -18,7 +19,16 @@ const isNavigationItemActive = (pathname: string, to: string) =>
 const MobileNavSheet = ({ onOpenChange, open, pathname }: MobileNavSheetProps) => (
   <Sheet onOpenChange={onOpenChange} open={open}>
     <SheetTrigger asChild>
-      <Button aria-label="Open navigation" size="icon" variant="outline">
+      <Button
+        aria-label="Open navigation"
+        onClick={() =>
+          trackEvent("mobile_nav_opened", {
+            source: "site_nav",
+          })
+        }
+        size="icon"
+        variant="outline"
+      >
         <Menu className="h-4 w-4" />
       </Button>
     </SheetTrigger>
@@ -54,7 +64,18 @@ const MobileNavSheet = ({ onOpenChange, open, pathname }: MobileNavSheetProps) =
           </NavLink>
         ))}
         <Button asChild className="mt-4" onClick={() => onOpenChange(false)}>
-          <Link to="/download">Get Started</Link>
+          <Link
+            onClick={() =>
+              trackEvent("primary_cta_clicked", {
+                cta_name: "get_started",
+                destination_path: "/download",
+                source: "mobile_nav",
+              })
+            }
+            to="/download"
+          >
+            Get Started
+          </Link>
         </Button>
       </div>
     </SheetContent>

@@ -26,6 +26,7 @@ export interface GithubReleaseAssetSummary {
   name: string;
   size: number;
   downloadUrl: string;
+  downloadCount: number;
 }
 
 export interface GithubReleaseSummary {
@@ -105,6 +106,7 @@ interface GithubReleaseResponse {
     name: string;
     size: number;
     browser_download_url: string;
+    download_count: number;
   }>;
 }
 
@@ -215,6 +217,7 @@ const normalizeLatestRelease = (releases: GithubReleaseResponse[]): GithubReleas
       name: asset.name,
       size: asset.size,
       downloadUrl: asset.browser_download_url,
+      downloadCount: asset.download_count,
     })),
   };
 };
@@ -236,6 +239,7 @@ const normalizeRelease = (release: GithubReleaseResponse): GithubReleaseSummary 
       name: asset.name,
       size: asset.size,
       downloadUrl: asset.browser_download_url,
+      downloadCount: asset.download_count,
     })),
   };
 };
