@@ -1,4 +1,4 @@
-# The Harness That Rwareded Me with Real MIDI Editor
+# The Harness That Rewareded Me with Real MIDI Editor
 
 *The MIDI editor did not become trustworthy when the feature list was complete. It became trustworthy when a harness could use it like an impatient musician and prove every edit survived undo, redo, playback, save, and reload.*
 
