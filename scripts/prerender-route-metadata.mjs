@@ -9,7 +9,7 @@ const publicBlogAssetsRoot = path.join(repoRoot, "public", "assets", "blogs");
 const siteUrl = "https://openstudio.org.in";
 const siteName = "OpenStudio";
 const image = `${siteUrl}/assets/openstudio/branding/og-image.png?v=2`;
-const staticLastmod = "2026-05-02";
+const staticLastmod = "2026-06-09";
 const wordsPerMinute = 225;
 const blogImageExtensions = ["png", "jpg", "jpeg", "webp"];
 
@@ -32,33 +32,33 @@ const baseRoutes = [
     path: "/",
     title: "OpenStudio | Free Open Source DAW for Music Production",
     description:
-      "OpenStudio is a free, open source DAW for Windows, macOS, and Linux with multitrack recording, MIDI, pitch editing, stem separation, and plugin hosting.",
+      "OpenStudio is a free, open source DAW and Cubase alternative, Pro Tools alternative, and Reaper alternative with MIDI, pitch editing, stem separation, plugin hosting, and optional AI audio tools.",
     keywords:
-      "free daw, open source daw, music production software, digital audio workstation, audio editing software, music making software, daw free, free music production software, daw windows, daw mac, daw linux",
+      "free daw, open source daw, Cubase alternative, Pro Tools alternative, Reaper alternative, Ableton Live alternative, FL Studio alternative, Logic Pro alternative, Suno AI alternative, Udio alternative, ElevenLabs alternative, music production software, digital audio workstation, audio editing software, music making software, daw free, free music production software, daw windows, daw mac, daw linux",
   },
   {
     path: "/features",
-    title: "OpenStudio Features | Recording, MIDI, Mixing & Stem Separation",
+    title: "OpenStudio Features | Recording, MIDI, Mixing & AI Tools",
     description:
-      "Explore OpenStudio recording, MIDI instruments, pitch editing, mixing, plugin hosting, stem separation, and Lua scripting.",
+      "Explore OpenStudio features for a Cubase alternative, Pro Tools alternative, Reaper alternative, Ableton Live alternative, FL Studio alternative, and Logic Pro alternative with recording, MIDI, mixing, plugins, and AI tools.",
     keywords:
-      "daw features, music production software, audio editing software, midi software, plugin hosting daw, stem separation daw",
+      "daw features, Cubase alternative, Pro Tools alternative, Reaper alternative, Ableton Live alternative, FL Studio alternative, Logic Pro alternative, Suno AI alternative, Udio alternative, ElevenLabs alternative, music production software, audio editing software, midi software, plugin hosting daw, stem separation daw",
   },
   {
     path: "/download",
     title: "Download OpenStudio | Free DAW for Windows, macOS & Linux",
     description:
-      "Download OpenStudio free for Windows, macOS, or Linux, with clear installer notes and optional AI runtime setup guidance.",
+      "Download OpenStudio free for Windows, macOS, or Linux - a native, open source Cubase alternative, Pro Tools alternative, and Reaper alternative with MIDI, pitch editing, stems, and plugin hosting.",
     keywords:
-      "free daw download, daw free, free daw windows, free daw mac, free daw linux, open source daw download",
+      "free daw download, Cubase alternative, Pro Tools alternative, Reaper alternative, Ableton Live alternative, FL Studio alternative, Logic Pro alternative, Suno AI alternative, Udio alternative, ElevenLabs alternative, daw free, free daw windows, free daw mac, free daw linux, open source daw download",
   },
   {
     path: "/ai",
-    title: "OpenStudio AI | Free Stem Separation & Text-to-Audio in a DAW",
+    title: "OpenStudio AI | Stem Separation, ACE-Step & Stable Audio 3",
     description:
-      "OpenStudio AI delivers local stem separation and ACE-Step text-to-audio inside a free, open source DAW, with no upload or subscription.",
+      "OpenStudio AI gives creators a local Suno AI alternative, Udio alternative, and ElevenLabs alternative story with BS Roformer stem separation, ACE-Step text-to-music, and optional Stable Audio 3.",
     keywords:
-      "free stem separation software, ai music tools, text to audio, ai stem splitter, daw with stem separation",
+      "free stem separation software, Cubase alternative, Pro Tools alternative, Reaper alternative, Ableton Live alternative, FL Studio alternative, Logic Pro alternative, Suno AI alternative, Udio alternative, ElevenLabs alternative, ai music tools, text to audio, text to music, stable audio 3, ace-step, ai stem splitter, daw with stem separation",
   },
   {
     path: "/github",

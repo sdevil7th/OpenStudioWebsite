@@ -2425,7 +2425,7 @@ html.lenis body {
   }
 
   /* ============================================
-     Act 1 - Dual Pillars
+     Act 1 - AI Pillars
      ============================================ */
   .ai-pillars-section {
     position: relative;
@@ -2504,7 +2504,7 @@ html.lenis body {
 
   @media (min-width: 1024px) {
     .ai-pillars-cards {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 
@@ -2542,6 +2542,10 @@ html.lenis body {
     background: linear-gradient(135deg, rgba(199, 180, 255, 0.42), rgba(247, 190, 29, 0.32));
   }
 
+  .ai-pillar-card--stable-audio::before {
+    background: linear-gradient(135deg, rgba(255, 201, 113, 0.42), rgba(143, 244, 255, 0.32));
+  }
+
   .ai-pillar-card:hover {
     transform: translateY(-3px);
     border-color: rgba(255, 255, 255, 0.14);
@@ -2557,6 +2561,10 @@ html.lenis body {
 
   .ai-pillar-card--text-audio .ai-pillar-card__index {
     color: rgba(199, 180, 255, 0.84);
+  }
+
+  .ai-pillar-card--stable-audio .ai-pillar-card__index {
+    color: rgba(255, 201, 113, 0.86);
   }
 
   .ai-pillar-card__eyebrow {
@@ -7645,6 +7653,12 @@ html.lenis body {
       radial-gradient(ellipse at 80% 0%, rgba(199, 180, 255, 0.14), transparent 52%);
   }
 
+  .ai-pillar-card--stable-audio {
+    background:
+      linear-gradient(180deg, rgba(18, 23, 38, 0.72), rgba(5, 8, 15, 0.94)),
+      radial-gradient(ellipse at 50% 0%, rgba(255, 201, 113, 0.14), transparent 54%);
+  }
+
   .ai-pillar-card__signal {
     position: absolute;
     inset: 1rem 1rem auto;
@@ -7662,6 +7676,12 @@ html.lenis body {
     background:
       linear-gradient(90deg, transparent, rgba(199, 180, 255, 0.22), transparent),
       repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px 12px);
+  }
+
+  .ai-pillar-card--stable-audio .ai-pillar-card__signal {
+    background:
+      linear-gradient(90deg, transparent, rgba(255, 201, 113, 0.22), transparent),
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.15) 0 1px, transparent 1px 14px);
   }
 
   .ai-pillar-card__title {

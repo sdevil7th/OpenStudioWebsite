@@ -31,12 +31,16 @@ test("navigation exposes AI instead of stem-only naming", () => {
   assert.match(cssSource, /\.site-nav-link::after/);
 });
 
-test("ai page covers both grounded product pillars", () => {
+test("ai page covers the grounded product AI paths", () => {
   assert.match(aiDataSource, /id: "stems"/);
   assert.match(aiDataSource, /BS Roformer 6-stem extraction/);
   assert.match(aiDataSource, /id: "text-audio"/);
   assert.match(aiDataSource, /ACE-Step prompt and lyrics generation/);
   assert.match(aiDataSource, /ACE-Step 1\.5 XL Turbo/);
+  assert.match(aiDataSource, /id: "stable-audio"/);
+  assert.match(aiDataSource, /Stable Audio 3 Medium import path/);
+  assert.match(aiDataSource, /BS Roformer and ACE-Step setup do not install Stable Audio 3/);
+  assert.match(aiDataSource, /manual Hugging Face snapshot import/);
   assert.match(aiDataSource, /Full VAE decode/);
   assert.match(aiDataSource, /AiNeuralStudioPhase/);
   assert.match(aiDataSource, /aiNeuralStudioPhases/);
@@ -168,7 +172,7 @@ test("ai desktop has a dedicated webgl stage with a reduced mobile fallback", ()
   assert.match(cssSource, /\.ai-neural-fallback-instrument__shared-playhead/);
   assert.match(cssSource, /\.ai-neural-fallback-instrument__caustics/);
   assert.match(cssSource, /\.ai-neural-fallback-instrument__glints/);
-  assert.match(cssSource, /\.ai-neural-lab\s*\{[\s\S]*min-height: 650vh/);
+  assert.match(cssSource, /\.ai-neural-lab\s*\{[\s\S]*min-height: 470vh/);
   assert.match(cssSource, /\.ai-neural-mobile-instrument__bullets/);
   assert.match(cssSource, /\.ai-neural-mobile-instrument__stems/);
   assert.match(cssSource, /\.ai-neural-mobile-instrument__formula/);

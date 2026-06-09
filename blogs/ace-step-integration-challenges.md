@@ -1,5 +1,7 @@
 # What It Took to Bring ACE-Step Music Generation Into OpenStudio
 
+*ACE-Step looked like a simple music-generation feature from the outside. The real work was matching the reference runtime closely enough that OpenStudio could generate coherent songs inside the DAW.*
+
 Adding ACE-Step music generation to OpenStudio looked, at first, like a straightforward integration task. We had a known-good workflow, we had the model files, and we had a clear product goal: let a user type a prompt and lyrics, press generate, and get a coherent song directly inside the app. No separate graph editor, no external desktop runtime, no manual model wiring.
 
 The hard part was that the visible workflow was only the surface of the system.

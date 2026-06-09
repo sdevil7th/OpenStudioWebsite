@@ -20,6 +20,7 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
 export interface BlogPost {
   slug: string;
   title: string;
+  dek: string;
   summary: string;
   content: string;
   articleContent: string;
@@ -73,6 +74,8 @@ const truncateSummary = (value: string, maxLength = 190) => {
   const trimmed = summary.slice(0, maxLength).replace(/\s+\S*$/, "").trim();
   return `${trimmed}...`;
 };
+
+const DEFAULT_SUMMARY = "OpenStudio engineering notes from the public DAW development process.";
 
 const toTitleFromSlug = (slug: string) =>
   slug
@@ -143,16 +146,31 @@ const unwrapItalicParagraph = (paragraph: string) => {
   return match ? match[2].trim() : undefined;
 };
 
-const getSummary = (markdown: string) => {
+const getDek = (markdown: string) => {
   const paragraphs = getParagraphsAfterTitle(markdown);
-  const italicIntro = paragraphs.map(unwrapItalicParagraph).find((paragraph): paragraph is string => Boolean(paragraph));
+  const leadingDek = paragraphs[0] ? unwrapItalicParagraph(paragraphs[0]) : undefined;
   const firstBodyParagraph = paragraphs.find(isPublishableParagraph);
-  const summary = stripMarkdown(italicIntro ?? firstBodyParagraph ?? markdown);
+  const summary = stripMarkdown(leadingDek ?? firstBodyParagraph ?? markdown);
 
-  return truncateSummary(summary || "OpenStudio engineering notes from the public DAW development process.");
+  return truncateSummary(summary || DEFAULT_SUMMARY, 220);
 };
 
-const getArticleContent = (markdown: string) => markdown.replace(/^\s*#\s+.+\r?\n+/, "").trim();
+const removeLeadingArticleMetadata = (markdown: string) => {
+  let body = markdown.replace(/^\s*#\s+.+\r?\n+/, "").trimStart();
+  const firstParagraph = body.match(/^([\s\S]*?)(?:\r?\n\s*\r?\n|$)/);
+
+  if (firstParagraph?.[1] && unwrapItalicParagraph(firstParagraph[1].trim())) {
+    body = body.slice(firstParagraph[0].length).trimStart();
+  }
+
+  body = body.replace(/^-{3,}\s*(?:\r?\n\s*\r?\n|\r?\n|$)/, "").trimStart();
+
+  return body.trim();
+};
+
+const getSummary = (markdown: string) => truncateSummary(getDek(markdown));
+
+const getArticleContent = (markdown: string) => removeLeadingArticleMetadata(markdown);
 
 const getWordCount = (markdown: string) => {
   const words = stripMarkdown(markdown).match(/\b[\w'-]+\b/g);
@@ -169,11 +187,13 @@ const createBlogPost = ([sourcePath, content]: [string, string]): BlogPost | nul
   const { date, slug } = getSlugParts(filename);
   const wordCount = getWordCount(content);
   const title = getTitle(content, slug);
+  const dek = getDek(content);
   const postImage = getPostImage(slug);
 
   return {
     slug,
     title,
+    dek,
     summary: getSummary(content),
     content,
     articleContent: getArticleContent(content),

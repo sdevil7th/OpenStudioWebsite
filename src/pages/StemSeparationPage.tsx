@@ -743,7 +743,11 @@ const StemSeparationPage = () => {
               </span>
               <span>
                 <strong>ACE</strong>
-                Prompt audio
+                Text music
+              </span>
+              <span>
+                <strong>SA3</strong>
+                Text audio
               </span>
               <span>
                 <strong>WAV</strong>
@@ -790,13 +794,13 @@ const StemSeparationPage = () => {
           </div>
           <div className="ai-genesis-overlay__chrome" aria-hidden="true">
             <span>SIG · 01</span>
-            <span>BS Roformer · ACE-Step</span>
+            <span>BS Roformer · ACE-Step · Stable Audio 3</span>
             <span>WAV · LOCAL</span>
           </div>
         </div>
       </section>
 
-      {/* Act 1 — Dual pillars */}
+      {/* Act 1 — AI pillars */}
       <section className="ai-pillars-section" data-ai-pillars>
         <div className="ai-pillars-canvas">
           <DeferredClientStage className="absolute inset-0" fallback={<AiSignalFallbackStage />} idleDelay={720} idleTimeout={2000} rootMargin="1400px 0px">
@@ -807,11 +811,11 @@ const StemSeparationPage = () => {
         </div>
         <div className="page-frame-wide ai-pillars-grid">
           <header className="ai-pillars-header">
-            <div className="design-badge design-badge-secondary mb-5 w-fit">Two pillars · one engine</div>
-            <h2>Pull a mix apart. Compose a new one. Same surface, same session.</h2>
+            <div className="design-badge design-badge-secondary mb-5 w-fit">Three paths · one session</div>
+            <h2>Pull a mix apart. Compose a song. Generate source-aware audio.</h2>
             <p>
-              OpenStudio AI is not a side panel. The same engine that powers the rest of the DAW now reads spectrograms,
-              writes diffusion latents, and drops finished WAVs back onto the timeline.
+              OpenStudio AI is not a side panel. The same DAW surface now reads spectrograms, runs ACE-Step music
+              generation, imports Stable Audio 3 only when you ask for it, and drops finished WAVs back onto the timeline.
             </p>
           </header>
           <div className="ai-pillars-cards">
