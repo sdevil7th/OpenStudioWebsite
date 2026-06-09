@@ -4,11 +4,20 @@ import type { ActionLink, SeoMeta, StoryStep } from "@/data/marketing";
 export const homeSeo: SeoMeta = {
   title: "OpenStudio | Free Open Source DAW for Music Production",
   description:
-    "OpenStudio is a free, open source DAW for Windows, macOS, and Linux — music production software with multitrack recording, MIDI, pitch editing, stem separation, and plugin hosting.",
+    "OpenStudio is a free, open source DAW and Cubase alternative, Pro Tools alternative, and Reaper alternative with MIDI, pitch editing, stem separation, plugin hosting, and optional AI audio tools.",
   path: "/",
   keywords: [
     "free daw",
     "open source daw",
+    "Cubase alternative",
+    "Pro Tools alternative",
+    "Reaper alternative",
+    "Ableton Live alternative",
+    "FL Studio alternative",
+    "Logic Pro alternative",
+    "Suno AI alternative",
+    "Udio alternative",
+    "ElevenLabs alternative",
     "music production software",
     "digital audio workstation",
     "audio editing software",
@@ -29,14 +38,16 @@ export const homeSeo: SeoMeta = {
       operatingSystem: ["Windows 10", "Windows 11", "macOS", "Linux"],
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
       description:
-        "Free, open source DAW for Windows, macOS, and Linux — music production software with stem separation, pitch editing, MIDI, plugin hosting, audio editing, and mixing.",
+        "Free, open source DAW for Windows, macOS, and Linux with stem separation, pitch editing, MIDI, plugin hosting, audio editing, mixing, and optional AI audio workflows.",
       keywords:
-        "free daw, open source daw, music production software, digital audio workstation, audio editing software, music making software, daw free, free music production software",
+        "free daw, open source daw, Cubase alternative, Pro Tools alternative, Reaper alternative, Ableton Live alternative, FL Studio alternative, Logic Pro alternative, Suno AI alternative, Udio alternative, ElevenLabs alternative, music production software, digital audio workstation",
       featureList: [
         "Multi-track recording",
         "MIDI instruments",
         "Graphical pitch editing",
         "AI stem separation",
+        "ACE-Step text-to-music",
+        "Optional Stable Audio 3 text-to-audio",
         "Plugin hosting (VST3, CLAP, LV2, ARA2)",
         "Three-tier FX chain",
         "Automation lanes",
@@ -70,7 +81,7 @@ export const homeSeo: SeoMeta = {
           name: "Does OpenStudio have AI features?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Yes — AI-powered stem separation (vocals, drums, bass, and more) and polyphonic pitch detection.",
+            text: "Yes — optional local AI tools include BS Roformer stem separation, ACE-Step text-to-music, Stable Audio 3 text-to-audio after a separate import, and polyphonic pitch detection.",
           },
         },
       ],
@@ -102,7 +113,7 @@ export const homeHeroProof = [
   "Multitrack recording",
   "Graphical pitch editing",
   "VST3 / CLAP / LV2 hosting",
-  "AI stem separation",
+  "Optional AI tools",
 ];
 
 export const homeProofBarItems = [
@@ -110,11 +121,30 @@ export const homeProofBarItems = [
   "Graphical pitch editing",
   "VST3 / CLAP / LV2 hosting",
   "AI stem separation",
+  "ACE-Step generation",
+  "Stable Audio 3 import",
   "MIDI piano roll",
   "Lua scripting",
   "Input / Track / Master FX",
   "Optional ARA hosting",
 ];
+
+export const homeAlternativePositioning = {
+  eyebrow: "Open source alternative",
+  title: "For producers comparing closed DAWs and AI audio tools.",
+  description:
+    "OpenStudio is positioned as an open source alternative to Cubase, Pro Tools, and Reaper for creators who want a native DAW with recording, MIDI, plugin hosting, pitch work, and optional AI tools in one inspectable project.",
+  supporting:
+    "It also gives creators comparing Suno AI, Udio, and ElevenLabs-style AI audio tools a local workflow story: separate stems, generate music through ACE-Step, or import Stable Audio 3 only when that setup makes sense.",
+  terms: [
+    "Cubase alternative",
+    "Pro Tools alternative",
+    "Reaper alternative",
+    "Suno AI alternative",
+    "Udio alternative",
+    "ElevenLabs alternative",
+  ],
+};
 
 export const homeOriginStory = {
   eyebrow: "Open project direction",
@@ -130,11 +160,11 @@ export const homeOriginStory = {
 
 export const homePillars = [
   {
-    title: "Stem separation inside the DAW",
-    eyebrow: "Extract without round-trips",
+    title: "Optional AI tools inside the DAW",
+    eyebrow: "Extract and generate without round-trips",
     description:
-      "Separate vocals, drums, bass, guitar, piano, and other inside OpenStudio after the optional AI tools install. Then keep working in the same session.",
-    points: ["6-stem workflow", "Optional in-app AI install"],
+      "Separate vocals, drums, bass, guitar, piano, and other with BS Roformer, generate songs through ACE-Step, or import Stable Audio 3 for text-to-audio when that workflow is needed.",
+    points: ["6-stem workflow", "ACE-Step text-to-music", "Separate Stable Audio 3 import"],
   },
   {
     title: "Pitch editing without leaving the song",
@@ -172,7 +202,7 @@ export const homeCapabilityGrid = [
   },
   {
     title: "Pitch, MIDI, and stems",
-    description: "Graphical pitch tools, piano roll editing, MIDI recording, and optional AI stem separation stay inside the same workflow.",
+    description: "Graphical pitch tools, piano roll editing, MIDI recording, and optional AI tools stay inside the same workflow.",
     accent: "amber",
   },
   {

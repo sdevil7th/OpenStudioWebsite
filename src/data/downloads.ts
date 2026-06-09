@@ -4,10 +4,19 @@ import type { SeoMeta } from "@/data/marketing";
 export const downloadSeo: SeoMeta = {
   title: `Download ${SITE_NAME} | Free DAW for Windows, macOS & Linux`,
   description:
-    "Download OpenStudio free for Windows, macOS, or Linux — a native, open source DAW with MIDI, pitch editing, stem separation, plugin hosting, and a complete music production workflow.",
+    "Download OpenStudio free for Windows, macOS, or Linux - a native, open source Cubase alternative, Pro Tools alternative, and Reaper alternative with MIDI, pitch editing, stems, and plugin hosting.",
   path: "/download",
   keywords: [
     "free daw download",
+    "Cubase alternative",
+    "Pro Tools alternative",
+    "Reaper alternative",
+    "Ableton Live alternative",
+    "FL Studio alternative",
+    "Logic Pro alternative",
+    "Suno AI alternative",
+    "Udio alternative",
+    "ElevenLabs alternative",
     "daw free",
     "free daw windows",
     "free daw mac",
@@ -81,7 +90,7 @@ export const systemRequirements = [
   "64-bit Windows 10 or later, macOS 12 Monterey or later, or Ubuntu 22.04+ (other distros with equivalent glibc may work).",
   "A modern multi-core CPU and at least 8 GB RAM for comfortable multitrack work.",
   "Audio interface or built-in device with current drivers for low-latency recording.",
-  "Extra storage space if you later install optional AI tools for stem separation.",
+  "Extra storage space if you later install optional AI tools for stem separation, ACE-Step, or Stable Audio 3.",
 ];
 
 export const systemRequirementMatrix = [
@@ -142,5 +151,6 @@ export const knownLimitations = [
   "Linux AppImage is unsigned - most distros run it without additional trust steps.",
   "Unsigned builds can trigger SmartScreen on Windows or Gatekeeper on macOS during first launch.",
   "Optional AI tooling runs through a separate in-app setup that prepares a managed local runtime - no manual Python environment required.",
-  "Once the AI setup is complete, ACE and music generation assets can run locally and offline as long as the required model files are present.",
+  "BS Roformer and ACE-Step setup do not install Stable Audio 3; Stable Audio 3 requires a separate gated snapshot import and runtime setup.",
+  "Once the selected AI setup is complete, model assets can run locally and offline as long as the required files are present.",
 ];

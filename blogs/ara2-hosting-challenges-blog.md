@@ -1,6 +1,6 @@
 # The Pain of Hosting ARA2 Plugins in a Custom DAW
 
-*What nobody tells you about implementing ARA2 plugin hosting from scratch — and the rabbit holes we fell into along the way.*
+*ARA2 hosting looked like a protocol integration problem. It turned into renderer warmup, channel negotiation, transport timing, keyboard routing, and a long lesson in testing the exact workflow that breaks.*
 
 ---
 
@@ -12,7 +12,7 @@ Here's what we ran into and how we fixed each problem.
 
 ## Challenge 1: The Plugin Reports Mono, The Track Is Stereo
 
-The first thing that threw us off: RePitch reported `inCh=1 outCh=1` — mono input, mono output. Our track was stereo. Every other plugin we hosted either matched the track channel count or we'd expand/contract the buffer automatically in our `safeProcessFX` wrapper.
+The first thing that threw us off: RePitch reported `inCh=1 outCh=1` - mono input, mono output. Our track was stereo. Every other plugin we hosted either matched the track channel count or we'd expand/contract the buffer automatically in our `safeProcessFX` wrapper.
 
 For ARA, the channel count matters in two places: the plugin's audio I/O (what processBlock sees) and the ARA audio source (what readAudioSamples serves). We had to make sure the ARA source's `exposedChannelCount` was derived from the plugin's bus configuration, and that our `readAudioSamples` callback correctly downmixed stereo file data to mono when the plugin expected it.
 
@@ -31,20 +31,20 @@ We went through multiple theories:
 Our `PlaybackEngine` was reading the clip audio file from disk, filling the buffer. Then the ARA plugin's `processBlock` was calling our `readAudioSamples` callback, which read the *same file* from disk again. Double disk I/O on the audio thread.
 
 We fixed this two ways:
-- **Skipped PlaybackEngine for ARA tracks** — the ARA playback renderer provides its own audio, so the PlaybackEngine read was pure waste.
-- **Pre-loaded the entire audio file into memory** — our `readAudioSamples` callback now serves from a pre-allocated `AudioBuffer<float>` instead of hitting the disk. For a 3.5-minute stereo file at 48kHz, that's about 80MB of RAM. Totally worth it.
+- **Skipped PlaybackEngine for ARA tracks** - the ARA playback renderer provides its own audio, so the PlaybackEngine read was pure waste.
+- **Pre-loaded the entire audio file into memory** - our `readAudioSamples` callback now serves from a pre-allocated `AudioBuffer<float>` instead of hitting the disk. For a 3.5-minute stereo file at 48kHz, that's about 80MB of RAM. Totally worth it.
 
 Result: still 300ms per block. Disk I/O wasn't the bottleneck.
 
 ### Theory 2: Block Size Too Small
 
-The plugin was being prepared with `bs=64` (our ASIO buffer size). Non-ARA plugins got a minimum of 512 — we had intentionally passed the raw device block size to ARA plugins. When we bumped it to 512, the plugin reported `pluginBs=512` in the logs.
+The plugin was being prepared with `bs=64` (our ASIO buffer size). Non-ARA plugins got a minimum of 512 - we had intentionally passed the raw device block size to ARA plugins. When we bumped it to 512, the plugin reported `pluginBs=512` in the logs.
 
 Result: still 300ms per block. Block size wasn't it either.
 
 ### Theory 3: Block Accumulation
 
-Maybe the plugin needed *actual* larger blocks in processBlock, not just a larger preparation size. We built a full block accumulation bridge — accumulate 64-sample audio callbacks into a 2048-sample buffer, call processBlock once with the large buffer, then dole out the output 64 samples at a time.
+Maybe the plugin needed *actual* larger blocks in processBlock, not just a larger preparation size. We built a full block accumulation bridge - accumulate 64-sample audio callbacks into a 2048-sample buffer, call processBlock once with the large buffer, then dole out the output 64 samples at a time.
 
 Result: still ~290ms per processBlock call. The 300ms was a fixed cost per call, not proportional to block size.
 
@@ -62,7 +62,7 @@ We finally got the user to describe their exact workflow:
 
 > "But if I **edit notes without playing first**, pressing spacebar does nothing from the plugin window, and from the host window the playhead is stuck."
 
-The key was "play once first." The first play initializes the plugin's internal renderer. After that, the renderer can handle note edits incrementally. Without that first play, the renderer has never been activated, and the first processBlock after a note edit tries to build everything from scratch — taking ~300ms per call indefinitely.
+The key was "play once first." The first play initializes the plugin's internal renderer. After that, the renderer can handle note edits incrementally. Without that first play, the renderer has never been activated, and the first processBlock after a note edit tries to build everything from scratch - taking ~300ms per call indefinitely.
 
 **The fix: renderer warmup.** After adding an ARA clip, we call processBlock 8 times with a temporary playhead that reports `isPlaying=true`. This happens on the message thread during clip loading, before the user ever touches the editor. The renderer initializes its internal state, and subsequent processBlock calls (even after note edits) are fast.
 
@@ -92,18 +92,18 @@ Even after the warmup, playing from the host window still caused 300ms blocks. P
 
 We traced the two code paths:
 
-**Plugin-initiated play** (spacebar in plugin window): Plugin calls `requestStartPlayback()` → just `setTransportPlaying(true)`. Done. Works.
+**Plugin-initiated play** (spacebar in plugin window): Plugin calls `requestStartPlayback()` -> just `setTransportPlaying(true)`. Done. Works.
 
-**Frontend-initiated play** (spacebar in host window): Frontend calls `syncClipsWithBackend()` (clears all PlaybackEngine clips, re-adds them, syncs automation and tempo markers) → `setTransportPosition()` → `setTransportPlaying(true)`. Broken.
+**Frontend-initiated play** (spacebar in host window): Frontend calls `syncClipsWithBackend()` (clears all PlaybackEngine clips, re-adds them, syncs automation and tempo markers) -> `setTransportPosition()` -> `setTransportPlaying(true)`. Broken.
 
 The `syncClipsWithBackend` call was the culprit. Even though we'd already skipped PlaybackEngine reads for ARA tracks, the full clip clear+rebuild involved multiple backend bridge calls, lock acquisitions, and state churn that disrupted the ARA plugin's internal state.
 
-**The fix:** When any track has an active ARA plugin, the frontend's `play()` function skips `syncClipsWithBackend()` entirely and just does position + play — matching the plugin-initiated path that worked.
+**The fix:** When any track has an active ARA plugin, the frontend's `play()` function skips `syncClipsWithBackend()` entirely and just does position + play - matching the plugin-initiated path that worked.
 
 ```typescript
 const araActive = await nativeBridge.hasAnyActiveARA();
 if (araActive) {
-    // Minimal play — skip sync, ARA tracks don't use PlaybackEngine
+    // Minimal play - skip sync, ARA tracks don't use PlaybackEngine
     await nativeBridge.setTransportPosition(startTime);
     await nativeBridge.setTransportPlaying(true);
 } else {
@@ -121,7 +121,7 @@ if (araActive) {
 In a standard VST3 host, the plugin's editor is a native window embedded in your DocumentWindow. Key events go directly to the plugin's native HWND via Win32. Your JUCE code never sees them.
 
 This created two problems:
-1. After note edits, the plugin consumed spacebar but didn't start playback (broken renderer state — fixed by warmup).
+1. After note edits, the plugin consumed spacebar but didn't start playback (broken renderer state - fixed by warmup).
 2. Even when the plugin was fine, we needed the host to handle spacebar for transport control.
 
 We installed a Win32 `WH_KEYBOARD` thread-local hook that intercepts `VK_SPACE` before it reaches the plugin's native HWND:
@@ -145,7 +145,7 @@ static LRESULT CALLBACK pluginWindowKeyboardHookProc(int nCode, WPARAM wParam, L
 But then we hit a double-delivery problem: the hook forwarded the key to the frontend, AND JUCE's `PluginWindow::keyPressed` also forwarded it. Two play commands from one keypress. The second one arrived before the first `play()` call had set `isPlaying=true`, so both saw `isPlaying=false` and both called `play()`.
 
 Fixes:
-- **JUCE keyPressed suppression**: Return true for spacebar in `keyPressed` without forwarding — the hook already handled it.
+- **JUCE keyPressed suppression**: Return true for spacebar in `keyPressed` without forwarding - the hook already handled it.
 - **Frontend debounce**: 150ms timestamp-based debounce on spacebar in the dispatcher to catch any remaining double-delivery.
 
 **Lesson: On Windows, plugin HWND key events bypass JUCE entirely. You need Win32 hooks to intercept them. But be careful about duplicate event delivery from the hook path and the JUCE path.**
@@ -154,7 +154,7 @@ Fixes:
 
 This was a quieter bug. Our `readAudioSamples` implementation was reading audio through JUCE's `AudioFormatReader`. For WAV files with integer samples (16-bit, 24-bit), the reader handles int-to-float conversion automatically when you read into a `juce::AudioBuffer<float>`. But we initially tried reading directly into the ARA output buffers (raw float pointers), which only works for float WAV files. Integer WAV data interpreted as float is garbage.
 
-The fix was straightforward — always read through a temporary `AudioBuffer<float>`, then copy to the ARA output buffers. After pre-loading, this became a simple memcpy from the pre-loaded buffer, so the temporary buffer isn't needed anymore on the hot path.
+The fix was straightforward - always read through a temporary `AudioBuffer<float>`, then copy to the ARA output buffers. After pre-loading, this became a simple memcpy from the pre-loaded buffer, so the temporary buffer isn't needed anymore on the hot path.
 
 **Lesson: Never assume the audio file format. Always let JUCE's reader handle format conversion.**
 
@@ -163,14 +163,14 @@ The fix was straightforward — always read through a temporary `AudioBuffer<flo
 After all of this, our ARA2 hosting does the following:
 
 1. **Initialization**: Create ARA document controller, bind plugin with playback + editor renderer + editor view roles.
-2. **Clip addition**: Deactivate plugin → create ARA source/modification/region → enable audio access → re-prepare plugin → **warmup 8 blocks** → reactivate.
+2. **Clip addition**: Deactivate plugin -> create ARA source/modification/region -> enable audio access -> re-prepare plugin -> **warmup 8 blocks** -> reactivate.
 3. **Audio reading**: Pre-load entire file into memory. Serve `readAudioSamples` from RAM.
 4. **Playback**: Skip PlaybackEngine for ARA tracks. Skip `syncClipsWithBackend` when ARA is active. Plugin's processBlock provides the audio.
 5. **Keyboard**: Win32 hook intercepts spacebar from plugin windows, forwards to host transport with debounce.
 
 ## Things I Wish I Knew Before Starting
 
-1. **ARA plugins have internal state machines that aren't documented.** The spec tells you what callbacks to implement, but not what the plugin expects to happen behind the scenes. The "warmup processBlock" requirement isn't in any spec — it's an empirical finding from one specific plugin.
+1. **ARA plugins have internal state machines that aren't documented.** The spec tells you what callbacks to implement, but not what the plugin expects to happen behind the scenes. The "warmup processBlock" requirement isn't in any spec - it's an empirical finding from one specific plugin.
 
 2. **The ARA spec is permissive, but plugins are opinionated.** The spec says you can do things in various orders. Real plugins expect a specific sequence and break silently if you deviate.
 
@@ -178,8 +178,8 @@ After all of this, our ARA2 hosting does the following:
 
 4. **Diagnostic logging is your most important tool.** We added per-processBlock timing, readAudioSamples call counting, content change notification tracking, warmup state flags, and path-tagged logs for both play paths. Without these, we'd still be guessing.
 
-5. **Test the exact user workflow that breaks.** We spent days testing "load plugin → play" when the actual bug was "load plugin → edit note → play." One extra step in the workflow changed everything.
+5. **Test the exact user workflow that breaks.** We spent days testing "load plugin -> play" when the actual bug was "load plugin -> edit note -> play." One extra step in the workflow changed everything.
 
 ---
 
-*We're building Studio13 — a hybrid DAW with JUCE C++ audio backend and React/TypeScript frontend. If you're working on ARA2 hosting and hitting similar issues, I hope this saves you some of the pain we went through.*
+*We're building OpenStudio - a hybrid DAW with JUCE C++ audio backend and React/TypeScript frontend. If you're working on ARA2 hosting and hitting similar issues, I hope this saves you some of the pain we went through.*

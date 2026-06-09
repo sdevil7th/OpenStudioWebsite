@@ -273,9 +273,9 @@ const initializeGoogleAnalytics = () => {
   window.dataLayer = window.dataLayer ?? [];
   window.gtag =
     window.gtag ??
-    ((...args: unknown[]) => {
-      window.dataLayer?.push(args);
-    });
+    function gtagCommand() {
+      window.dataLayer?.push(arguments);
+    };
 
   if (!document.getElementById(GOOGLE_ANALYTICS_SCRIPT_ID)) {
     const script = document.createElement("script");

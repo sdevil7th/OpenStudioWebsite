@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { BRANDING_ASSETS } from "@/constants/site";
 import { designMedia } from "@/data/designMedia";
 import {
+  homeAlternativePositioning,
   homeHero,
   homeOriginStory,
   homePillars,
@@ -355,6 +356,39 @@ const HomePage = () => {
                 {renderOpenSourceText(
                   "Windows + macOS + Linux | OpenSource / AGPLv3 | optional AI tools separate",
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 py-8 md:px-8 xl:px-12">
+        <div className="page-frame-wide">
+          <div className="grid gap-8 border-y border-white/10 py-10 xl:grid-cols-[0.78fr_1.22fr] xl:items-center">
+            <div>
+              <div className="design-badge design-badge-secondary mb-4 w-fit">
+                {homeAlternativePositioning.eyebrow}
+              </div>
+              <h2 className="max-w-3xl font-headline text-3xl font-bold leading-tight text-white md:text-4xl">
+                {homeAlternativePositioning.title}
+              </h2>
+            </div>
+            <div className="space-y-5">
+              <p className="max-w-4xl text-base leading-8 text-white/70 md:text-lg">
+                {homeAlternativePositioning.description}
+              </p>
+              <p className="max-w-4xl text-sm leading-7 text-white/58 md:text-base">
+                {homeAlternativePositioning.supporting}
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {homeAlternativePositioning.terms.map((term) => (
+                  <span
+                    className="rounded-full border border-white/10 px-4 py-2 font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white/50"
+                    key={term}
+                  >
+                    {term}
+                  </span>
+                ))}
               </div>
             </div>
           </div>

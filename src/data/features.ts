@@ -27,12 +27,21 @@ export interface FeatureCategory {
 }
 
 export const featurePageSeo: SeoMeta = {
-  title: "OpenStudio Features | Recording, MIDI, Mixing & Stem Separation",
+  title: "OpenStudio Features | Recording, MIDI, Mixing & AI Tools",
   description:
-    "Explore the full OpenStudio DAW feature set — recording, MIDI instruments, pitch editing, audio mixing, plugin hosting (VST3/CLAP/LV2/ARA2), stem separation, and Lua scripting.",
+    "Explore OpenStudio features for a Cubase alternative, Pro Tools alternative, Reaper alternative, Ableton Live alternative, FL Studio alternative, and Logic Pro alternative with recording, MIDI, mixing, plugins, and AI tools.",
   path: "/features",
   keywords: [
     "daw features",
+    "Cubase alternative",
+    "Pro Tools alternative",
+    "Reaper alternative",
+    "Ableton Live alternative",
+    "FL Studio alternative",
+    "Logic Pro alternative",
+    "Suno AI alternative",
+    "Udio alternative",
+    "ElevenLabs alternative",
     "music production software",
     "audio editing software",
     "audio mixing software",
@@ -48,11 +57,11 @@ export const featurePageHero = {
   eyebrow: "Features",
   title: "A broad DAW feature set, with deeper workflows where they matter.",
   description:
-    "OpenStudio covers the expected ground, but it also brings stem separation, pitch editing, native plugin windows, detached mixing, and scripting directly into the same production environment.",
+    "OpenStudio covers the expected ground, but it also brings optional AI tools, pitch editing, native plugin windows, detached mixing, and scripting directly into the same production environment.",
 };
 
 export const featureHighlights = [
-  "Stem separation in-app",
+  "Optional AI tools",
   "Graphical pitch editing",
   "Detached mixer workflow",
   "Native plugin windows",
@@ -248,11 +257,11 @@ export const featureCategories: FeatureCategory[] = [
   },
   {
     id: "stem-separation",
-    label: "Stem Separation",
-    title: "Stem Separation",
+    label: "AI Tools",
+    title: "AI Tools",
     description:
-      "Separation is presented as a production tool inside the DAW, not as an isolated export to another utility with no path back into the project.",
-    standout: "Once the optional AI tools are installed, separation can feed directly into editing, arrangement, and mix work.",
+      "AI features are presented as production tools inside the DAW, not as isolated exports to another utility with no path back into the project.",
+    standout: "BS Roformer, ACE-Step, and Stable Audio 3 stay behind explicit setup choices so the base app stays lean.",
     screenshot: screenshots.arrangementOverviewWide,
     items: [
       {
@@ -260,12 +269,16 @@ export const featureCategories: FeatureCategory[] = [
         description: "Separate material inside OpenStudio and keep the resulting parts inside the session instead of round-tripping to an external app.",
       },
       {
-        title: "6-stem separation path",
-        description: "Current workflow targets vocals, drums, bass, guitar, piano, and other.",
+        title: "BS Roformer stem separation",
+        description: "Stem separation targets vocals, drums, bass, guitar, piano, and other through the explicit AI tools setup.",
       },
       {
         title: "Optional AI install",
-        description: "Stem separation is enabled through an in-app AI tools install, so the base app stays lean and the install story stays honest.",
+        description: "Stem separation and ACE-Step are enabled through in-app AI tools setup. Stable Audio 3 is a separate manual snapshot import and runtime setup.",
+      },
+      {
+        title: "ACE-Step and Stable Audio paths",
+        description: "ACE-Step handles prompt and lyrics text-to-music. Stable Audio 3 handles text-to-audio and source-conditioned workflows after its separate import.",
       },
       {
         title: "Creative and corrective use",
@@ -628,19 +641,19 @@ const featureChapterBlueprints: FeatureChapterBlueprint[] = [
       tone: "emerald",
     },
     story: {
-      title: "Plugins, pitch workflows, and deeper processing stay inside the production surface.",
+      title: "Plugins, pitch workflows, and optional AI tools stay inside the production surface.",
       description:
-        "This chapter connects hosting, pitch, and stem-aware depth into one premium story about keeping advanced tools inside the project.",
+        "This chapter connects hosting, pitch, BS Roformer stems, ACE-Step music generation, and Stable Audio 3 imports into one conservative story about keeping advanced tools inside the project.",
       standout:
         "Native plugin windows and built-in pitch depth keep advanced moments close to the arrangement instead of off in utility popups.",
-      rail: ["VST3 / CLAP / LV2", "Pitch workflows", "Optional stem depth"],
+      rail: ["VST3 / CLAP / LV2", "Pitch workflows", "Optional AI tools"],
     },
     details: {
       callouts: [
         {
           eyebrow: "Depth",
           title: "Advanced tools should not break the story.",
-          description: "Pitch, hosting, and stem-aware workflows need oversized media so they feel premium instead of buried.",
+          description: "Pitch, hosting, BS Roformer, ACE-Step, and Stable Audio 3 workflows need oversized media so they feel premium instead of buried.",
           tone: "lavender",
         },
         {
@@ -656,6 +669,7 @@ const featureChapterBlueprints: FeatureChapterBlueprint[] = [
         featureCategories.find((item) => item.id === "plugins-and-fx")!.items[1]!,
         featureCategories.find((item) => item.id === "pitch-and-audio-workflows")!.items[0]!,
         featureCategories.find((item) => item.id === "stem-separation")!.items[1]!,
+        featureCategories.find((item) => item.id === "stem-separation")!.items[3]!,
       ],
     },
     transition: {
