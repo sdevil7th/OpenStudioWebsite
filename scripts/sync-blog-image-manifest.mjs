@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -23,16 +24,20 @@ const collectBlogImages = async () => {
 
   const entries = await fs.readdir(publicBlogAssetsRoot, { withFileTypes: true });
 
-  return entries
+  const images = await Promise.all(entries
     .filter((entry) => entry.isFile() && supportedExtensions.has(path.extname(entry.name).toLowerCase()))
-    .map((entry) => {
+    .map(async (entry) => {
       const slug = path.basename(entry.name, path.extname(entry.name)).toLowerCase();
+      const filePath = path.join(publicBlogAssetsRoot, entry.name);
+      const hash = createHash("sha256").update(await fs.readFile(filePath)).digest("hex").slice(0, 12);
+
       return {
         slug,
-        src: `/assets/blogs/${entry.name}`,
+        src: `/assets/blogs/${entry.name}?v=${hash}`,
       };
-    })
-    .sort((first, second) => first.slug.localeCompare(second.slug));
+    }));
+
+  return images.sort((first, second) => first.slug.localeCompare(second.slug));
 };
 
 const serializeManifest = (images) => {

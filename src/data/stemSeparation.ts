@@ -2,16 +2,28 @@ import { screenshots } from "@/data/screenshots";
 import type { AccentTone, ActionLink, SeoMeta, StoryStep } from "@/data/marketing";
 
 export const stemSeparationSeo: SeoMeta = {
-  title: "OpenStudio AI | Free Stem Separation & Text-to-Audio in a DAW",
+  title: "OpenStudio AI | Stem Separation, ACE-Step & Stable Audio 3",
   description:
-    "OpenStudio AI delivers free local stem separation (vocals, drums, bass, guitar, piano, other) and ACE-Step text-to-audio inside a free, open source DAW — no upload, no subscription.",
+    "OpenStudio AI gives creators a local Suno AI alternative, Udio alternative, and ElevenLabs alternative story with BS Roformer stem separation, ACE-Step text-to-music, and optional Stable Audio 3.",
   path: "/ai",
   keywords: [
     "free stem separation software",
+    "Cubase alternative",
+    "Pro Tools alternative",
+    "Reaper alternative",
+    "Ableton Live alternative",
+    "FL Studio alternative",
+    "Logic Pro alternative",
+    "Suno AI alternative",
+    "Udio alternative",
+    "ElevenLabs alternative",
     "stem separation software",
     "vocal isolation",
     "ai music tools",
     "text to audio",
+    "text to music",
+    "stable audio 3",
+    "ace-step",
     "ai stem splitter",
     "daw with stem separation",
     "open source stem separation",
@@ -22,7 +34,7 @@ export const stemHero = {
   eyebrow: "OpenStudio AI",
   title: "Generate, separate, and keep producing in the same session.",
   description:
-    "OpenStudio AI is built around practical production moves: split a mix into workable stems, or turn prompt and lyrics into a WAV render through the packaged ACE-Step path. The optional setup stays explicit, and the result stays close to the timeline.",
+    "OpenStudio AI is built around practical production moves: split a mix into workable stems with BS Roformer, turn prompt and lyrics into a WAV through ACE-Step, or use Stable Audio 3 from a separate manual import. The optional setup stays explicit, and the result stays close to the timeline.",
   primaryCta: {
     label: "Download OpenStudio",
     to: "/download",
@@ -37,11 +49,11 @@ export const aiGenesisCopy = {
   eyebrow: "OpenStudio AI",
   headline: "An audio intelligence engine that lives inside the session.",
   subhead:
-    "Pull mixes apart into editable stems. Compose new ideas from a single prompt. Every model, every render, every WAV — local, owned, and one keystroke from the timeline.",
+    "Pull mixes apart into editable stems. Compose songs through ACE-Step. Generate sound through Stable Audio 3 when you import its gated snapshot. Every model, every render, every WAV stays close to the timeline.",
   badge: "Local · Offline-capable · WAV-native",
   primaryCta: { label: "Download OpenStudio", to: "/download" } satisfies ActionLink,
   secondaryCta: { label: "See it in motion", to: "#ai-neural-lab" } satisfies ActionLink,
-  ticker: ["BS Roformer", "ACE-Step", "Qwen", "Full VAE", "WAV", "Local runtime", "Seeded", "Offline"],
+  ticker: ["BS Roformer", "ACE-Step", "Stable Audio 3", "Qwen", "Full VAE", "WAV", "Local runtime", "Manual import"],
 };
 
 export const aiPillars = [
@@ -55,11 +67,19 @@ export const aiPillars = [
   },
   {
     id: "text-audio",
-    eyebrow: "Text to audio",
+    eyebrow: "Text to music",
     title: "ACE-Step prompt and lyrics generation",
     description:
       "Type a prompt, drop in lyrics, choose a seed and duration. The packaged ACE graph runs end-to-end and writes a clean WAV straight onto the timeline — no graph apps, no glue scripts, no detours.",
     details: ["ACE-Step 1.5 XL Turbo", "Prompt + lyrics conditioning", "Offline after setup"],
+  },
+  {
+    id: "stable-audio",
+    eyebrow: "Text to audio",
+    title: "Stable Audio 3 Medium import path",
+    description:
+      "Stable Audio 3 is a separate optional setup for prompt-based audio, source variation, inpaint, and continuation. It is not downloaded by the BS Roformer or ACE-Step installer path; you import the accepted Hugging Face snapshot deliberately.",
+    details: ["Manual Hugging Face snapshot import", "Separate Stable Audio runtime", "License acknowledgement required"],
   },
 ];
 
@@ -195,11 +215,11 @@ export const aiNeuralStudioPhases: AiNeuralStudioPhase[] = [
 ];
 
 export const musicGenerationExplainer = {
-  eyebrow: "Text and lyrics to audio",
-  title: "Turn a prompt, lyrics, and generation controls into a finished WAV.",
+  eyebrow: "Prompt workflows",
+  title: "Choose the generation path that matches the job.",
   paragraphs: [
-    "OpenStudio's ACE-Step path is designed as an owned generation workflow: prompt and lyric conditioning, duration and seed control, graph execution, full VAE decode, and WAV output without asking the user to wire a separate graph app.",
-    "The result is a creative sketch path that stays close to the project. Generate a coherent audio idea, review the output, and bring the WAV back into the same production flow where editing, arrangement, plugins, and mix decisions already live.",
+    "OpenStudio's ACE-Step path is designed for text-to-music: prompt and lyric conditioning, duration and seed control, graph execution, full VAE decode, and WAV output without asking the user to wire a separate graph app.",
+    "Stable Audio 3 Medium is a separate text-to-audio and source-conditioned path. It stays optional because the model is license-gated and imported from a local Hugging Face snapshot before OpenStudio prepares its own Stable Audio runtime.",
   ],
 };
 
@@ -209,6 +229,12 @@ export const musicGenerationControls = [
     description:
       "Tags and lyrics ride the ACE text encoder path. Language, key, time signature, BPM, duration — every dial that conditions the result stays visible and stays yours.",
     note: "Prompt + lyrics + metadata",
+  },
+  {
+    title: "Stable Audio source workflows",
+    description:
+      "Stable Audio 3 handles text-to-audio plus source variation, inpaint, and continuation after a deliberate snapshot import and license acknowledgement.",
+    note: "Separate Stable Audio 3 setup",
   },
   {
     title: "Seeded generation",
@@ -247,9 +273,9 @@ export const musicGenerationWorkflowSteps: StoryStep[] = [
   {
     id: "validate-assets",
     eyebrow: "Validate",
-    title: "Confirm the local ACE assets before generation.",
+    title: "Confirm the selected local model assets before generation.",
     description:
-      "The packaged runner checks for the diffusion model, text encoders, and VAE before generation. Missing assets should point the user back to AI setup, not trigger surprise downloads.",
+      "The packaged runner checks ACE-Step assets before music generation, while Stable Audio 3 checks the manually imported snapshot and separate runtime. Missing assets should point the user back to AI setup, not trigger surprise downloads.",
     bullets: [
       "Required model files are validated before offline guards are enabled.",
       "Generation runs locally after setup when the required assets are present.",
@@ -289,7 +315,7 @@ export const aiRuntimePrinciples = [
   {
     title: "Optional by design",
     description:
-      "The base download stays focused. The AI runtime — every model, every weight — lives behind a deliberate setup step, never bundled by surprise.",
+      "The base download stays focused. BS Roformer, ACE-Step, and Stable Audio 3 each stay behind explicit setup choices, never bundled by surprise.",
   },
   {
     title: "Offline after setup",
@@ -319,9 +345,16 @@ export const aiArchitectureNodes = [
   {
     id: "ace",
     label: "ACE-Step 1.5 XL Turbo",
-    role: "Generation graph",
+    role: "Text-to-music graph",
     accent: "lavender" as AccentTone,
     description: "Diffusion graph that turns prompt, lyrics, and seed into latent audio — owned end to end.",
+  },
+  {
+    id: "stable-audio",
+    label: "Stable Audio 3 Medium",
+    role: "Text-to-audio model",
+    accent: "amber" as AccentTone,
+    description: "License-gated model imported from a local Hugging Face snapshot for prompt audio and source-conditioned workflows.",
   },
   {
     id: "qwen",
@@ -531,7 +564,9 @@ export const stemWorkflowSteps: StoryStep[] = [
 export const stemInstallFacts = [
   "Stem separation is optional and provisioned through an in-app AI tools install.",
   "The setup builds a managed local runtime for you — no separate Python environment to wire up.",
-  "Once installed, the ACE assets run locally and offline after the required model files are validated.",
+  "ACE-Step installs through the Audio Generation path; BS Roformer and ACE-Step setup do not install Stable Audio 3.",
+  "Stable Audio 3 uses a separate manual Hugging Face snapshot import, license acknowledgement, and Stable Audio runtime.",
+  "Once installed, the selected assets run locally and offline after the required model files are validated.",
   "The base download stays small because the AI runtime is never bundled by default.",
 ];
 

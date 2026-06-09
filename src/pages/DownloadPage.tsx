@@ -912,12 +912,12 @@ const DownloadPage = () => {
             </h2>
             <p>
               {snapshot.latestRelease
-                ? `GitHub release ${snapshot.latestRelease.tagName} was published ${formatGithubDate(snapshot.latestRelease.publishedAt)}. The base installer stays focused on the DAW, while optional AI tools remain a separate setup for stem separation and generation workflows.`
-                : "The base installer stays focused on the DAW for Windows, macOS, and Linux. Optional AI tools remain a separate setup, so users are never surprised by extra runtime requirements."}
+                ? `GitHub release ${snapshot.latestRelease.tagName} was published ${formatGithubDate(snapshot.latestRelease.publishedAt)}. The base installer stays focused on the DAW, while BS Roformer stem separation, ACE-Step music generation, and Stable Audio 3 imports remain explicit AI setup choices.`
+                : "The base installer stays focused on the DAW for Windows, macOS, and Linux. BS Roformer stem separation and ACE-Step setup do not install Stable Audio 3; Stable Audio 3 needs its own gated snapshot import and runtime setup."}
             </p>
             <div className="download-ai-callout__signals">
               <span>Base installer stays lean</span>
-              <span>Optional AI setup is separate</span>
+              <span>ACE-Step does not install Stable Audio 3</span>
               <span>Release notes stay visible</span>
             </div>
           </div>
