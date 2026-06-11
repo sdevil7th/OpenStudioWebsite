@@ -1,4 +1,11 @@
-import { useMemo, type CSSProperties } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type RefObject,
+} from "react";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
 
@@ -86,9 +93,18 @@ export const BRAND_LOGO_PIECES: BrandLogoPiece[] = [
 ];
 
 interface BrandLogoConstructSceneProps {
+  criticalAssetRootRef?: RefObject<HTMLElement | null>;
   className?: string;
   label?: string;
+  playback?: "static" | "viewport";
+  playbackMediaQuery?: string;
   progress?: number;
+  progressVariableTargetRef?: RefObject<HTMLElement | null>;
+  destructureDurationMs?: number;
+  destructureStartVisibleRatio?: number;
+  introDurationMs?: number;
+  introTargetProgress?: number;
+  reentryVisibleRatio?: number;
   showWordmark?: boolean;
   size?: "hero" | "intro" | "compact";
 }
@@ -161,13 +177,10 @@ const pieceStyle = (piece: BrandLogoPiece, progress: number, reducedMotion: bool
   const rotate = incoming.rotate * incomingWeight + outgoing.rotate * destroy;
   const scale = incoming.scale * incomingWeight + (1 - destroy * 0.3) * flight;
   const opacity = clampProgress(phase(progress, flightStart, flightStart + 0.12) * (1 - destroy * 0.96));
-  const blur = incomingWeight * 18 + destroy * 10;
-  const brightness = 1 + incomingWeight * 0.42 + Math.sin(flight * Math.PI) * 0.2;
 
   return {
     opacity,
     transform: `translate3d(calc(${(incoming.vw * incomingWeight).toFixed(3)}vw + ${xPx.toFixed(2)}px), calc(${(incoming.vh * incomingWeight).toFixed(3)}vh + ${yPx.toFixed(2)}px), ${z.toFixed(2)}px) rotate(${rotate.toFixed(2)}deg) scale(${scale.toFixed(3)})`,
-    filter: `brightness(${brightness.toFixed(3)}) blur(${blur.toFixed(2)}px) drop-shadow(0 0 ${Math.round(14 + flight * 26)}px ${piece.fill})`,
   };
 };
 
@@ -189,21 +202,283 @@ const trailStyle = (piece: BrandLogoPiece, progress: number, reducedMotion: bool
   return {
     opacity: clampProgress(intensity * 0.48),
     transform: `translate3d(calc(${(offset.vw * incomingWeight * 0.22).toFixed(3)}vw + ${(offset.x * 0.1 + seed * 18).toFixed(2)}px), calc(${(offset.vh * incomingWeight * 0.22).toFixed(3)}vh + ${(offset.y * 0.1).toFixed(2)}px), 0) rotate(${(offset.rotate * 0.24).toFixed(2)}deg) skewX(${((seed - 0.5) * 22).toFixed(2)}deg) scale(${stretch.toFixed(3)}, ${squash.toFixed(3)})`,
-    filter: `blur(${(14 + incomingWeight * 18).toFixed(2)}px)`,
   };
 };
 
+const applyStyle = (element: SVGPathElement | null, style: CSSProperties) => {
+  if (!element) {
+    return;
+  }
+
+  element.style.opacity = String(style.opacity ?? "");
+  element.style.transform = String(style.transform ?? "");
+};
+
+const waitForFrame = () =>
+  new Promise<void>((resolve) => {
+    window.requestAnimationFrame(() => resolve());
+  });
+
+const waitForCriticalAssets = async (root: HTMLElement | null) => {
+  const fontReady = "fonts" in document ? document.fonts.ready : Promise.resolve();
+  const images = root ? [...root.querySelectorAll("img")] : [];
+  const imageReady = images.map(async (image) => {
+    if (image.complete && image.naturalWidth > 0) {
+      return;
+    }
+
+    if (typeof image.decode === "function") {
+      await image.decode().catch(() => undefined);
+      return;
+    }
+
+    await new Promise<void>((resolve) => {
+      image.addEventListener("load", () => resolve(), { once: true });
+      image.addEventListener("error", () => resolve(), { once: true });
+    });
+  });
+
+  await Promise.all([fontReady.catch(() => undefined), ...imageReady]);
+  await waitForFrame();
+  await waitForFrame();
+};
+
+const waitForIntroHidden = () =>
+  new Promise<void>((resolve) => {
+    if (window.__openstudioIntroHidden || !document.getElementById("openstudio-instant-loader")) {
+      resolve();
+      return;
+    }
+
+    let timeout = 0;
+    let resolved = false;
+
+    function cleanup() {
+      window.removeEventListener("openstudio:intro-hidden", finish);
+      if (timeout) {
+        window.clearTimeout(timeout);
+      }
+      observer.disconnect();
+    }
+
+    function finish() {
+      if (resolved) {
+        return;
+      }
+
+      resolved = true;
+      cleanup();
+      resolve();
+    }
+
+    function finishIfLoaderGone() {
+      if (window.__openstudioIntroHidden || !document.getElementById("openstudio-instant-loader")) {
+        finish();
+      }
+    }
+
+    window.addEventListener("openstudio:intro-hidden", finish, { once: true });
+    const observer = new MutationObserver(finishIfLoaderGone);
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    timeout = window.setTimeout(finishIfLoaderGone, 7000);
+  });
+
 const BrandLogoConstructScene = ({
+  criticalAssetRootRef,
   className,
+  destructureDurationMs = 720,
+  destructureStartVisibleRatio = 0.78,
+  introDurationMs = 1500,
   label = "OpenStudio logo construction",
+  introTargetProgress = 0.62,
+  playback = "static",
+  playbackMediaQuery,
   progress = 0.5,
+  progressVariableTargetRef,
+  reentryVisibleRatio = 0.82,
   showWordmark = false,
   size = "hero",
 }: BrandLogoConstructSceneProps) => {
   const reducedMotion = usePrefersReducedMotion();
-  const clampedProgress = reducedMotion ? 0.5 : clampProgress(progress);
+  const [playbackMediaMatches, setPlaybackMediaMatches] = useState(() =>
+    playbackMediaQuery && typeof window !== "undefined"
+      ? window.matchMedia(playbackMediaQuery).matches
+      : true,
+  );
+  const isViewportPlayback = playback === "viewport" && !reducedMotion && playbackMediaMatches;
+  const initialProgress = isViewportPlayback ? 0 : progress;
+  const clampedProgress = reducedMotion ? 0.5 : clampProgress(initialProgress);
   const assembled = phase(clampedProgress, 0.34, 0.58) * (1 - phase(clampedProgress, 0.7, 1));
   const sortedPieces = useMemo(() => [...BRAND_LOGO_PIECES].sort((a, b) => a.order - b.order), []);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const pieceRefs = useRef(new Map<string, SVGPathElement>());
+  const trailRefs = useRef(new Map<string, SVGPathElement>());
+
+  useEffect(() => {
+    if (!playbackMediaQuery) {
+      setPlaybackMediaMatches(true);
+      return undefined;
+    }
+
+    const query = window.matchMedia(playbackMediaQuery);
+    const sync = () => setPlaybackMediaMatches(query.matches);
+
+    sync();
+    query.addEventListener("change", sync);
+
+    return () => query.removeEventListener("change", sync);
+  }, [playbackMediaQuery]);
+
+  useEffect(() => {
+    if (!isViewportPlayback) {
+      return undefined;
+    }
+
+    const root = rootRef.current;
+    if (!root) {
+      return undefined;
+    }
+
+    let animationFrame = 0;
+    let disposed = false;
+    let currentProgress = clampProgress(progress);
+    let introPlayed = false;
+    let previousTop = root.getBoundingClientRect().top;
+    let state: "idle" | "constructing" | "assembled" | "destructuring" | "destructured" = "idle";
+
+    const writeProgress = (value: number) => {
+      const nextProgress = clampProgress(value);
+      currentProgress = nextProgress;
+      const nextAssembled = phase(nextProgress, 0.34, 0.58) * (1 - phase(nextProgress, 0.7, 1));
+      const progressText = nextProgress.toFixed(3);
+
+      root.dataset.brandLogoProgress = progressText;
+      root.style.setProperty("--brand-logo-assembled", nextAssembled.toFixed(3));
+      progressVariableTargetRef?.current?.style.setProperty("--home-logo-progress", progressText);
+
+      for (const piece of sortedPieces) {
+        applyStyle(pieceRefs.current.get(piece.id) ?? null, pieceStyle(piece, nextProgress, false));
+        applyStyle(trailRefs.current.get(piece.id) ?? null, trailStyle(piece, nextProgress, false));
+      }
+    };
+
+    const animateTo = (
+      targetProgress: number,
+      duration: number,
+      nextState: typeof state,
+      doneState: typeof state,
+      ease: (value: number) => number,
+      onDone?: () => void,
+    ) => {
+      window.cancelAnimationFrame(animationFrame);
+      const startProgress = currentProgress;
+      const startedAt = performance.now();
+      state = nextState;
+
+      const tick = (time: number) => {
+        if (disposed) {
+          return;
+        }
+
+        const elapsed = time - startedAt;
+        const eased = ease(elapsed / duration);
+        writeProgress(startProgress + (targetProgress - startProgress) * eased);
+
+        if (elapsed < duration) {
+          animationFrame = window.requestAnimationFrame(tick);
+          return;
+        }
+
+        animationFrame = 0;
+        writeProgress(targetProgress);
+        state = doneState;
+        onDone?.();
+      };
+
+      animationFrame = window.requestAnimationFrame(tick);
+    };
+
+    const playIntro = () => {
+      introPlayed = true;
+      writeProgress(0);
+      animateTo(
+        introTargetProgress,
+        introDurationMs,
+        "constructing",
+        "assembled",
+        easeOutCubic,
+      );
+    };
+
+    writeProgress(0);
+
+    Promise.all([
+      waitForCriticalAssets(criticalAssetRootRef?.current ?? root),
+      waitForIntroHidden(),
+    ]).then(() => {
+      if (!disposed && !introPlayed) {
+        playIntro();
+      }
+    });
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry || !introPlayed) {
+          return;
+        }
+
+        const currentTop = entry.boundingClientRect.top;
+        const isLeavingUp = currentTop < previousTop;
+        previousTop = currentTop;
+
+        if (
+          isLeavingUp &&
+          entry.intersectionRatio < destructureStartVisibleRatio &&
+          state !== "destructuring" &&
+          state !== "destructured"
+        ) {
+          animateTo(
+            1,
+            destructureDurationMs,
+            "destructuring",
+            "destructured",
+            easeInOutCubic,
+          );
+          return;
+        }
+
+        if (
+          entry.intersectionRatio >= reentryVisibleRatio &&
+          (state === "destructured" || state === "destructuring")
+        ) {
+          playIntro();
+        }
+      },
+      {
+        threshold: [0, destructureStartVisibleRatio, reentryVisibleRatio, 1],
+      },
+    );
+
+    observer.observe(root);
+
+    return () => {
+      disposed = true;
+      observer.disconnect();
+      window.cancelAnimationFrame(animationFrame);
+    };
+  }, [
+    criticalAssetRootRef,
+    destructureDurationMs,
+    destructureStartVisibleRatio,
+    introDurationMs,
+    introTargetProgress,
+    isViewportPlayback,
+    progress,
+    playbackMediaQuery,
+    progressVariableTargetRef,
+    reentryVisibleRatio,
+    sortedPieces,
+  ]);
 
   return (
     <div
@@ -211,10 +486,13 @@ const BrandLogoConstructScene = ({
       className={cn("brand-logo-construct", `brand-logo-construct--${size}`, className)}
       data-brand-logo-construct
       data-brand-logo-progress={clampedProgress.toFixed(3)}
+      data-brand-logo-playback={isViewportPlayback ? "viewport" : "static"}
+      ref={rootRef}
       role="img"
       style={{ ["--brand-logo-assembled" as string]: assembled.toFixed(3) }}
     >
       <div className="brand-logo-construct__halo" />
+      <div className="brand-logo-construct__trail-field" aria-hidden="true" />
       <svg
         aria-hidden="true"
         className="brand-logo-construct__svg"
@@ -227,6 +505,14 @@ const BrandLogoConstructScene = ({
               d={piece.d}
               fill={piece.fill}
               key={`${piece.id}-trail`}
+              ref={(element) => {
+                if (element) {
+                  trailRefs.current.set(piece.id, element);
+                  return;
+                }
+
+                trailRefs.current.delete(piece.id);
+              }}
               style={trailStyle(piece, clampedProgress, Boolean(reducedMotion))}
             />
           ))}
@@ -236,6 +522,14 @@ const BrandLogoConstructScene = ({
               d={piece.d}
               fill={piece.fill}
               key={piece.id}
+              ref={(element) => {
+                if (element) {
+                  pieceRefs.current.set(piece.id, element);
+                  return;
+                }
+
+                pieceRefs.current.delete(piece.id);
+              }}
               style={pieceStyle(piece, clampedProgress, Boolean(reducedMotion))}
             />
           ))}

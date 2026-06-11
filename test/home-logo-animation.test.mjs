@@ -52,22 +52,51 @@ test("brand logo pieces preserve the original svg fill colors", () => {
   assert.match(logoSource, /colorGroup: "navy"/);
 });
 
-test("homepage logo scroll is progress-derived and reversible", () => {
+test("homepage logo animation is viewport-driven and replayable", () => {
   assert.match(homeSource, /data-home-logo-scroll-section/);
   assert.match(homeSource, /HomeLogoAmbientField/);
   assert.match(homeSource, /home-logo-atmosphere__curtain/);
   assert.doesNotMatch(homeSource, /BRAND_LOGO_PIECES/);
   assert.doesNotMatch(homeSource, /BRAND_LOGO_VIEW_BOX/);
   assert.doesNotMatch(homeSource, /home-logo-atmosphere__pieces/);
-  assert.match(homeSource, /window\.requestAnimationFrame\(update\)/);
-  assert.match(homeSource, /window\.addEventListener\("scroll", requestUpdate/);
-  assert.match(homeSource, /--home-logo-scroll-range/);
-  assert.match(homeSource, /--home-logo-progress/);
+  assert.match(homeSource, /criticalAssetRootRef=\{logoSectionRef\}/);
+  assert.match(homeSource, /playback="viewport"/);
+  assert.match(homeSource, /playbackMediaQuery="\(min-width: 1280px\)"/);
+  assert.match(homeSource, /progressVariableTargetRef=\{logoSectionRef\}/);
+  assert.doesNotMatch(homeSource, /window\.addEventListener\("scroll"/);
+  assert.doesNotMatch(homeSource, /setLogoProgress/);
+  assert.doesNotMatch(homeSource, /logoProgress/);
+  assert.doesNotMatch(homeSource, /HOME_LOGO_ASSEMBLED_PROGRESS/);
   assert.doesNotMatch(homeSource, /xl:min-h-\[214vh\]/);
   assert.doesNotMatch(homeSource, /home-logo-scroll-section[^"]*overflow-hidden/);
   assert.doesNotMatch(homeSource, /ScrollTrigger\.create\(/);
   assert.doesNotMatch(homeSource, /pin: "\[data-home-logo-pin-stage\]"/);
   assert.doesNotMatch(homeSource, /setLogoProgress\(Number\(self\.progress\.toFixed\(3\)\)\)/);
+  assert.match(logoSource, /playback\?: "static" \| "viewport"/);
+  assert.match(logoSource, /playbackMediaQuery\?: string/);
+  assert.match(logoSource, /introDurationMs\?: number/);
+  assert.match(logoSource, /destructureDurationMs\?: number/);
+  assert.match(logoSource, /introTargetProgress = 0\.62/);
+  assert.match(logoSource, /introDurationMs = 1500/);
+  assert.match(logoSource, /destructureStartVisibleRatio = 0\.78/);
+  assert.match(logoSource, /destructureDurationMs = 720/);
+  assert.match(logoSource, /reentryVisibleRatio = 0\.82/);
+  assert.match(logoSource, /waitForCriticalAssets/);
+  assert.match(logoSource, /waitForIntroHidden/);
+  assert.match(logoSource, /document\.fonts\.ready/);
+  assert.match(logoSource, /image\.decode/);
+  assert.match(logoSource, /window\.__openstudioIntroHidden/);
+  assert.match(logoSource, /openstudio:intro-hidden/);
+  assert.match(logoSource, /Promise\.all\(\[/);
+  assert.match(logoSource, /new IntersectionObserver/);
+  assert.match(logoSource, /isLeavingUp/);
+  assert.match(logoSource, /entry\.intersectionRatio < destructureStartVisibleRatio/);
+  assert.match(logoSource, /entry\.intersectionRatio >= reentryVisibleRatio/);
+  assert.match(logoSource, /animationFrame = window\.requestAnimationFrame\(tick\)/);
+  assert.match(logoSource, /progressVariableTargetRef\?\.current\?\.style\.setProperty\("--home-logo-progress"/);
+  assert.doesNotMatch(logoSource, /element\.style\.filter/);
+  assert.doesNotMatch(logoSource, /brightness\(/);
+  assert.doesNotMatch(logoSource, /drop-shadow\(0 0 \$\{Math\.round/);
   assert.match(logoSource, /progress = 0\.5/);
   assert.match(logoSource, /pieceStyle\(piece, clampedProgress/);
   assert.match(logoSource, /128 \+ seed \* 56/);
@@ -113,8 +142,17 @@ test("html-first loader appears before react and owns the split reveal", () => {
 
 test("homepage atmosphere is full-bleed and first input does not force heavy scroll libraries", () => {
   assert.match(indexCssSource, /\.home-logo-atmosphere\s*\{[^}]*inset: -18svh -14vw/);
-  assert.match(indexCssSource, /\.home-logo-scroll-section\s*\{[^}]*--home-logo-scroll-range: 0px/);
-  assert.match(indexCssSource, /--home-logo-scroll-range: clamp\(28rem, 68svh, 44rem\)/);
+  assert.match(indexCssSource, /\.home-logo-scroll-section\s*\{[\s\S]*--home-logo-progress: 0/);
+  assert.match(indexCssSource, /\.home-logo-scroll-section\s*\{[\s\S]*--home-logo-scroll-range: 0px/);
+  assert.match(indexCssSource, /opacity: calc\(0\.78 \+ var\(--home-logo-progress, 0\) \* 0\.12\)/);
+  assert.match(indexCssSource, /@media \(max-width: 1279px\)\s*\{[\s\S]*--home-logo-progress: 0\.5/);
+  assert.match(indexCssSource, /--home-logo-scroll-range: clamp\(22rem, 54svh, 36rem\)/);
+  assert.match(indexCssSource, /\.brand-logo-construct\s*\{[\s\S]*contain: layout style/);
+  assert.match(indexCssSource, /\.brand-logo-construct__trail-field/);
+  const logoPathWillChangeBlock =
+    indexCssSource.match(/\.brand-logo-construct__piece,\s*\.brand-logo-construct__trail\s*\{[^}]+\}/)?.[0] ?? "";
+  assert.match(logoPathWillChangeBlock, /will-change: transform, opacity/);
+  assert.doesNotMatch(logoPathWillChangeBlock, /filter/);
   assert.match(indexCssSource, /min-height: calc\(100svh \+ var\(--home-logo-scroll-range\)\)/);
   assert.match(indexCssSource, /\.home-logo-atmosphere__curtain/);
   assert.match(indexCssSource, /@keyframes home-logo-aurora-curtain/);
@@ -156,12 +194,10 @@ test("heavy route dependencies are deferred behind polished surfaces", () => {
   assert.match(deferredStageSource, /scheduleAfterInitialLoad/);
   assert.match(deferredStageSource, /runOnInput: false/);
   assert.match(deferredStageSource, /idleDelay = 1800/);
-  assert.match(featuresSource, /const FeatureSceneCompositor = lazy/);
-  assert.match(featuresSource, /const FeatureStoryUnifiedTransition = lazy/);
-  assert.match(featuresSource, /FeatureSceneStaticFallback/);
+  assert.match(featuresSource, /FeatureCanonicalStory/);
+  assert.match(featuresSource, /canonicalRouteUpcoming/);
   assert.match(featuresSource, /FeaturesStoryBackdrop/);
-  assert.match(featuresSource, /FeatureStoryTransitionFallback/);
-  assert.match(featuresSource, /rootMargin="1400px 0px"/);
+  assert.doesNotMatch(featuresSource, /rootMargin="1400px 0px"/);
   assert.doesNotMatch(featuresSource, /from "framer-motion"/);
   assert.match(aiSource, /const PretextEditorialField = lazy/);
   assert.match(aiSource, /idleDelay=\{720\}/);
@@ -199,7 +235,7 @@ test("shared button component owns the app-wide interaction theme", () => {
   assert.match(buttonSource, /onPointerMove/);
   assert.match(buttonSource, /onPointerDown/);
   assert.match(buttonSource, /--openstudio-button-x/);
-  assert.match(homeSource, /<Button asChild className="h-auto min-w-\[min\(100%,17rem\)\]/);
+  assert.match(homeSource, /<Button[\s\S]*?asChild[\s\S]*?className="h-auto min-w-\[min\(100%,17rem\)\]/);
   assert.doesNotMatch(homeSource, /home-action-button/);
 });
 

@@ -273,8 +273,8 @@ const initializeGoogleAnalytics = () => {
   window.dataLayer = window.dataLayer ?? [];
   window.gtag =
     window.gtag ??
-    function gtagCommand() {
-      window.dataLayer?.push(arguments);
+    function gtagCommand(...args: unknown[]) {
+      window.dataLayer?.push(args);
     };
 
   if (!document.getElementById(GOOGLE_ANALYTICS_SCRIPT_ID)) {

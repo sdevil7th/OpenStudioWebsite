@@ -102,7 +102,6 @@ const platformStudioCopy: Record<DownloadPlatform, PlatformStudioCopy> = {
 };
 
 const platformOrder: DownloadPlatform[] = ["windows", "macos", "linux"];
-const LOGO_SCROLL_TARGET_PROGRESS = 0.66;
 const DOWNLOAD_CINEMATIC_SCROLL_VH = 620;
 const DownloadCinematicStory = lazy(
   () => import("@/components/scene/DownloadCinematicStory"),
@@ -250,7 +249,7 @@ const copyText = async (value: string) => {
 
 const DownloadPage = () => {
   const pageRef = useRef<HTMLElement | null>(null);
-  const [logoProgress, setLogoProgress] = useState(0);
+  const downloadHeroRef = useRef<HTMLElement | null>(null);
   const downloadsById = useMemo(
     () =>
       Object.fromEntries(
@@ -427,71 +426,6 @@ const DownloadPage = () => {
     return () => window.clearTimeout(timeout);
   }, [copyState]);
 
-  useEffect(() => {
-    const reduceMotionQuery = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    );
-    const desktopQuery = window.matchMedia("(min-width: 1024px)");
-    let frame = 0;
-
-    const syncLogoProgress = () => {
-      frame = 0;
-
-      if (reduceMotionQuery.matches || !desktopQuery.matches) {
-        setLogoProgress(0.5);
-        return;
-      }
-
-      const hero = document.querySelector<HTMLElement>(
-        "[data-download-studio-hero]",
-      );
-      if (!hero) {
-        return;
-      }
-
-      const rect = hero.getBoundingClientRect();
-      const startOffset = 96;
-      const scrollRange = Math.max(
-        1,
-        hero.offsetHeight - window.innerHeight + startOffset + 160,
-      );
-      const progress = Math.max(
-        0,
-        Math.min(1, (startOffset - rect.top) / scrollRange),
-      );
-      const nextProgress = Number(
-        (progress * LOGO_SCROLL_TARGET_PROGRESS).toFixed(3),
-      );
-      setLogoProgress((previous) =>
-        Math.abs(previous - nextProgress) < 0.004 ? previous : nextProgress,
-      );
-    };
-
-    const requestSync = () => {
-      if (frame) {
-        return;
-      }
-
-      frame = window.requestAnimationFrame(syncLogoProgress);
-    };
-
-    requestSync();
-    window.addEventListener("scroll", requestSync, { passive: true });
-    window.addEventListener("resize", requestSync);
-    reduceMotionQuery.addEventListener("change", requestSync);
-    desktopQuery.addEventListener("change", requestSync);
-
-    return () => {
-      if (frame) {
-        window.cancelAnimationFrame(frame);
-      }
-      window.removeEventListener("scroll", requestSync);
-      window.removeEventListener("resize", requestSync);
-      reduceMotionQuery.removeEventListener("change", requestSync);
-      desktopQuery.removeEventListener("change", requestSync);
-    };
-  }, []);
-
   useEffect(
     () =>
       scheduleAfterInitialLoad(
@@ -616,15 +550,21 @@ const DownloadPage = () => {
       <div className="download-page__backdrop" aria-hidden="true" />
 
       <div className="mx-auto max-w-7xl px-5 pb-24 md:px-10">
-        <section className="download-studio-hero" data-download-studio-hero>
+        <section
+          className="download-studio-hero"
+          data-download-studio-hero
+          ref={downloadHeroRef}
+        >
           <div
             className="download-home-logo-stage"
             data-download-logo-pin-stage
           >
             <div data-download-logo-stage>
               <BrandLogoConstructScene
+                criticalAssetRootRef={downloadHeroRef}
                 label="OpenStudio logo construction for download preview"
-                progress={logoProgress}
+                playback="viewport"
+                playbackMediaQuery="(min-width: 1024px)"
                 showWordmark
                 size="intro"
               />

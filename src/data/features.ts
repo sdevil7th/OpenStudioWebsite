@@ -29,19 +29,50 @@ export interface FeatureCategory {
 export const featurePageSeo: SeoMeta = {
   title: "OpenStudio Features | Recording, MIDI, Mixing & AI Tools",
   description:
-    "Explore OpenStudio features for a Cubase alternative, Pro Tools alternative, Reaper alternative, Ableton Live alternative, FL Studio alternative, and Logic Pro alternative with recording, MIDI, mixing, plugins, and AI tools.",
+    "Explore OpenStudio features for an alternative to Cubase, Pro Tools, Reaper, Ableton Live, FL Studio, Logic Pro, Studio One, and Bitwig with recording, MIDI, mixing, plugins, and AI tools.",
   path: "/features",
   keywords: [
     "daw features",
     "Cubase alternative",
+    "alternative to Cubase",
     "Pro Tools alternative",
+    "alternative to Pro Tools",
     "Reaper alternative",
+    "alternative to Reaper",
     "Ableton Live alternative",
+    "alternative to Ableton Live",
     "FL Studio alternative",
+    "alternative to FL Studio",
     "Logic Pro alternative",
+    "alternative to Logic Pro",
+    "Studio One alternative",
+    "alternative to Studio One",
+    "Bitwig Studio alternative",
+    "alternative to Bitwig",
+    "Reason alternative",
+    "GarageBand alternative",
+    "Audacity alternative",
+    "Cakewalk alternative",
+    "Waveform alternative",
+    "Mixcraft alternative",
     "Suno AI alternative",
+    "alternative to Suno AI",
+    "Suno AI killer",
     "Udio alternative",
-    "ElevenLabs alternative",
+    "alternative to Udio",
+    "ElevenLabs Music alternative",
+    "alternative to ElevenLabs Music",
+    "Stable Audio 3 alternative",
+    "Google MusicFX alternative",
+    "Google Lyria alternative",
+    "MiniMax Music alternative",
+    "Mureka alternative",
+    "Sonauto alternative",
+    "AIVA alternative",
+    "Beatoven.ai alternative",
+    "Mubert alternative",
+    "Soundraw alternative",
+    "Boomy alternative",
     "music production software",
     "audio editing software",
     "audio mixing software",
@@ -206,7 +237,7 @@ export const featureCategories: FeatureCategory[] = [
     label: "Plugins & FX",
     title: "Plugins & FX",
     description:
-      "Plugin workflow should feel native to the session, from scanning and loading to editing and keeping windows where you need them.",
+      "Plugin scanning, loading, native editors, presets, A/B states, MIDI learn, and FX chains stay close to the session they affect.",
     standout: "Native plugin windows help the session feel like a desktop production tool, not just a flat panel UI.",
     screenshot: screenshots.pluginHostingFx,
     items: [
@@ -336,7 +367,7 @@ export const featureCategories: FeatureCategory[] = [
     label: "Export",
     title: "Export & Project Formats",
     description:
-      "Delivery matters as much as creation, so export and project persistence should feel like part of finishing the work, not an afterthought.",
+      "Delivery is part of the production flow, with project persistence, render options, queues, stems, regions, and common audio formats available from the session.",
     screenshot: screenshots.exportDialog,
     items: [
       {
@@ -391,7 +422,7 @@ export const workflowCards = [
   },
   {
     title: "Shape",
-    description: "Use the deeper tools when the session needs them, not as a separate export round-trip.",
+    description: "Use stem separation, pitch editing, hosted plugins, and clip-based AI workflows while keeping the result inside the project.",
     items: ["Stem separation", "Pitch editing", "Plugin windows"],
   },
   {
@@ -429,50 +460,62 @@ const featureChapterBlueprints: FeatureChapterBlueprint[] = [
     stagePrimary: {
       asset: screenshots.arrangementStageWide,
       label: "Arrangement overview",
-      caption: "A wide session view anchors the chapter so the timeline feels like a real working surface.",
+      caption: "Timeline, ruler, grid, playhead, waveforms, MIDI thumbnails, zoom, scroll, and time selection stay in one working view.",
       tone: "lavender",
     },
     stageSecondary: {
       asset: screenshots.arrangementStagePanel,
       label: "Live capture",
-      caption: "Tracking stays close to the transport, armed tracks, and arrangement context.",
+      caption: "Audio and MIDI recording stay connected to armed tracks, input monitoring, punch ranges, loop, tempo, and metronome control.",
       tone: "emerald",
     },
     stageDetail: {
       asset: screenshots.arrangementStageDetail,
       label: "Edit-ready timeline",
-      caption: "Clip edits, waveform detail, and timeline control stay visible at the same time.",
+      caption: "Move, trim, split, fade, group, slip, reverse, normalize, time-stretch, and pitch-shift clips without leaving the arrangement.",
       tone: "frost",
     },
     story: {
-      title: "The arrangement canvas stays fast, visual, and edit-heavy.",
+      title: "Record, edit, and arrange from the same timeline.",
       description:
-        "The site should frame arrangement as the core surface: capture, edit, navigate, and reshape the session without breaking flow.",
+        "OpenStudio treats the timeline as the session hub: multitrack audio, MIDI recording, transport, loop, punch, tempo, metronome, waveform detail, and clip editing all remain visible while the project moves.",
       standout:
-        "Timeline editing, clip precision, and session navigation are treated as first-class workflow, not setup overhead.",
-      rail: ["Non-destructive editing", "Multitrack recording", "Markers and transport"],
+        "Ripple edits, razor areas, takes, fades, grouping, time selection, and undoable command flow make arrangement work feel like production, not setup.",
+      rail: ["Multitrack recording", "Ripple and razor edits", "Takes, fades, and transport"],
     },
     details: {
       callouts: [
         {
-          eyebrow: "Why it matters",
-          title: "The first chapter should feel immediate.",
-          description: "Users should read this as a live session surface, not a generic brochure screenshot floating in space.",
+          eyebrow: "Session control",
+          title: "Capture begins inside the arrangement.",
+          description: "Track arm, input monitoring, punch range, record modes, loop, tempo, metronome, and transport decisions sit beside the material being recorded.",
           tone: "lavender",
         },
         {
-          eyebrow: "Working signal",
-          title: "Composition and capture share one stage.",
-          description: "Transport, takes, and structural editing remain visible enough to inspect on a large display.",
+          eyebrow: "Editing depth",
+          title: "Structural edits stay close to the song.",
+          description: "Grid snapping, time selection, ripple modes, razor edits, takes, fades, and clip properties are presented as normal timeline work.",
           metric: "01 / Build",
           tone: "emerald",
         },
       ],
       items: [
-        featureCategories.find((item) => item.id === "recording")!.items[0]!,
-        featureCategories.find((item) => item.id === "editing")!.items[0]!,
-        featureCategories.find((item) => item.id === "editing")!.items[1]!,
-        featureCategories.find((item) => item.id === "recording")!.items[3]!,
+        {
+          title: "Multitrack audio and MIDI recording",
+          description: "Record audio or MIDI with armed tracks, input monitoring, punch ranges, record modes, and completed clip handoff.",
+        },
+        {
+          title: "Timeline editing",
+          description: "Move, resize, trim, split, duplicate, nudge, copy, paste, and delete clips with grid, snap, zoom, and waveform context.",
+        },
+        {
+          title: "Ripple, razor, takes, and fades",
+          description: "Use ripple modes, razor areas, time-selection edits, clip fades, clip properties, take workflows, slip edit, and grouping.",
+        },
+        {
+          title: "Tempo, markers, and transport",
+          description: "Keep loop, seek, rewind, tempo, tap tempo, time signature, tempo markers, metronome, and auto-scroll tied to the song.",
+        },
       ],
     },
     transition: {
@@ -495,48 +538,60 @@ const featureChapterBlueprints: FeatureChapterBlueprint[] = [
     stagePrimary: {
       asset: screenshots.midiStageWide,
       label: "Piano roll focus",
-      caption: "The note editor should feel large enough to inspect, not like a thumbnail attached to copy.",
+      caption: "Docked or detached piano roll sessions expose notes, velocity, CC lanes, pitch bend, range editing, and controller detail.",
       tone: "amber",
     },
     stageSecondary: {
       asset: screenshots.midiStagePanel,
       label: "Instrument hosting",
-      caption: "Plugins stay visible beside the arrangement instead of collapsing into a utility step.",
+      caption: "Instrument tracks, quick-add instruments, virtual keyboard input, MIDI routing, and plugin editors stay attached to the project.",
       tone: "lavender",
     },
     stageDetail: {
       asset: screenshots.midiStageDetail,
       label: "Session continuity",
-      caption: "MIDI belongs in the same production room as audio capture and arrangement.",
+      caption: "MIDI import, export, project MIDI export, quantize, note transforms, and audio-to-MIDI conversion keep composition editable.",
       tone: "emerald",
     },
     story: {
-      title: "MIDI writing and instruments feel like part of the same room.",
+      title: "MIDI composition is built into the session.",
       description:
-        "Piano roll, instrument tracks, and quick idea capture should sit beside the rest of the session rather than acting like a detached subsystem.",
-      rail: ["Piano roll editing", "Instrument tracks", "Human-first input"],
+        "OpenStudio carries MIDI tracks, instrument tracks, piano roll editing, virtual keyboard input, import/export, MIDI output routing, quantize, note transforms, CC lanes, pitch bend, and audio-to-MIDI into the same production surface.",
+      rail: ["Piano roll", "Instrument tracks", "Audio to MIDI"],
     },
     details: {
       callouts: [
         {
           eyebrow: "Composition",
-          title: "The writing surface stays tactile.",
-          description: "Grid, notes, and controller context stay large and legible while the surrounding story keeps moving.",
+          title: "Notes and controller data stay editable.",
+          description: "Draw, move, resize, select, cut, copy, paste, and transform notes while velocity, CC, pitch bend, and lane preferences remain visible.",
           tone: "amber",
         },
         {
           eyebrow: "Workflow payoff",
-          title: "Instrument work stays adjacent to the song.",
-          description: "This chapter should prove OpenStudio is not splitting instruments into a disconnected mode.",
+          title: "Audio can become MIDI when the idea needs it.",
+          description: "The Basic Pitch / ONNX path can create a generated MIDI track from source audio where the native runtime is available.",
           metric: "02 / Compose",
           tone: "lavender",
         },
       ],
       items: [
-        featureCategories.find((item) => item.id === "midi-and-instruments")!.items[0]!,
-        featureCategories.find((item) => item.id === "midi-and-instruments")!.items[1]!,
-        featureCategories.find((item) => item.id === "midi-and-instruments")!.items[2]!,
-        featureCategories.find((item) => item.id === "midi-and-instruments")!.items[3]!,
+        {
+          title: "Docked and detached piano roll",
+          description: "Edit notes, velocity, CC lanes, pitch bend, visible lanes, ranges, and inspector-style note detail in a focused MIDI editor.",
+        },
+        {
+          title: "Quantize and transforms",
+          description: "Use quantize, freeze/reset quantize, transpose, octave transpose, velocity scale, reverse, invert, and snap-to-scale operations.",
+        },
+        {
+          title: "Instrument tracks and routing",
+          description: "Create MIDI and instrument tracks, route MIDI output, use the virtual keyboard, and open instrument/plugin editors in context.",
+        },
+        {
+          title: "MIDI import, export, and audio-to-MIDI",
+          description: "Import/export MIDI, export project MIDI, and generate MIDI from audio clips with undo support where the analysis path is available.",
+        },
       ],
     },
     transition: {
@@ -559,50 +614,62 @@ const featureChapterBlueprints: FeatureChapterBlueprint[] = [
     stagePrimary: {
       asset: screenshots.mixerStageWide,
       label: "Mixer panorama",
-      caption: "Wide metering and strip visibility make the mix feel panoramic instead of compressed.",
+      caption: "Mixer panel, channel strips, master strip, master track, metering, clipping state, and reset actions stay visible for mix decisions.",
       tone: "emerald",
     },
     stageSecondary: {
       asset: screenshots.mixerStagePanel,
       label: "Channel detail",
-      caption: "A close-up detail layer reinforces that the mixer is dense enough for finishing work.",
+      caption: "Track controls cover volume, pan, mute, solo, arm, monitoring, record-safe, channel count, playback offset, and output channels.",
       tone: "lavender",
     },
     stageDetail: {
       asset: screenshots.mixerStageDetail,
       label: "Signal path",
-      caption: "Routing, FX decisions, and insert visibility support the mix story rather than living elsewhere.",
+      caption: "Sends, buses, routing matrix, sidechains, stereo width, phase invert, pan law, and snapshots make routing inspectable.",
       tone: "frost",
     },
     story: {
-      title: "The mixer is panoramic, readable, and built for actual finishing work.",
+      title: "Mixing, routing, and metering get a real workstation surface.",
       description:
-        "Mixing needs a more cinematic treatment than a plain feature list, so the redesign groups channel strips, routing, and metering into one continuous chapter.",
+        "The mixer brings channel strips, master controls, detached mixer windows, sends, buses, routing matrix, sidechain assignment, metering, snapshots, channel EQ, and automation context into one readable mix layer.",
       standout:
-        "Detached mixer behavior and clear routing turn the mix surface into a real second vantage point on the session.",
-      rail: ["Channel strips", "Routing and sends", "Detached view"],
+        "Detached mixer behavior and routing visibility make the mix feel like a second vantage point on the same session, not a separate utility.",
+      rail: ["Detached mixer", "Sends and buses", "Routing matrix"],
     },
     details: {
       callouts: [
         {
           eyebrow: "Mix perspective",
-          title: "The page needs a second viewpoint.",
-          description: "Detached mixing and clearer strip density make this chapter feel like a real workstation moment.",
+          title: "The mixer can become its own working view.",
+          description: "Detached mixer windows keep levels, strips, and master decisions visible while the arrangement remains available.",
           tone: "emerald",
         },
         {
           eyebrow: "Finishing pass",
-          title: "Routing belongs in the same cinematic frame.",
-          description: "Meters, inserts, sends, and buses should read as one continuous surface rather than isolated bullets.",
+          title: "Routing is visible enough to trust.",
+          description: "Sends, buses, routing matrix, sidechains, stereo width, phase invert, pan law, and snapshots make signal flow explicit.",
           metric: "03 / Finish",
           tone: "lavender",
         },
       ],
       items: [
-        featureCategories.find((item) => item.id === "mixing")!.items[0]!,
-        featureCategories.find((item) => item.id === "mixing")!.items[1]!,
-        featureCategories.find((item) => item.id === "routing-and-monitoring")!.items[0]!,
-        featureCategories.find((item) => item.id === "routing-and-monitoring")!.items[1]!,
+        {
+          title: "Channel strips and master bus",
+          description: "Control volume, pan, mute, solo, arm, input monitoring, record-safe state, channel count, master mono, and master automation.",
+        },
+        {
+          title: "Sends, buses, and routing matrix",
+          description: "Build send-based routing, create bus/group tracks, inspect the routing matrix, and assign sidechain sources into plugins.",
+        },
+        {
+          title: "Metering and channel EQ",
+          description: "Read peak/RMS meters, master meter clusters, clipping state, channel EQ, loudness, phase correlation, and spectrum bridge data.",
+        },
+        {
+          title: "Mixer snapshots",
+          description: "Save, recall, delete, sync, and undo mixer snapshot recalls for mix-state comparison.",
+        },
       ],
     },
     transition: {
@@ -625,51 +692,62 @@ const featureChapterBlueprints: FeatureChapterBlueprint[] = [
     stagePrimary: {
       asset: screenshots.engineStageWide,
       label: "Advanced plugin workflow",
-      caption: "Deep plugin moments should still feel like they belong to the same session narrative.",
+      caption: "VST3 hosting, native plugin editors, plugin parameters, preset load/save, A/B compare, MIDI learn, and FX chain presets stay in session.",
       tone: "lavender",
     },
     stageSecondary: {
       asset: screenshots.engineStagePanel,
       label: "Pitch workflow",
-      caption: "Pitch shaping stays inside production instead of forcing a round-trip into a separate utility.",
+      caption: "Graphical pitch editing, YIN analysis, note blobs, drift, vibrato, transition, draw/split tools, preview, and pitch corrector FX are built in.",
       tone: "amber",
     },
     stageDetail: {
       asset: screenshots.engineStageDetail,
       label: "FX hosting",
-      caption: "Hosted effects and native windows keep technical depth close to the tracks they change.",
+      caption: "Optional AI tools add stem separation, ACE-Step music generation, Stable Audio 3 workflows, variation, inpaint, and continuation when installed.",
       tone: "emerald",
     },
     story: {
-      title: "Plugins, pitch workflows, and optional AI tools stay inside the production surface.",
+      title: "Plugins, pitch, FX, and optional AI stay inside the project.",
       description:
-        "This chapter connects hosting, pitch, BS Roformer stems, ACE-Step music generation, and Stable Audio 3 imports into one conservative story about keeping advanced tools inside the project.",
+        "OpenStudio combines VST3 hosting, CLAP/LV2 code-path support, native plugin windows, input/track/master/monitoring FX chains, built-in processors, graphical pitch editing, and optional local AI workflows without forcing a round-trip out of the DAW.",
       standout:
-        "Native plugin windows and built-in pitch depth keep advanced moments close to the arrangement instead of off in utility popups.",
-      rail: ["VST3 / CLAP / LV2", "Pitch workflows", "Optional AI tools"],
+        "AI generation and stem workflows depend on installed runtimes, local hardware, model availability, and licenses, while the base DAW remains lean.",
+      rail: ["VST3 hosting", "Pitch editor", "Optional local AI"],
     },
     details: {
       callouts: [
         {
           eyebrow: "Depth",
-          title: "Advanced tools should not break the story.",
-          description: "Pitch, hosting, BS Roformer, ACE-Step, and Stable Audio 3 workflows need oversized media so they feel premium instead of buried.",
+          title: "Plugin and FX chains stay editable.",
+          description: "Scan/load plugins, open native editors, edit parameters, save states and presets, compare A/B states, and map MIDI controls.",
           tone: "lavender",
         },
         {
           eyebrow: "Engine signal",
-          title: "The DAW keeps complex moments nearby.",
-          description: "This is where OpenStudio should feel most differentiated from a flat marketing surface.",
+          title: "Pitch and AI are production tools, not exports.",
+          description: "Pitch analysis, correction, stem separation, text-to-music, text-to-audio, variation, inpaint, and continuation can feed the session.",
           metric: "04 / Deepen",
           tone: "amber",
         },
       ],
       items: [
-        featureCategories.find((item) => item.id === "plugins-and-fx")!.items[0]!,
-        featureCategories.find((item) => item.id === "plugins-and-fx")!.items[1]!,
-        featureCategories.find((item) => item.id === "pitch-and-audio-workflows")!.items[0]!,
-        featureCategories.find((item) => item.id === "stem-separation")!.items[1]!,
-        featureCategories.find((item) => item.id === "stem-separation")!.items[3]!,
+        {
+          title: "Plugin hosting and FX chains",
+          description: "Host VST3 plugins, use CLAP/LV2 code paths, manage native editors, presets, A/B states, MIDI learn, and FX chain presets.",
+        },
+        {
+          title: "Built-in processors",
+          description: "Use EQ, compressor, gate, limiter, delay, reverb, chorus, saturator, pitch corrector, instrument processors, and oversampling controls.",
+        },
+        {
+          title: "Graphical pitch workflow",
+          description: "Edit pitch blobs, contours, drift, vibrato, transitions, scale snapping, preview, scrub, and rendered pitch-correction segments.",
+        },
+        {
+          title: "Optional local AI",
+          description: "Use stem separation, ACE-Step music generation, Stable Audio 3 audio generation, variation, inpaint, and continuation after runtime setup.",
+        },
       ],
     },
     transition: {
@@ -692,48 +770,60 @@ const featureChapterBlueprints: FeatureChapterBlueprint[] = [
     stagePrimary: {
       asset: screenshots.automationStageWide,
       label: "Automation lanes",
-      caption: "The finishing chapter closes with visible movement rather than a purely textual promise.",
+      caption: "Track and master automation lanes support read, write, touch, latch, manual point editing, range replace, and envelope management.",
       tone: "amber",
     },
     stageSecondary: {
       asset: screenshots.automationStagePanel,
       label: "Workflow tooling",
-      caption: "A supporting tooling crop holds this spot until a dedicated scripting screenshot is available.",
+      caption: "Command palette, shortcuts, menus, screensets, themes, toolbar editor, custom actions, macros, and mouse modifiers shape the working surface.",
       tone: "lavender",
     },
     stageDetail: {
       asset: screenshots.automationStageDetail,
       label: "Export readiness",
-      caption: "The story exits cleanly into rendering and delivery from the same environment.",
+      caption: "Render master, stems, selected items, tracks, razor areas, regions, queues, DDP, batch conversion, and project MIDI from the same project.",
       tone: "emerald",
     },
     story: {
-      title: "Automation and scripting give the session a programmable edge.",
+      title: "Automation, scripting, and delivery close the production loop.",
       description:
-        "The final chapter should land on extensibility: automation lanes, command flow, scripting, and export readiness as the finishing layer of the product story.",
-      rail: ["Automation lanes", "Lua scripting", "Export readiness"],
+        "OpenStudio finishes with track/master automation, command workflows, Lua scripting, S13FX/JSFX-style processors, render queues, region/stem export, batch conversion, DDP paths, project templates, themes, and project delivery tools.",
+      rail: ["Automation lanes", "Lua and JSFX", "Render and delivery"],
     },
     details: {
       callouts: [
         {
           eyebrow: "Control",
-          title: "This chapter should feel like finishing, not setup.",
-          description: "Automation, scripting, and export are presented as the layer that lets the session land with intent.",
+          title: "Movement is editable across the project.",
+          description: "Read, write, touch, latch, manual point editing, range replace, backend sync, and envelope management cover track and master automation.",
           tone: "amber",
         },
         {
           eyebrow: "Close-out",
-          title: "The scroll story ends in actionable output.",
-          description: "The final state should naturally hand off into download or deeper product exploration.",
+          title: "The same session can be scripted, rendered, and delivered.",
+          description: "Lua/API scripting, JSFX-style effects, render queues, region matrices, stems, selected item renders, DDP, and batch conversion support finishing work.",
           metric: "05 / Ship",
           tone: "emerald",
         },
       ],
       items: [
-        featureCategories.find((item) => item.id === "automation")!.items[0]!,
-        featureCategories.find((item) => item.id === "automation")!.items[1]!,
-        featureCategories.find((item) => item.id === "scripting-and-extensibility")!.items[0]!,
-        featureCategories.find((item) => item.id === "export-and-project-formats")!.items[0]!,
+        {
+          title: "Track and master automation",
+          description: "Open lanes, edit points, replace ranges, sync backend envelopes, and keep movement tied to the timeline.",
+        },
+        {
+          title: "Lua, S13FX, and JSFX-style extension",
+          description: "Run Lua scripts, use the script editor and console, and extend processing through S13FX/JSFX-style paths.",
+        },
+        {
+          title: "Workflow customization",
+          description: "Use command palette, shortcuts, screensets, theme editor, toolbar editor, custom actions, macros, and mouse modifiers.",
+        },
+        {
+          title: "Render and project delivery",
+          description: "Render WAV, AIFF, FLAC, MP3, OGG, stems, selected items, tracks, razor areas, regions, queues, DDP, and project MIDI.",
+        },
       ],
     },
     transition: {

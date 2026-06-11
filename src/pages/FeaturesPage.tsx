@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
   Layers3,
@@ -10,9 +10,9 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import ChapterProgress from "@/components/ChapterProgress";
-import DeferredClientStage from "@/components/DeferredClientStage";
 import PageSeo from "@/components/PageSeo";
 import SectionReveal from "@/components/motion/SectionReveal";
+import FeatureCanonicalStory from "@/components/scene/FeatureCanonicalStory";
 import FeaturesStoryBackdrop from "@/components/scene/FeaturesStoryBackdrop";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,18 +23,12 @@ import {
   featuresFinalCta,
 } from "@/data/features";
 import type { FeatureChapter } from "@/data/marketing";
-import type { FeatureSceneCompositorState } from "@/components/scene/FeatureSceneCompositor";
 import { getResponsiveImageAttributes } from "@/lib/assetLoading";
 import { trackEvent } from "@/lib/analytics";
 import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
 import { warmScheduledImages } from "@/lib/imageScheduler";
 import { useScrollScene } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
-
-const ChapterIntroOverlay = lazy(() => import("@/components/scene/ChapterIntroOverlay"));
-const FeatureSceneCompositor = lazy(() => import("@/components/scene/FeatureSceneCompositor"));
-const FeatureSceneWebGLStage = lazy(() => import("@/components/scene/FeatureSceneWebGLStage"));
-const FeatureStoryUnifiedTransition = lazy(() => import("@/components/scene/FeatureStoryUnifiedTransition"));
 
 const accentBadgeClass = {
   lavender: "border-primary/25 bg-primary/10 text-primary",
@@ -51,307 +45,12 @@ const chapterIcons: Record<string, LucideIcon> = {
   automation: Settings2,
 };
 
-interface FeatureSceneCompositorSurfaceProps {
-  chapters: FeatureChapter[];
-  className?: string;
-  stateRef: MutableRefObject<FeatureSceneCompositorState>;
-}
-
-const FeatureSceneStaticFallback = ({ className }: { className?: string }) => (
-  <div className={cn("feature-story-static-stage", className)} aria-hidden="true">
-    <span className="feature-story-static-stage__wash" />
-    <span className="feature-story-static-stage__beam feature-story-static-stage__beam--one" />
-    <span className="feature-story-static-stage__beam feature-story-static-stage__beam--two" />
-    <span className="feature-story-static-stage__rail" />
-    <span className="feature-story-static-stage__panel feature-story-static-stage__panel--primary" />
-    <span className="feature-story-static-stage__panel feature-story-static-stage__panel--secondary" />
-  </div>
-);
-
-const FeatureStoryTransitionFallback = () => (
-  <div className="feature-story-transition-fallback" aria-hidden="true">
-    <span />
-    <span />
-    <span />
-  </div>
-);
-
-const FeatureSceneCompositorSurface = ({
-  chapters,
-  className,
-  stateRef,
-}: FeatureSceneCompositorSurfaceProps) => (
-  <Suspense fallback={<FeatureSceneStaticFallback className={className} />}>
-    <FeatureSceneCompositor chapters={chapters} className={className} stateRef={stateRef} />
-  </Suspense>
-);
-
 const clampProgress = (value?: number) => {
   if (typeof value !== "number" || Number.isNaN(value)) {
     return 0;
   }
 
   return Math.max(0, Math.min(1, value));
-};
-
-const lerpValue = (start: number, end: number, progress: number) =>
-  start + (end - start) * progress;
-const easeOutCubic = (value: number) =>
-  1 - Math.pow(1 - clampProgress(value), 3);
-
-const DEFAULT_COLLAPSE = 0.18;
-const DEFAULT_VOID_PEAK = 0.56;
-const DEFAULT_ARRIVAL = 0.72;
-const DEFAULT_SETTLE = 0.88;
-const INTRO_END = 0.18;
-const STORY_CUE_START = 0.16;
-const STORY_LOOSEN_START = 0.16;
-const STORY_DESTRUCTION_START = 0.3;
-const STORY_REASSEMBLY_START = 0.58;
-const STORY_PANEL_IN_START = 0.72;
-const STORY_PANEL_SETTLE_END = 0.88;
-const STORY_VISUAL_SETTLE_START = 0.9;
-const STORY_SCROLL_STOP_DELAY = 45;
-const STORY_CHAPTER_START_INSET = 160;
-const STORY_CHAPTER_END_OFFSET = 112;
-
-const phaseProgress = (value: number, start: number, end: number) => {
-  if (end <= start) {
-    return value >= end ? 1 : 0;
-  }
-
-  return clampProgress((value - start) / (end - start));
-};
-
-const getTransitionPhases = (chapter?: FeatureChapter) => {
-  const collapseStart = clampProgress(
-    chapter?.transitionProfile?.collapseStart ??
-      chapter?.transitionProfile?.hold ??
-      DEFAULT_COLLAPSE,
-  );
-  const voidPeak = Math.max(
-    collapseStart + 0.1,
-    clampProgress(chapter?.transitionProfile?.voidPeak ?? DEFAULT_VOID_PEAK),
-  );
-  const bridgeHold = chapter?.transitionProfile?.bridgeHold ?? 0.15;
-  const arrivalStart = Math.max(
-    voidPeak + 0.06,
-    clampProgress(
-      chapter?.transitionProfile?.arrivalStart ??
-        Math.min(
-          voidPeak + bridgeHold,
-          chapter?.transitionProfile?.burn ?? DEFAULT_ARRIVAL,
-        ),
-    ),
-  );
-  const settleEnd = Math.max(
-    arrivalStart + 0.08,
-    clampProgress(
-      chapter?.transitionProfile?.settleEnd ??
-        chapter?.transitionProfile?.settle ??
-        DEFAULT_SETTLE,
-    ),
-  );
-
-  return {
-    collapseStart,
-    voidPeak: Math.min(1, voidPeak),
-    arrivalStart: Math.min(1, arrivalStart),
-    settleEnd: Math.min(1, settleEnd),
-  };
-};
-
-const subPhaseFromProgress = (progress: number, chapter?: FeatureChapter) => {
-  const clamped = clampProgress(progress);
-  const phases = getTransitionPhases(chapter);
-  const intro = phaseProgress(
-    clamped,
-    0,
-    Math.min(INTRO_END, phases.collapseStart),
-  );
-
-  const scene = phaseProgress(
-    clamped,
-    Math.min(INTRO_END, phases.collapseStart),
-    phases.collapseStart,
-  );
-  const handoff = phaseProgress(clamped, phases.arrivalStart, phases.settleEnd);
-
-  return {
-    introProgress: intro,
-    sceneProgress: scene,
-    handoffProgress: handoff,
-  };
-};
-
-const transitionPhaseFromProgress = (
-  progress: number,
-  chapter?: FeatureChapter,
-) => {
-  const phases = getTransitionPhases(chapter);
-  const clamped = clampProgress(progress);
-
-  if (clamped < STORY_CUE_START) {
-    return "hold" as const;
-  }
-
-  if (clamped < phases.collapseStart) {
-    return "cue" as const;
-  }
-
-  if (clamped < phases.voidPeak) {
-    return "push" as const;
-  }
-
-  if (clamped < phases.arrivalStart) {
-    return "commit" as const;
-  }
-
-  if (clamped < STORY_VISUAL_SETTLE_START) {
-    return "arrive" as const;
-  }
-
-  return "settled" as const;
-};
-
-const getVoidFocus = (chapter?: FeatureChapter) => {
-  switch (chapter?.transitionProfile?.voidShape) {
-    case "eclipse":
-      return {
-        shellX: "56%",
-        shellY: "48%",
-        shellSize: "42%",
-        panelX: "60%",
-        panelY: "46%",
-        panelSize: "26%",
-      };
-    case "shard":
-      return {
-        shellX: "48%",
-        shellY: "52%",
-        shellSize: "40%",
-        panelX: "44%",
-        panelY: "54%",
-        panelSize: "24%",
-      };
-    case "veil":
-      return {
-        shellX: "52%",
-        shellY: "45%",
-        shellSize: "48%",
-        panelX: "54%",
-        panelY: "42%",
-        panelSize: "28%",
-      };
-    default:
-      return {
-        shellX: "52%",
-        shellY: "49%",
-        shellSize: "40%",
-        panelX: "56%",
-        panelY: "48%",
-        panelSize: "24%",
-      };
-  }
-};
-
-const FeatureStoryPanel = ({
-  chapter,
-  index,
-}: {
-  chapter: FeatureChapter;
-  index: number;
-}) => {
-  const accentKey = chapter.accent ?? "lavender";
-
-  return (
-    <article
-      className="feature-story-panel"
-      data-panel-id={chapter.id}
-      data-story-panel
-    >
-      <div className="flex items-center justify-between gap-4">
-        <div className={cn("design-badge border", accentBadgeClass[accentKey])}>
-          {chapter.label}
-        </div>
-        <div className="feature-story-scene-chip">
-          {String(index + 1).padStart(2, "0")}
-        </div>
-      </div>
-      <h2 className="mt-5 font-headline text-3xl font-bold text-white">
-        {chapter.storyPanel.title}
-      </h2>
-      <p className="mt-4 text-sm leading-7 text-white/66">
-        {chapter.storyPanel.description}
-      </p>
-      <div className="mt-5 flex flex-wrap gap-2">
-        {chapter.storyPanel.rail.map((rail) => (
-          <span className="design-badge bg-black/26 text-white/66" key={rail}>
-            {rail}
-          </span>
-        ))}
-      </div>
-      {chapter.storyPanel.standout ? (
-        <div className="mt-5 border-l border-primary/35 pl-5 text-sm leading-7 text-white/72">
-          {chapter.storyPanel.standout}
-        </div>
-      ) : null}
-    </article>
-  );
-};
-
-const FeatureDetailCrawlPanel = ({
-  chapter,
-  crawlProgress,
-}: {
-  chapter: FeatureChapter;
-  crawlProgress: number;
-}) => {
-  const detailNodes = [
-    ...chapter.details.callouts.map((callout) => ({
-      eyebrow: callout.eyebrow,
-      metric: callout.metric,
-      title: callout.title,
-      description: callout.description,
-      note: undefined,
-    })),
-    ...chapter.details.items.map((item) => ({
-      eyebrow: "Workflow",
-      metric: undefined,
-      title: item.title,
-      description: item.description,
-      note: item.note,
-    })),
-  ];
-
-  return (
-    <article
-      className="feature-story-detail-crawl-panel"
-      data-detail-crawl-panel
-      data-panel-id={chapter.id}
-      style={{ ["--credits-progress" as string]: crawlProgress.toFixed(3) }}
-    >
-      <div className="feature-story-detail-crawl-panel__mask">
-        <div className="feature-story-detail-crawl-panel__crawl">
-          {detailNodes.map((node, index) => (
-            <section
-              className="feature-story-detail-crawl-panel__node"
-              key={`${chapter.id}-${node.title}`}
-            >
-              <div>
-                <span>{node.eyebrow}</span>
-                {node.metric ? <i>{node.metric}</i> : null}
-              </div>
-              <strong>{node.title}</strong>
-              <p>{node.description}</p>
-              {node.note ? <em>{node.note}</em> : null}
-              <b>{String(index + 1).padStart(2, "0")}</b>
-            </section>
-          ))}
-        </div>
-      </div>
-    </article>
-  );
 };
 
 const FeatureMobileCard = ({
@@ -467,34 +166,6 @@ const FeatureMobileCard = ({
 
 const FeaturesPage = () => {
   const pageRef = useRef<HTMLElement | null>(null);
-  const compositorStateRef = useRef<FeatureSceneCompositorState>({
-    activeIndex: 0,
-    nextIndex: 0,
-    fromIndex: 0,
-    toIndex: 0,
-    committedIndex: 0,
-    visualOwnerIndex: 0,
-    transitionDirection: 1,
-    transitionPhase: "hold",
-    scrollProgress: 0,
-    settleProgress: 1,
-    ambientProgress: 0,
-    loosenProgress: 0,
-    destructionProgress: 0,
-    reassemblyProgress: 0,
-    readableProgress: 1,
-    transitionProgress: 0,
-    burnProgress: 0,
-    transitionActive: 0,
-    introProgress: 0,
-    sceneProgress: 0,
-    handoffProgress: 0,
-    reducedMotion: false,
-    fragmentStagger: [0, 0],
-    pointerX: 0,
-    pointerY: 0,
-    pointerActive: 0,
-  });
   const [activeId, setActiveId] = useState(featureChapters[0]?.id ?? "");
   const [progressById, setProgressById] = useState<Record<string, number>>(() =>
     Object.fromEntries(featureChapters.map((chapter) => [chapter.id, 0])),
@@ -509,7 +180,7 @@ const FeaturesPage = () => {
   );
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 1279px)");
+    const mediaQuery = window.matchMedia("(max-width: 1023px)");
     const syncMobileMedia = () => setLoadMobileStoryMedia(mediaQuery.matches);
 
     syncMobileMedia();
@@ -539,14 +210,20 @@ const FeaturesPage = () => {
             tier: "story-active",
           });
 
-          warmScheduledImages(collectFeatureTransitionSources(firstChapter).slice(0, 3), {
-            group: "transitionUpcoming",
-            maxWidth: 960,
-            priority: "next",
-            route: "/features",
-            slot: "transition-mask",
-            tier: "story-next",
-          });
+          warmScheduledImages(
+            [
+              nextChapter?.sceneBase.asset.src,
+              ...(nextChapter?.sceneFragments.map((fragment) => fragment.asset.src) ?? []),
+            ].filter((src): src is string => Boolean(src)),
+            {
+              group: "canonicalRouteUpcoming",
+              maxWidth: 960,
+              priority: "next",
+              route: "/features",
+              slot: "cinematic",
+              tier: "story-next",
+            },
+          );
         },
         { delay: 320, runOnInput: false, timeout: 1400 },
       ),
@@ -555,10 +232,8 @@ const FeaturesPage = () => {
 
   useScrollScene(
     pageRef,
-    ({ prefersReducedMotion: reduceMotion, isDesktop, gsap, ScrollTrigger }) => {
-      const useDesktopStory =
-        isDesktop && window.matchMedia("(min-width: 1280px)").matches;
-      const cleanups: Array<() => void> = [];
+    ({ isDesktop, gsap, ScrollTrigger }) => {
+      const useDesktopStory = isDesktop;
 
       gsap.from("[data-features-hero] > *", {
         y: 22,
@@ -587,14 +262,10 @@ const FeaturesPage = () => {
           start: useDesktopStory ? "top bottom-=160" : "top center+=80",
           end: useDesktopStory ? "bottom top+=112" : "bottom center",
           onEnter: () => {
-            if (!useDesktopStory) {
-              setActiveId(chapterId);
-            }
+            setActiveId(chapterId);
           },
           onEnterBack: () => {
-            if (!useDesktopStory) {
-              setActiveId(chapterId);
-            }
+            setActiveId(chapterId);
           },
           onLeave: () => {
             progressCache.set(chapterId, 1);
@@ -605,7 +276,7 @@ const FeaturesPage = () => {
             setProgressById((previous) => ({ ...previous, [chapterId]: 0 }));
           },
           onUpdate: (self) => {
-            if (self.isActive && !useDesktopStory) {
+            if (self.isActive) {
               setActiveId(chapterId);
             }
 
@@ -642,835 +313,16 @@ const FeaturesPage = () => {
         return;
       }
 
-      const panels = gsap.utils.toArray<HTMLElement>("[data-story-panel]");
-      const detailCrawlPanels = gsap.utils.toArray<HTMLElement>(
-        "[data-detail-crawl-panel]",
+      document.documentElement.style.setProperty(
+        "--feature-story-portal-opacity",
+        "0",
       );
-      const markers = gsap.utils.toArray<HTMLElement>(
-        "[data-feature-story-marker]",
-      );
-      const viewport = document.querySelector<HTMLElement>(
-        ".feature-story-viewport",
-      );
-      const shell = document.querySelector<HTMLElement>(
-        ".feature-story-shell-sticky",
-      );
-      const storyCanvas = document.querySelector<HTMLElement>(
-        ".feature-story-canvas",
-      );
-      const syncStoryRects = () => {
-        const stageBounds = storyCanvas?.getBoundingClientRect();
-        const shellBounds = shell?.getBoundingClientRect();
-        const stageRect = stageBounds
-          ? {
-              x: stageBounds.left + stageBounds.width * 0.04,
-              y: stageBounds.top + stageBounds.height * 0.05,
-              width: stageBounds.width * 0.66,
-              height: stageBounds.height * 0.6,
-            }
-          : shellBounds
-            ? {
-                x: shellBounds.left,
-                y: shellBounds.top,
-                width: shellBounds.width,
-                height: shellBounds.height,
-              }
-            : {
-                x: 0,
-                y: 0,
-                width: window.innerWidth,
-                height: window.innerHeight,
-              };
-
-        compositorStateRef.current.stageRect = stageRect;
-        compositorStateRef.current.viewportRect = {
-          x: 0,
-          y: 0,
-          width: window.innerWidth,
-          height: window.innerHeight,
-        };
-      };
-
-      syncStoryRects();
-      window.addEventListener("resize", syncStoryRects);
-      window.addEventListener("scroll", syncStoryRects, { passive: true });
-      cleanups.push(() => {
-        window.removeEventListener("resize", syncStoryRects);
-        window.removeEventListener("scroll", syncStoryRects);
-      });
-
-      const crawlMetrics = new WeakMap<
-        HTMLElement,
-        { distance: number; start: number }
-      >();
-
-      const setDetailCrawlProgress = (
-        panel: HTMLElement,
-        nextProgress: number,
-      ) => {
-        const progress = clampProgress(nextProgress);
-        const metrics = crawlMetrics.get(panel);
-        panel.style.setProperty("--credits-progress", `${progress}`);
-
-        if (!metrics) {
-          return;
-        }
-
-        panel.style.setProperty(
-          "--credits-crawl-current-y",
-          `${metrics.start - progress * metrics.distance}px`,
-        );
-      };
-
-      const measureDetailCrawlPanels = () => {
-        detailCrawlPanels.forEach((panel) => {
-          const mask = panel.querySelector<HTMLElement>(
-            ".feature-story-detail-crawl-panel__mask",
-          );
-          const crawl = panel.querySelector<HTMLElement>(
-            ".feature-story-detail-crawl-panel__crawl",
-          );
-
-          if (!mask || !crawl) {
-            return;
-          }
-
-          const panelHeight = panel.clientHeight;
-          const maskHeight = mask.clientHeight;
-          const crawlHeight = crawl.scrollHeight;
-          const start = Math.max(16, Math.min(34, panelHeight * 0.08));
-          const tailRoom = Math.max(28, Math.min(72, maskHeight * 0.2));
-          const distance = Math.max(
-            0,
-            crawlHeight + start + tailRoom - maskHeight,
-          );
-          const currentProgress = Number(
-            panel.style.getPropertyValue("--credits-progress") || 0,
-          );
-
-          crawlMetrics.set(panel, { distance, start });
-          panel.style.setProperty("--credits-crawl-start", `${start}px`);
-          panel.style.setProperty(
-            "--credits-crawl-distance",
-            `${distance}px`,
-          );
-          panel.style.setProperty("--credits-mask-height", `${maskHeight}px`);
-          setDetailCrawlProgress(panel, currentProgress);
-        });
-      };
-
-      let crawlRefreshFrame = 0;
-      let crawlRefreshTimeout = 0;
-      let lastCrawlRefreshScrollAt = 0;
-      const markCrawlRefreshScroll = () => {
-        lastCrawlRefreshScrollAt = performance.now();
-      };
-      const measureDetailCrawlsAndRefresh = (refreshScrollTrigger = false) => {
-        measureDetailCrawlPanels();
-
-        if (!refreshScrollTrigger || crawlRefreshFrame) {
-          return;
-        }
-
-        crawlRefreshFrame = window.requestAnimationFrame(() => {
-          crawlRefreshFrame = 0;
-          syncStoryRects();
-          const refresh = () => {
-            crawlRefreshTimeout = 0;
-            ScrollTrigger.refresh();
-          };
-
-          if (performance.now() - lastCrawlRefreshScrollAt < 180) {
-            crawlRefreshTimeout = window.setTimeout(refresh, 220);
-            return;
-          }
-
-          refresh();
-        });
-      };
-
-      measureDetailCrawlsAndRefresh();
-      window.addEventListener("scroll", markCrawlRefreshScroll, { passive: true });
-
-      const crawlResizeObserver =
-        typeof ResizeObserver === "undefined"
-          ? undefined
-          : new ResizeObserver(() => measureDetailCrawlsAndRefresh(true));
-      if (crawlResizeObserver) {
-        detailCrawlPanels.forEach((panel) => {
-          crawlResizeObserver.observe(panel);
-          const mask = panel.querySelector<HTMLElement>(
-            ".feature-story-detail-crawl-panel__mask",
-          );
-          const crawl = panel.querySelector<HTMLElement>(
-            ".feature-story-detail-crawl-panel__crawl",
-          );
-          if (mask) {
-            crawlResizeObserver.observe(mask);
-          }
-          if (crawl) {
-            crawlResizeObserver.observe(crawl);
-          }
-        });
-      }
-
-      const handleCrawlResize = () => measureDetailCrawlsAndRefresh(true);
-      window.addEventListener("resize", handleCrawlResize);
-      cleanups.push(() => {
-        window.removeEventListener("scroll", markCrawlRefreshScroll);
-        window.removeEventListener("resize", handleCrawlResize);
-        crawlResizeObserver?.disconnect();
-        if (crawlRefreshFrame) {
-          window.cancelAnimationFrame(crawlRefreshFrame);
-        }
-        if (crawlRefreshTimeout) {
-          window.clearTimeout(crawlRefreshTimeout);
-        }
-      });
-
-      if ("fonts" in document) {
-        let fontsCancelled = false;
-        document.fonts.ready.then(() => {
-          if (!fontsCancelled) {
-            measureDetailCrawlsAndRefresh(true);
-          }
-        });
-        cleanups.push(() => {
-          fontsCancelled = true;
-        });
-      }
-
-      if (shell) {
-        shell.style.setProperty("--story-shell-hide", "0");
-        shell.style.setProperty("--story-shell-rail-hide", "0");
-        shell.style.setProperty("--story-shell-canvas-hide", "0");
-        shell.style.setProperty("--story-shell-panel-hide", "0");
-        shell.style.setProperty("--story-transition-void", "0");
-      }
-
-      Object.assign(compositorStateRef.current, {
-        activeIndex: 0,
-        nextIndex: 0,
-        fromIndex: 0,
-        toIndex: 0,
-        committedIndex: 0,
-        visualOwnerIndex: 0,
-        transitionDirection: 1,
-        transitionPhase: "hold",
-        scrollProgress: 0,
-        settleProgress: 1,
-        ambientProgress: 0,
-        loosenProgress: 0,
-        destructionProgress: 0,
-        reassemblyProgress: 0,
-        readableProgress: 1,
-        transitionProgress: 0,
-        burnProgress: 0,
-        transitionActive: 0,
-        introProgress: 0,
-        sceneProgress: 0,
-        handoffProgress: 0,
-        reducedMotion: reduceMotion,
-        pointerX: 0,
-        pointerY: 0,
-        pointerActive: 0,
-      });
-
-      panels.forEach((panel, index) => {
-        gsap.set(panel, {
-          autoAlpha: index === 0 ? 1 : 0,
-          yPercent: index === 0 ? 0 : 10,
-        });
-        panel.style.setProperty("--panel-burn", "0");
-        panel.style.setProperty("--panel-scorch", "0");
-        panel.style.setProperty("--panel-ember", "0");
-        panel.style.setProperty("--panel-angle", "-6deg");
-        panel.style.setProperty("--panel-frontier", "50%");
-        panel.style.setProperty("--panel-void", "0");
-        panel.style.setProperty("--panel-focus-x", "56%");
-        panel.style.setProperty("--panel-focus-y", "48%");
-        panel.style.setProperty("--panel-void-size", "24%");
-      });
-
-      detailCrawlPanels.forEach((panel, index) => {
-        gsap.set(panel, {
-          autoAlpha: index === 0 ? 1 : 0,
-          yPercent: index === 0 ? 0 : 8,
-        });
-        setDetailCrawlProgress(panel, 0);
-        panel.style.setProperty("--panel-scorch", "0");
-        panel.style.setProperty("--panel-void", "0");
-      });
-
-      if (storyCanvas) {
-        storyCanvas.style.setProperty("--shell-burn", "0");
-        storyCanvas.style.setProperty("--shell-scorch", "0");
-        storyCanvas.style.setProperty("--shell-ember", "0");
-        storyCanvas.style.setProperty("--shell-angle", "-6deg");
-        storyCanvas.style.setProperty("--shell-frontier", "50%");
-        storyCanvas.style.setProperty("--shell-void", "0");
-        storyCanvas.style.setProperty("--shell-focus-x", "52%");
-        storyCanvas.style.setProperty("--shell-focus-y", "49%");
-        storyCanvas.style.setProperty("--shell-void-size", "40%");
-        storyCanvas.style.setProperty("--story-pointer-x", "0");
-        storyCanvas.style.setProperty("--story-pointer-y", "0");
-        storyCanvas.style.setProperty("--story-pointer-active", "0");
-        storyCanvas.style.setProperty("--story-shift-x", "0px");
-        storyCanvas.style.setProperty("--story-shift-y", "0px");
-        storyCanvas.style.setProperty("--story-shell-shift-x", "0px");
-        storyCanvas.style.setProperty("--story-shell-shift-y", "0px");
-        storyCanvas.style.setProperty("--story-panel-shift-x", "0px");
-        storyCanvas.style.setProperty("--story-panel-shift-y", "0px");
-        storyCanvas.style.setProperty("--story-transition-active", "0");
-        storyCanvas.style.setProperty("--story-transition-void", "0");
-
-        const setPointerVars = (x: number, y: number, active: number) => {
-          storyCanvas.style.setProperty("--story-pointer-x", `${x}`);
-          storyCanvas.style.setProperty("--story-pointer-y", `${y}`);
-          storyCanvas.style.setProperty("--story-pointer-active", `${active}`);
-          storyCanvas.style.setProperty("--story-shift-x", `${x * 34}px`);
-          storyCanvas.style.setProperty("--story-shift-y", `${y * 28}px`);
-          storyCanvas.style.setProperty("--story-shell-shift-x", `${x * 20}px`);
-          storyCanvas.style.setProperty("--story-shell-shift-y", `${y * 15}px`);
-          storyCanvas.style.setProperty("--story-panel-shift-x", `${x * 12}px`);
-          storyCanvas.style.setProperty("--story-panel-shift-y", `${y * 10}px`);
-        };
-
-        setPointerVars(0, 0, 0);
-
-        if (!reduceMotion) {
-          const pointerState = {
-            targetX: 0,
-            targetY: 0,
-            targetActive: 0,
-            currentX: 0,
-            currentY: 0,
-            currentActive: 0,
-          };
-          let pointerFrame = 0;
-          const pointerTarget = shell ?? viewport ?? storyCanvas;
-
-          const tickPointer = () => {
-            pointerState.currentX = lerpValue(
-              pointerState.currentX,
-              pointerState.targetX,
-              0.16,
-            );
-            pointerState.currentY = lerpValue(
-              pointerState.currentY,
-              pointerState.targetY,
-              0.16,
-            );
-            pointerState.currentActive = lerpValue(
-              pointerState.currentActive,
-              pointerState.targetActive,
-              0.14,
-            );
-
-            compositorStateRef.current.pointerX = pointerState.currentX;
-            compositorStateRef.current.pointerY = pointerState.currentY;
-            compositorStateRef.current.pointerActive =
-              pointerState.currentActive;
-            setPointerVars(
-              pointerState.currentX,
-              pointerState.currentY,
-              pointerState.currentActive,
-            );
-
-            pointerFrame = window.requestAnimationFrame(tickPointer);
-          };
-
-          const handlePointerMove = (event: PointerEvent) => {
-            const bounds = pointerTarget.getBoundingClientRect();
-            if (bounds.width <= 0 || bounds.height <= 0) {
-              return;
-            }
-
-            const nextX =
-              ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
-            const nextY =
-              ((event.clientY - bounds.top) / bounds.height) * 2 - 1;
-            pointerState.targetX = Math.max(-1, Math.min(1, nextX));
-            pointerState.targetY = Math.max(-1, Math.min(1, nextY));
-            pointerState.targetActive = 1;
-          };
-
-          const handlePointerLeave = () => {
-            pointerState.targetX = 0;
-            pointerState.targetY = 0;
-            pointerState.targetActive = 0;
-          };
-
-          pointerTarget.addEventListener("pointermove", handlePointerMove);
-          pointerTarget.addEventListener("pointerleave", handlePointerLeave);
-          pointerTarget.addEventListener("pointercancel", handlePointerLeave);
-          pointerFrame = window.requestAnimationFrame(tickPointer);
-
-          cleanups.push(() => {
-            window.cancelAnimationFrame(pointerFrame);
-            pointerTarget.removeEventListener("pointermove", handlePointerMove);
-            pointerTarget.removeEventListener(
-              "pointerleave",
-              handlePointerLeave,
-            );
-            pointerTarget.removeEventListener(
-              "pointercancel",
-              handlePointerLeave,
-            );
-            compositorStateRef.current.pointerX = 0;
-            compositorStateRef.current.pointerY = 0;
-            compositorStateRef.current.pointerActive = 0;
-            setPointerVars(0, 0, 0);
-          });
-        }
-      }
-
-      const storyController = {
-        visualProgress: 0,
-        lastScrollY: window.scrollY,
-        lastScrollTime: performance.now(),
-        direction: 1 as 1 | -1,
-        activeIndex: 0,
-        activeId: featureChapters[0]?.id ?? "",
-        progressCache: new Map<string, number>(),
-        frameId: 0,
-        startedAt: performance.now(),
-      };
-
-      const markerProgress = (marker: HTMLElement) => {
-        const rect = marker.getBoundingClientRect();
-        const startLine = window.innerHeight - STORY_CHAPTER_START_INSET;
-        const endLine = STORY_CHAPTER_END_OFFSET;
-        const travel = Math.max(1, rect.height + startLine - endLine);
-        return clampProgress((startLine - rect.top) / travel);
-      };
-
-      const getActiveMarkerState = () => {
-        const startLine = window.innerHeight - STORY_CHAPTER_START_INSET;
-        const endLine = STORY_CHAPTER_END_OFFSET;
-        const states = markers.map((marker, index) => ({
-          index,
-          progress: markerProgress(marker),
-          rect: marker.getBoundingClientRect(),
-        }));
-        const active = [...states]
-          .reverse()
-          .find(
-            (state) =>
-              state.rect.top <= startLine && state.rect.bottom >= endLine,
-          ) ?? states.find((state) => state.progress > 0 && state.progress < 1);
-
-        if (active) {
-          return active;
-        }
-
-        const beforeFirst = states[0] && states[0].rect.top > startLine;
-        if (beforeFirst) {
-          return { index: 0, progress: 0, rect: states[0]!.rect };
-        }
-
-        const upcoming = states.find((state) => state.rect.top > startLine);
-        if (upcoming) {
-          const previousIndex = Math.max(0, upcoming.index - 1);
-          const previous = states[previousIndex];
-          return previous
-            ? { ...previous, progress: 1 }
-            : { ...upcoming, progress: 0 };
-        }
-
-        const last = states[states.length - 1];
-        return last
-          ? { ...last, progress: 1 }
-          : { index: 0, progress: 0, rect: new DOMRect() };
-      };
-
-      const syncCanonicalStory = () => {
-        syncStoryRects();
-
-        const now = performance.now();
-        const scrollDelta = window.scrollY - storyController.lastScrollY;
-        const scrollMoved = Math.abs(scrollDelta) > 0.5;
-        if (scrollMoved) {
-          storyController.direction = scrollDelta > 0 ? 1 : -1;
-          storyController.lastScrollY = window.scrollY;
-          storyController.lastScrollTime = now;
-        }
-
-        const markerState = getActiveMarkerState();
-        const chapter =
-          featureChapters[markerState.index] ?? featureChapters[0]!;
-        const nextChapter = featureChapters[markerState.index + 1];
-        const hasNextPanel = Boolean(
-          nextChapter && markerState.index < featureChapters.length - 1,
-        );
-        const panel = panels[markerState.index];
-        const nextPanel = panels[markerState.index + 1];
-        const phases = getTransitionPhases(chapter);
-        const targetProgress = markerState.progress;
-        const smoothing =
-          Math.abs(targetProgress - storyController.visualProgress) > 0.46
-            ? 0.42
-            : 0.18;
-
-        storyController.visualProgress = scrollMoved
-          ? targetProgress
-          : lerpValue(
-              storyController.visualProgress,
-              targetProgress,
-              smoothing,
-            );
-        if (Math.abs(storyController.visualProgress - targetProgress) < 0.004) {
-          storyController.visualProgress = targetProgress;
-        }
-
-        storyController.activeIndex = markerState.index;
-        const progress = clampProgress(storyController.visualProgress);
-        const loosenProgress = hasNextPanel
-          ? phaseProgress(progress, STORY_LOOSEN_START, STORY_DESTRUCTION_START)
-          : 0;
-        const destructionProgress = hasNextPanel
-          ? phaseProgress(
-              progress,
-              STORY_DESTRUCTION_START,
-              STORY_REASSEMBLY_START,
-            )
-          : 0;
-        const reassemblyProgress = hasNextPanel
-          ? phaseProgress(
-              progress,
-              STORY_REASSEMBLY_START,
-              STORY_PANEL_IN_START,
-            )
-          : 1;
-        const readableProgress = hasNextPanel
-          ? phaseProgress(
-              progress,
-              STORY_PANEL_IN_START,
-              STORY_PANEL_SETTLE_END,
-            )
-          : 1;
-        const collapse = hasNextPanel
-          ? phaseProgress(progress, phases.collapseStart, phases.voidPeak)
-          : 0;
-        const bridge = hasNextPanel
-          ? phaseProgress(progress, phases.voidPeak, phases.arrivalStart)
-          : 0;
-        const burn = hasNextPanel
-          ? phaseProgress(progress, phases.collapseStart, phases.arrivalStart)
-          : 0;
-        const arrival = hasNextPanel
-          ? phaseProgress(progress, phases.arrivalStart, phases.settleEnd)
-          : 0;
-        const panelEntry = hasNextPanel
-          ? phaseProgress(
-              progress,
-              STORY_PANEL_IN_START,
-              STORY_PANEL_SETTLE_END,
-            )
-          : 1;
-        const scrollStoppedFor = now - storyController.lastScrollTime;
-        const settleProgress = clampProgress(
-          (scrollStoppedFor - STORY_SCROLL_STOP_DELAY) / 340,
-        );
-        const isAuthoredBridge = Boolean(
-          chapter.transitionProfile?.authoredBridge,
-        );
-        const usesScreenwideBridge = isAuthoredBridge && !reduceMotion;
-        const inTransition =
-          usesScreenwideBridge &&
-          progress >= phases.collapseStart &&
-          progress < STORY_VISUAL_SETTLE_START;
-        const subPhase = subPhaseFromProgress(progress, chapter);
-        const shellIgnitionDelay =
-          chapter.transitionProfile?.shellIgnitionDelay ?? 0.1;
-        const focus = getVoidFocus(chapter);
-        const shellVoid = usesScreenwideBridge
-          ? phaseProgress(
-              progress,
-              phases.collapseStart + shellIgnitionDelay * 0.2,
-              phases.arrivalStart,
-            )
-          : 0;
-        const panelVoid = usesScreenwideBridge
-          ? phaseProgress(
-              progress,
-              phases.collapseStart + shellIgnitionDelay * 0.44,
-              phases.arrivalStart,
-            )
-          : 0;
-        const panelEmber = usesScreenwideBridge
-          ? phaseProgress(
-              progress,
-              phases.collapseStart + shellIgnitionDelay * 0.64,
-              phases.settleEnd,
-            )
-          : 0;
-        const edgeAngle = `${chapter.transitionProfile?.edgeAngle ?? -6}deg`;
-        const bridgeGlow =
-          Math.max(collapse * 0.64, bridge) * (1 - arrival * 0.66);
-        const activeBridgeGlow = usesScreenwideBridge ? bridgeGlow : 0;
-        const shellCanvasHide = usesScreenwideBridge
-          ? clampProgress(
-              (collapse * 0.12 + bridge * 0.42) * (1 - arrival * 0.86),
-            )
-          : 0;
-        const shellRailHide = usesScreenwideBridge
-          ? clampProgress(
-              (collapse * 0.08 + bridge * 0.28) * (1 - arrival * 0.78),
-            )
-          : 0;
-        const shellPanelHide = usesScreenwideBridge
-          ? clampProgress(
-              (collapse * 0.18 + bridge * 0.5) * (1 - panelEntry * 1.18),
-            )
-          : 0;
-        const shellHide = usesScreenwideBridge
-          ? clampProgress(
-              (collapse * 0.08 + bridge * 0.36) * (1 - arrival * 0.82),
-            )
-          : 0;
-        const transitionVoid = usesScreenwideBridge
-          ? clampProgress(
-              Math.max(shellVoid * 0.42, activeBridgeGlow * 0.56) *
-                (1 - arrival * 1.08),
-            )
-          : 0;
-
-        storyCanvas?.style.setProperty("--shell-burn", `${shellVoid * 0.28}`);
-        storyCanvas?.style.setProperty("--shell-void", `${shellVoid * 0.36}`);
-        storyCanvas?.style.setProperty(
-          "--shell-scorch",
-          `${Math.max(shellVoid * 0.26, bridge * 0.42)}`,
-        );
-        storyCanvas?.style.setProperty(
-          "--shell-ember",
-          `${Math.max(activeBridgeGlow * 0.58, panelEmber * 0.36)}`,
-        );
-        storyCanvas?.style.setProperty("--shell-angle", edgeAngle);
-        storyCanvas?.style.setProperty("--shell-focus-x", focus.shellX);
-        storyCanvas?.style.setProperty("--shell-focus-y", focus.shellY);
-        storyCanvas?.style.setProperty("--shell-void-size", focus.shellSize);
-        storyCanvas?.style.setProperty(
-          "--story-transition-active",
-          inTransition ? "1" : "0",
-        );
-        storyCanvas?.style.setProperty(
-          "--story-transition-void",
-          `${transitionVoid}`,
-        );
-
-        panels.forEach((otherPanel) => {
-          otherPanel.style.setProperty("--panel-burn", "0");
-          otherPanel.style.setProperty("--panel-void", "0");
-          otherPanel.style.setProperty("--panel-scorch", "0");
-          otherPanel.style.setProperty("--panel-ember", "0");
-          otherPanel.style.setProperty("--panel-angle", edgeAngle);
-          otherPanel.style.setProperty("--panel-focus-x", focus.panelX);
-          otherPanel.style.setProperty("--panel-focus-y", focus.panelY);
-          otherPanel.style.setProperty("--panel-void-size", focus.panelSize);
-        });
-
-        detailCrawlPanels.forEach((otherPanel) => {
-          setDetailCrawlProgress(otherPanel, 0);
-          otherPanel.style.setProperty("--panel-scorch", "0");
-          otherPanel.style.setProperty("--panel-void", "0");
-        });
-
-        if (panel) {
-          panel.style.setProperty("--panel-burn", `${panelVoid * 0.3}`);
-          panel.style.setProperty("--panel-void", `${panelVoid * 0.34}`);
-          panel.style.setProperty(
-            "--panel-scorch",
-            `${Math.max(panelVoid * 0.24, bridge * 0.3)}`,
-          );
-          panel.style.setProperty("--panel-ember", `${panelEmber * 0.34}`);
-        }
-
-        const detailPanel = detailCrawlPanels[markerState.index];
-        const nextDetailPanel = hasNextPanel
-          ? detailCrawlPanels[markerState.index + 1]
-          : undefined;
-        if (detailPanel) {
-          setDetailCrawlProgress(detailPanel, progress);
-          detailPanel.style.setProperty(
-            "--panel-scorch",
-            `${Math.max(panelVoid * 0.16, bridge * 0.2)}`,
-          );
-          detailPanel.style.setProperty("--panel-void", `${panelVoid * 0.2}`);
-        }
-
-        shell?.style.setProperty("--story-shell-hide", `${shellHide}`);
-        shell?.style.setProperty("--story-shell-rail-hide", `${shellRailHide}`);
-        shell?.style.setProperty(
-          "--story-shell-canvas-hide",
-          `${shellCanvasHide}`,
-        );
-        shell?.style.setProperty(
-          "--story-shell-panel-hide",
-          `${shellPanelHide}`,
-        );
-        shell?.style.setProperty(
-          "--story-transition-void",
-          `${transitionVoid}`,
-        );
-        document.documentElement.style.setProperty(
-          "--feature-story-portal-opacity",
-          inTransition
-            ? `${clampProgress(
-                (collapse * 0.12 + destructionProgress * 0.28 + bridge * 0.36) *
-                  (1 - readableProgress * 0.72),
-              )}`
-            : "0",
-        );
-
-        const visualOwnerIndex =
-          hasNextPanel && progress >= phases.voidPeak
-            ? markerState.index + 1
-            : markerState.index;
-        if (chapter.id !== storyController.activeId) {
-          storyController.activeId = chapter.id;
-          setActiveId(chapter.id);
-        }
-
-        const currentPanelExit = hasNextPanel
-          ? phaseProgress(
-              progress,
-              STORY_CUE_START,
-              STORY_DESTRUCTION_START + 0.16,
-            )
-          : 0;
-        const currentPanelOpacity = hasNextPanel ? 1 - currentPanelExit : 1;
-        const easedPanelEntry = easeOutCubic(panelEntry);
-        const detailEntry = hasNextPanel
-          ? phaseProgress(progress, phases.voidPeak, STORY_PANEL_SETTLE_END)
-          : 1;
-        const easedDetailEntry = easeOutCubic(detailEntry);
-
-        panels.forEach((otherPanel, otherIndex) => {
-          if (otherPanel !== panel && otherPanel !== nextPanel) {
-            gsap.set(otherPanel, {
-              autoAlpha:
-                otherIndex === visualOwnerIndex && !hasNextPanel ? 1 : 0,
-              pointerEvents: "none",
-            });
-          }
-        });
-
-        detailCrawlPanels.forEach((otherPanel, otherIndex) => {
-          if (otherPanel !== detailPanel && otherPanel !== nextDetailPanel) {
-            gsap.set(otherPanel, {
-              autoAlpha:
-                otherIndex === visualOwnerIndex && !hasNextPanel ? 1 : 0,
-            });
-          }
-        });
-
-        if (panel) {
-          gsap.set(panel, {
-            autoAlpha: currentPanelOpacity,
-            pointerEvents: currentPanelOpacity > 0.08 ? "auto" : "none",
-            yPercent: reduceMotion ? 0 : -5 * currentPanelExit,
-            xPercent: reduceMotion ? 0 : -8 * currentPanelExit,
-          });
-        }
-
-        if (nextPanel) {
-          gsap.set(nextPanel, {
-            autoAlpha: easedPanelEntry,
-            pointerEvents: easedPanelEntry > 0.9 ? "auto" : "none",
-            yPercent: reduceMotion ? 0 : 8 * (1 - easedPanelEntry),
-            xPercent: reduceMotion ? 0 : 5 * (1 - easedPanelEntry),
-          });
-        }
-
-        if (detailPanel) {
-          gsap.set(detailPanel, {
-            autoAlpha: currentPanelOpacity,
-            yPercent: reduceMotion ? 0 : -4 * currentPanelExit,
-          });
-        }
-
-        if (nextDetailPanel) {
-          setDetailCrawlProgress(nextDetailPanel, detailEntry);
-          gsap.set(nextDetailPanel, {
-            autoAlpha: easedDetailEntry,
-            yPercent: reduceMotion ? 0 : 6 * (1 - easedDetailEntry),
-          });
-        }
-
-        Object.assign(compositorStateRef.current, {
-          activeIndex: markerState.index,
-          nextIndex: hasNextPanel ? markerState.index + 1 : markerState.index,
-          fromIndex: markerState.index,
-          toIndex: hasNextPanel ? markerState.index + 1 : markerState.index,
-          committedIndex: visualOwnerIndex,
-          visualOwnerIndex,
-          transitionDirection: storyController.direction,
-          transitionPhase: hasNextPanel
-            ? transitionPhaseFromProgress(progress, chapter)
-            : "hold",
-          scrollProgress: targetProgress,
-          settleProgress,
-          ambientProgress: (now - storyController.startedAt) / 1000,
-          loosenProgress,
-          destructionProgress,
-          reassemblyProgress,
-          readableProgress,
-          transitionProgress: progress,
-          burnProgress: burn,
-          transitionActive: inTransition ? 1 : 0,
-          introProgress: subPhase.introProgress,
-          sceneProgress: subPhase.sceneProgress,
-          handoffProgress: subPhase.handoffProgress,
-          reducedMotion: reduceMotion,
-        });
-
-        const chapterId = chapter.id;
-        const cachedProgress =
-          storyController.progressCache.get(chapterId) ?? -1;
-        if (Math.abs(targetProgress - cachedProgress) >= 0.025) {
-          storyController.progressCache.set(chapterId, targetProgress);
-          setProgressById((previous) => ({
-            ...previous,
-            [chapterId]: targetProgress,
-          }));
-        }
-
-        storyController.frameId =
-          window.requestAnimationFrame(syncCanonicalStory);
-      };
-
-      storyController.frameId =
-        window.requestAnimationFrame(syncCanonicalStory);
-      cleanups.push(() => window.cancelAnimationFrame(storyController.frameId));
 
       return () => {
-        shell?.style.setProperty("--story-shell-hide", "0");
-        shell?.style.setProperty("--story-shell-rail-hide", "0");
-        shell?.style.setProperty("--story-shell-canvas-hide", "0");
-        shell?.style.setProperty("--story-shell-panel-hide", "0");
-        shell?.style.setProperty("--story-transition-void", "0");
-        storyCanvas?.style.setProperty("--story-transition-active", "0");
-        storyCanvas?.style.setProperty("--story-transition-void", "0");
         document.documentElement.style.setProperty(
           "--feature-story-portal-opacity",
           "0",
         );
-        Object.assign(compositorStateRef.current, {
-          fromIndex: compositorStateRef.current.activeIndex,
-          toIndex: compositorStateRef.current.activeIndex,
-          committedIndex: compositorStateRef.current.activeIndex,
-          visualOwnerIndex: compositorStateRef.current.activeIndex,
-          transitionDirection: 1,
-          transitionPhase: "hold",
-          scrollProgress: 0,
-          settleProgress: 1,
-          loosenProgress: 0,
-          destructionProgress: 0,
-          reassemblyProgress: 0,
-          readableProgress: 1,
-        });
-        cleanups.forEach((cleanup) => cleanup());
       };
     },
     { delay: 320, runOnInput: false, timeout: 1400 },
@@ -1487,14 +339,11 @@ const FeaturesPage = () => {
       id="main-content"
     >
       <PageSeo {...featurePageSeo} />
-      <Suspense fallback={<div className="feature-story-backdrop feature-story-backdrop--fallback" aria-hidden="true" />}>
-        <FeaturesStoryBackdrop
-          chapter={activeChapter}
-          chapters={featureChapters}
-          progress={activeProgress}
-          stateRef={compositorStateRef}
-        />
-      </Suspense>
+      <FeaturesStoryBackdrop
+        chapter={activeChapter}
+        chapters={featureChapters}
+        progress={activeProgress}
+      />
 
       <div className="page-frame-wide relative">
         <section
@@ -1556,7 +405,7 @@ const FeaturesPage = () => {
                     </span>
                     <span>
                       <strong>Live</strong>
-                      WebGL stage
+                      Signal route
                     </span>
                   </div>
                 </div>
@@ -1576,22 +425,7 @@ const FeaturesPage = () => {
         </section>
 
         <section className="feature-story-viewport">
-          <DeferredClientStage
-            className="feature-story-deferred-layer"
-            fallback={<FeatureStoryTransitionFallback />}
-            idleDelay={520}
-            idleTimeout={1800}
-            rootMargin="1400px 0px"
-          >
-            <Suspense fallback={<FeatureStoryTransitionFallback />}>
-              <FeatureStoryUnifiedTransition
-                chapters={featureChapters}
-                stateRef={compositorStateRef}
-              />
-            </Suspense>
-          </DeferredClientStage>
-
-          <div className="feature-story-shell-sticky hidden xl:block">
+          <div className="feature-story-shell-sticky hidden lg:block">
             <div className="feature-story-shell-grid">
               <aside className="feature-story-rail-panel">
                 <div>
@@ -1628,59 +462,18 @@ const FeaturesPage = () => {
               </aside>
 
               <div className="feature-story-shell-stage">
-                <div className="feature-story-canvas">
-                  <DeferredClientStage
-                    className="h-full"
-                    fallback={<FeatureSceneStaticFallback />}
-                    idleDelay={720}
-                    idleTimeout={2200}
-                    rootMargin="1400px 0px"
-                  >
-                    <Suspense
-                      fallback={<FeatureSceneStaticFallback />}
-                    >
-                      <FeatureSceneWebGLStage
-                        chapters={featureChapters}
-                        fallback={
-                          <FeatureSceneCompositorSurface
-                            chapters={featureChapters}
-                            stateRef={compositorStateRef}
-                          />
-                        }
-                        stateRef={compositorStateRef}
-                      />
-                    </Suspense>
-                  </DeferredClientStage>
-                  <div className="feature-story-panel-stack">
-                    {featureChapters.map((chapter, index) => (
-                      <FeatureStoryPanel
-                        chapter={chapter}
-                        index={index}
-                        key={chapter.id}
-                      />
-                    ))}
-                  </div>
-                  <div className="feature-story-detail-crawl-stack">
-                    {featureChapters.map((chapter) => (
-                      <FeatureDetailCrawlPanel
-                        chapter={chapter}
-                        crawlProgress={clampProgress(progressById[chapter.id])}
-                        key={`${chapter.id}-detail-crawl`}
-                      />
-                    ))}
-                  </div>
-                  <Suspense fallback={null}>
-                    <ChapterIntroOverlay
-                      chapters={featureChapters}
-                      stateRef={compositorStateRef}
-                    />
-                  </Suspense>
+                <div className="feature-story-canvas feature-story-canvas--canonical">
+                  <FeatureCanonicalStory
+                    activeId={activeId}
+                    chapters={featureChapters}
+                    progressById={progressById}
+                  />
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="xl:hidden">
+          <div className="lg:hidden">
             <div className="feature-story-mobile-rail rounded-[2rem] border border-white/10 bg-[rgba(9,12,20,0.66)] p-5 backdrop-blur-2xl">
               <p className="editorial-kicker mb-4">Feature atlas</p>
               <ChapterProgress
@@ -1705,14 +498,14 @@ const FeaturesPage = () => {
                 }}
               >
                 <div
-                  className="feature-story-marker hidden xl:block"
+                  className="feature-story-marker hidden lg:block"
                   data-chapter-id={chapter.id}
                   data-feature-story-marker
                 >
                   <span className="sr-only">{chapter.storyPanel.title}</span>
                 </div>
 
-                <div className="xl:hidden" data-chapter-id={chapter.id}>
+                <div className="lg:hidden" data-chapter-id={chapter.id}>
                   <FeatureMobileCard
                     chapter={chapter}
                     index={index}
@@ -1795,15 +588,5 @@ const FeaturesPage = () => {
     </main>
   );
 };
-
-const collectFeatureTransitionSources = (chapter?: FeatureChapter) =>
-  [
-    chapter?.transitionProfile?.curatedMatteSrc,
-    chapter?.transitionProfile?.authoredBridge?.collapseFieldSrc,
-    chapter?.transitionProfile?.authoredBridge?.remnantEtchedSrc,
-    chapter?.transitionProfile?.authoredBridge?.voidCoreSrc,
-    chapter?.transitionProfile?.authoredBridge?.voidEdgeSrc,
-    chapter?.transitionProfile?.authoredBridge?.arrivalMatteSrc,
-  ].filter((src): src is string => Boolean(src));
 
 export default FeaturesPage;

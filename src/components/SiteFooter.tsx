@@ -6,12 +6,12 @@ import { trackEvent } from "@/lib/analytics";
 
 const SiteFooter = () => {
   return (
-    <footer className="border-t border-white/10 bg-[#0E0E0E] px-6 py-12 md:px-12">
+    <footer className="relative z-20 border-t border-white/10 bg-[#0E0E0E] px-6 py-12 md:px-12">
       <div className="mx-auto flex max-w-[1600px] flex-col gap-8 md:flex-row md:items-center md:justify-between">
-        <div className="font-mono text-[0.62rem] uppercase tracking-[0.24em] text-white/36">
+        <div className="font-mono text-[0.62rem] uppercase tracking-[0.24em] text-white/52">
           {`Copyright 2026 ${SITE_NAME}. ${SITE_URL.replace("https://", "")}.`}
         </div>
-        <div className="flex flex-wrap gap-6 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white/38">
+        <div className="flex flex-wrap gap-6 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white/54">
           {footerNavigation.map((item) => (
             <Link className="transition hover:text-primary" key={item.to} to={item.to}>
               {item.label}
@@ -33,7 +33,7 @@ const SiteFooter = () => {
                 {item.label}
               </a>
             ) : (
-              <span className="text-white/22" key={item.label}>
+              <span className="text-white/36" key={item.label}>
                 {item.label}
               </span>
             ),
