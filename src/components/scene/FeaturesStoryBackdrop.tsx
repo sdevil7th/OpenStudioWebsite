@@ -1,7 +1,4 @@
 import { createPortal } from "react-dom";
-import StarField from "@/components/scene/StarField";
-import ConstellationField from "@/components/scene/ConstellationField";
-import type { FeatureSceneCompositorState } from "@/components/scene/FeatureSceneCompositor";
 import type { AccentTone, FeatureChapter } from "@/data/marketing";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
@@ -9,7 +6,6 @@ import { cn } from "@/lib/utils";
 interface FeaturesStoryBackdropProps {
   chapter: FeatureChapter;
   chapters: FeatureChapter[];
-  stateRef: React.MutableRefObject<FeatureSceneCompositorState>;
   progress: number;
   className?: string;
 }
@@ -30,7 +26,6 @@ const clampProgress = (value: number) => Math.max(0, Math.min(1, value));
 const FeaturesStoryBackdrop = ({
   chapter,
   chapters,
-  stateRef,
   progress,
   className,
 }: FeaturesStoryBackdropProps) => {
@@ -38,9 +33,6 @@ const FeaturesStoryBackdrop = ({
   const accent = chapter.accent ?? "lavender";
   const wash = washMap[accent];
   const stageProgress = clampProgress(progress);
-  const accentByIndex = chapters.map(
-    (item) => item.accent ?? ("lavender" as AccentTone),
-  );
 
   const backdrop = (
     <div
@@ -56,16 +48,37 @@ const FeaturesStoryBackdrop = ({
         style={{ backgroundImage: wash, opacity: prefersReducedMotion ? 0.6 : 1 }}
       />
 
-      <StarField
-        accentByIndex={accentByIndex}
-        className="feature-story-backdrop__stars"
-        stateRef={stateRef}
+      <div
+        className="feature-story-backdrop__grid"
+        style={{ opacity: prefersReducedMotion ? 0.06 : 0.1 + stageProgress * 0.08 }}
       />
 
-      <ConstellationField
-        chapters={chapters}
-        className="feature-story-backdrop__constellation"
-        stateRef={stateRef}
+      <div className="feature-story-backdrop__constellation-lite">
+        {chapters.map((item, index) => (
+          <span
+            className={cn(
+              "feature-story-backdrop__node",
+              item.id === chapter.id && "is-active",
+            )}
+            data-accent={item.accent ?? "lavender"}
+            key={item.id}
+            style={
+              {
+                "--feature-backdrop-node-x": `${14 + index * 18}%`,
+                "--feature-backdrop-node-y": `${index % 2 === 0 ? 28 : 68}%`,
+              } as React.CSSProperties
+            }
+          />
+        ))}
+      </div>
+
+      <span
+        className="feature-story-backdrop__ghost feature-story-backdrop__ghost--primary absolute left-[8%] top-[18%] aspect-[16/10]"
+        style={{ opacity: 0.08 + stageProgress * 0.04 }}
+      />
+      <span
+        className="feature-story-backdrop__ghost feature-story-backdrop__ghost--secondary absolute bottom-[12%] right-[10%] aspect-[4/3]"
+        style={{ opacity: 0.06 + stageProgress * 0.03 }}
       />
 
       <div

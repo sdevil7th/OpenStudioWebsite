@@ -1,5 +1,5 @@
 import { Download, Github, Sparkles } from "lucide-react";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useRef } from "react";
 import { Link } from "react-router-dom";
 import PageSeo from "@/components/PageSeo";
 import BrandLogoConstructScene from "@/components/brand/BrandLogoConstructScene";
@@ -18,7 +18,6 @@ import {
   homeWorkflowSteps,
 } from "@/data/home";
 import { externalLinks } from "@/data/siteLinks";
-import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { trackEvent } from "@/lib/analytics";
 import { useScrollScene } from "@/lib/gsap";
 
@@ -27,8 +26,6 @@ const pillarMedia = [
   designMedia.homeUspMixer,
   designMedia.homeUspCode,
 ];
-
-const HOME_LOGO_ASSEMBLED_PROGRESS = 0.62;
 
 const renderOpenSourceText = (text: string) =>
   text.split(/(OpenSource)/g).map((part, index) =>
@@ -41,20 +38,11 @@ const renderOpenSourceText = (text: string) =>
     ),
   );
 
-const HomeLogoAmbientField = ({ progress }: { progress: number }) => {
-  const atmosphereStyle = {
-    "--home-logo-atmosphere-opacity": (
-      0.78 +
-      Math.min(progress, 0.8) * 0.12
-    ).toFixed(3),
-    "--home-logo-progress": progress.toFixed(3),
-  } as CSSProperties;
-
+const HomeLogoAmbientField = () => {
   return (
     <div
       className="home-logo-atmosphere"
       aria-hidden="true"
-      style={atmosphereStyle}
     >
       <span className="home-logo-atmosphere__curtain home-logo-atmosphere__curtain--one" />
       <span className="home-logo-atmosphere__curtain home-logo-atmosphere__curtain--two" />
@@ -75,81 +63,6 @@ const HomeLogoAmbientField = ({ progress }: { progress: number }) => {
 const HomePage = () => {
   const pageRef = useRef<HTMLElement | null>(null);
   const logoSectionRef = useRef<HTMLElement | null>(null);
-  const prefersReducedMotion = usePrefersReducedMotion();
-  const [logoProgress, setLogoProgress] = useState(0);
-
-  useEffect(() => {
-    const section = logoSectionRef.current;
-
-    if (!section) {
-      return;
-    }
-
-    if (prefersReducedMotion) {
-      setLogoProgress(0.5);
-      section.style.setProperty("--home-logo-progress", "0.500");
-      return;
-    }
-
-    let frame = 0;
-    let lastProgress = -1;
-    const desktopQuery = window.matchMedia("(min-width: 1280px)");
-
-    const writeProgress = (value: number) => {
-      const rounded = Number(value.toFixed(3));
-
-      section.style.setProperty("--home-logo-progress", rounded.toFixed(3));
-      if (rounded !== lastProgress) {
-        lastProgress = rounded;
-        setLogoProgress(rounded);
-      }
-    };
-
-    const update = () => {
-      frame = 0;
-
-      if (!desktopQuery.matches) {
-        writeProgress(0.5);
-        return;
-      }
-
-      const rect = section.getBoundingClientRect();
-      const scrollRange = Number.parseFloat(
-        window
-          .getComputedStyle(section)
-          .getPropertyValue("--home-logo-scroll-range"),
-      );
-      const travel = Number.isFinite(scrollRange)
-        ? Math.max(1, scrollRange)
-        : Math.max(1, section.offsetHeight - window.innerHeight);
-      const scrollProgress = Math.max(0, Math.min(1, -rect.top / travel));
-      const progress = Math.min(scrollProgress, HOME_LOGO_ASSEMBLED_PROGRESS);
-      writeProgress(progress);
-    };
-
-    const requestUpdate = () => {
-      if (frame) {
-        return;
-      }
-
-      frame = window.requestAnimationFrame(update);
-    };
-
-    update();
-    window.addEventListener("scroll", requestUpdate, { passive: true });
-    window.addEventListener("resize", requestUpdate);
-    desktopQuery.addEventListener("change", requestUpdate);
-
-    return () => {
-      if (frame) {
-        window.cancelAnimationFrame(frame);
-      }
-
-      window.removeEventListener("scroll", requestUpdate);
-      window.removeEventListener("resize", requestUpdate);
-      desktopQuery.removeEventListener("change", requestUpdate);
-    };
-  }, [prefersReducedMotion]);
 
   useScrollScene(pageRef, ({ prefersReducedMotion, gsap }) => {
     if (prefersReducedMotion) {
@@ -199,12 +112,9 @@ const HomePage = () => {
         className="home-logo-scroll-section relative min-h-[auto] px-4 pb-12 pt-24 md:px-8 xl:px-12 xl:pb-0"
         data-home-logo-scroll-section
         ref={logoSectionRef}
-        style={
-          { "--home-logo-progress": logoProgress.toFixed(3) } as CSSProperties
-        }
       >
         <div className="absolute inset-0 design-mesh-bg" />
-        <HomeLogoAmbientField progress={logoProgress} />
+        <HomeLogoAmbientField />
         <div className="floating-audio-orb left-[5%] top-[10%] h-72 w-72 bg-primary/24" />
         <div className="floating-audio-orb bottom-[6%] right-[6%] h-[32rem] w-[32rem] bg-secondary/18 [animation-delay:-2s]" />
         {/* <SoundField accent="lavender" density={1.15} showGrid={false} /> */}
@@ -323,7 +233,13 @@ const HomePage = () => {
             </div>
 
             <div className="hidden xl:block" data-home-logo-stage>
-              <BrandLogoConstructScene progress={logoProgress} showWordmark />
+              <BrandLogoConstructScene
+                criticalAssetRootRef={logoSectionRef}
+                playback="viewport"
+                playbackMediaQuery="(min-width: 1280px)"
+                progressVariableTargetRef={logoSectionRef}
+                showWordmark
+              />
             </div>
           </div>
         </div>

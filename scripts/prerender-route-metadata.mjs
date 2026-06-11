@@ -32,33 +32,33 @@ const baseRoutes = [
     path: "/",
     title: "OpenStudio | Free Open Source DAW for Music Production",
     description:
-      "OpenStudio is a free, open source DAW and Cubase alternative, Pro Tools alternative, and Reaper alternative with MIDI, pitch editing, stem separation, plugin hosting, and optional AI audio tools.",
+      "OpenStudio is a free, open source DAW and alternative to Cubase, Pro Tools, Reaper, Ableton Live, FL Studio, Logic Pro, Studio One, and Bitwig with optional local AI audio tools.",
     keywords:
-      "free daw, open source daw, Cubase alternative, Pro Tools alternative, Reaper alternative, Ableton Live alternative, FL Studio alternative, Logic Pro alternative, Suno AI alternative, Udio alternative, ElevenLabs alternative, music production software, digital audio workstation, audio editing software, music making software, daw free, free music production software, daw windows, daw mac, daw linux",
+      "free daw, open source daw, Cubase alternative, alternative to Cubase, Pro Tools alternative, alternative to Pro Tools, Reaper alternative, alternative to Reaper, Ableton Live alternative, alternative to Ableton Live, FL Studio alternative, alternative to FL Studio, Logic Pro alternative, alternative to Logic Pro, Studio One alternative, alternative to Studio One, Bitwig Studio alternative, alternative to Bitwig, Reason alternative, GarageBand alternative, Audacity alternative, Cakewalk alternative, Waveform alternative, Mixcraft alternative, Suno AI alternative, alternative to Suno AI, Suno AI killer, Udio alternative, alternative to Udio, ElevenLabs Music alternative, alternative to ElevenLabs Music, Eleven Music alternative, Stable Audio 3 alternative, Google MusicFX alternative, Google Lyria alternative, MiniMax Music alternative, Mureka alternative, Sonauto alternative, AIVA alternative, Beatoven.ai alternative, Mubert alternative, Soundraw alternative, Boomy alternative, music production software, digital audio workstation, audio editing software, music making software, daw free, free music production software, daw windows, daw mac, daw linux",
   },
   {
     path: "/features",
     title: "OpenStudio Features | Recording, MIDI, Mixing & AI Tools",
     description:
-      "Explore OpenStudio features for a Cubase alternative, Pro Tools alternative, Reaper alternative, Ableton Live alternative, FL Studio alternative, and Logic Pro alternative with recording, MIDI, mixing, plugins, and AI tools.",
+      "Explore OpenStudio features for an alternative to Cubase, Pro Tools, Reaper, Ableton Live, FL Studio, Logic Pro, Studio One, and Bitwig with recording, MIDI, mixing, plugins, and AI tools.",
     keywords:
-      "daw features, Cubase alternative, Pro Tools alternative, Reaper alternative, Ableton Live alternative, FL Studio alternative, Logic Pro alternative, Suno AI alternative, Udio alternative, ElevenLabs alternative, music production software, audio editing software, midi software, plugin hosting daw, stem separation daw",
+      "daw features, Cubase alternative, alternative to Cubase, Pro Tools alternative, alternative to Pro Tools, Reaper alternative, alternative to Reaper, Ableton Live alternative, alternative to Ableton Live, FL Studio alternative, alternative to FL Studio, Logic Pro alternative, alternative to Logic Pro, Studio One alternative, alternative to Studio One, Bitwig Studio alternative, alternative to Bitwig, Reason alternative, GarageBand alternative, Audacity alternative, Cakewalk alternative, Waveform alternative, Mixcraft alternative, Suno AI alternative, alternative to Suno AI, Suno AI killer, Udio alternative, alternative to Udio, ElevenLabs Music alternative, alternative to ElevenLabs Music, Stable Audio 3 alternative, Google MusicFX alternative, Google Lyria alternative, MiniMax Music alternative, Mureka alternative, Sonauto alternative, AIVA alternative, Beatoven.ai alternative, Mubert alternative, Soundraw alternative, Boomy alternative, music production software, audio editing software, midi software, plugin hosting daw, stem separation daw",
   },
   {
     path: "/download",
     title: "Download OpenStudio | Free DAW for Windows, macOS & Linux",
     description:
-      "Download OpenStudio free for Windows, macOS, or Linux - a native, open source Cubase alternative, Pro Tools alternative, and Reaper alternative with MIDI, pitch editing, stems, and plugin hosting.",
+      "Download OpenStudio free for Windows, macOS, or Linux - a native, open source DAW alternative to Cubase, Pro Tools, Reaper, Ableton Live, FL Studio, Logic Pro, Studio One, and Bitwig.",
     keywords:
-      "free daw download, Cubase alternative, Pro Tools alternative, Reaper alternative, Ableton Live alternative, FL Studio alternative, Logic Pro alternative, Suno AI alternative, Udio alternative, ElevenLabs alternative, daw free, free daw windows, free daw mac, free daw linux, open source daw download",
+      "free daw download, Cubase alternative, alternative to Cubase, Pro Tools alternative, alternative to Pro Tools, Reaper alternative, alternative to Reaper, Ableton Live alternative, alternative to Ableton Live, FL Studio alternative, alternative to FL Studio, Logic Pro alternative, alternative to Logic Pro, Studio One alternative, alternative to Studio One, Bitwig Studio alternative, alternative to Bitwig, Reason alternative, GarageBand alternative, Audacity alternative, Cakewalk alternative, Waveform alternative, Mixcraft alternative, Suno AI alternative, alternative to Suno AI, Suno AI killer, Udio alternative, alternative to Udio, ElevenLabs Music alternative, alternative to ElevenLabs Music, Stable Audio 3 alternative, Google MusicFX alternative, Google Lyria alternative, MiniMax Music alternative, Mureka alternative, Sonauto alternative, AIVA alternative, Beatoven.ai alternative, Mubert alternative, Soundraw alternative, Boomy alternative, daw free, free daw windows, free daw mac, free daw linux, open source daw download",
   },
   {
     path: "/ai",
     title: "OpenStudio AI | Stem Separation, ACE-Step & Stable Audio 3",
     description:
-      "OpenStudio AI gives creators a local Suno AI alternative, Udio alternative, and ElevenLabs alternative story with BS Roformer stem separation, ACE-Step text-to-music, and optional Stable Audio 3.",
+      "OpenStudio AI gives creators a local Suno AI killer and Udio alternative story with BS Roformer stem separation, ACE-Step text-to-music, and optional Stable Audio 3 inside an open source DAW.",
     keywords:
-      "free stem separation software, Cubase alternative, Pro Tools alternative, Reaper alternative, Ableton Live alternative, FL Studio alternative, Logic Pro alternative, Suno AI alternative, Udio alternative, ElevenLabs alternative, ai music tools, text to audio, text to music, stable audio 3, ace-step, ai stem splitter, daw with stem separation",
+      "free stem separation software, Cubase alternative, alternative to Cubase, Pro Tools alternative, alternative to Pro Tools, Reaper alternative, alternative to Reaper, Ableton Live alternative, alternative to Ableton Live, FL Studio alternative, alternative to FL Studio, Logic Pro alternative, alternative to Logic Pro, Studio One alternative, Bitwig Studio alternative, Suno AI alternative, alternative to Suno AI, Suno AI killer, Suno killer, Udio alternative, alternative to Udio, ElevenLabs Music alternative, alternative to ElevenLabs Music, Eleven Music alternative, Stable Audio alternative, Stable Audio 3 alternative, Google MusicFX alternative, Google Lyria alternative, MiniMax Music alternative, Mureka alternative, Sonauto alternative, AIVA alternative, Beatoven.ai alternative, Mubert alternative, Soundraw alternative, Boomy alternative, ai music tools, ai music generator, ai song generator, text to audio, text to music, stable audio 3, ace-step, ai stem splitter, daw with stem separation",
   },
   {
     path: "/github",
