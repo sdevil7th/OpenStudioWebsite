@@ -26,7 +26,7 @@ test("download page keeps stable platform data and dialog-driven downloads", () 
   assert.match(downloadsDataSource, /DOWNLOAD_PATHS\.linuxLatest/);
   assert.match(downloadPageSource, /platformDownloads/);
   assert.match(downloadPageSource, /downloadInstructions/);
-  assert.match(downloadPageSource, /setPendingDownload\(activePlatform\)/);
+  assert.match(downloadPageSource, /openDownloadDialog\(activePlatform, "cinematic_story"\)/);
   assert.match(downloadPageSource, /setPendingDownload\(platform\)/);
   assert.match(downloadPageSource, /window\.location\.assign\(activeInstruction\.href\)/);
 });
@@ -47,9 +47,14 @@ test("download preview removes abstract command-deck scenes and reuses the homep
   assert.doesNotMatch(cssSource, /download-release-deck/);
   assert.match(downloadPageSource, /BrandLogoConstructScene/);
   assert.match(downloadPageSource, /data-download-logo-stage/);
-  assert.match(downloadPageSource, /LOGO_SCROLL_TARGET_PROGRESS = 0\.66/);
-  assert.match(downloadPageSource, /syncLogoProgress/);
-  assert.match(downloadPageSource, /requestAnimationFrame\(syncLogoProgress\)/);
+  assert.match(downloadPageSource, /criticalAssetRootRef=\{downloadHeroRef\}/);
+  assert.match(downloadPageSource, /playback="viewport"/);
+  assert.match(downloadPageSource, /playbackMediaQuery="\(min-width: 1024px\)"/);
+  assert.doesNotMatch(downloadPageSource, /LOGO_SCROLL_TARGET_PROGRESS/);
+  assert.doesNotMatch(downloadPageSource, /syncLogoProgress/);
+  assert.doesNotMatch(downloadPageSource, /requestAnimationFrame\(syncLogoProgress\)/);
+  assert.doesNotMatch(downloadPageSource, /setLogoProgress/);
+  assert.doesNotMatch(downloadPageSource, /0\.004/);
   assert.doesNotMatch(downloadPageSource, /pin: "\[data-download-logo-pin-stage\]"/);
   assert.doesNotMatch(downloadPageSource, /pinSpacing: false/);
   assert.doesNotMatch(downloadPageSource, /LOGO_INTRO_/);
@@ -64,7 +69,7 @@ test("download preview removes abstract command-deck scenes and reuses the homep
 test("download hero keeps the sticky logo column before the scrolling platform panels", () => {
   assert.match(
     downloadPageSource,
-    /<div className="download-home-logo-stage" data-download-logo-pin-stage>[\s\S]*<BrandLogoConstructScene[\s\S]*<div className="download-studio-hero__panel-stack" data-download-panel-stack>/,
+    /<div[\s\S]*className="download-home-logo-stage"[\s\S]*data-download-logo-pin-stage[\s\S]*<BrandLogoConstructScene[\s\S]*<div[\s\S]*className="download-studio-hero__panel-stack"[\s\S]*data-download-panel-stack/,
   );
   assert.match(downloadPageSource, /download-hero-platform-grid/);
   assert.match(downloadPageSource, /data-download-hero-card/);
@@ -78,7 +83,7 @@ test("download hero keeps the sticky logo column before the scrolling platform p
 
 test("download cinematic story uses generated studio plates and GSAP instead of WebGL props", () => {
   assert.match(downloadPageSource, /DownloadCinematicStory/);
-  assert.match(downloadPageSource, /lazy\(\(\) => import\("@\/components\/scene\/DownloadCinematicStory"\)\)/);
+  assert.match(downloadPageSource, /const DownloadCinematicStory = lazy\([\s\S]*import\("@\/components\/scene\/DownloadCinematicStory"\)/);
   assert.match(downloadPageSource, /DeferredClientStage[\s\S]*fallback=\{<DownloadCinematicStaticSurface \/>/);
   assert.match(downloadPageSource, /rootMargin="1400px 0px"/);
   assert.match(downloadPageSource, /warmScheduledImages/);

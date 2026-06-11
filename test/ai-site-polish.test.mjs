@@ -215,13 +215,13 @@ test("releases reveal animations do not leave permanent hidden states on reverse
   assert.match(releasesSource, /ScrollTrigger\.refresh\(\)/);
 });
 
-test("features bottom keeps the cta clean after dense details move into the scene", () => {
-  assert.match(featuresSource, /FeatureDetailCrawlPanel/);
-  assert.match(featuresSource, /chapter\.details\.callouts/);
-  assert.match(featuresSource, /chapter\.details\.items/);
-  assert.match(featuresSource, /FeatureStoryPanel/);
-  assert.match(cssSource, /\.feature-story-detail-crawl-panel/);
-  assert.match(cssSource, /\.feature-story-panel/);
+test("features bottom keeps the cta clean after canonical scene simplification", () => {
+  assert.match(featuresSource, /FeatureCanonicalStory/);
+  assert.match(featuresSource, /data-feature-story-marker/);
+  assert.doesNotMatch(featuresSource, /FeatureDetailCrawlPanel/);
+  assert.doesNotMatch(featuresSource, /FeatureStoryPanel/);
+  assert.doesNotMatch(featuresSource, /data-detail-crawl-panel/);
+  assert.doesNotMatch(featuresSource, /data-story-panel/);
   assert.match(pretextEditorialSource, /data-pretext-fragment/);
   assert.match(pretextEditorialSource, /layoutWithLines/);
   assert.match(pretextEditorialSource, /prepareWithSegments/);
