@@ -30,13 +30,42 @@ const xmlParser = new XMLParser({
   trimValues: true,
 });
 
+const falsy = new Set(["0", "false", "no", "off"]);
+
 const isTruthy = (value) => truthy.has(String(value ?? "").trim().toLowerCase());
+
+const isFalsy = (value) => falsy.has(String(value ?? "").trim().toLowerCase());
 
 export const isReleaseMetadataRequired = () =>
   isTruthy(process.env.OPENSTUDIO_REQUIRE_RELEASE_METADATA);
 
 export const getReleaseMetadataInputDir = () =>
   process.env.OPENSTUDIO_RELEASE_METADATA_DIR || "release-input";
+
+export const getDesktopReleaseRepo = () =>
+  process.env.OPENSTUDIO_DESKTOP_REPO || "sdevil7th/OpenStudio";
+
+// Release metadata is only staged into the deploy when release-input/ is populated, which
+// happens in the "Publish Release Surfaces" workflow. Any other deploy (a content push that
+// triggers a Netlify build) would otherwise ship a dist without /releases/* and /appcast/*,
+// so the SPA catch-all answers those URLs with index.html and shipped desktop apps see the
+// HTML shell instead of JSON. Rehydrating from the desktop release assets keeps every deploy
+// self-sufficient.
+export const isReleaseMetadataFetchEnabled = () =>
+  !isFalsy(process.env.OPENSTUDIO_FETCH_RELEASE_METADATA);
+
+export const RELEASE_ASSET_NAMES = new Map([
+  ["releases/latest.json", "OpenStudio-release-latest.json"],
+  ["releases/stable/latest.json", "OpenStudio-release-stable-latest.json"],
+  ["releases/ai-runtime/latest.json", "OpenStudio-ai-runtime-latest.json"],
+  ["releases/ai-runtime/stable/latest.json", "OpenStudio-ai-runtime-stable-latest.json"],
+  ["appcast/windows-stable.xml", "OpenStudio-appcast-windows-stable.xml"],
+  ["appcast/macos-stable.xml", "OpenStudio-appcast-macos-stable.xml"],
+]);
+
+export const OPTIONAL_RELEASE_ASSET_NAMES = new Map([
+  [LINUX_APPCAST_PATH, "OpenStudio-appcast-linux-stable.xml"],
+]);
 
 const normalizeJsonValue = (value) => {
   if (Array.isArray(value)) {
@@ -452,26 +481,141 @@ export const validateReleasePublishInputsTree = async (
   return { found: true };
 };
 
+const downloadReleaseAsset = async (fetchImpl, repo, tag, assetName) => {
+  const url =
+    tag === null
+      ? `https://github.com/${repo}/releases/latest/download/${assetName}`
+      : `https://github.com/${repo}/releases/download/${tag}/${assetName}`;
+  const response = await fetchImpl(url, { redirect: "follow" });
+
+  if (!response.ok) {
+    throw new Error(`${assetName} responded with HTTP ${response.status}.`);
+  }
+
+  return response.text();
+};
+
+// Finds the newest release that actually carries the metadata assets. The GitHub "latest"
+// release can be an ai-runtime-v* release, which does not publish them.
+const findReleaseTagWithMetadata = async (fetchImpl, repo) => {
+  const headers = { Accept: "application/vnd.github+json" };
+  const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const response = await fetchImpl(`https://api.github.com/repos/${repo}/releases?per_page=30`, {
+    headers,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Release listing responded with HTTP ${response.status}.`);
+  }
+
+  const releases = await response.json();
+  const requiredAssets = new Set(RELEASE_ASSET_NAMES.values());
+
+  for (const release of Array.isArray(releases) ? releases : []) {
+    if (release?.draft || release?.prerelease) continue;
+    const assetNames = new Set((release?.assets ?? []).map((asset) => asset?.name));
+    if ([...requiredAssets].every((name) => assetNames.has(name))) {
+      return release.tag_name;
+    }
+  }
+
+  return null;
+};
+
+export const hydrateReleaseMetadataInputs = async ({
+  inputRoot,
+  repo = getDesktopReleaseRepo(),
+  fetchImpl = globalThis.fetch,
+} = {}) => {
+  if (typeof fetchImpl !== "function") {
+    return { hydrated: false, reason: "fetch-unavailable" };
+  }
+
+  const writeAsset = async (relativePath, contents) => {
+    const destination = path.join(inputRoot, relativePath);
+    await fs.mkdir(path.dirname(destination), { recursive: true });
+    await fs.writeFile(destination, contents);
+  };
+
+  const download = async (tag) => {
+    const downloaded = new Map();
+    for (const [relativePath, assetName] of RELEASE_ASSET_NAMES) {
+      downloaded.set(relativePath, await downloadReleaseAsset(fetchImpl, repo, tag, assetName));
+    }
+    return downloaded;
+  };
+
+  let tag = null;
+  let downloaded;
+  try {
+    downloaded = await download(tag);
+  } catch {
+    try {
+      tag = await findReleaseTagWithMetadata(fetchImpl, repo);
+      if (!tag) return { hydrated: false, reason: "no-release-with-metadata" };
+      downloaded = await download(tag);
+    } catch (error) {
+      return {
+        hydrated: false,
+        reason: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  for (const [relativePath, contents] of downloaded) {
+    await writeAsset(relativePath, contents);
+  }
+
+  for (const [relativePath, assetName] of OPTIONAL_RELEASE_ASSET_NAMES) {
+    try {
+      await writeAsset(relativePath, await downloadReleaseAsset(fetchImpl, repo, tag, assetName));
+    } catch {
+      // optional asset - older releases do not publish it
+    }
+  }
+
+  return { hydrated: true, repo, tag };
+};
+
 export const stageReleasePublishInputs = async ({
   repoRoot,
   inputDir = getReleaseMetadataInputDir(),
   outputDir = "public",
   requireMetadata = isReleaseMetadataRequired(),
+  fetchMissingMetadata = isReleaseMetadataFetchEnabled(),
 } = {}) => {
   const inputRoot = path.resolve(repoRoot, inputDir);
   const outputRoot = path.resolve(repoRoot, outputDir);
 
-  let sourceValidation;
-  try {
-    sourceValidation = await validateReleasePublishInputsTree(inputRoot, { requireMetadata });
-  } catch (error) {
-    await ensureCleanGeneratedReleaseTargets(outputRoot);
-    throw error;
+  const validateSource = async () => {
+    try {
+      return await validateReleasePublishInputsTree(inputRoot, { requireMetadata });
+    } catch (error) {
+      await ensureCleanGeneratedReleaseTargets(outputRoot);
+      throw error;
+    }
+  };
+
+  let sourceValidation = await validateSource();
+  let hydration;
+
+  if (!sourceValidation.found && fetchMissingMetadata) {
+    hydration = await hydrateReleaseMetadataInputs({ inputRoot });
+
+    if (hydration.hydrated) {
+      sourceValidation = await validateSource();
+    } else {
+      console.warn(
+        `[release-publish] could not rehydrate release metadata from GitHub releases: ${hydration.reason}`,
+      );
+    }
   }
 
   if (!sourceValidation.found) {
     await ensureCleanGeneratedReleaseTargets(outputRoot);
-    return { staged: false, inputRoot, outputRoot };
+    return { staged: false, inputRoot, outputRoot, hydration };
   }
 
   await ensureCleanGeneratedReleaseTargets(outputRoot);
@@ -495,5 +639,5 @@ export const stageReleasePublishInputs = async ({
   }
 
   await validateReleasePublishInputsTree(outputRoot, { requireMetadata: true });
-  return { staged: true, inputRoot, outputRoot };
+  return { staged: true, inputRoot, outputRoot, hydration };
 };

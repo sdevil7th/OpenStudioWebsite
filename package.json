@@ -15,6 +15,7 @@
     "validate-launch-readiness": "node scripts/validate-launch-readiness.mjs",
     "prerender-route-metadata": "node scripts/prerender-route-metadata.mjs",
     "test:ai-runtime": "node --test test/ai-runtime-manifest.test.mjs",
+    "test:release-metadata": "node --test test/release-metadata-hydration.test.mjs",
     "test:feature-story": "node --test test/feature-story-*.test.mjs",
     "test:launch": "node --test test/launch-readiness.test.mjs",
     "build": "npm run sync-blog-images && npm run generate-image-assets && npm run stage-release-publish-inputs && npm run validate-release-publish-inputs && npm run validate-launch-readiness && vite build && npm run prerender-route-metadata",
