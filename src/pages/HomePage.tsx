@@ -10,6 +10,7 @@ import { BRANDING_ASSETS } from "@/constants/site";
 import { designMedia } from "@/data/designMedia";
 import {
   homeAlternativePositioning,
+  homeFaqs,
   homeHero,
   homeNamRack,
   homeOriginStory,
@@ -374,13 +375,15 @@ const HomePage = () => {
                 {homeAlternativePositioning.supporting}
               </p>
               <div className="flex flex-wrap gap-3">
-                {homeAlternativePositioning.terms.map((term) => (
-                  <span
-                    className="rounded-full border border-white/10 px-4 py-2 font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white/50"
-                    key={term}
+                {homeAlternativePositioning.links.map((link) => (
+                  <Link
+                    className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/10 px-4 py-2 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-white/58 transition hover:border-primary/35 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+                    key={link.to}
+                    to={link.to}
                   >
-                    {term}
-                  </span>
+                    {link.label}
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
                 ))}
               </div>
             </div>
@@ -552,6 +555,45 @@ const HomePage = () => {
                   {pillar.description}
                 </p>
               </SectionReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section
+        aria-labelledby="home-faq-title"
+        className="px-4 py-14 md:px-8 xl:px-12"
+      >
+        <div className="page-frame-wide">
+          <div className="mx-auto max-w-4xl text-center">
+            <div className="design-badge design-badge-secondary mx-auto w-fit">
+              OpenStudio FAQ
+            </div>
+            <h2
+              className="mt-6 font-headline text-4xl font-bold leading-tight text-white md:text-5xl"
+              id="home-faq-title"
+            >
+              Start with the practical questions.
+            </h2>
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-white/64">
+              The essentials about cost, platforms, plug-ins, and optional AI
+              tools before you download.
+            </p>
+          </div>
+
+          <div className="mx-auto mt-10 grid max-w-6xl gap-5 md:grid-cols-2">
+            {homeFaqs.map(({ answer, question }) => (
+              <article
+                className="rounded-[1.75rem] border border-white/10 bg-white/[0.035] p-6 md:p-7"
+                key={question}
+              >
+                <h3 className="font-headline text-xl font-semibold leading-snug text-white">
+                  {question}
+                </h3>
+                <p className="mt-4 text-sm leading-7 text-white/66">
+                  {answer}
+                </p>
+              </article>
             ))}
           </div>
         </div>

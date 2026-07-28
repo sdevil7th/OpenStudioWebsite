@@ -1,77 +1,36 @@
 import { screenshots } from "@/data/screenshots";
 import type { ActionLink, SeoMeta, StoryStep } from "@/data/marketing";
 
+export const homeFaqs = [
+  {
+    question: "Is OpenStudio free?",
+    answer:
+      "Yes. OpenStudio is free and open source under the GNU AGPLv3 license.",
+  },
+  {
+    question: "Which operating systems does OpenStudio support?",
+    answer: "OpenStudio supports Windows 10 and 11, macOS, and Linux.",
+  },
+  {
+    question: "Which plug-in formats does OpenStudio support?",
+    answer:
+      "OpenStudio supports VST3, CLAP, LV2, and optional ARA2 workflows.",
+  },
+  {
+    question: "Does OpenStudio include AI features?",
+    answer:
+      "Optional local AI tools include BS Roformer stem separation and ACE-Step text-to-music. Stable Audio 3 can be added through a separate import when that workflow is needed.",
+  },
+] as const;
+
 export const homeSeo: SeoMeta = {
-  title: "OpenStudio | Free Open-Source DAW with a Built-In Guitar Rig",
+  title: "OpenStudio | Free Open-Source DAW for Music Production",
   description:
-    "Record with a free, open-source DAW featuring a built-in Neural Amp Modeler guitar rig, A1/A2 captures, native pedals, cabinet IRs, mixing, and render.",
+    "Free, open-source DAW for multitrack recording, MIDI, plug-in hosting, pitch editing, mixing, and rendering, with a built-in Neural Amp Modeler guitar rig.",
   path: "/",
+  lastModified: "2026-07-28",
   image: screenshots.namRackHero.src,
   imageAlt: screenshots.namRackHero.alt,
-  keywords: [
-    "free daw",
-    "open source daw",
-    "free guitar amp simulator",
-    "free guitar rig",
-    "open-source amp simulator",
-    "NAM A2 player",
-    "Neural Amp Modeler DAW",
-    "AmpliTube alternative",
-    "Guitar Rig alternative",
-    "Neural DSP alternative",
-    "free amp capture software",
-    "TONE3000 integration",
-    "Cubase alternative",
-    "alternative to Cubase",
-    "Pro Tools alternative",
-    "alternative to Pro Tools",
-    "Reaper alternative",
-    "alternative to Reaper",
-    "Ableton Live alternative",
-    "alternative to Ableton Live",
-    "FL Studio alternative",
-    "alternative to FL Studio",
-    "Logic Pro alternative",
-    "alternative to Logic Pro",
-    "Studio One alternative",
-    "alternative to Studio One",
-    "Bitwig Studio alternative",
-    "alternative to Bitwig",
-    "Reason alternative",
-    "GarageBand alternative",
-    "Audacity alternative",
-    "Cakewalk alternative",
-    "Waveform alternative",
-    "Mixcraft alternative",
-    "Suno AI alternative",
-    "alternative to Suno AI",
-    "Suno AI killer",
-    "Udio alternative",
-    "alternative to Udio",
-    "ElevenLabs Music alternative",
-    "alternative to ElevenLabs Music",
-    "Eleven Music alternative",
-    "Stable Audio 3 alternative",
-    "Google MusicFX alternative",
-    "Google Lyria alternative",
-    "MiniMax Music alternative",
-    "Mureka alternative",
-    "Sonauto alternative",
-    "AIVA alternative",
-    "Beatoven.ai alternative",
-    "Mubert alternative",
-    "Soundraw alternative",
-    "Boomy alternative",
-    "music production software",
-    "digital audio workstation",
-    "audio editing software",
-    "music making software",
-    "daw free",
-    "free music production software",
-    "daw windows",
-    "daw mac",
-    "daw linux",
-  ],
   jsonLd: [
     {
       "@context": "https://schema.org",
@@ -83,8 +42,6 @@ export const homeSeo: SeoMeta = {
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
       description:
         "Free, open-source DAW for Windows, macOS, and Linux with a built-in Neural Amp Modeler guitar rig, recording, MIDI, plugin hosting, audio editing, mixing, and optional AI workflows.",
-      keywords:
-        "free daw, open source daw, free guitar rig, open-source amp simulator, NAM A2 player, Neural Amp Modeler DAW, AmpliTube alternative, Guitar Rig alternative, Neural DSP alternative, TONE3000 integration, Cubase alternative, Pro Tools alternative, Reaper alternative, Ableton Live alternative, FL Studio alternative, Logic Pro alternative, Studio One alternative, Bitwig Studio alternative, Suno AI alternative, Suno AI killer, Udio alternative, ElevenLabs Music alternative, Stable Audio 3 alternative, music production software, digital audio workstation",
       featureList: [
         "Multi-track recording",
         "MIDI instruments",
@@ -108,41 +65,21 @@ export const homeSeo: SeoMeta = {
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      mainEntity: [
-        {
+      mainEntity: homeFaqs.map(({ answer, question }) => ({
           "@type": "Question",
-          name: "Is OpenStudio free?",
-          acceptedAnswer: { "@type": "Answer", text: "Yes, OpenStudio is completely free and open source." },
-        },
-        {
-          "@type": "Question",
-          name: "What operating systems does OpenStudio support?",
-          acceptedAnswer: { "@type": "Answer", text: "Windows 10/11, macOS, and Linux." },
-        },
-        {
-          "@type": "Question",
-          name: "What plugins does OpenStudio support?",
-          acceptedAnswer: { "@type": "Answer", text: "VST3, CLAP, LV2, and ARA2." },
-        },
-        {
-          "@type": "Question",
-          name: "Does OpenStudio have AI features?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes — optional local AI tools include BS Roformer stem separation, ACE-Step text-to-music, Stable Audio 3 text-to-audio after a separate import, and polyphonic pitch detection.",
-          },
-        },
-      ],
+          name: question,
+          acceptedAnswer: { "@type": "Answer", text: answer },
+      })),
     },
   ],
 };
 
 export const homeHero = {
-  eyebrow: "A modern DAW with uncommon built-in depth",
-  title: "Craft Sound Faster",
-  supportLine: "Complex things made simple",
+  eyebrow: "Free, native, and open source",
+  title: "One open-source DAW for the whole session.",
+  supportLine: "Record · Arrange · Edit · Mix · Render",
   description:
-    "OpenStudio is an OpenSource native DAW where multitrack recording, MIDI, pitch editing, plugin hosting, optional stem separation, and scripting stay connected inside one project.",
+    "OpenStudio keeps multitrack recording, MIDI, pitch editing, plug-in hosting, mixing, optional local tools, and delivery connected inside one inspectable project.",
   primaryCta: {
     label: "Download OpenStudio",
     to: "/download",
@@ -193,26 +130,16 @@ export const homeNamRack = {
 };
 
 export const homeAlternativePositioning = {
-  eyebrow: "Open source alternative",
-  title: "For producers comparing closed DAWs and AI audio tools.",
+  eyebrow: "Open-source DAW",
+  title: "A complete production environment you can inspect and shape.",
   description:
-    "OpenStudio is positioned as an open source alternative to Cubase, Pro Tools, Reaper, Ableton Live, FL Studio, Logic Pro, Studio One, and Bitwig for creators who want a native DAW with recording, MIDI, plugin hosting, pitch work, and optional AI tools in one inspectable project.",
+    "For producers comparing DAWs, OpenStudio is an open-source alternative built around the complete session: recording, MIDI, audio editing, plug-in hosting, pitch work, mixing, automation, and render.",
   supporting:
-    "It also gives creators searching for a Suno AI killer, Udio alternative, ElevenLabs Music alternative, or Stable Audio 3-style workflow a local production story: separate stems, generate music through ACE-Step, or import Stable Audio 3 only when that setup makes sense.",
-  terms: [
-    "Cubase alternative",
-    "Pro Tools alternative",
-    "Reaper alternative",
-    "Ableton Live alternative",
-    "FL Studio alternative",
-    "Logic Pro alternative",
-    "Studio One alternative",
-    "Bitwig Studio alternative",
-    "Suno AI killer",
-    "Suno AI alternative",
-    "Udio alternative",
-    "ElevenLabs Music alternative",
-    "Stable Audio 3 alternative",
+    "Start with the full feature map, explore optional AI workflows on their own page, or inspect the public source and license before deciding whether OpenStudio fits your work.",
+  links: [
+    { label: "Explore every feature", to: "/features" },
+    { label: "See optional AI workflows", to: "/ai" },
+    { label: "Inspect the open project", to: "/github" },
   ],
 };
 

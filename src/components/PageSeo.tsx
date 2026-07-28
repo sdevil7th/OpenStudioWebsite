@@ -13,8 +13,12 @@ interface PageSeoProps {
   image?: string;
   imageAlt?: string;
   jsonLd?: object | object[];
-  keywords?: string[];
   ogType?: "website" | "article";
+  robots?: string;
+  publishedTime?: string;
+  modifiedTime?: string;
+  authorProfileUrl?: string;
+  articleSection?: string;
 }
 
 const ensureMeta = (attribute: "name" | "property", value: string) => {
@@ -59,8 +63,47 @@ const removePageJsonLd = () => {
   document.head.querySelector('script[type="application/ld+json"][data-page]')?.remove();
 };
 
-const removeKeywordsMeta = () => {
-  document.head.querySelector('meta[name="keywords"]')?.remove();
+const getDefaultPageJsonLd = ({
+  description,
+  image,
+  title,
+  url,
+}: {
+  description: string;
+  image: string;
+  title: string;
+  url: string;
+}) => ({
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  name: title,
+  description,
+  image,
+  url,
+  isPartOf: {
+    "@type": "WebSite",
+    name: SITE_NAME,
+    url: SITE_URL,
+  },
+});
+
+const removeMeta = (attribute: "name" | "property", value: string) => {
+  document.head
+    .querySelectorAll<HTMLMetaElement>(`meta[${attribute}="${value}"]`)
+    .forEach((node) => node.remove());
+};
+
+const syncOptionalMeta = (
+  attribute: "name" | "property",
+  value: string,
+  content?: string,
+) => {
+  if (content) {
+    ensureMeta(attribute, value).setAttribute("content", content);
+    return;
+  }
+
+  removeMeta(attribute, value);
 };
 
 const getSocialImageMetadata = (image: string) => {
@@ -94,17 +137,24 @@ const PageSeo = ({
   image = SITE_OG_IMAGE,
   imageAlt = `${SITE_NAME} share image`,
   jsonLd,
-  keywords,
   ogType = "website",
+  robots = "index, follow",
+  publishedTime,
+  modifiedTime,
+  authorProfileUrl,
+  articleSection = "OpenStudio Blog",
 }: PageSeoProps) => {
   useEffect(() => {
     const url = new URL(path, SITE_URL).toString();
     const imageMetadata = getSocialImageMetadata(image);
     const imageUrl = new URL(imageMetadata.src, SITE_URL).toString();
+    const isArticle = ogType === "article";
 
     document.head.querySelector('script[type="application/ld+json"][data-static-route]')?.remove();
     document.title = title;
+    removeMeta("name", "keywords");
     ensureMeta("name", "description").setAttribute("content", description);
+    ensureMeta("name", "robots").setAttribute("content", robots);
     ensureMeta("property", "og:type").setAttribute("content", ogType);
     ensureMeta("property", "og:site_name").setAttribute("content", SITE_NAME);
     ensureMeta("property", "og:title").setAttribute("content", title);
@@ -127,19 +177,55 @@ const PageSeo = ({
     ensureMeta("name", "twitter:image").setAttribute("content", imageUrl);
     ensureMeta("name", "twitter:image:alt").setAttribute("content", imageAlt);
     ensureCanonical().setAttribute("href", url);
-
-    if (keywords && keywords.length > 0) {
-      ensureMeta("name", "keywords").setAttribute("content", keywords.join(", "));
-    } else {
-      removeKeywordsMeta();
-    }
+    syncOptionalMeta(
+      "property",
+      "article:published_time",
+      isArticle ? publishedTime : undefined,
+    );
+    syncOptionalMeta(
+      "property",
+      "article:modified_time",
+      isArticle ? modifiedTime : undefined,
+    );
+    syncOptionalMeta(
+      "property",
+      "article:author",
+      isArticle ? authorProfileUrl : undefined,
+    );
+    syncOptionalMeta(
+      "property",
+      "article:section",
+      isArticle ? articleSection : undefined,
+    );
 
     if (jsonLd) {
       ensurePageJsonLd(jsonLd);
+    } else if (!robots.toLowerCase().includes("noindex")) {
+      ensurePageJsonLd(
+        getDefaultPageJsonLd({
+          description,
+          image: imageUrl,
+          title,
+          url,
+        }),
+      );
     } else {
       removePageJsonLd();
     }
-  }, [description, image, imageAlt, jsonLd, keywords, ogType, path, title]);
+  }, [
+    authorProfileUrl,
+    articleSection,
+    description,
+    image,
+    imageAlt,
+    jsonLd,
+    modifiedTime,
+    ogType,
+    path,
+    publishedTime,
+    robots,
+    title,
+  ]);
 
   return null;
 };

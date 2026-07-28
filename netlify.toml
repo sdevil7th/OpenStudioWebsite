@@ -76,6 +76,21 @@
   force = true
 
 [[redirects]]
-  from = "/*"
+  from = "/home"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/stem-separation"
+  to = "/ai"
+  status = 301
+
+[[redirects]]
+  from = "/og-card"
   to = "/index.html"
   status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 404

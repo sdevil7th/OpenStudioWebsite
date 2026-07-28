@@ -244,27 +244,40 @@
       }
 
     </style>
+    <noscript>
+      <style>
+        #openstudio-instant-loader {
+          display: none !important;
+        }
+
+        .openstudio-noscript-notice {
+          margin: 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+          background: #090c14;
+          padding: 0.75rem 1rem;
+          color: rgba(248, 251, 255, 0.72);
+          font: 500 0.82rem/1.5 system-ui, sans-serif;
+          text-align: center;
+        }
+      </style>
+    </noscript>
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/openstudio/branding/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/openstudio/branding/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/openstudio/branding/apple-touch-icon.png" />
     <link rel="manifest" href="/assets/openstudio/branding/site.webmanifest" />
-    <title>OpenStudio | Free Open-Source DAW with a Built-In Guitar Rig</title>
+    <title>OpenStudio | Free Open-Source DAW for Music Production</title>
     <meta
       name="description"
-      content="Record with a free, open-source DAW featuring a built-in Neural Amp Modeler guitar rig, A1/A2 captures, native pedals, cabinet IRs, mixing, and render."
-    />
-    <meta
-      name="keywords"
-      content="free daw, open source daw, free guitar amp simulator, free guitar rig, open-source amp simulator, NAM A2 player, Neural Amp Modeler DAW, AmpliTube alternative, Guitar Rig alternative, Neural DSP alternative, free amp capture software, TONE3000 integration, Cubase alternative, alternative to Cubase, Pro Tools alternative, alternative to Pro Tools, Reaper alternative, alternative to Reaper, Ableton Live alternative, alternative to Ableton Live, FL Studio alternative, alternative to FL Studio, Logic Pro alternative, alternative to Logic Pro, Studio One alternative, alternative to Studio One, Bitwig Studio alternative, alternative to Bitwig, Reason alternative, GarageBand alternative, Audacity alternative, Cakewalk alternative, Waveform alternative, Mixcraft alternative, Suno AI alternative, alternative to Suno AI, Suno AI killer, Udio alternative, alternative to Udio, ElevenLabs Music alternative, alternative to ElevenLabs Music, Eleven Music alternative, Stable Audio 3 alternative, Google MusicFX alternative, Google Lyria alternative, MiniMax Music alternative, Mureka alternative, Sonauto alternative, AIVA alternative, Beatoven.ai alternative, Mubert alternative, Soundraw alternative, Boomy alternative, music production software, digital audio workstation, audio editing software, music making software, daw free, free music production software, daw windows, daw mac, daw linux"
+      content="Free, open-source DAW for multitrack recording, MIDI, plug-in hosting, pitch editing, mixing, and rendering, with a built-in Neural Amp Modeler guitar rig."
     />
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#050813" />
     <link rel="canonical" href="https://openstudio.org.in/" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="OpenStudio | Free Open-Source DAW with a Built-In Guitar Rig" />
+    <meta property="og:title" content="OpenStudio | Free Open-Source DAW for Music Production" />
     <meta
       property="og:description"
-      content="Record with a free, open-source DAW featuring a built-in Neural Amp Modeler guitar rig, A1/A2 captures, native pedals, cabinet IRs, mixing, and render."
+      content="Free, open-source DAW for multitrack recording, MIDI, plug-in hosting, pitch editing, mixing, and rendering, with a built-in Neural Amp Modeler guitar rig."
     />
     <meta property="og:url" content="https://openstudio.org.in/" />
     <meta property="og:site_name" content="OpenStudio" />
@@ -274,10 +287,10 @@
     <meta property="og:image:height" content="1764" />
     <meta property="og:locale" content="en_US" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="OpenStudio | Free Open-Source DAW with a Built-In Guitar Rig" />
+    <meta name="twitter:title" content="OpenStudio | Free Open-Source DAW for Music Production" />
     <meta
       name="twitter:description"
-      content="Record with a free, open-source DAW featuring a built-in Neural Amp Modeler guitar rig, A1/A2 captures, native pedals, cabinet IRs, mixing, and render."
+      content="Free, open-source DAW for multitrack recording, MIDI, plug-in hosting, pitch editing, mixing, and rendering, with a built-in Neural Amp Modeler guitar rig."
     />
     <meta name="twitter:image" content="https://openstudio.org.in/assets/blogs/building-openstudio-nam-rack.webp?v=d7c82fcb1ebdfb" />
     <meta name="twitter:image:alt" content="OpenStudio NAM Rack showing pre-FX pedals, an A2 amp capture, and post-FX pedals." />
@@ -287,12 +300,7 @@
           "@context": "https://schema.org",
           "@type": "WebSite",
           "name": "OpenStudio",
-          "url": "https://openstudio.org.in",
-          "potentialAction": {
-            "@type": "SearchAction",
-            "target": "https://openstudio.org.in/features",
-            "query-input": "required name=search_term_string"
-          }
+          "url": "https://openstudio.org.in"
         },
         {
           "@context": "https://schema.org",
@@ -306,6 +314,11 @@
     </script>
   </head>
   <body class="dark">
+    <noscript>
+      <p class="openstudio-noscript-notice">
+        JavaScript is disabled. You can still read the page below, but interactive controls are unavailable.
+      </p>
+    </noscript>
     <div id="openstudio-instant-loader" data-openstudio-loader data-openstudio-loader-state="loading" role="status" aria-live="polite">
       <div class="os-instant-loader__panel os-instant-loader__panel--top" aria-hidden="true"></div>
       <div class="os-instant-loader__panel os-instant-loader__panel--bottom" aria-hidden="true"></div>

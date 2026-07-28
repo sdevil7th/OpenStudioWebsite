@@ -1,10 +1,18 @@
-import { ArrowLeft, ArrowRight, BookOpen, CalendarDays, Clock3 } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  CalendarDays,
+  Clock3,
+  History,
+  UserRound,
+} from "lucide-react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import { Link, useParams } from "react-router-dom";
 import remarkGfm from "remark-gfm";
 import PageSeo from "@/components/PageSeo";
 import { Button } from "@/components/ui/button";
-import { SITE_NAME } from "@/constants/site";
+import { SITE_NAME, SITE_URL } from "@/constants/site";
 import { blogPosts, getBlogPostBySlug, getBlogPostJsonLd, getBlogPostUrl } from "@/data/blogs";
 import { getResponsiveImageAttributes } from "@/lib/assetLoading";
 import { cn } from "@/lib/utils";
@@ -100,13 +108,15 @@ const BlogPostPage = () => {
       id="main-content"
     >
       <PageSeo
+        authorProfileUrl={SITE_URL}
         description={post.seoDescription ?? post.dek}
         image={post.image}
         imageAlt={post.imageAlt}
         jsonLd={getBlogPostJsonLd(post)}
-        keywords={post.keywords}
+        modifiedTime={post.dateModified}
         ogType="article"
         path={getBlogPostUrl(post)}
+        publishedTime={post.date}
         title={post.seoTitle ?? `${post.title} | ${SITE_NAME} Blog`}
       />
 
@@ -132,9 +142,21 @@ const BlogPostPage = () => {
               <p className="mt-5 max-w-[960px] text-lg leading-8 text-white/70 md:text-xl md:leading-9">{post.dek}</p>
               <div className="mt-7 flex flex-wrap gap-x-5 gap-y-3 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-white/48">
                 <span className="inline-flex items-center gap-2">
+                  <UserRound className="h-3.5 w-3.5 text-primary" />
+                  By {post.author}
+                </span>
+                <span className="inline-flex items-center gap-2">
                   <CalendarDays className="h-3.5 w-3.5 text-secondary" />
                   {post.dateLabel ?? "Engineering note"}
                 </span>
+                {post.dateModified &&
+                post.dateModified !== post.date &&
+                post.dateModifiedLabel ? (
+                  <span className="inline-flex items-center gap-2">
+                    <History className="h-3.5 w-3.5 text-secondary" />
+                    Updated {post.dateModifiedLabel}
+                  </span>
+                ) : null}
                 <span className="inline-flex items-center gap-2">
                   <Clock3 className="h-3.5 w-3.5 text-primary" />
                   {post.readTimeMinutes} min read
@@ -205,6 +227,7 @@ const BlogPostNotFound = ({ slug }: { slug?: string }) => (
     <PageSeo
       description="That OpenStudio blog post could not be found. Return to the blog archive to browse the available engineering notes."
       path={slug ? `/blogs/${slug}` : "/blogs"}
+      robots="noindex, nofollow"
       title={`Blog post not found | ${SITE_NAME}`}
     />
     <div className="mx-auto max-w-3xl rounded-lg border border-white/10 bg-white/[0.03] p-8 text-center md:p-12">

@@ -1,4 +1,9 @@
-import { SITE_NAME, SITE_OG_IMAGE, SITE_URL } from "@/constants/site";
+import {
+  BRANDING_ASSETS,
+  SITE_NAME,
+  SITE_OG_IMAGE,
+  SITE_URL,
+} from "@/constants/site";
 import { blogImageManifest } from "@/data/blogImageManifest";
 import type { SeoMeta } from "@/data/marketing";
 
@@ -10,6 +15,7 @@ const markdownFiles = import.meta.glob<string>("../../blogs/*.md", {
 
 const WORDS_PER_MINUTE = 225;
 const BLOG_ROUTE = "/blogs";
+const DEFAULT_BLOG_AUTHOR = "OpenStudio engineering team";
 const dateFormatter = new Intl.DateTimeFormat("en", {
   day: "numeric",
   month: "long",
@@ -18,6 +24,7 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
 });
 
 export interface BlogPost {
+  author: string;
   slug: string;
   title: string;
   dek: string;
@@ -36,15 +43,27 @@ export interface BlogPost {
   seoTitle?: string;
   date?: string;
   dateLabel?: string;
+  dateModified?: string;
+  dateModifiedLabel?: string;
 }
 
-type BlogPostSeoOverride = Pick<
-  BlogPost,
-  "imageAlt" | "imageFit" | "keywords" | "seoDescription" | "seoTitle"
+type BlogPostSeoOverride = Partial<
+  Pick<
+    BlogPost,
+    | "author"
+    | "dateModified"
+    | "imageAlt"
+    | "imageFit"
+    | "keywords"
+    | "seoDescription"
+    | "seoTitle"
+  >
 >;
 
 export const blogPostSeoOverrides: Record<string, BlogPostSeoOverride> = {
   "building-openstudio-nam-rack": {
+    author: DEFAULT_BLOG_AUTHOR,
+    dateModified: "2026-07-28",
     seoTitle: "Building a Free NAM Guitar Rig Inside OpenStudio | OpenStudio Blog",
     seoDescription:
       "How OpenStudio’s free NAM guitar rig brings A1/A2 captures, native pedals, cabinet IRs, TONE3000 access, presets, and project recall into one open-source DAW.",
@@ -71,13 +90,6 @@ export const blogsSeo: SeoMeta = {
   description:
     "Read OpenStudio engineering notes on DAW development, audio plugin hosting, AI music workflows, runtime packaging, and open source product decisions.",
   path: BLOG_ROUTE,
-  keywords: [
-    "openstudio blog",
-    "open source daw blog",
-    "audio software engineering",
-    "music production software development",
-    "daw development",
-  ],
 };
 
 const normalizeWhitespace = (value: string) => value.replace(/\s+/g, " ").trim();
@@ -103,8 +115,20 @@ const truncateSummary = (value: string, maxLength = 190) => {
     return summary;
   }
 
-  const trimmed = summary.slice(0, maxLength).replace(/\s+\S*$/, "").trim();
+  const trimmed = summary
+    .slice(0, Math.max(1, maxLength - 3))
+    .replace(/\s+\S*$/, "")
+    .trim();
   return `${trimmed}...`;
+};
+
+const getSeoTitle = (title: string, override?: string) => {
+  if (override) {
+    return override;
+  }
+
+  const brandedTitle = `${title} | ${SITE_NAME} Blog`;
+  return brandedTitle.length <= 65 ? brandedTitle : title;
 };
 
 const DEFAULT_SUMMARY = "OpenStudio engineering notes from the public DAW development process.";
@@ -222,8 +246,10 @@ const createBlogPost = ([sourcePath, content]: [string, string]): BlogPost | nul
   const dek = getDek(content);
   const postImage = getPostImage(slug);
   const seoOverride = blogPostSeoOverrides[slug];
+  const dateModified = seoOverride?.dateModified ?? date;
 
   return {
+    author: seoOverride?.author ?? DEFAULT_BLOG_AUTHOR,
     slug,
     title,
     dek,
@@ -240,10 +266,12 @@ const createBlogPost = ([sourcePath, content]: [string, string]): BlogPost | nul
       (postImage ? `${title} social share image` : undefined),
     imageFit: seoOverride?.imageFit,
     keywords: seoOverride?.keywords,
-    seoDescription: seoOverride?.seoDescription,
-    seoTitle: seoOverride?.seoTitle,
+    seoDescription: seoOverride?.seoDescription ?? truncateSummary(dek, 160),
+    seoTitle: getSeoTitle(title, seoOverride?.seoTitle),
     date,
     dateLabel: getDateLabel(date),
+    dateModified,
+    dateModifiedLabel: getDateLabel(dateModified),
   };
 };
 
@@ -279,33 +307,57 @@ export const getBlogIndexJsonLd = () => ({
   image: new URL(SITE_OG_IMAGE, SITE_URL).toString(),
   blogPost: blogPosts.map((post) => ({
     "@type": "BlogPosting",
+    author: {
+      "@type": "Organization",
+      name: post.author,
+      url: SITE_URL,
+    },
     headline: post.title,
     description: post.summary,
     url: new URL(getBlogPostUrl(post), SITE_URL).toString(),
     ...(post.image ? { image: new URL(post.image, SITE_URL).toString() } : {}),
     ...(post.date ? { datePublished: post.date } : {}),
+    ...(post.dateModified ? { dateModified: post.dateModified } : {}),
   })),
 });
 
-export const getBlogPostJsonLd = (post: BlogPost) => ({
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  headline: post.title,
-  description: post.seoDescription ?? post.summary,
-  url: new URL(getBlogPostUrl(post), SITE_URL).toString(),
-  image: new URL(post.image ?? SITE_OG_IMAGE, SITE_URL).toString(),
-  wordCount: post.wordCount,
-  timeRequired: `PT${post.readTimeMinutes}M`,
-  ...(post.keywords ? { keywords: post.keywords.join(", ") } : {}),
-  isPartOf: {
-    "@type": "Blog",
-    name: `${SITE_NAME} Blog`,
-    url: new URL(BLOG_ROUTE, SITE_URL).toString(),
-  },
-  publisher: {
-    "@type": "Organization",
-    name: SITE_NAME,
-    url: SITE_URL,
-  },
-  ...(post.date ? { datePublished: post.date, dateModified: post.date } : {}),
-});
+export const getBlogPostJsonLd = (post: BlogPost) => {
+  const postUrl = new URL(getBlogPostUrl(post), SITE_URL).toString();
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    author: {
+      "@type": "Organization",
+      name: post.author,
+      url: SITE_URL,
+    },
+    headline: post.title,
+    description: post.seoDescription ?? post.summary,
+    url: postUrl,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": postUrl,
+    },
+    image: new URL(post.image ?? SITE_OG_IMAGE, SITE_URL).toString(),
+    wordCount: post.wordCount,
+    timeRequired: `PT${post.readTimeMinutes}M`,
+    ...(post.keywords ? { keywords: post.keywords.join(", ") } : {}),
+    isPartOf: {
+      "@type": "Blog",
+      name: `${SITE_NAME} Blog`,
+      url: new URL(BLOG_ROUTE, SITE_URL).toString(),
+    },
+    publisher: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: new URL(BRANDING_ASSETS.android512, SITE_URL).toString(),
+      },
+    },
+    ...(post.date ? { datePublished: post.date } : {}),
+    ...(post.dateModified ? { dateModified: post.dateModified } : {}),
+  };
+};
