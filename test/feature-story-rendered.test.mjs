@@ -7,7 +7,14 @@ import { chromium } from "playwright";
 import { createServer as createViteServer } from "vite";
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const expectedLabels = ["Arrangement", "MIDI", "Mixer", "Engine", "Automation"];
+const expectedLabels = [
+  "Arrangement",
+  "MIDI",
+  "Mixer",
+  "Engine",
+  "NAM Rack",
+  "Automation",
+];
 
 const getFreePort = () =>
   new Promise((resolvePort, reject) => {
@@ -68,9 +75,12 @@ test(
         { timeout: 12_000 },
       );
       await page.waitForFunction(
-        () =>
-          document.querySelectorAll("[data-feature-story-marker]").length === 5 &&
-          document.querySelectorAll("[data-feature-chapter-title-layer]").length === 5,
+        (expectedCount) =>
+          document.querySelectorAll("[data-feature-story-marker]").length ===
+            expectedCount &&
+          document.querySelectorAll("[data-feature-chapter-title-layer]")
+            .length === expectedCount,
+        expectedLabels.length,
       );
       await page.waitForTimeout(700);
 
@@ -218,6 +228,67 @@ test(
           `chapter ${index + 1} stage center should be visible: center=${state.stageCenterY}, viewport=${state.viewportHeight}`,
         );
       }
+
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await page.getByRole("link", { name: "V NAM Rack" }).click();
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector(".feature-canonical-story__copy .design-badge")
+            ?.textContent?.replace(/\s+/g, " ")
+            .trim() === "NAM Rack",
+      );
+
+      const reducedMotionState = await page.evaluate(() => {
+        const chapters = [
+          ...document.querySelectorAll(".feature-canonical-story__chapter"),
+        ];
+        const active = chapters.find(
+          (chapter) => chapter.getAttribute("data-current") === "true",
+        );
+
+        return {
+          activeOpacity: active?.style.getPropertyValue(
+            "--feature-canonical-chapter-opacity",
+          ),
+          activeScale: active?.style.getPropertyValue(
+            "--feature-canonical-chapter-scale",
+          ),
+          activeShift: active?.style.getPropertyValue(
+            "--feature-canonical-chapter-shift",
+          ),
+          inactiveMaxOpacity: Math.max(
+            ...chapters
+              .filter((chapter) => chapter !== active)
+              .map((chapter) =>
+                Number(
+                  chapter.style.getPropertyValue(
+                    "--feature-canonical-chapter-opacity",
+                  ),
+                ),
+              ),
+          ),
+        };
+      });
+
+      assert.equal(reducedMotionState.activeOpacity, "1.000");
+      assert.equal(reducedMotionState.activeScale, "1.000");
+      assert.equal(reducedMotionState.activeShift, "0.00px");
+      assert.equal(reducedMotionState.inactiveMaxOpacity, 0);
+
+      await page.goto(`http://127.0.0.1:${port}/features#nam-rack`, {
+        waitUntil: "domcontentloaded",
+      });
+      await page.waitForFunction(
+        () =>
+          window.scrollY > 0 &&
+          document
+            .querySelector(".feature-canonical-story__copy .design-badge")
+            ?.textContent?.replace(/\s+/g, " ")
+            .trim() === "NAM Rack",
+        undefined,
+        { timeout: 12_000 },
+      );
     } finally {
       await browser?.close();
       await server.close();

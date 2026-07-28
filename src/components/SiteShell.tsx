@@ -5,6 +5,19 @@ import SiteFooter from "@/components/SiteFooter";
 import SiteNavbar from "@/components/SiteNavbar";
 import SmoothScrollProvider, { useSmoothScroll } from "@/components/SmoothScrollProvider";
 
+const HASH_SCROLL_OFFSET = -96;
+const HASH_TARGET_WAIT_MS = 15_000;
+
+const decodeHashId = (hash: string) => {
+  const encodedId = hash.startsWith("#") ? hash.slice(1) : hash;
+
+  try {
+    return decodeURIComponent(encodedId);
+  } catch {
+    return encodedId;
+  }
+};
+
 const ShellContent = () => {
   const location = useLocation();
   const { lenis } = useSmoothScroll();
@@ -17,15 +30,99 @@ const ShellContent = () => {
   }, [lenis]);
 
   useEffect(() => {
-    const currentLenis = lenisRef.current;
+    let hashTargetObserver: MutationObserver | undefined;
+    let hashTargetTimeout: number | undefined;
+    let frame = 0;
+    const hashId = decodeHashId(location.hash);
 
-    if (currentLenis) {
-      currentLenis.scrollTo(0, { immediate: true });
-      return;
+    const stopWaitingForHashTarget = () => {
+      hashTargetObserver?.disconnect();
+      hashTargetObserver = undefined;
+
+      if (hashTargetTimeout !== undefined) {
+        window.clearTimeout(hashTargetTimeout);
+        hashTargetTimeout = undefined;
+      }
+
+      window.removeEventListener("openstudio:app-ready", handleRouteReady);
+    };
+
+    const scrollToTop = () => {
+      const currentLenis = lenisRef.current;
+
+      if (currentLenis) {
+        currentLenis.scrollTo(0, { immediate: true });
+        return;
+      }
+
+      window.scrollTo(0, 0);
+    };
+
+    const scrollToHashTarget = () => {
+      const hashTarget = hashId ? document.getElementById(hashId) : null;
+
+      if (!hashTarget) {
+        return false;
+      }
+
+      const currentLenis = lenisRef.current;
+
+      if (currentLenis) {
+        currentLenis.scrollTo(hashTarget, {
+          immediate: true,
+          offset: HASH_SCROLL_OFFSET,
+        });
+      } else {
+        const targetTop =
+          hashTarget.getBoundingClientRect().top +
+          window.scrollY +
+          HASH_SCROLL_OFFSET;
+        window.scrollTo(0, Math.max(0, targetTop));
+      }
+
+      stopWaitingForHashTarget();
+      return true;
+    };
+
+    function handleRouteReady() {
+      scrollToHashTarget();
     }
 
-    window.scrollTo(0, 0);
-  }, [location.pathname]);
+    frame = window.requestAnimationFrame(() => {
+      if (!hashId) {
+        scrollToTop();
+        return;
+      }
+
+      if (scrollToHashTarget()) {
+        return;
+      }
+
+      scrollToTop();
+
+      const routeFrame = document.querySelector(".site-shell-route-frame");
+      hashTargetObserver = new MutationObserver(() => {
+        scrollToHashTarget();
+      });
+      hashTargetObserver.observe(routeFrame ?? document.body, {
+        childList: true,
+        subtree: true,
+      });
+      window.addEventListener("openstudio:app-ready", handleRouteReady);
+      hashTargetTimeout = window.setTimeout(
+        stopWaitingForHashTarget,
+        HASH_TARGET_WAIT_MS,
+      );
+
+      // Cover a target mounting between the first lookup and observer setup.
+      scrollToHashTarget();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      stopWaitingForHashTarget();
+    };
+  }, [location.hash, location.pathname]);
 
   useEffect(() => {
     const handleRouteFallback = (event: Event) => {

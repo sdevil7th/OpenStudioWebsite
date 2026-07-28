@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "generate-nam-blog-hero": "node scripts/generate-nam-blog-hero.mjs",
     "sync-blog-images": "node scripts/sync-blog-image-manifest.mjs",
     "generate-image-assets": "node scripts/generate-image-assets.mjs",
     "predev": "npm run sync-blog-images && npm run generate-image-assets",

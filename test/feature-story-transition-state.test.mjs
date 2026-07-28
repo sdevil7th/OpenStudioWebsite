@@ -61,6 +61,8 @@ test("features page uses the canonical story as its only desktop renderer", () =
   assert.doesNotMatch(pageCodeSource, /FeatureSceneCompositorSurface/);
   assert.doesNotMatch(pageCodeSource, /FeatureStoryUnifiedTransition/);
   assert.doesNotMatch(pageCodeSource, /FeatureSceneWebGLStage/);
+  assert.match(pageSource, /prefersReducedMotion/);
+  assert.match(canonicalStorySource, /usePrefersReducedMotion/);
 });
 
 test("canonical chapter title layer replaces the route and stays center anchored", () => {
@@ -70,7 +72,7 @@ test("canonical chapter title layer replaces the route and stays center anchored
   assert.match(canonicalStorySource, /chapter\.introTitle \?\? chapter\.label/);
   assert.match(
     canonicalStorySource,
-    /const titleExitProgress = isActive[\s\S]*revealProgress\(activeProgress, 0\.34, 0\.52\)/,
+    /const titleExitProgress = prefersReducedMotion[\s\S]*revealProgress\(activeProgress, 0\.34, 0\.52\)/,
   );
   assert.match(canonicalStorySource, /\? \(1 - titleExitProgress\) \* 0\.9[\s\S]*: 0/);
   assert.doesNotMatch(canonicalCodeSource, /feature-canonical-story__route/);
@@ -136,6 +138,10 @@ test("feature cinematic copy uses product-facing DAW capability language", () =>
   assert.match(featureSource, /MIDI composition is built into the session/);
   assert.match(featureSource, /Mixing, routing, and metering get a real workstation surface/);
   assert.match(featureSource, /Plugins, pitch, FX, and optional AI stay inside the project/);
+  assert.match(featureSource, /A complete guitar rig, inside the project/);
+  assert.match(featureSource, /NAM A1 \+ A2/);
+  assert.match(featureSource, /The tuner observes the input without joining the audible path/);
+  assert.match(featureSource, /Rich(?:er)? catalog search is not promised/);
   assert.match(featureSource, /Automation, scripting, and delivery close the production loop/);
   assert.match(featureSource, /Multitrack audio and MIDI recording/);
   assert.match(featureSource, /Ripple, razor, takes, and fades/);

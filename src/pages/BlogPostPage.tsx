@@ -6,7 +6,13 @@ import PageSeo from "@/components/PageSeo";
 import { Button } from "@/components/ui/button";
 import { SITE_NAME } from "@/constants/site";
 import { blogPosts, getBlogPostBySlug, getBlogPostJsonLd, getBlogPostUrl } from "@/data/blogs";
+import { getResponsiveImageAttributes } from "@/lib/assetLoading";
 import { cn } from "@/lib/utils";
+
+const BLOG_HERO_SIZES =
+  "(min-width: 1984px) 1920px, (min-width: 768px) calc(100vw - 4rem), calc(100vw - 2rem)";
+const BLOG_INLINE_IMAGE_SIZES =
+  "(min-width: 824px) 760px, (min-width: 768px) calc(100vw - 4rem), calc(100vw - 2rem)";
 
 const markdownComponents: Components = {
   h1: ({ children }) => <h2 className="mt-12 font-headline text-3xl font-bold leading-tight text-white md:text-[2.45rem]">{children}</h2>,
@@ -64,9 +70,20 @@ const markdownComponents: Components = {
   thead: ({ children }) => <thead className="bg-white/[0.06] text-white">{children}</thead>,
   th: ({ children }) => <th className="border-b border-white/10 px-4 py-3 font-mono text-[0.68rem] uppercase tracking-[0.18em]">{children}</th>,
   td: ({ children }) => <td className="border-b border-white/10 px-4 py-3 align-top">{children}</td>,
-  img: ({ alt, src }) => (
-    <img alt={alt ?? ""} className="mt-9 w-full rounded-lg border border-white/10 object-cover" decoding="async" loading="lazy" src={src ?? ""} />
-  ),
+  img: ({ alt, src }) => {
+    const imageSrc = src ?? "";
+
+    return (
+      <img
+        {...getResponsiveImageAttributes(imageSrc, "below-fold", {
+          maxWidth: 1920,
+          sizes: BLOG_INLINE_IMAGE_SIZES,
+        })}
+        alt={alt ?? ""}
+        className="mt-9 block h-auto w-full rounded-lg border border-white/10 object-contain"
+      />
+    );
+  },
 };
 
 const BlogPostPage = () => {
@@ -83,18 +100,19 @@ const BlogPostPage = () => {
       id="main-content"
     >
       <PageSeo
-        description={post.dek}
+        description={post.seoDescription ?? post.dek}
         image={post.image}
         imageAlt={post.imageAlt}
         jsonLd={getBlogPostJsonLd(post)}
+        keywords={post.keywords}
         ogType="article"
         path={getBlogPostUrl(post)}
-        title={`${post.title} | ${SITE_NAME} Blog`}
+        title={post.seoTitle ?? `${post.title} | ${SITE_NAME} Blog`}
       />
 
-      <div className="page-frame-wide pb-24">
-        <article className="mx-auto max-w-5xl pt-3 md:pt-6">
-          <div className="mx-auto max-w-[720px]">
+      <div className="px-4 pb-24 md:px-8">
+        <article className="mx-auto max-w-[1920px] pt-3 md:pt-6">
+          <div className="w-full" data-blog-masthead>
             <Link
               className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/10 bg-black/25 px-4 text-sm font-medium text-white/70 transition hover:border-primary/35 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
               to="/blogs"
@@ -108,10 +126,10 @@ const BlogPostPage = () => {
                 <BookOpen className="h-3.5 w-3.5" />
                 OpenStudio blog
               </div>
-              <h1 className="font-headline text-4xl font-bold leading-[1.08] text-white md:text-[3.45rem] md:leading-[1.04]">
+              <h1 className="max-w-[1200px] font-headline text-4xl font-bold leading-[1.08] text-white md:text-[3.45rem] md:leading-[1.04]">
                 {post.title}
               </h1>
-              <p className="mt-5 text-lg leading-8 text-white/70 md:text-xl md:leading-9">{post.dek}</p>
+              <p className="mt-5 max-w-[960px] text-lg leading-8 text-white/70 md:text-xl md:leading-9">{post.dek}</p>
               <div className="mt-7 flex flex-wrap gap-x-5 gap-y-3 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-white/48">
                 <span className="inline-flex items-center gap-2">
                   <CalendarDays className="h-3.5 w-3.5 text-secondary" />
@@ -126,18 +144,25 @@ const BlogPostPage = () => {
           </div>
 
           {post.image ? (
-            <figure className="mx-auto mt-9 max-w-[880px] overflow-hidden rounded-lg border border-white/10 bg-black/30 md:mt-10">
+            <figure
+              className="mt-9 aspect-[1200/630] w-full overflow-hidden rounded-lg border border-white/10 bg-black/30 md:mt-10"
+              data-blog-hero
+            >
               <img
+                {...getResponsiveImageAttributes(post.image, "hero/eager", {
+                  maxWidth: 3360,
+                  sizes: BLOG_HERO_SIZES,
+                })}
                 alt={post.imageAlt ?? ""}
-                className="aspect-[1200/630] w-full object-cover"
-                decoding="async"
-                loading="eager"
-                src={post.image}
+                className={cn(
+                  "h-full w-full bg-black",
+                  post.imageFit === "contain" ? "object-contain" : "object-cover",
+                )}
               />
             </figure>
           ) : null}
 
-          <div className="mx-auto mt-10 max-w-[680px] md:mt-12">
+          <div className="mx-auto mt-10 max-w-[760px] md:mt-12" data-blog-body>
             <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}>
               {post.articleContent}
             </ReactMarkdown>
@@ -145,7 +170,7 @@ const BlogPostPage = () => {
         </article>
 
         {blogPosts.length > 1 ? (
-          <section className="mx-auto mt-16 max-w-[720px] border-t border-white/10 pt-8">
+          <section className="mx-auto mt-16 max-w-[760px] border-t border-white/10 pt-8">
             <div className="font-mono text-[0.68rem] uppercase tracking-[0.2em] text-primary">Keep reading</div>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               {blogPosts

@@ -65,7 +65,13 @@ export interface ScreenshotAsset {
     | "automationCuratedHero"
     | "automationCuratedSecondary"
     | "automationCuratedDetail"
-    | "automationCuratedMatte";
+    | "automationCuratedMatte"
+    | "namRackHero"
+    | "namRackUi"
+    | "namRackPreFx"
+    | "namRackPostFx"
+    | "tone3000Browser"
+    | "tone3000BrowserMobile";
   src: string;
   alt: string;
   label: string;
@@ -554,6 +560,96 @@ export const screenshots: Record<ScreenshotAsset["id"], ScreenshotAsset> = {
     fit: "cover",
     captionMode: "external",
     purpose: "Derived feature-story automation detail panel.",
+  },
+  namRackHero: {
+    id: "namRackHero",
+    src: "/assets/blogs/building-openstudio-nam-rack.webp",
+    alt: "OpenStudio NAM Rack showing pre-FX pedals, an A2 amp capture, and post-FX pedals.",
+    label: "Complete NAM Rack",
+    caption: "The native pedalboard, A1/A2 capture slot, cabinet stage, and post effects stay inside the DAW project.",
+    required: true,
+    priority: "core",
+    orientation: "wide",
+    displayRatio: 1200 / 630,
+    fit: "contain",
+    captionMode: "external",
+    focalPosition: "center",
+    purpose: "Homepage NAM proof, feature-story matte, blog card, and social sharing image.",
+  },
+  namRackUi: {
+    id: "namRackUi",
+    src: "/assets/blogs/nam-rack-overview.webp",
+    alt: "OpenStudio NAM Rack loaded with an A2 amp capture and capture-library controls.",
+    label: "A1/A2 amp stage",
+    caption: "Load local A1 or A2 amp and full-rig captures, then keep the result with the project.",
+    required: true,
+    priority: "core",
+    orientation: "wide",
+    displayRatio: 1920 / 1080,
+    fit: "cover",
+    captionMode: "external",
+    focalPosition: "center",
+    purpose: "Primary NAM Rack feature-story stage.",
+  },
+  namRackPreFx: {
+    id: "namRackPreFx",
+    src: "/assets/openstudio/screenshots/nam-rack-pre-fx.webp",
+    alt: "OpenStudio NAM Rack pre-effects pedalboard with compressor, tape echo, octaver, drive, and distortion pedals.",
+    label: "Native pre-FX",
+    caption: "Hardware-style native pedals shape the input before it reaches the NAM capture.",
+    required: true,
+    priority: "core",
+    orientation: "wide",
+    displayRatio: 1600 / 802,
+    fit: "cover",
+    captionMode: "external",
+    focalPosition: "center",
+    purpose: "NAM Rack motion fragment and native pedalboard proof.",
+  },
+  namRackPostFx: {
+    id: "namRackPostFx",
+    src: "/assets/openstudio/screenshots/nam-rack-post-fx.webp",
+    alt: "OpenStudio NAM Rack post-effects pedalboard with modulation, stereo delay, reverb, and shimmer controls.",
+    label: "Studio post-FX",
+    caption: "EQ, modulation, delay, reverb, and shimmer finish the recorded sound after the cabinet stage.",
+    required: true,
+    priority: "core",
+    orientation: "wide",
+    displayRatio: 1600 / 802,
+    fit: "cover",
+    captionMode: "external",
+    focalPosition: "center",
+    purpose: "NAM Rack detail fragment and post-effects proof.",
+  },
+  tone3000Browser: {
+    id: "tone3000Browser",
+    src: "/assets/openstudio/screenshots/tone3000-browser.webp",
+    alt: "OpenStudio TONE3000 review interface showing an A2 capture audition route.",
+    label: "TONE3000 account delivery",
+    caption: "Development review UI with deterministic mock records; production delivery remains authenticated and license-aware.",
+    required: true,
+    priority: "recommended",
+    orientation: "wide",
+    displayRatio: 1460 / 690,
+    fit: "cover",
+    captionMode: "external",
+    focalPosition: "center",
+    purpose: "Desktop TONE3000 integration explanation.",
+  },
+  tone3000BrowserMobile: {
+    id: "tone3000BrowserMobile",
+    src: "/assets/openstudio/screenshots/tone3000-browser-mobile.webp",
+    alt: "Mobile crop of the OpenStudio TONE3000 review interface showing bounded capture lists and A1/A2 filters.",
+    label: "TONE3000 capture list",
+    caption: "A mobile crop of the same development review UI with deterministic mock records.",
+    required: true,
+    priority: "recommended",
+    orientation: "portrait",
+    displayRatio: 380 / 520,
+    fit: "cover",
+    captionMode: "external",
+    focalPosition: "center",
+    purpose: "Mobile TONE3000 integration explanation.",
   },
 };
 

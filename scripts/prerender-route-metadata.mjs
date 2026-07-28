@@ -1,6 +1,8 @@
 import fs from "node:fs/promises";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import sharp from "sharp";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const distRoot = path.join(repoRoot, "dist");
@@ -9,9 +11,66 @@ const publicBlogAssetsRoot = path.join(repoRoot, "public", "assets", "blogs");
 const siteUrl = "https://openstudio.org.in";
 const siteName = "OpenStudio";
 const image = `${siteUrl}/assets/openstudio/branding/og-image.png?v=2`;
+const defaultImageMetadata = {
+  height: 630,
+  width: 1200,
+};
+const readPublicImageMetadata = async (filePath, publicPath) => {
+  const [source, metadata] = await Promise.all([
+    fs.readFile(filePath),
+    sharp(filePath, { limitInputPixels: false }).metadata(),
+  ]);
+
+  if (!metadata.width || !metadata.height) {
+    throw new Error(`Unable to determine social image dimensions: ${filePath}`);
+  }
+
+  const hash = createHash("sha256")
+    .update(source)
+    .digest("hex")
+    .slice(0, 14);
+  const url = new URL(publicPath, siteUrl);
+  url.searchParams.set("v", hash);
+
+  return {
+    filename: path.basename(filePath),
+    height: metadata.height,
+    src: url.toString(),
+    width: metadata.width,
+  };
+};
+const namRackImageMetadata = await readPublicImageMetadata(
+  path.join(publicBlogAssetsRoot, "building-openstudio-nam-rack.webp"),
+  "/assets/blogs/building-openstudio-nam-rack.webp",
+);
+const namRackImage = namRackImageMetadata.src;
+const namRackImageAlt =
+  "OpenStudio NAM Rack showing pre-FX pedals, an A2 amp capture, and post-FX pedals.";
 const staticLastmod = "2026-06-09";
+const namRackContentLastmod = "2026-07-27";
 const wordsPerMinute = 225;
 const blogImageExtensions = ["png", "jpg", "jpeg", "webp"];
+const namRackKeywords = [
+  "free guitar amp simulator",
+  "free guitar rig",
+  "open-source amp simulator",
+  "NAM A2 player",
+  "Neural Amp Modeler DAW",
+  "AmpliTube alternative",
+  "Guitar Rig alternative",
+  "Neural DSP alternative",
+  "free amp capture software",
+  "TONE3000 integration",
+];
+const blogPostSeoOverrides = {
+  "building-openstudio-nam-rack": {
+    title: "Building a Free NAM Guitar Rig Inside OpenStudio | OpenStudio Blog",
+    description:
+      "How OpenStudio’s free NAM guitar rig brings A1/A2 captures, native pedals, cabinet IRs, TONE3000 access, presets, and project recall into one open-source DAW.",
+    imageAlt: namRackImageAlt,
+    keywords: namRackKeywords.join(", "),
+  },
+};
 
 const sitemapMetadata = new Map([
   ["/", { changefreq: "weekly", priority: "1.0" }],
@@ -30,19 +89,89 @@ const sitemapMetadata = new Map([
 const baseRoutes = [
   {
     path: "/",
-    title: "OpenStudio | Free Open Source DAW for Music Production",
+    title: "OpenStudio | Free Open-Source DAW with a Built-In Guitar Rig",
     description:
-      "OpenStudio is a free, open source DAW and alternative to Cubase, Pro Tools, Reaper, Ableton Live, FL Studio, Logic Pro, Studio One, and Bitwig with optional local AI audio tools.",
+      "Record with a free, open-source DAW featuring a built-in Neural Amp Modeler guitar rig, A1/A2 captures, native pedals, cabinet IRs, mixing, and render.",
     keywords:
-      "free daw, open source daw, Cubase alternative, alternative to Cubase, Pro Tools alternative, alternative to Pro Tools, Reaper alternative, alternative to Reaper, Ableton Live alternative, alternative to Ableton Live, FL Studio alternative, alternative to FL Studio, Logic Pro alternative, alternative to Logic Pro, Studio One alternative, alternative to Studio One, Bitwig Studio alternative, alternative to Bitwig, Reason alternative, GarageBand alternative, Audacity alternative, Cakewalk alternative, Waveform alternative, Mixcraft alternative, Suno AI alternative, alternative to Suno AI, Suno AI killer, Udio alternative, alternative to Udio, ElevenLabs Music alternative, alternative to ElevenLabs Music, Eleven Music alternative, Stable Audio 3 alternative, Google MusicFX alternative, Google Lyria alternative, MiniMax Music alternative, Mureka alternative, Sonauto alternative, AIVA alternative, Beatoven.ai alternative, Mubert alternative, Soundraw alternative, Boomy alternative, music production software, digital audio workstation, audio editing software, music making software, daw free, free music production software, daw windows, daw mac, daw linux",
+      `free daw, open source daw, ${namRackKeywords.join(", ")}, Cubase alternative, alternative to Cubase, Pro Tools alternative, alternative to Pro Tools, Reaper alternative, alternative to Reaper, Ableton Live alternative, alternative to Ableton Live, FL Studio alternative, alternative to FL Studio, Logic Pro alternative, alternative to Logic Pro, Studio One alternative, alternative to Studio One, Bitwig Studio alternative, alternative to Bitwig, Reason alternative, GarageBand alternative, Audacity alternative, Cakewalk alternative, Waveform alternative, Mixcraft alternative, Suno AI alternative, alternative to Suno AI, Suno AI killer, Udio alternative, alternative to Udio, ElevenLabs Music alternative, alternative to ElevenLabs Music, Eleven Music alternative, Stable Audio 3 alternative, Google MusicFX alternative, Google Lyria alternative, MiniMax Music alternative, Mureka alternative, Sonauto alternative, AIVA alternative, Beatoven.ai alternative, Mubert alternative, Soundraw alternative, Boomy alternative, music production software, digital audio workstation, audio editing software, music making software, daw free, free music production software, daw windows, daw mac, daw linux`,
+    image: namRackImage,
+    imageAlt: namRackImageAlt,
+    imageHeight: namRackImageMetadata.height,
+    imageWidth: namRackImageMetadata.width,
+    lastmod: namRackContentLastmod,
+    jsonLd: [
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        name: "OpenStudio",
+        applicationCategory: "MultimediaApplication",
+        applicationSubCategory: "DigitalAudioWorkstation",
+        operatingSystem: ["Windows 10", "Windows 11", "macOS", "Linux"],
+        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        description:
+          "Free, open-source DAW for Windows, macOS, and Linux with a built-in Neural Amp Modeler guitar rig, recording, MIDI, plugin hosting, audio editing, mixing, and optional AI workflows.",
+        featureList: [
+          "Multi-track recording",
+          "MIDI instruments",
+          "Built-in Neural Amp Modeler A1/A2 guitar rack",
+          "Native pre-effects pedalboard and cabinet IR stage",
+          "NAM Rack presets, A/B comparison, project recall, and offline render",
+          "Optional authenticated TONE3000 model delivery",
+          "Graphical pitch editing",
+          "AI stem separation",
+          "ACE-Step text-to-music",
+          "Optional Stable Audio 3 text-to-audio",
+          "Plugin hosting (VST3, CLAP, LV2, ARA2)",
+          "Automation lanes",
+          "Audio editing and mixing",
+        ],
+        downloadUrl: `${siteUrl}/download`,
+        url: siteUrl,
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: [
+          {
+            "@type": "Question",
+            name: "Is OpenStudio free?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "Yes, OpenStudio is completely free and open source.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "What operating systems does OpenStudio support?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "Windows 10/11, macOS, and Linux.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "What plugins does OpenStudio support?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "VST3, CLAP, LV2, and ARA2.",
+            },
+          },
+        ],
+      },
+    ],
   },
   {
     path: "/features",
-    title: "OpenStudio Features | Recording, MIDI, Mixing & AI Tools",
+    title: "OpenStudio Features | Free NAM A2 Guitar Rig & Full DAW",
     description:
-      "Explore OpenStudio features for an alternative to Cubase, Pro Tools, Reaper, Ableton Live, FL Studio, Logic Pro, Studio One, and Bitwig with recording, MIDI, mixing, plugins, and AI tools.",
+      "Explore OpenStudio’s free NAM A1/A2 guitar rig, native pedals, cabinet IRs, TONE3000 access, recording, mixing, automation, and offline render.",
     keywords:
-      "daw features, Cubase alternative, alternative to Cubase, Pro Tools alternative, alternative to Pro Tools, Reaper alternative, alternative to Reaper, Ableton Live alternative, alternative to Ableton Live, FL Studio alternative, alternative to FL Studio, Logic Pro alternative, alternative to Logic Pro, Studio One alternative, alternative to Studio One, Bitwig Studio alternative, alternative to Bitwig, Reason alternative, GarageBand alternative, Audacity alternative, Cakewalk alternative, Waveform alternative, Mixcraft alternative, Suno AI alternative, alternative to Suno AI, Suno AI killer, Udio alternative, alternative to Udio, ElevenLabs Music alternative, alternative to ElevenLabs Music, Stable Audio 3 alternative, Google MusicFX alternative, Google Lyria alternative, MiniMax Music alternative, Mureka alternative, Sonauto alternative, AIVA alternative, Beatoven.ai alternative, Mubert alternative, Soundraw alternative, Boomy alternative, music production software, audio editing software, midi software, plugin hosting daw, stem separation daw",
+      `daw features, ${namRackKeywords.join(", ")}, Cubase alternative, alternative to Cubase, Pro Tools alternative, alternative to Pro Tools, Reaper alternative, alternative to Reaper, Ableton Live alternative, alternative to Ableton Live, FL Studio alternative, alternative to FL Studio, Logic Pro alternative, alternative to Logic Pro, Studio One alternative, alternative to Studio One, Bitwig Studio alternative, alternative to Bitwig, Reason alternative, GarageBand alternative, Audacity alternative, Cakewalk alternative, Waveform alternative, Mixcraft alternative, Suno AI alternative, alternative to Suno AI, Suno AI killer, Udio alternative, alternative to Udio, ElevenLabs Music alternative, alternative to ElevenLabs Music, Stable Audio 3 alternative, music production software, audio editing software, midi software, plugin hosting daw, stem separation daw`,
+    image: namRackImage,
+    imageAlt: namRackImageAlt,
+    imageHeight: namRackImageMetadata.height,
+    imageWidth: namRackImageMetadata.width,
+    lastmod: namRackContentLastmod,
   },
   {
     path: "/download",
@@ -154,16 +283,31 @@ const getSlugParts = (filename) => {
   };
 };
 
-const getBlogAssetUrl = (imageFilename) => `${siteUrl}/assets/blogs/${encodeURIComponent(imageFilename)}`;
-
 const collectPublicBlogImages = async () => {
   try {
     const entries = await fs.readdir(publicBlogAssetsRoot, { withFileTypes: true });
-    return new Map(
-      entries
-        .filter((entry) => entry.isFile() && blogImageExtensions.includes(path.extname(entry.name).slice(1).toLowerCase()))
-        .map((entry) => [path.basename(entry.name, path.extname(entry.name)).toLowerCase(), entry.name]),
+    const imageEntries = entries.filter(
+      (entry) =>
+        entry.isFile() &&
+        blogImageExtensions.includes(
+          path.extname(entry.name).slice(1).toLowerCase(),
+        ),
     );
+    const metadataEntries = await Promise.all(
+      imageEntries.map(async (entry) => {
+        const metadata = await readPublicImageMetadata(
+          path.join(publicBlogAssetsRoot, entry.name),
+          `/assets/blogs/${encodeURIComponent(entry.name)}`,
+        );
+
+        return [
+          path.basename(entry.name, path.extname(entry.name)).toLowerCase(),
+          metadata,
+        ];
+      }),
+    );
+
+    return new Map(metadataEntries);
   } catch {
     return new Map();
   }
@@ -177,7 +321,9 @@ const getPostImage = (slug, publicBlogImages) => {
   }
 
   return {
-    imageUrl: getBlogAssetUrl(candidate),
+    imageHeight: candidate.height,
+    imageUrl: candidate.src,
+    imageWidth: candidate.width,
   };
 };
 
@@ -242,11 +388,16 @@ const collectBlogPosts = async (publicBlogImages) => {
         const { date, slug } = getSlugParts(entry.name);
         const wordCount = getWordCount(content);
         const postImage = getPostImage(slug, publicBlogImages);
+        const seoOverride = blogPostSeoOverrides[slug];
 
         return {
           slug,
           title: getTitle(content, slug),
           summary: getSummary(content),
+          seoDescription: seoOverride?.description,
+          seoTitle: seoOverride?.title,
+          imageAlt: seoOverride?.imageAlt,
+          keywords: seoOverride?.keywords,
           date,
           wordCount,
           readTimeMinutes: Math.max(1, Math.ceil(wordCount / wordsPerMinute)),
@@ -308,7 +459,7 @@ const getDefaultJsonLd = (route, url) => ({
   name: route.title,
   description: route.description,
   url,
-  image,
+  image: route.image ?? image,
   isPartOf: {
     "@type": "WebSite",
     name: siteName,
@@ -329,6 +480,10 @@ const writeRoute = async (template, route) => {
   const url = new URL(route.path, siteUrl).toString();
   const routeImage = route.image ?? image;
   const routeImageAlt = route.imageAlt ?? `${siteName} share image`;
+  const routeImageHeight =
+    route.imageHeight ?? defaultImageMetadata.height;
+  const routeImageWidth =
+    route.imageWidth ?? defaultImageMetadata.width;
   let html = setTitle(template, route.title);
 
   html = setMeta(html, ["name", "description"], route.description);
@@ -339,9 +494,20 @@ const writeRoute = async (template, route) => {
   html = setMeta(html, ["property", "og:url"], url);
   html = setMeta(html, ["property", "og:image"], routeImage);
   html = setMeta(html, ["property", "og:image:alt"], routeImageAlt);
+  html = setMeta(
+    html,
+    ["property", "og:image:width"],
+    String(routeImageWidth),
+  );
+  html = setMeta(
+    html,
+    ["property", "og:image:height"],
+    String(routeImageHeight),
+  );
   html = setMeta(html, ["name", "twitter:title"], route.title);
   html = setMeta(html, ["name", "twitter:description"], route.description);
   html = setMeta(html, ["name", "twitter:image"], routeImage);
+  html = setMeta(html, ["name", "twitter:image:alt"], routeImageAlt);
   html = setCanonical(html, url);
   html = setRouteJsonLd(html, route, url);
 
@@ -409,11 +575,17 @@ const blogIndexRoute = {
 
 const blogPostRoutes = blogPosts.map((post) => ({
   path: `/blogs/${post.slug}`,
-  title: `${post.title} | ${siteName} Blog`,
-  description: post.summary,
+  title: post.seoTitle ?? `${post.title} | ${siteName} Blog`,
+  description: post.seoDescription ?? post.summary,
   image: post.imageUrl,
-  imageAlt: post.imageUrl ? `${post.title} social share image` : undefined,
-  keywords: `openstudio blog, ${post.title}, open source daw, audio software engineering`,
+  imageHeight: post.imageHeight,
+  imageAlt:
+    post.imageAlt ??
+    (post.imageUrl ? `${post.title} social share image` : undefined),
+  imageWidth: post.imageWidth,
+  keywords:
+    post.keywords ??
+    `openstudio blog, ${post.title}, open source daw, audio software engineering`,
   ogType: "article",
   lastmod: post.date ?? staticLastmod,
   changefreq: "monthly",
@@ -422,7 +594,7 @@ const blogPostRoutes = blogPosts.map((post) => ({
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     headline: post.title,
-    description: post.summary,
+    description: post.seoDescription ?? post.summary,
     url: new URL(`/blogs/${post.slug}`, siteUrl).toString(),
     image: post.imageUrl ?? image,
     wordCount: post.wordCount,

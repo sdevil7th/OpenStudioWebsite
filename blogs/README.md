@@ -30,7 +30,8 @@ The date prefix is optional. If present, it is used as the post date and strippe
 
 Add a unique social image for every new post so WhatsApp, LinkedIn, X, and other preview unfurlers do not all show the generic OpenStudio card. The same image is also shown on the blog card and post hero.
 
-- Required size: `1200x630`.
+- Minimum size: `1200x630`.
+- Preferred master size: `3360x1764` for a crisp 80%-viewport post hero on 4K displays.
 - Recommended format: `.webp`.
 - Keep the image in `public/assets/blogs/`.
 - Name the image with the public blog slug.
@@ -44,7 +45,7 @@ public/assets/blogs/ara2-hosting-challenges.webp
 
 For dated posts, the slug excludes the date prefix. If no matching image exists, the post still publishes and falls back to the default OpenStudio social image without rendering a broken visible image.
 
-Run `npm run sync-blog-images` after adding or removing blog images so the React image manifest stays in sync. `npm run dev` and `npm run build` also run this automatically.
+Run `npm run sync-blog-images` after adding or removing blog images so the React image manifest stays in sync. The build also creates responsive 320–3360px candidates: small screens receive a small file, while wide and high-density displays can select a larger one. `npm run dev` and `npm run build` run both steps automatically.
 
 ## Recommended Structure
 

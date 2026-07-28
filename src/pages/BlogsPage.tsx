@@ -3,8 +3,14 @@ import { Link } from "react-router-dom";
 import PageSeo from "@/components/PageSeo";
 import SectionReveal from "@/components/motion/SectionReveal";
 import { blogPosts, blogsSeo, getBlogIndexJsonLd, getBlogPostUrl } from "@/data/blogs";
+import { getResponsiveImageAttributes } from "@/lib/assetLoading";
+import { cn } from "@/lib/utils";
 
 const [featuredPost, ...archivePosts] = blogPosts;
+const FEATURED_BLOG_IMAGE_SIZES =
+  "(min-width: 2048px) 920px, (min-width: 1024px) 50vw, calc(100vw - 2rem)";
+const BLOG_CARD_IMAGE_SIZES =
+  "(min-width: 2048px) 600px, (min-width: 1280px) 30vw, (min-width: 768px) 45vw, calc(100vw - 2rem)";
 
 const BlogsPage = () => (
   <main
@@ -39,11 +45,17 @@ const BlogsPage = () => (
                 {featuredPost.image ? (
                   <div className="relative aspect-[1200/630] overflow-hidden bg-black/35 lg:aspect-auto lg:min-h-[26rem]">
                     <img
+                      {...getResponsiveImageAttributes(featuredPost.image, "hero/eager", {
+                        maxWidth: 1920,
+                        sizes: FEATURED_BLOG_IMAGE_SIZES,
+                      })}
                       alt={featuredPost.imageAlt ?? ""}
-                      className="h-full w-full object-cover opacity-[0.9] transition duration-500 group-hover:scale-[1.02] group-hover:opacity-100"
-                      decoding="async"
-                      loading="eager"
-                      src={featuredPost.image}
+                      className={cn(
+                        "h-full w-full bg-black opacity-[0.9] transition duration-500 group-hover:scale-[1.02] group-hover:opacity-100",
+                        featuredPost.imageFit === "contain"
+                          ? "object-contain"
+                          : "object-cover",
+                      )}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/52 via-transparent to-black/10" />
                   </div>
@@ -102,11 +114,17 @@ const BlogsPage = () => (
                     {post.image ? (
                       <div className="relative aspect-[1200/630] overflow-hidden bg-black/35">
                         <img
+                          {...getResponsiveImageAttributes(post.image, "below-fold", {
+                            maxWidth: 1280,
+                            sizes: BLOG_CARD_IMAGE_SIZES,
+                          })}
                           alt={post.imageAlt ?? ""}
-                          className="h-full w-full object-cover opacity-[0.88] transition duration-500 group-hover:scale-[1.025] group-hover:opacity-100"
-                          decoding="async"
-                          loading="lazy"
-                          src={post.image}
+                          className={cn(
+                            "h-full w-full bg-black opacity-[0.88] transition duration-500 group-hover:scale-[1.025] group-hover:opacity-100",
+                            post.imageFit === "contain"
+                              ? "object-contain"
+                              : "object-cover",
+                          )}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/46 via-transparent to-black/10" />
                       </div>

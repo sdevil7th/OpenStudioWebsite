@@ -30,9 +30,41 @@ export interface BlogPost {
   readTimeMinutes: number;
   image?: string;
   imageAlt?: string;
+  imageFit?: "cover" | "contain";
+  keywords?: string[];
+  seoDescription?: string;
+  seoTitle?: string;
   date?: string;
   dateLabel?: string;
 }
+
+type BlogPostSeoOverride = Pick<
+  BlogPost,
+  "imageAlt" | "imageFit" | "keywords" | "seoDescription" | "seoTitle"
+>;
+
+export const blogPostSeoOverrides: Record<string, BlogPostSeoOverride> = {
+  "building-openstudio-nam-rack": {
+    seoTitle: "Building a Free NAM Guitar Rig Inside OpenStudio | OpenStudio Blog",
+    seoDescription:
+      "How OpenStudio’s free NAM guitar rig brings A1/A2 captures, native pedals, cabinet IRs, TONE3000 access, presets, and project recall into one open-source DAW.",
+    imageAlt:
+      "OpenStudio NAM Rack showing pre-FX pedals, an A2 amp capture, and post-FX pedals.",
+    imageFit: "contain",
+    keywords: [
+      "free guitar amp simulator",
+      "free guitar rig",
+      "open-source amp simulator",
+      "NAM A2 player",
+      "Neural Amp Modeler DAW",
+      "AmpliTube alternative",
+      "Guitar Rig alternative",
+      "Neural DSP alternative",
+      "free amp capture software",
+      "TONE3000 integration",
+    ],
+  },
+};
 
 export const blogsSeo: SeoMeta = {
   title: "OpenStudio Blog | Engineering Notes from an Open Source DAW",
@@ -189,6 +221,7 @@ const createBlogPost = ([sourcePath, content]: [string, string]): BlogPost | nul
   const title = getTitle(content, slug);
   const dek = getDek(content);
   const postImage = getPostImage(slug);
+  const seoOverride = blogPostSeoOverrides[slug];
 
   return {
     slug,
@@ -202,7 +235,13 @@ const createBlogPost = ([sourcePath, content]: [string, string]): BlogPost | nul
     wordCount,
     readTimeMinutes: Math.max(1, Math.ceil(wordCount / WORDS_PER_MINUTE)),
     image: postImage,
-    imageAlt: postImage ? `${title} social share image` : undefined,
+    imageAlt:
+      seoOverride?.imageAlt ??
+      (postImage ? `${title} social share image` : undefined),
+    imageFit: seoOverride?.imageFit,
+    keywords: seoOverride?.keywords,
+    seoDescription: seoOverride?.seoDescription,
+    seoTitle: seoOverride?.seoTitle,
     date,
     dateLabel: getDateLabel(date),
   };
@@ -252,10 +291,12 @@ export const getBlogPostJsonLd = (post: BlogPost) => ({
   "@context": "https://schema.org",
   "@type": "BlogPosting",
   headline: post.title,
-  description: post.summary,
+  description: post.seoDescription ?? post.summary,
   url: new URL(getBlogPostUrl(post), SITE_URL).toString(),
   image: new URL(post.image ?? SITE_OG_IMAGE, SITE_URL).toString(),
   wordCount: post.wordCount,
+  timeRequired: `PT${post.readTimeMinutes}M`,
+  ...(post.keywords ? { keywords: post.keywords.join(", ") } : {}),
   isPartOf: {
     "@type": "Blog",
     name: `${SITE_NAME} Blog`,

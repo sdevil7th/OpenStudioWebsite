@@ -167,7 +167,7 @@ test("homepage atmosphere is full-bleed and first input does not force heavy scr
   assert.match(gsapSource, /runOnInput = false/);
   assert.match(smoothScrollSource, /runOnInput: false/);
   assert.match(shellSource, /lenisRef/);
-  assert.match(shellSource, /\[location\.pathname\]/);
+  assert.match(shellSource, /\[location\.hash, location\.pathname\]/);
   assert.doesNotMatch(shellSource, /\[lenis,\s*location\.pathname\]/);
 });
 
@@ -211,7 +211,7 @@ test("heavy route dependencies are deferred behind polished surfaces", () => {
   assert.match(assetLoadingSource, /generatedImagePath/);
   assert.match(assetLoadingSource, /netlifyImageCdnUrl/);
   assert.match(assetLoadingSource, /getResponsiveImageAttributes/);
-  assert.match(assetLoadingSource, /\[320, 480, 640, 768, 960, 1280, 1600\]/);
+  assert.match(assetLoadingSource, /\[320, 480, 640, 768, 960, 1280, 1600, 1920, 2560, 3200, 3360\]/);
   assert.match(assetGraphqlSource, /assets-graphql/);
   assert.match(assetGraphqlSource, /OpenStudioImagePlan/);
   assert.match(assetGraphqlFunctionSource, /buildAssetPlan/);

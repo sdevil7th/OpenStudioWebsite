@@ -1,11 +1,13 @@
 import {
   generatedImagePath,
+  intrinsicImageDimensions,
   maxWidthForTier,
   nearestGeneratedWidth,
   netlifyImageCdnUrl,
   selectImageWidth,
   shouldUseCdnForHost,
   supportsImageOptimization,
+  withVersionQuery,
   type AssetPriorityTier,
   type AssetSlotKind,
 } from "../../shared/asset-image-plan";
@@ -13,7 +15,7 @@ import { generatedImageIndex } from "@/lib/generatedImageIndex";
 
 export type { AssetPriorityTier, AssetSlotKind };
 
-const GENERATED_WIDTHS = [320, 480, 640, 768, 960, 1280, 1600] as const;
+const GENERATED_WIDTHS = [320, 480, 640, 768, 960, 1280, 1600, 1920, 2560, 3200, 3360] as const;
 
 type GeneratedImageVariant = {
   src: string;
@@ -23,6 +25,8 @@ type GeneratedImageVariant = {
 type GeneratedImageEntry = {
   aspectRatio?: number;
   hash?: string;
+  intrinsicHeight?: number;
+  intrinsicWidth: number;
   variants: GeneratedImageVariant[];
   width: number;
 };
@@ -93,14 +97,18 @@ const manifestEntryFor = (src: string): GeneratedImageEntry | undefined => {
     return undefined;
   }
 
+  const intrinsicDimensions = intrinsicImageDimensions(entry[0], entry[1] || undefined);
+
   return {
     aspectRatio: entry[1] || undefined,
     hash: entry[2] || undefined,
+    intrinsicHeight: intrinsicDimensions.height,
+    intrinsicWidth: intrinsicDimensions.width,
     variants: entry[3].map((variant) => ({
       src: variant[1],
       width: variant[0],
     })),
-    width: entry[0],
+    width: Math.max(entry[0], ...entry[3].map((variant) => variant[0])),
   };
 };
 
@@ -114,7 +122,7 @@ const selectManifestVariant = (src: string, targetWidth: number) => {
 };
 
 const withManifestVersion = (src: string, entry: GeneratedImageEntry | undefined) =>
-  entry?.hash ? `${src}?v=${entry.hash}` : src;
+  withVersionQuery(src, entry?.hash);
 
 const getGeneratedVariantSrc = (src: string, targetWidth: number) => {
   const entry = manifestEntryFor(src);
@@ -216,9 +224,15 @@ export const getResponsiveImageAttributes = (
     maxWidth = tier === "hero/eager" ? 1600 : 1280,
     sizes = "100vw",
   }: { maxWidth?: number; sizes?: string } = {},
-) => ({
-  ...getImageLoadingAttributes(tier),
-  sizes,
-  src: getOptimizedImageSrc(src, tier, maxWidth),
-  srcSet: getOptimizedSourceSet(src, maxWidth),
-});
+) => {
+  const entry = manifestEntryFor(src);
+
+  return {
+    ...getImageLoadingAttributes(tier),
+    height: entry?.intrinsicHeight,
+    sizes,
+    src: getOptimizedImageSrc(src, tier, maxWidth),
+    srcSet: getOptimizedSourceSet(src, maxWidth),
+    width: entry?.intrinsicWidth,
+  };
+};

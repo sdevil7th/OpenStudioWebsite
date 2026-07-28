@@ -1,17 +1,25 @@
 import fs from "node:fs/promises";
 import { createHash } from "node:crypto";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
 const repoRoot = path.resolve(import.meta.dirname, "..");
-const sourceRoot = path.join(repoRoot, "public", "assets", "openstudio");
-const generatedRoot = path.join(sourceRoot, "generated");
+const publicAssetsRoot = path.join(repoRoot, "public", "assets");
+const openstudioSourceRoot = path.join(publicAssetsRoot, "openstudio");
+const blogAssetsRoot = path.join(publicAssetsRoot, "blogs");
+const generatedRoot = path.join(openstudioSourceRoot, "generated");
 const manifestPath = path.join(generatedRoot, "image-manifest.json");
+const generatedIndexPath = path.join(repoRoot, "src", "lib", "generatedImageIndex.ts");
 
 const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp"]);
-const WIDTHS = [320, 480, 640, 768, 960, 1280, 1600];
+const STANDARD_WIDTHS = [320, 480, 640, 768, 960, 1280, 1600];
+const BLOG_WIDTHS = [...STANDARD_WIDTHS, 1920, 2560, 3200, 3360];
+const HIGH_RESOLUTION_BLOG_MASTERS = new Set([
+  "/assets/blogs/building-openstudio-nam-rack.webp",
+]);
 const REFERENCE_ROOTS = ["src", "index.html"];
-const SOURCE_DIRS = [
+const OPENSTUDIO_SOURCE_DIRS = [
   "screenshots",
   "feature-story",
   path.join("feature-story", "transitions"),
@@ -50,8 +58,28 @@ const collectImages = async (directory) => {
   return images;
 };
 
+const assetLocationFor = (sourcePath) => {
+  if (isInside(sourcePath, blogAssetsRoot)) {
+    const relative = path.relative(blogAssetsRoot, sourcePath);
+    return {
+      generatedRelative: path.join("blogs", relative),
+      publicPath: `/assets/blogs/${toPosix(relative)}`,
+    };
+  }
+
+  if (isInside(sourcePath, openstudioSourceRoot)) {
+    const relative = path.relative(openstudioSourceRoot, sourcePath);
+    return {
+      generatedRelative: relative,
+      publicPath: `/assets/openstudio/${toPosix(relative)}`,
+    };
+  }
+
+  throw new Error(`Image source is outside configured asset roots: ${sourcePath}`);
+};
+
 const outputPathFor = (sourcePath, width) => {
-  const relative = path.relative(sourceRoot, sourcePath);
+  const relative = assetLocationFor(sourcePath).generatedRelative;
   const parsed = path.parse(relative);
   const extensionToken = parsed.ext.slice(1).toLowerCase();
   return path.join(generatedRoot, parsed.dir, `${parsed.name}-${extensionToken}-${width}.webp`);
@@ -59,7 +87,22 @@ const outputPathFor = (sourcePath, width) => {
 
 const publicPathFor = (filePath) => `/assets/openstudio/generated/${toPosix(path.relative(generatedRoot, filePath))}`;
 
-const sourcePublicPathFor = (filePath) => `/assets/openstudio/${toPosix(path.relative(sourceRoot, filePath))}`;
+const sourcePublicPathFor = (filePath) => assetLocationFor(filePath).publicPath;
+
+export const selectVariantWidths = (candidateWidths, sourceWidth) => {
+  const validSourceWidth =
+    Number.isFinite(sourceWidth) && sourceWidth > 0 ? Math.round(sourceWidth) : 960;
+  const maximumGeneratedWidth =
+    candidateWidths[candidateWidths.length - 1] ?? validSourceWidth;
+  const terminalWidth = Math.min(validSourceWidth, maximumGeneratedWidth);
+
+  return [
+    ...new Set([
+      ...candidateWidths.filter((width) => width <= terminalWidth),
+      terminalWidth,
+    ]),
+  ].sort((first, second) => first - second);
+};
 
 const hashFile = async (filePath) => {
   const source = await fs.readFile(filePath);
@@ -95,7 +138,7 @@ const collectReferenceFiles = async (targetPath) => {
 const collectReferencedAssetPaths = async () => {
   const files = (await Promise.all(REFERENCE_ROOTS.map(collectReferenceFiles))).flat();
   const references = new Set();
-  const assetPattern = /\/assets\/openstudio\/[^"'()\s?#]+\.(?:png|jpe?g|webp)/gi;
+  const assetPattern = /\/assets\/(?:openstudio|blogs)\/[^"'()\s?#]+\.(?:png|jpe?g|webp)/gi;
 
   for (const filePath of files) {
     const source = await fs.readFile(filePath, "utf8");
@@ -128,7 +171,11 @@ const generateVariant = async (sourcePath, width, metadata, sourceStats) => {
   const hasAlpha = Boolean(metadata.hasAlpha);
   await sharp(sourcePath, { limitInputPixels: false })
     .rotate()
-    .resize({ width, withoutEnlargement: true })
+    .resize({
+      kernel: sharp.kernel.lanczos3,
+      width,
+      withoutEnlargement: true,
+    })
     .webp({
       effort: 4,
       quality: hasAlpha ? 82 : 76,
@@ -166,8 +213,33 @@ const pruneGeneratedFiles = async (directory, keepFiles) => {
   }
 };
 
+const writeGeneratedImageIndex = async (manifest) => {
+  const compactIndex = Object.fromEntries(
+    Object.entries(manifest).map(([source, entry]) => [
+      source,
+      [
+        entry.width,
+        entry.aspectRatio ?? 0,
+        entry.hash ?? "",
+        entry.variants.map((variant) => [variant.width, variant.src]),
+      ],
+    ]),
+  );
+  const output = [
+    "// Generated from public/assets/openstudio/generated/image-manifest.json.",
+    "// Keep this compact: it is imported by runtime image helpers.",
+    `export const generatedImageIndex = ${JSON.stringify(compactIndex)} as const;`,
+    "",
+  ].join("\n");
+
+  await fs.writeFile(generatedIndexPath, output);
+};
+
 const generate = async () => {
-  const resolvedSourceDirs = SOURCE_DIRS.map((directory) => path.join(sourceRoot, directory));
+  const resolvedSourceDirs = [
+    ...OPENSTUDIO_SOURCE_DIRS.map((directory) => path.join(openstudioSourceRoot, directory)),
+    blogAssetsRoot,
+  ];
   const existingSourceDirs = [];
 
   for (const directory of resolvedSourceDirs) {
@@ -198,8 +270,14 @@ const generate = async () => {
     const sourceWidth = metadata.width ?? 0;
     const sourceHeight = metadata.height ?? 0;
     const sourceHash = await hashFile(sourcePath);
-    const widths = WIDTHS.filter((width) => width <= sourceWidth);
-    const selectedWidths = widths.length > 0 ? widths : [Math.max(1, sourceWidth || 960)];
+    const isBlogAsset = isInside(sourcePath, blogAssetsRoot);
+    const isHighResolutionBlogMaster =
+      isBlogAsset &&
+      HIGH_RESOLUTION_BLOG_MASTERS.has(sourcePublicPathFor(sourcePath));
+    const candidateWidths = isHighResolutionBlogMaster
+      ? BLOG_WIDTHS
+      : STANDARD_WIDTHS;
+    const selectedWidths = selectVariantWidths(candidateWidths, sourceWidth);
     const variants = [];
 
     for (const width of selectedWidths) {
@@ -224,8 +302,14 @@ const generate = async () => {
 
   await fs.writeFile(`${manifestPath}.tmp`, `${JSON.stringify(manifest, null, 2)}\n`);
   await fs.rename(`${manifestPath}.tmp`, manifestPath);
+  await writeGeneratedImageIndex(manifest);
   await pruneGeneratedFiles(generatedRoot, keepFiles);
   console.log(`[images] generated ${variantCount} responsive image variants for ${sources.length} source assets.`);
 };
 
-await generate();
+if (
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+  await generate();
+}

@@ -1,5 +1,10 @@
 import { useEffect } from "react";
 import { SITE_NAME, SITE_OG_IMAGE, SITE_URL } from "@/constants/site";
+import { generatedImageIndex } from "@/lib/generatedImageIndex";
+import {
+  intrinsicImageDimensions,
+  withVersionQuery,
+} from "../../shared/asset-image-plan";
 
 interface PageSeoProps {
   title: string;
@@ -58,6 +63,30 @@ const removeKeywordsMeta = () => {
   document.head.querySelector('meta[name="keywords"]')?.remove();
 };
 
+const getSocialImageMetadata = (image: string) => {
+  const imageUrl = new URL(image, SITE_URL);
+  const entry =
+    generatedImageIndex[
+      imageUrl.pathname as keyof typeof generatedImageIndex
+    ];
+
+  if (!entry) {
+    return {
+      height: 630,
+      src: image,
+      width: 1200,
+    };
+  }
+
+  const dimensions = intrinsicImageDimensions(entry[0], entry[1] || undefined);
+
+  return {
+    height: dimensions.height ?? 630,
+    src: withVersionQuery(image, entry[2] || undefined),
+    width: dimensions.width,
+  };
+};
+
 const PageSeo = ({
   title,
   description,
@@ -70,8 +99,10 @@ const PageSeo = ({
 }: PageSeoProps) => {
   useEffect(() => {
     const url = new URL(path, SITE_URL).toString();
-    const imageUrl = new URL(image, SITE_URL).toString();
+    const imageMetadata = getSocialImageMetadata(image);
+    const imageUrl = new URL(imageMetadata.src, SITE_URL).toString();
 
+    document.head.querySelector('script[type="application/ld+json"][data-static-route]')?.remove();
     document.title = title;
     ensureMeta("name", "description").setAttribute("content", description);
     ensureMeta("property", "og:type").setAttribute("content", ogType);
@@ -81,13 +112,20 @@ const PageSeo = ({
     ensureMeta("property", "og:url").setAttribute("content", url);
     ensureMeta("property", "og:image").setAttribute("content", imageUrl);
     ensureMeta("property", "og:image:alt").setAttribute("content", imageAlt);
-    ensureMeta("property", "og:image:width").setAttribute("content", "1200");
-    ensureMeta("property", "og:image:height").setAttribute("content", "630");
+    ensureMeta("property", "og:image:width").setAttribute(
+      "content",
+      String(imageMetadata.width),
+    );
+    ensureMeta("property", "og:image:height").setAttribute(
+      "content",
+      String(imageMetadata.height),
+    );
     ensureMeta("property", "og:locale").setAttribute("content", "en_US");
     ensureMeta("name", "twitter:card").setAttribute("content", "summary_large_image");
     ensureMeta("name", "twitter:title").setAttribute("content", title);
     ensureMeta("name", "twitter:description").setAttribute("content", description);
     ensureMeta("name", "twitter:image").setAttribute("content", imageUrl);
+    ensureMeta("name", "twitter:image:alt").setAttribute("content", imageAlt);
     ensureCanonical().setAttribute("href", url);
 
     if (keywords && keywords.length > 0) {

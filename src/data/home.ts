@@ -2,13 +2,25 @@ import { screenshots } from "@/data/screenshots";
 import type { ActionLink, SeoMeta, StoryStep } from "@/data/marketing";
 
 export const homeSeo: SeoMeta = {
-  title: "OpenStudio | Free Open Source DAW for Music Production",
+  title: "OpenStudio | Free Open-Source DAW with a Built-In Guitar Rig",
   description:
-    "OpenStudio is a free, open source DAW and alternative to Cubase, Pro Tools, Reaper, Ableton Live, FL Studio, Logic Pro, Studio One, and Bitwig with optional local AI audio tools.",
+    "Record with a free, open-source DAW featuring a built-in Neural Amp Modeler guitar rig, A1/A2 captures, native pedals, cabinet IRs, mixing, and render.",
   path: "/",
+  image: screenshots.namRackHero.src,
+  imageAlt: screenshots.namRackHero.alt,
   keywords: [
     "free daw",
     "open source daw",
+    "free guitar amp simulator",
+    "free guitar rig",
+    "open-source amp simulator",
+    "NAM A2 player",
+    "Neural Amp Modeler DAW",
+    "AmpliTube alternative",
+    "Guitar Rig alternative",
+    "Neural DSP alternative",
+    "free amp capture software",
+    "TONE3000 integration",
     "Cubase alternative",
     "alternative to Cubase",
     "Pro Tools alternative",
@@ -70,12 +82,16 @@ export const homeSeo: SeoMeta = {
       operatingSystem: ["Windows 10", "Windows 11", "macOS", "Linux"],
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
       description:
-        "Free, open source DAW for Windows, macOS, and Linux with stem separation, pitch editing, MIDI, plugin hosting, audio editing, mixing, and optional AI audio workflows.",
+        "Free, open-source DAW for Windows, macOS, and Linux with a built-in Neural Amp Modeler guitar rig, recording, MIDI, plugin hosting, audio editing, mixing, and optional AI workflows.",
       keywords:
-        "free daw, open source daw, Cubase alternative, Pro Tools alternative, Reaper alternative, Ableton Live alternative, FL Studio alternative, Logic Pro alternative, Studio One alternative, Bitwig Studio alternative, Suno AI alternative, Suno AI killer, Udio alternative, ElevenLabs Music alternative, Stable Audio 3 alternative, Google MusicFX alternative, music production software, digital audio workstation",
+        "free daw, open source daw, free guitar rig, open-source amp simulator, NAM A2 player, Neural Amp Modeler DAW, AmpliTube alternative, Guitar Rig alternative, Neural DSP alternative, TONE3000 integration, Cubase alternative, Pro Tools alternative, Reaper alternative, Ableton Live alternative, FL Studio alternative, Logic Pro alternative, Studio One alternative, Bitwig Studio alternative, Suno AI alternative, Suno AI killer, Udio alternative, ElevenLabs Music alternative, Stable Audio 3 alternative, music production software, digital audio workstation",
       featureList: [
         "Multi-track recording",
         "MIDI instruments",
+        "Built-in Neural Amp Modeler A1/A2 guitar rack",
+        "Native pre-effects pedalboard and cabinet IR stage",
+        "NAM Rack presets, A/B comparison, project recall, and offline render",
+        "Optional authenticated TONE3000 model delivery",
         "Graphical pitch editing",
         "AI stem separation",
         "ACE-Step text-to-music",
@@ -160,6 +176,21 @@ export const homeProofBarItems = [
   "Input / Track / Master FX",
   "Optional ARA hosting",
 ];
+
+export const homeNamRack = {
+  eyebrow: "Free + open source · Built into the DAW",
+  title: "Your guitar rig is already in the session.",
+  description:
+    "OpenStudio now has a free, built-in guitar rig powered by Neural Amp Modeler, with TONE3000 discovery, native pedals, cabinet IRs, and studio effects inside the DAW.",
+  proof: ["NAM A1 + A2", "Native pedals", "Cabinet IRs", "Project recall"],
+  caveat:
+    "No paid NAM Rack tier. Third-party capture and IR licenses still apply, and authenticated TONE3000 delivery requires a TONE3000 account.",
+  cta: {
+    label: "Explore the NAM Rack",
+    to: "/features#nam-rack",
+  } satisfies ActionLink,
+  screenshot: screenshots.namRackHero,
+};
 
 export const homeAlternativePositioning = {
   eyebrow: "Open source alternative",
