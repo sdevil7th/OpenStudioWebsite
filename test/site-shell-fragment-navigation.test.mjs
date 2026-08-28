@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { mkdtemp, rm } from "node:fs/promises";
 import { createServer as createNetServer } from "node:net";
+import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -30,7 +32,9 @@ test(
   { timeout: 60_000 },
   async () => {
     const port = await getFreePort();
+    const cacheDir = await mkdtemp(resolve(tmpdir(), "openstudio-vite-test-"));
     const server = await createViteServer({
+      cacheDir,
       configFile: resolve(rootDir, "vite.config.ts"),
       logLevel: "error",
       root: rootDir,
@@ -76,6 +80,16 @@ test(
       await featureModuleRequested;
       await page.waitForSelector(".site-shell-route-frame");
       assert.equal(
+        await page.locator(".site-shell-content").getAttribute("data-route-pending"),
+        "true",
+        "the shell should be pending from its first commit",
+      );
+      assert.equal(
+        await page.locator("footer").count(),
+        0,
+        "the footer should not mount beneath an unresolved initial route",
+      );
+      assert.equal(
         await page.locator("#nam-rack").count(),
         0,
         "the hash target should still be absent while the lazy route is held",
@@ -84,6 +98,8 @@ test(
       releaseFeatureModule();
       await navigation;
       await page.waitForSelector("#nam-rack");
+      await page.waitForFunction(() => window.__openstudioAppReady === true);
+      await page.waitForSelector("footer");
       await page.waitForFunction(
         () => {
           const target = document.getElementById("nam-rack");
@@ -101,6 +117,7 @@ test(
       releaseFeatureModule?.();
       await browser?.close();
       await server.close();
+      await rm(cacheDir, { force: true, recursive: true });
     }
   },
 );

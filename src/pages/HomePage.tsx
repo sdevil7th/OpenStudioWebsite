@@ -22,6 +22,7 @@ import {
 import { externalLinks } from "@/data/siteLinks";
 import { trackEvent } from "@/lib/analytics";
 import { getResponsiveImageAttributes } from "@/lib/assetLoading";
+import "@/lib/generatedImageRoutes/home";
 import { useScrollScene } from "@/lib/gsap";
 
 const pillarMedia = [
@@ -429,12 +430,18 @@ const HomePage = () => {
               data-home-origin-media
             >
               <img
+                {...getResponsiveImageAttributes(
+                  designMedia.homeStoryServer.src,
+                  "below-fold",
+                  {
+                    maxWidth: 512,
+                    sizes:
+                      "(min-width: 1280px) 52vw, (min-width: 768px) calc(100vw - 4rem), calc(100vw - 2rem)",
+                  },
+                )}
                 alt={designMedia.homeStoryServer.alt}
                 className="absolute inset-0 h-full w-full object-cover opacity-58 grayscale contrast-125"
                 data-parallax-image
-                decoding="async"
-                loading="lazy"
-                src={designMedia.homeStoryServer.src}
               />
               <div className="absolute inset-0 bg-gradient-to-tr from-black/48 via-black/8 to-secondary/8" />
               <div className="home-origin-license-card">
@@ -482,12 +489,18 @@ const HomePage = () => {
               >
                 <div className="relative aspect-[16/10] overflow-hidden">
                   <img
+                    {...getResponsiveImageAttributes(
+                      step.screenshot.src,
+                      "below-fold",
+                      {
+                        maxWidth: 1600,
+                        sizes:
+                          "(min-width: 1536px) 48vw, (min-width: 768px) calc(100vw - 4rem), calc(100vw - 2rem)",
+                      },
+                    )}
                     alt={step.screenshot.alt}
                     className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
                     data-parallax-image
-                    decoding="async"
-                    loading="lazy"
-                    src={step.screenshot.src}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/10" />
                   <div className="absolute left-5 top-5 design-badge bg-black/40 text-white/75">
@@ -539,12 +552,18 @@ const HomePage = () => {
               >
                 <div className="relative h-56 overflow-hidden rounded-[1.75rem]">
                   <img
+                    {...getResponsiveImageAttributes(
+                      pillarMedia[index]!.src,
+                      "below-fold",
+                      {
+                        maxWidth: 512,
+                        sizes:
+                          "(min-width: 768px) 31vw, calc(100vw - 4rem)",
+                      },
+                    )}
                     alt={pillarMedia[index]!.alt}
                     className="h-full w-full object-cover transition duration-700 hover:scale-105"
                     data-parallax-image
-                    decoding="async"
-                    loading="lazy"
-                    src={pillarMedia[index]!.src}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
                 </div>

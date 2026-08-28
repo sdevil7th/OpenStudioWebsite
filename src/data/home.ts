@@ -28,7 +28,7 @@ export const homeSeo: SeoMeta = {
   description:
     "Free, open-source DAW for multitrack recording, MIDI, plug-in hosting, pitch editing, mixing, and rendering, with a built-in Neural Amp Modeler guitar rig.",
   path: "/",
-  lastModified: "2026-07-28",
+  lastModified: "2026-08-28",
   image: screenshots.namRackHero.src,
   imageAlt: screenshots.namRackHero.alt,
   jsonLd: [

@@ -93,6 +93,7 @@ const makeParticleSystem = (count: number, palette: readonly string[], spread = 
 };
 
 const AiSignalWebGLStage = ({ className, progressRef, sectionPhaseRef }: AiSignalWebGLStageProps) => {
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fallbackProgress = useRef(0);
   const fallbackPhase = useRef(0);
@@ -109,6 +110,8 @@ const AiSignalWebGLStage = ({ className, progressRef, sectionPhaseRef }: AiSigna
     let renderer: THREE.WebGLRenderer | undefined;
     let frameId = 0;
     let disposed = false;
+    let inView = true;
+    let visibilityObserver: IntersectionObserver | undefined;
 
     try {
       renderer = new THREE.WebGLRenderer({
@@ -205,7 +208,14 @@ const AiSignalWebGLStage = ({ className, progressRef, sectionPhaseRef }: AiSigna
       camera.updateProjectionMatrix();
     };
 
+    const queueFrame = () => {
+      if (!disposed && inView && !document.hidden && frameId === 0) {
+        frameId = window.requestAnimationFrame(animate);
+      }
+    };
+
     const animate = (now: number) => {
+      frameId = 0;
       if (disposed || !renderer) {
         return;
       }
@@ -241,17 +251,44 @@ const AiSignalWebGLStage = ({ className, progressRef, sectionPhaseRef }: AiSigna
       });
 
       renderer.render(scene, camera);
-      frameId = window.requestAnimationFrame(animate);
+      queueFrame();
     };
 
     resize();
     window.addEventListener("resize", resize);
-    frameId = window.requestAnimationFrame(animate);
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        window.cancelAnimationFrame(frameId);
+        frameId = 0;
+        return;
+      }
+      queueFrame();
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    if (typeof IntersectionObserver !== "undefined") {
+      visibilityObserver = new IntersectionObserver(
+        ([entry]) => {
+          inView = Boolean(entry?.isIntersecting);
+          if (inView) {
+            resize();
+            queueFrame();
+          } else {
+            window.cancelAnimationFrame(frameId);
+            frameId = 0;
+          }
+        },
+        { rootMargin: "20% 0px", threshold: 0.01 },
+      );
+      visibilityObserver.observe(containerRef.current ?? canvas);
+    }
+    queueFrame();
 
     return () => {
       disposed = true;
       window.cancelAnimationFrame(frameId);
       window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      visibilityObserver?.disconnect();
       lineGroups.forEach((line) => {
         line.geometry.dispose();
         (line.material as THREE.Material).dispose();
@@ -274,7 +311,11 @@ const AiSignalWebGLStage = ({ className, progressRef, sectionPhaseRef }: AiSigna
   }, [reduceMotion]);
 
   return (
-    <div className={cn("ai-signal-webgl-stage", failed && "ai-signal-webgl-stage--failed", className)} data-ai-webgl-stage>
+    <div
+      className={cn("ai-signal-webgl-stage", failed && "ai-signal-webgl-stage--failed", className)}
+      data-ai-webgl-stage
+      ref={containerRef}
+    >
       <canvas aria-hidden="true" className="ai-signal-webgl-stage__canvas" ref={canvasRef} />
       <div className="ai-signal-webgl-stage__fallback" aria-hidden="true">
         <div className="ai-signal-webgl-stage__fallback-wave ai-signal-webgl-stage__fallback-wave--stem" />

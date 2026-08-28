@@ -4,9 +4,9 @@ import type { SeoMeta } from "@/data/marketing";
 export const downloadSeo: SeoMeta = {
   title: `Download ${SITE_NAME} | Free DAW for Windows, macOS & Linux`,
   description:
-    "Download OpenStudio free for Windows, macOS, or Linux. Get the open-source DAW for multitrack recording, MIDI, plugin hosting, mixing, and optional AI tools.",
+    "Download OpenStudio free for Windows, macOS, or Linux. Get the open-source DAW with multitrack recording, MIDI, plugin hosting, mixing, and the built-in NAM Rack.",
   path: "/download",
-  lastModified: "2026-07-28",
+  lastModified: "2026-08-28",
 };
 
 export interface PlatformDownload {
@@ -59,20 +59,20 @@ export const downloadHero = {
   eyebrow: "Download OpenStudio",
   title: "Start the session fast, with the release caveats still visible.",
   description:
-    "Choose the current Windows, macOS, or Linux build, keep the install steps readable, and understand where optional AI tooling fits into the product instead of being surprised later.",
+    "Choose the current Windows, macOS, or Linux build. The complete NAM Rack engine is already included; your third-party NAM captures and cabinet IRs stay separate and keep their own licenses.",
 };
 
 export const downloadHeroSignals = [
   "Stable redirect endpoints",
-  "Manual trust notes kept visible",
-  "Optional AI install stays separate",
+  "NAM Rack included in the base app",
+  "No separate NAM runtime required",
 ];
 
 export const systemRequirements = [
   "64-bit Windows 10 or later, macOS 12 Monterey or later, or Ubuntu 22.04+ (other distros with equivalent glibc may work).",
   "A modern multi-core CPU and at least 8 GB RAM for comfortable multitrack work.",
   "Audio interface or built-in device with current drivers for low-latency recording.",
-  "Extra storage space if you later install optional AI tools for stem separation, ACE-Step, or Stable Audio 3.",
+  "Extra storage space for sessions, third-party NAM captures and IRs, and any optional AI tools you install later.",
 ];
 
 export const systemRequirementMatrix = [
@@ -120,6 +120,8 @@ export const releaseNotes = [
   "Stable download redirects live at /download/windows/latest and /download/macos/latest.",
   "Stable Linux download redirects at /download/linux/latest - the AppImage runs on Ubuntu 22.04+ without package installation.",
   "The base app stays lean by keeping optional AI runtime components outside the default installer.",
+  "The NAM Rack engine ships in the base app. Local .nam captures and cabinet IRs need no add-on runtime; connected TONE3000 delivery is optional and requires a TONE3000 account.",
+  "Third-party NAM captures and IRs are distributed separately and remain subject to their creators' licenses.",
   "Distribution is currently optimized for a zero-cost release path, so unsigned installs may require manual trust steps.",
 ];
 

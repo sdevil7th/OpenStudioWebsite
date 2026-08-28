@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { SITE_NAME, SITE_OG_IMAGE, SITE_URL } from "@/constants/site";
-import { generatedImageIndex } from "@/lib/generatedImageIndex";
+import { generatedImageSeoIndex } from "@/lib/generatedImageSeoIndex";
 import {
   intrinsicImageDimensions,
   withVersionQuery,
@@ -109,8 +109,8 @@ const syncOptionalMeta = (
 const getSocialImageMetadata = (image: string) => {
   const imageUrl = new URL(image, SITE_URL);
   const entry =
-    generatedImageIndex[
-      imageUrl.pathname as keyof typeof generatedImageIndex
+    generatedImageSeoIndex[
+      imageUrl.pathname as keyof typeof generatedImageSeoIndex
     ];
 
   if (!entry) {

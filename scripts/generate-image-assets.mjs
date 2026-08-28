@@ -11,13 +11,48 @@ const blogAssetsRoot = path.join(publicAssetsRoot, "blogs");
 const generatedRoot = path.join(openstudioSourceRoot, "generated");
 const manifestPath = path.join(generatedRoot, "image-manifest.json");
 const generatedIndexPath = path.join(repoRoot, "src", "lib", "generatedImageIndex.ts");
+const generatedSeoIndexPath = path.join(repoRoot, "src", "lib", "generatedImageSeoIndex.ts");
+const generatedRuntimeIndexRoot = path.join(repoRoot, "src", "lib", "generatedImageRoutes");
 
 const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp"]);
 const STANDARD_WIDTHS = [320, 480, 640, 768, 960, 1280, 1600];
+const TRANSITION_WIDTHS = [320, 480, 640, 768, 960];
 const BLOG_WIDTHS = [...STANDARD_WIDTHS, 1920, 2560, 3200, 3360];
+const TRANSITION_ASSET_PREFIX = "/assets/openstudio/feature-story/transitions/";
 const HIGH_RESOLUTION_BLOG_MASTERS = new Set([
   "/assets/blogs/building-openstudio-nam-rack.webp",
 ]);
+const HOME_RUNTIME_ASSETS = new Set([
+  "/assets/blogs/building-openstudio-nam-rack.webp",
+  "/assets/openstudio/design-reference/home-story-server.webp",
+  "/assets/openstudio/design-reference/home-usp-code.webp",
+  "/assets/openstudio/design-reference/home-usp-mixer.webp",
+  "/assets/openstudio/design-reference/home-usp-stems.webp",
+  "/assets/openstudio/screenshots/arrangement-overview-wide.webp",
+  "/assets/openstudio/screenshots/channel-strip-closeup.webp",
+  "/assets/openstudio/screenshots/hero-timeline.webp",
+  "/assets/openstudio/screenshots/mixer-meters.webp",
+  "/assets/openstudio/screenshots/piano-roll.webp",
+  "/assets/openstudio/screenshots/pitch-editor.webp",
+  "/assets/openstudio/screenshots/plugin-hosting-2.webp",
+]);
+const AI_RUNTIME_ASSETS = new Set([
+  "/assets/openstudio/screenshots/arrangement-overview-wide.webp",
+  "/assets/openstudio/screenshots/channel-strip-closeup.webp",
+  "/assets/openstudio/screenshots/hero-timeline.webp",
+  "/assets/openstudio/screenshots/plugin-hosting-3.webp",
+]);
+const DOWNLOAD_RUNTIME_ASSETS = new Set([
+  "/assets/openstudio/design-reference/download-cta-workspace.webp",
+  "/assets/openstudio/screenshots/recording-session.webp",
+]);
+const FEATURE_RUNTIME_EXTRAS = new Set([
+  "/assets/blogs/building-openstudio-nam-rack.webp",
+  "/assets/blogs/nam-rack-overview.webp",
+  "/assets/openstudio/design-reference/home-hero-timeline.jpg",
+  "/assets/openstudio/design-reference/home-story-server.jpg",
+]);
+const RUNTIME_IMAGE_GROUP_NAMES = ["home", "features", "ai", "download", "blogs"];
 const REFERENCE_ROOTS = ["src", "index.html"];
 const OPENSTUDIO_SOURCE_DIRS = [
   "screenshots",
@@ -102,6 +137,78 @@ export const selectVariantWidths = (candidateWidths, sourceWidth) => {
       terminalWidth,
     ]),
   ].sort((first, second) => first - second);
+};
+
+export const candidateWidthsForAsset = (publicPath) => {
+  if (HIGH_RESOLUTION_BLOG_MASTERS.has(publicPath)) {
+    return BLOG_WIDTHS;
+  }
+
+  if (publicPath.startsWith(TRANSITION_ASSET_PREFIX)) {
+    return TRANSITION_WIDTHS;
+  }
+
+  return STANDARD_WIDTHS;
+};
+
+export const runtimeImageGroupsForAsset = (publicPath) => {
+  const groups = [];
+
+  if (HOME_RUNTIME_ASSETS.has(publicPath)) {
+    groups.push("home");
+  }
+
+  if (
+    publicPath.startsWith("/assets/openstudio/feature-story/") ||
+    publicPath.startsWith("/assets/openstudio/screenshots/") ||
+    FEATURE_RUNTIME_EXTRAS.has(publicPath)
+  ) {
+    groups.push("features");
+  }
+
+  if (AI_RUNTIME_ASSETS.has(publicPath)) {
+    groups.push("ai");
+  }
+
+  if (
+    publicPath.startsWith("/assets/openstudio/download-cinematic/") ||
+    DOWNLOAD_RUNTIME_ASSETS.has(publicPath)
+  ) {
+    groups.push("download");
+  }
+
+  if (publicPath.startsWith("/assets/blogs/")) {
+    groups.push("blogs");
+  }
+
+  return groups;
+};
+
+export const compactImageIndex = (manifest) =>
+  Object.fromEntries(
+    Object.entries(manifest).map(([source, entry]) => [
+      source,
+      [
+        entry.width,
+        entry.aspectRatio ?? 0,
+        entry.hash ?? "",
+        entry.variants.map((variant) => [variant.width, variant.src]),
+      ],
+    ]),
+  );
+
+export const splitRuntimeImageIndex = (manifest) => {
+  const indexes = Object.fromEntries(
+    RUNTIME_IMAGE_GROUP_NAMES.map((groupName) => [groupName, {}]),
+  );
+
+  for (const [source, entry] of Object.entries(compactImageIndex(manifest))) {
+    for (const groupName of runtimeImageGroupsForAsset(source)) {
+      indexes[groupName][source] = entry;
+    }
+  }
+
+  return indexes;
 };
 
 const hashFile = async (filePath) => {
@@ -214,25 +321,52 @@ const pruneGeneratedFiles = async (directory, keepFiles) => {
 };
 
 const writeGeneratedImageIndex = async (manifest) => {
-  const compactIndex = Object.fromEntries(
-    Object.entries(manifest).map(([source, entry]) => [
-      source,
-      [
-        entry.width,
-        entry.aspectRatio ?? 0,
-        entry.hash ?? "",
-        entry.variants.map((variant) => [variant.width, variant.src]),
-      ],
-    ]),
-  );
+  const compactIndex = compactImageIndex(manifest);
   const output = [
     "// Generated from public/assets/openstudio/generated/image-manifest.json.",
-    "// Keep this compact: it is imported by runtime image helpers.",
+    "// Full index for build-time prerendering; client routes use generatedImageRoutes/*.",
     `export const generatedImageIndex = ${JSON.stringify(compactIndex)} as const;`,
     "",
   ].join("\n");
 
-  await fs.writeFile(generatedIndexPath, output);
+  const compactSeoIndex = Object.fromEntries(
+    Object.entries(manifest).map(([source, entry]) => [
+      source,
+      [entry.width, entry.aspectRatio ?? 0, entry.hash ?? ""],
+    ]),
+  );
+  const seoOutput = [
+    "// Generated from public/assets/openstudio/generated/image-manifest.json.",
+    "// This metadata-only index keeps responsive variant URLs out of SEO-only route chunks.",
+    `export const generatedImageSeoIndex = ${JSON.stringify(compactSeoIndex)} as const;`,
+    "",
+  ].join("\n");
+
+  await fs.mkdir(generatedRuntimeIndexRoot, { recursive: true });
+  const runtimeIndexes = splitRuntimeImageIndex(manifest);
+  const runtimeOutputs = Object.entries(runtimeIndexes).map(([groupName, index]) => {
+    const moduleOutput = [
+      "// Generated from public/assets/openstudio/generated/image-manifest.json.",
+      `// Responsive metadata used only by the ${groupName} route consumer.`,
+      'import { registerGeneratedImageIndex } from "@/lib/generatedImageRegistry";',
+      "",
+      `export const generatedImageIndex = ${JSON.stringify(index)} as const;`,
+      "",
+      "registerGeneratedImageIndex(generatedImageIndex);",
+      "",
+    ].join("\n");
+
+    return fs.writeFile(
+      path.join(generatedRuntimeIndexRoot, `${groupName}.ts`),
+      moduleOutput,
+    );
+  });
+
+  await Promise.all([
+    fs.writeFile(generatedIndexPath, output),
+    fs.writeFile(generatedSeoIndexPath, seoOutput),
+    ...runtimeOutputs,
+  ]);
 };
 
 const generate = async () => {
@@ -270,13 +404,7 @@ const generate = async () => {
     const sourceWidth = metadata.width ?? 0;
     const sourceHeight = metadata.height ?? 0;
     const sourceHash = await hashFile(sourcePath);
-    const isBlogAsset = isInside(sourcePath, blogAssetsRoot);
-    const isHighResolutionBlogMaster =
-      isBlogAsset &&
-      HIGH_RESOLUTION_BLOG_MASTERS.has(sourcePublicPathFor(sourcePath));
-    const candidateWidths = isHighResolutionBlogMaster
-      ? BLOG_WIDTHS
-      : STANDARD_WIDTHS;
+    const candidateWidths = candidateWidthsForAsset(sourcePublicPathFor(sourcePath));
     const selectedWidths = selectVariantWidths(candidateWidths, sourceWidth);
     const variants = [];
 

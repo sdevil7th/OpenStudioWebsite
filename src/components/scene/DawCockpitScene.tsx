@@ -128,7 +128,14 @@ const DawCockpitScene = ({ accent = "lavender", className, density = 1 }: DawCoc
                       </div>
                     </div>
                     <div className="mt-5 overflow-hidden rounded-[1.2rem] border border-white/10">
-                      <img alt={screenshots.mixerMeters.alt} className="h-32 w-full object-cover object-center" decoding="async" loading="lazy" src={screenshots.mixerMeters.src} />
+                      <img
+                        {...getResponsiveImageAttributes(screenshots.mixerMeters.src, "below-fold", {
+                          maxWidth: 1600,
+                          sizes: "(min-width: 1280px) 54vw, calc(100vw - 4rem)",
+                        })}
+                        alt={screenshots.mixerMeters.alt}
+                        className="h-32 w-full object-cover object-center"
+                      />
                     </div>
                     <div className="mt-4 flex h-16 items-end gap-2">
                       {mixerBars.map((height, index) => (

@@ -10,7 +10,14 @@ const releasesSource = readFileSync(new URL("../src/pages/ReleasesPage.tsx", imp
 const featuresSource = readFileSync(new URL("../src/pages/FeaturesPage.tsx", import.meta.url), "utf8");
 const navbarSource = readFileSync(new URL("../src/components/SiteNavbar.tsx", import.meta.url), "utf8");
 const downloadSource = readFileSync(new URL("../src/pages/DownloadPage.tsx", import.meta.url), "utf8");
-const cssSource = readFileSync(new URL("../src/index.css", import.meta.url), "utf8");
+const cssSource = [
+  "../src/index.css",
+  "../src/styles/ai.css",
+  "../src/styles/features.css",
+  "../src/styles/download.css",
+]
+  .map((source) => readFileSync(new URL(source, import.meta.url), "utf8"))
+  .join("\n");
 const aiWebglSource = readFileSync(new URL("../src/components/scene/AiNeuralStudioStage.tsx", import.meta.url), "utf8");
 const pretextEditorialSource = readFileSync(
   new URL("../src/components/motion/PretextEditorialField.tsx", import.meta.url),

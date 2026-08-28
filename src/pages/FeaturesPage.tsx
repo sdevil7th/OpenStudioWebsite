@@ -28,11 +28,15 @@ import {
 } from "@/data/features";
 import type { FeatureChapter } from "@/data/marketing";
 import { getResponsiveImageAttributes } from "@/lib/assetLoading";
+import "@/lib/generatedImageRoutes/features";
 import { trackEvent } from "@/lib/analytics";
 import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
 import { warmScheduledImages } from "@/lib/imageScheduler";
 import { useScrollScene } from "@/lib/gsap";
+import "@/styles/features.css";
 import { cn } from "@/lib/utils";
+
+const DESKTOP_STORY_MEDIA_QUERY = "(min-width: 1024px)";
 
 const accentBadgeClass = {
   lavender: "border-primary/25 bg-primary/10 text-primary",
@@ -198,6 +202,10 @@ const FeaturesPage = () => {
     () =>
       scheduleAfterInitialLoad(
         () => {
+          if (!window.matchMedia(DESKTOP_STORY_MEDIA_QUERY).matches) {
+            return;
+          }
+
           const firstChapter = featureChapters[0];
           const nextChapter = featureChapters[1];
           const firstFrameSources = [

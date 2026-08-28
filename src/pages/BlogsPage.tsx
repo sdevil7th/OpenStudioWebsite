@@ -3,7 +3,9 @@ import { Link } from "react-router-dom";
 import PageSeo from "@/components/PageSeo";
 import SectionReveal from "@/components/motion/SectionReveal";
 import { blogPosts, blogsSeo, getBlogIndexJsonLd, getBlogPostUrl } from "@/data/blogs";
+import { preloadBlogPostContent } from "@/data/blogContent";
 import { getResponsiveImageAttributes } from "@/lib/assetLoading";
+import "@/lib/generatedImageRoutes/blogs";
 import { cn } from "@/lib/utils";
 
 const [featuredPost, ...archivePosts] = blogPosts;
@@ -39,6 +41,9 @@ const BlogsPage = () => (
             <Link
               className="group block overflow-hidden rounded-lg border border-white/10 bg-white/[0.035] transition duration-300 hover:border-primary/35 hover:bg-white/[0.055] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
               data-blog-card
+              onFocus={() => preloadBlogPostContent(featuredPost)}
+              onPointerDown={() => preloadBlogPostContent(featuredPost)}
+              onPointerEnter={() => preloadBlogPostContent(featuredPost)}
               to={getBlogPostUrl(featuredPost)}
             >
               <article className="grid gap-0 lg:grid-cols-[minmax(0,1.04fr)_minmax(22rem,0.96fr)]">
@@ -108,6 +113,9 @@ const BlogsPage = () => (
                 <Link
                   className="group block min-h-full rounded-lg border border-white/10 bg-white/[0.03] transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.052] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
                   data-blog-card
+                  onFocus={() => preloadBlogPostContent(post)}
+                  onPointerDown={() => preloadBlogPostContent(post)}
+                  onPointerEnter={() => preloadBlogPostContent(post)}
                   to={getBlogPostUrl(post)}
                 >
                   <article className="flex min-h-full flex-col overflow-hidden rounded-lg">

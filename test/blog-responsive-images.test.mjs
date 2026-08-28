@@ -32,6 +32,22 @@ const assetLoadingSource = readFileSync(
   new URL("../src/lib/assetLoading.ts", import.meta.url),
   "utf8",
 );
+const blogDataSource = readFileSync(
+  new URL("../src/data/blogs.ts", import.meta.url),
+  "utf8",
+);
+const blogContentSource = readFileSync(
+  new URL("../src/data/blogContent.ts", import.meta.url),
+  "utf8",
+);
+const blogHtmlGeneratorSource = readFileSync(
+  new URL("../scripts/blog-markdown-renderer.mjs", import.meta.url),
+  "utf8",
+);
+const pageSeoSource = readFileSync(
+  new URL("../src/components/PageSeo.tsx", import.meta.url),
+  "utf8",
+);
 const compiledImagePlan = ts.transpileModule(imagePlanSource, {
   compilerOptions: {
     module: ts.ModuleKind.ES2022,
@@ -45,7 +61,8 @@ const imagePlan = await import(
 test("all blog surfaces use responsive image attributes", () => {
   assert.match(blogPostSource, /getResponsiveImageAttributes/);
   assert.match(blogPostSource, /BLOG_HERO_SIZES/);
-  assert.match(blogPostSource, /BLOG_INLINE_IMAGE_SIZES/);
+  assert.match(blogHtmlGeneratorSource, /INLINE_IMAGE_SIZES/);
+  assert.match(blogHtmlGeneratorSource, /nearestGeneratedWidth\(768, sourceWidth\)/);
   assert.match(blogPostSource, /maxWidth: 3360/);
   assert.match(blogPostSource, /max-w-\[1920px\]/);
   assert.match(blogPostSource, /max-w-\[760px\]/);
@@ -57,6 +74,29 @@ test("all blog surfaces use responsive image attributes", () => {
   assert.match(blogsPageSource, /getResponsiveImageAttributes/);
   assert.match(blogsPageSource, /FEATURED_BLOG_IMAGE_SIZES/);
   assert.match(blogsPageSource, /BLOG_CARD_IMAGE_SIZES/);
+});
+
+test("the blog index carries metadata while generated article HTML is split per post", () => {
+  assert.doesNotMatch(blogDataSource, /import\.meta\.glob/);
+  assert.match(blogDataSource, /generatedBlogPosts/);
+  assert.match(blogContentSource, /import\.meta\.glob<string>/);
+  assert.match(blogContentSource, /\.\/generatedBlogContent\/\*\.ts/);
+  assert.doesNotMatch(blogContentSource, /\?raw/);
+  assert.doesNotMatch(blogContentSource, /eager:\s*true/);
+  assert.match(blogContentSource, /pendingPosts/);
+  assert.doesNotMatch(blogPostSource, /react-markdown|remark-gfm|ReactMarkdown/);
+  assert.match(blogPostSource, /dangerouslySetInnerHTML/);
+  assert.match(blogPostSource, /loadBlogPostContent/);
+  assert.match(blogPostSource, /\.catch\(\(\) => \{/);
+  assert.match(blogPostSource, /setArticleLoadError\(true\)/);
+  assert.match(blogPostSource, /Retry article/);
+  assert.match(blogsPageSource, /preloadBlogPostContent/);
+});
+
+test("SEO routes use the metadata-only generated image index", () => {
+  assert.match(pageSeoSource, /generatedImageSeoIndex/);
+  assert.doesNotMatch(pageSeoSource, /from "@\/lib\/generatedImageIndex"/);
+  assert.match(generatorSource, /generatedImageSeoIndex/);
 });
 
 test("responsive blog images reserve their manifest aspect ratio before loading", () => {

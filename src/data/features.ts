@@ -31,7 +31,7 @@ export const featurePageSeo: SeoMeta = {
   description:
     "Explore OpenStudio's free NAM A1/A2 guitar rig, native pedals, and cabinet IRs inside a full DAW, with an AmpliTube, Guitar Rig, and Neural DSP comparison.",
   path: "/features",
-  lastModified: "2026-07-28",
+  lastModified: "2026-08-28",
   image: screenshots.namRackHero.src,
   imageAlt: screenshots.namRackHero.alt,
 };
@@ -728,13 +728,13 @@ const featureChapterBlueprints: FeatureChapterBlueprint[] = [
     stageSecondary: {
       asset: screenshots.namRackPreFx,
       label: "Native pedalboard",
-      caption: "Compressor, Tape Echo, Mono Octaver, Precision Drive, and Distortion are the five pedals shown before the capture.",
+      caption: "Compressor, Stereo Poly Octaver, PRE EQ, Precision Drive, and Distortion shape the signal before the capture.",
       tone: "amber",
     },
     stageDetail: {
       asset: screenshots.namRackPostFx,
       label: "Cabinet and studio effects",
-      caption: "Cabinet IRs and shaping feed reorderable EQ, modulation, delay, reverb, and shimmer before output metering.",
+      caption: "Cabinet IR shaping and Cabinet Space feed reorderable EQ, modulation, delay, and reverb before output metering.",
       tone: "emerald",
     },
     story: {
@@ -767,7 +767,7 @@ const featureChapterBlueprints: FeatureChapterBlueprint[] = [
         {
           title: "Correct audible path",
           description:
-            "Input trim → gate → compressor → tape echo → mono octaver → Precision Drive → distortion → A1/A2 amp or full-rig capture → cabinet IR and shaping → reorderable EQ, modulation, delay, reverb → output trim and meters. The tuner observes the input without joining the audible path.",
+            "Input trim → gate → compressor → Stereo Poly Octaver → PRE EQ → Precision Drive → distortion → optional Pedal NAM → A1/A2 amp or full-rig capture → cabinet IR and shaping → Cabinet Space → reorderable EQ, modulation, delay, reverb → output trim and meters. The tuner observes the input without joining the audible path.",
         },
         {
           title: "Amp-only and full-rig cabinet behavior",

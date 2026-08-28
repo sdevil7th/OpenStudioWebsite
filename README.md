@@ -42,6 +42,50 @@ npm run preview
 
 `npm run build` stages deploy inputs into `public/`, validates them again from the staged output, and then runs the Vite build.
 
+## Loading Performance Gates
+
+After building, run the repeatable mobile loading check against `dist/`:
+
+```bash
+npm run build
+npm run verify:mobile-perf
+```
+
+The legacy command remains a single-route mobile check. It starts Vite preview itself, opens a fresh 390 x 844 Pixel 5 Chromium context, and applies 4x CPU slowdown plus a 1.6 Mbps/150 ms mobile network profile. Select the desktop profile for the same focused check at 1440 x 900 with 2x CPU slowdown and a conservative 10 Mbps/40 ms connection:
+
+```bash
+npm run verify:mobile-perf -- --profile desktop --route /features
+```
+
+Run the core loading matrix across Home, Features, Download, AI, and Blogs on both mobile and desktop profiles with:
+
+```bash
+npm run verify:perf
+```
+
+Matrix measurements run sequentially in isolated browser contexts. The package command uses a two-second post-reveal observation window so deferred requests near the loading boundary are counted consistently. Supplying `--profile mobile` or `--profile desktop` with `--matrix` narrows the matrix to that profile.
+
+The gate fails when the real React main/hero is not visible after the HTML loader, or when app-ready time, post-ready intro time, intro-hidden time, Largest Contentful Paint (LCP), CLS, long tasks, requests, encoded transfer, redirects, console errors, page errors, failed requests, or HTTP errors exceed their budgets. Because prerendered content can paint behind the full-screen intro, the reported LCP retains the browser's buffered native candidate but is floored at the time the hydrated route actually becomes visible. Download intentionally presents its constructed OpenStudio logo before its heading, so that real rendered logo is accepted as the route's first-viewport hero. The post-ready intro budget prevents the older multi-second loader hold from returning even when application startup itself varies between machines.
+
+An already-hosted build can be checked without starting a local server:
+
+```bash
+npm run verify:mobile-perf -- --url https://openstudio.org.in --route /
+```
+
+Use `npm run verify:mobile-perf -- --help` for all CLI flags. Every tunable flag also has an environment-variable form:
+
+- `MOBILE_PERF_URL`, `MOBILE_PERF_ROUTE`, `MOBILE_PERF_HERO_SELECTOR`, `MOBILE_PERF_JSON`
+- `MOBILE_PERF_PROFILE`
+- `MOBILE_PERF_MAX_APP_READY_MS`, `MOBILE_PERF_MAX_INTRO_AFTER_READY_MS`, `MOBILE_PERF_MAX_INTRO_HIDDEN_MS`, `MOBILE_PERF_MAX_CONTENT_VISIBLE_MS`, `MOBILE_PERF_MAX_LCP_MS`
+- `MOBILE_PERF_MAX_CLS`, `MOBILE_PERF_MAX_LONG_TASK_COUNT`, `MOBILE_PERF_MAX_LONG_TASK_MS`, `MOBILE_PERF_MAX_LONG_TASK_TOTAL_MS`
+- `MOBILE_PERF_MAX_REQUESTS`, `MOBILE_PERF_MAX_TRANSFER_KB`
+- `MOBILE_PERF_CPU_RATE`, `MOBILE_PERF_DOWNLOAD_KBPS`, `MOBILE_PERF_UPLOAD_KBPS`, `MOBILE_PERF_LATENCY_MS`, `MOBILE_PERF_SETTLE_MS`, `MOBILE_PERF_TIMEOUT_MS`
+
+The checked-in mobile LCP budget is 4 seconds; the desktop budget is 3.6 seconds. The latter accommodates the intentional desktop logo construction while still rejecting the 4-second "poor" boundary. Desktop permits up to 45 requests and 1,000 KiB because it intentionally loads larger visual assets, while retaining stricter startup and long-task budgets. These laboratory budgets should be recalibrated from repeated cold runs when the hosting transport or route asset strategy changes. Override only a budget that has a measured reason to differ.
+
+A machine-readable result can be saved under the existing artifact area with `--json output/playwright/mobile-performance.json`. Legacy single-route mode retains the original result object. Matrix mode writes an envelope with the profile, route, and result for each measurement.
+
 ## Deploy Inputs
 
 The desktop release pipeline is expected to generate these files and publish them as GitHub Release assets. The website workflow or a local operator stages them into `release-input/` before the build runs.

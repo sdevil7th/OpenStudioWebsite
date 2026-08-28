@@ -1,7 +1,11 @@
+import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
+
 const GOOGLE_ANALYTICS_SCRIPT_ID = "openstudio-google-analytics";
 const MICROSOFT_CLARITY_SCRIPT_ID = "openstudio-microsoft-clarity";
 const PRODUCTION_HOSTS = new Set(["openstudio.org.in", "www.openstudio.org.in"]);
 const PAGE_ENGAGEMENT_MINIMUM_MS = 1000;
+const ANALYTICS_IDLE_DELAY_MS = 1800;
+const ANALYTICS_IDLE_TIMEOUT_MS = 3200;
 const SCROLL_DEPTH_THRESHOLDS = [25, 50, 75, 90] as const;
 const DOWNLOAD_FILE_EXTENSIONS = new Set([
   "appimage",
@@ -20,6 +24,24 @@ const DOWNLOAD_FILE_EXTENSIONS = new Set([
 type AnalyticsParamValue = boolean | number | string | null | undefined;
 type AnalyticsParams = Record<string, AnalyticsParamValue>;
 
+interface AnalyticsDestinations {
+  googleAnalytics: boolean;
+  microsoftClarity: boolean;
+}
+
+type PendingAnalyticsCommand =
+  | {
+      eventName: string;
+      params: Record<string, AnalyticsParamValue>;
+      type: "event";
+    }
+  | {
+      location: string;
+      path: string;
+      title: string;
+      type: "page_view";
+    };
+
 interface PageSession {
   path: string;
   startedAt: number;
@@ -30,6 +52,13 @@ interface PageSession {
 
 let lifecycleTrackingInstalled = false;
 let activePageSession: PageSession | null = null;
+let analyticsInitializationScheduled = false;
+let analyticsProvidersInitialized = false;
+let initializedDestinations: AnalyticsDestinations = {
+  googleAnalytics: false,
+  microsoftClarity: false,
+};
+const pendingAnalyticsCommands: PendingAnalyticsCommand[] = [];
 
 const getGoogleAnalyticsId = () => import.meta.env.VITE_GA_MEASUREMENT_ID?.trim() ?? "";
 
@@ -52,6 +81,25 @@ const isAnalyticsEnabled = () => {
 
   return !import.meta.env.DEV && PRODUCTION_HOSTS.has(window.location.hostname);
 };
+
+const getConfiguredDestinations = (): AnalyticsDestinations => {
+  if (!isAnalyticsEnabled()) {
+    return {
+      googleAnalytics: false,
+      microsoftClarity: false,
+    };
+  }
+
+  return {
+    googleAnalytics: Boolean(getGoogleAnalyticsId()),
+    microsoftClarity: Boolean(getMicrosoftClarityId()),
+  };
+};
+
+const hasAnalyticsDestination = ({
+  googleAnalytics,
+  microsoftClarity,
+}: AnalyticsDestinations) => googleAnalytics || microsoftClarity;
 
 const getCurrentPagePath = () =>
   `${window.location.pathname}${window.location.search}`;
@@ -273,8 +321,10 @@ const initializeGoogleAnalytics = () => {
   window.dataLayer = window.dataLayer ?? [];
   window.gtag =
     window.gtag ??
-    function gtagCommand(...args: unknown[]) {
-      window.dataLayer?.push(args);
+    function gtagCommand() {
+      // Google Tag's bootstrap API intentionally queues its arguments object.
+      // eslint-disable-next-line prefer-rest-params
+      window.dataLayer?.push(arguments);
     };
 
   if (!document.getElementById(GOOGLE_ANALYTICS_SCRIPT_ID)) {
@@ -321,40 +371,109 @@ const initializeMicrosoftClarity = () => {
   return true;
 };
 
+const dispatchAnalyticsCommand = (
+  command: PendingAnalyticsCommand,
+  destinations: AnalyticsDestinations,
+) => {
+  if (command.type === "event") {
+    if (destinations.googleAnalytics) {
+      window.gtag?.("event", command.eventName, {
+        ...command.params,
+        send_to: getGoogleAnalyticsId(),
+      });
+    }
+
+    if (destinations.microsoftClarity) {
+      window.clarity?.("event", command.eventName);
+    }
+
+    return;
+  }
+
+  if (destinations.googleAnalytics) {
+    window.gtag?.("event", "page_view", {
+      page_location: command.location,
+      page_path: command.path,
+      page_title: command.title,
+      send_to: getGoogleAnalyticsId(),
+    });
+  }
+};
+
+const initializeAnalyticsProviders = () => {
+  if (analyticsProvidersInitialized) {
+    return initializedDestinations;
+  }
+
+  analyticsInitializationScheduled = false;
+
+  const configuredDestinations = getConfiguredDestinations();
+
+  initializedDestinations = {
+    googleAnalytics:
+      configuredDestinations.googleAnalytics && initializeGoogleAnalytics(),
+    microsoftClarity:
+      configuredDestinations.microsoftClarity && initializeMicrosoftClarity(),
+  };
+  analyticsProvidersInitialized = true;
+
+  const queuedCommands = pendingAnalyticsCommands.splice(0);
+  queuedCommands.forEach((command) =>
+    dispatchAnalyticsCommand(command, initializedDestinations),
+  );
+
+  return initializedDestinations;
+};
+
+const scheduleAnalyticsInitialization = () => {
+  if (analyticsProvidersInitialized || analyticsInitializationScheduled) {
+    return;
+  }
+
+  analyticsInitializationScheduled = true;
+  scheduleAfterInitialLoad(
+    initializeAnalyticsProviders,
+    {
+      delay: ANALYTICS_IDLE_DELAY_MS,
+      runOnInput: true,
+      timeout: ANALYTICS_IDLE_TIMEOUT_MS,
+    },
+  );
+};
+
 export const initializeAnalytics = () => {
-  if (!isAnalyticsEnabled()) {
-    return {
-      googleAnalytics: false,
-      microsoftClarity: false,
-    };
+  const configuredDestinations = getConfiguredDestinations();
+
+  if (!hasAnalyticsDestination(configuredDestinations)) {
+    return configuredDestinations;
   }
 
   installLifecycleTracking();
+  scheduleAnalyticsInitialization();
 
-  return {
-    googleAnalytics: initializeGoogleAnalytics(),
-    microsoftClarity: initializeMicrosoftClarity(),
-  };
+  return configuredDestinations;
 };
 
 export const trackEvent = (eventName: string, params: AnalyticsParams = {}) => {
-  const { googleAnalytics, microsoftClarity } = initializeAnalytics();
-  const normalizedParams = normalizeAnalyticsParams(params);
+  const configuredDestinations = initializeAnalytics();
 
-  if (googleAnalytics) {
-    const measurementId = getGoogleAnalyticsId();
-
-    window.gtag?.("event", eventName, {
-      ...normalizedParams,
-      send_to: measurementId,
-    });
+  if (!hasAnalyticsDestination(configuredDestinations)) {
+    return false;
   }
 
-  if (microsoftClarity) {
-    window.clarity?.("event", eventName);
+  const command: PendingAnalyticsCommand = {
+    eventName,
+    params: normalizeAnalyticsParams(params),
+    type: "event",
+  };
+
+  if (analyticsProvidersInitialized) {
+    dispatchAnalyticsCommand(command, initializedDestinations);
+  } else {
+    pendingAnalyticsCommands.push(command);
   }
 
-  return googleAnalytics || microsoftClarity;
+  return true;
 };
 
 export const trackPageView = (path: string) => {
@@ -362,25 +481,25 @@ export const trackPageView = (path: string) => {
     return;
   }
 
-  const { googleAnalytics, microsoftClarity } = initializeAnalytics();
+  const configuredDestinations = initializeAnalytics();
 
-  if (!googleAnalytics && !microsoftClarity) {
+  if (!hasAnalyticsDestination(configuredDestinations)) {
     return;
   }
 
   flushPageSession("route_change");
   startPageSession(path);
 
-  if (!googleAnalytics) {
-    return;
+  const command: PendingAnalyticsCommand = {
+    location: window.location.href,
+    path,
+    title: document.title,
+    type: "page_view",
+  };
+
+  if (analyticsProvidersInitialized) {
+    dispatchAnalyticsCommand(command, initializedDestinations);
+  } else {
+    pendingAnalyticsCommands.push(command);
   }
-
-  const measurementId = getGoogleAnalyticsId();
-
-  window.gtag?.("event", "page_view", {
-    page_location: window.location.href,
-    page_path: path,
-    page_title: document.title,
-    send_to: measurementId,
-  });
 };

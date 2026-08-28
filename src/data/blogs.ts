@@ -4,33 +4,21 @@ import {
   SITE_OG_IMAGE,
   SITE_URL,
 } from "@/constants/site";
-import { blogImageManifest } from "@/data/blogImageManifest";
+import {
+  generatedBlogPosts,
+  generatedBlogPostSeoOverrides,
+} from "@/data/generatedBlogIndex";
 import type { SeoMeta } from "@/data/marketing";
 
-const markdownFiles = import.meta.glob<string>("../../blogs/*.md", {
-  eager: true,
-  import: "default",
-  query: "?raw",
-});
-
-const WORDS_PER_MINUTE = 225;
 const BLOG_ROUTE = "/blogs";
 const DEFAULT_BLOG_AUTHOR = "OpenStudio engineering team";
-const dateFormatter = new Intl.DateTimeFormat("en", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-  timeZone: "UTC",
-});
 
-export interface BlogPost {
+export interface BlogPostSummary {
   author: string;
   slug: string;
   title: string;
   dek: string;
   summary: string;
-  content: string;
-  articleContent: string;
   sourcePath: string;
   filename: string;
   wordCount: number;
@@ -38,7 +26,7 @@ export interface BlogPost {
   image?: string;
   imageAlt?: string;
   imageFit?: "cover" | "contain";
-  keywords?: string[];
+  keywords?: readonly string[];
   seoDescription?: string;
   seoTitle?: string;
   date?: string;
@@ -47,9 +35,18 @@ export interface BlogPost {
   dateModifiedLabel?: string;
 }
 
+export interface BlogPost extends BlogPostSummary {
+  articleHtml: string;
+}
+
+export interface MarkdownBlogPost extends BlogPostSummary {
+  content: string;
+  articleContent: string;
+}
+
 type BlogPostSeoOverride = Partial<
   Pick<
-    BlogPost,
+    BlogPostSummary,
     | "author"
     | "dateModified"
     | "imageAlt"
@@ -60,30 +57,8 @@ type BlogPostSeoOverride = Partial<
   >
 >;
 
-export const blogPostSeoOverrides: Record<string, BlogPostSeoOverride> = {
-  "building-openstudio-nam-rack": {
-    author: DEFAULT_BLOG_AUTHOR,
-    dateModified: "2026-07-28",
-    seoTitle: "Building a Free NAM Guitar Rig Inside OpenStudio | OpenStudio Blog",
-    seoDescription:
-      "How OpenStudio’s free NAM guitar rig brings A1/A2 captures, native pedals, cabinet IRs, TONE3000 access, presets, and project recall into one open-source DAW.",
-    imageAlt:
-      "OpenStudio NAM Rack showing pre-FX pedals, an A2 amp capture, and post-FX pedals.",
-    imageFit: "contain",
-    keywords: [
-      "free guitar amp simulator",
-      "free guitar rig",
-      "open-source amp simulator",
-      "NAM A2 player",
-      "Neural Amp Modeler DAW",
-      "AmpliTube alternative",
-      "Guitar Rig alternative",
-      "Neural DSP alternative",
-      "free amp capture software",
-      "TONE3000 integration",
-    ],
-  },
-};
+export const blogPostSeoOverrides: Record<string, BlogPostSeoOverride> =
+  generatedBlogPostSeoOverrides;
 
 export const blogsSeo: SeoMeta = {
   title: "OpenStudio Blog | Engineering Notes from an Open Source DAW",
@@ -92,123 +67,10 @@ export const blogsSeo: SeoMeta = {
   path: BLOG_ROUTE,
 };
 
-const normalizeWhitespace = (value: string) => value.replace(/\s+/g, " ").trim();
-
-const stripMarkdown = (value: string) =>
-  normalizeWhitespace(
-    value
-      .replace(/```[\s\S]*?```/g, " ")
-      .replace(/`([^`]+)`/g, "$1")
-      .replace(/!\[([^\]]*)\]\([^)]+\)/g, "$1")
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-      .replace(/^#{1,6}\s+/gm, "")
-      .replace(/^>\s?/gm, "")
-      .replace(/[*_~]/g, "")
-      .replace(/^-{3,}$/gm, " ")
-      .replace(/[|#]/g, " "),
-  );
-
-const truncateSummary = (value: string, maxLength = 190) => {
-  const summary = normalizeWhitespace(value);
-
-  if (summary.length <= maxLength) {
-    return summary;
-  }
-
-  const trimmed = summary
-    .slice(0, Math.max(1, maxLength - 3))
-    .replace(/\s+\S*$/, "")
-    .trim();
-  return `${trimmed}...`;
-};
-
-const getSeoTitle = (title: string, override?: string) => {
-  if (override) {
-    return override;
-  }
-
-  const brandedTitle = `${title} | ${SITE_NAME} Blog`;
-  return brandedTitle.length <= 65 ? brandedTitle : title;
-};
-
-const DEFAULT_SUMMARY = "OpenStudio engineering notes from the public DAW development process.";
-
-const toTitleFromSlug = (slug: string) =>
-  slug
-    .split("-")
-    .filter(Boolean)
-    .map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`)
-    .join(" ");
-
-const sanitizeSlug = (value: string) =>
-  value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-
-const getFilename = (filePath: string) => filePath.split("/").pop() ?? filePath;
-
-const getSlugParts = (filename: string) => {
-  const basename = filename.replace(/\.md$/i, "");
-  const datedMatch = basename.match(/^(\d{4}-\d{2}-\d{2})-(.+)$/);
-  const date = datedMatch?.[1];
-  const slugBase = datedMatch?.[2] ?? basename;
-
-  return {
-    date,
-    slug: sanitizeSlug(slugBase),
-  };
-};
-
-const getPostImage = (slug: string): string | undefined => blogImageManifest[slug as keyof typeof blogImageManifest];
-
-const getDateLabel = (date?: string) => {
-  if (!date) {
-    return undefined;
-  }
-
-  const parsed = new Date(`${date}T00:00:00.000Z`);
-  return Number.isNaN(parsed.getTime()) ? undefined : dateFormatter.format(parsed);
-};
-
-const getTitle = (markdown: string, fallbackSlug: string) => {
-  const heading = markdown.match(/^\s*#\s+(.+)$/m)?.[1];
-  return stripMarkdown(heading ?? toTitleFromSlug(fallbackSlug));
-};
-
-const getParagraphsAfterTitle = (markdown: string) =>
-  markdown
-    .replace(/^\s*#\s+.+\r?\n+/, "")
-    .split(/\n{2,}/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean);
-
-const isPublishableParagraph = (paragraph: string) => {
-  if (/^(#{1,6}\s|```|---$|>\s|!\[)/.test(paragraph)) {
-    return false;
-  }
-
-  if (/^[-*+]\s/.test(paragraph) || /^\d+\.\s/.test(paragraph)) {
-    return false;
-  }
-
-  return stripMarkdown(paragraph).length > 0;
-};
-
 const unwrapItalicParagraph = (paragraph: string) => {
   const trimmed = paragraph.trim();
   const match = trimmed.match(/^([*_])(.+)\1$/s);
   return match ? match[2].trim() : undefined;
-};
-
-const getDek = (markdown: string) => {
-  const paragraphs = getParagraphsAfterTitle(markdown);
-  const leadingDek = paragraphs[0] ? unwrapItalicParagraph(paragraphs[0]) : undefined;
-  const firstBodyParagraph = paragraphs.find(isPublishableParagraph);
-  const summary = stripMarkdown(leadingDek ?? firstBodyParagraph ?? markdown);
-
-  return truncateSummary(summary || DEFAULT_SUMMARY, 220);
 };
 
 const removeLeadingArticleMetadata = (markdown: string) => {
@@ -220,83 +82,33 @@ const removeLeadingArticleMetadata = (markdown: string) => {
   }
 
   body = body.replace(/^-{3,}\s*(?:\r?\n\s*\r?\n|\r?\n|$)/, "").trimStart();
-
   return body.trim();
 };
 
-const getSummary = (markdown: string) => truncateSummary(getDek(markdown));
+export const withBlogPostContent = (
+  post: BlogPostSummary,
+  content: string,
+): MarkdownBlogPost => ({
+  ...post,
+  content,
+  articleContent: removeLeadingArticleMetadata(content),
+});
 
-const getArticleContent = (markdown: string) => removeLeadingArticleMetadata(markdown);
+export const withBlogPostHtml = (
+  post: BlogPostSummary,
+  articleHtml: string,
+): BlogPost => ({
+  ...post,
+  articleHtml,
+});
 
-const getWordCount = (markdown: string) => {
-  const words = stripMarkdown(markdown).match(/\b[\w'-]+\b/g);
-  return words?.length ?? 0;
-};
+export const blogPosts: readonly BlogPostSummary[] = generatedBlogPosts;
 
-const createBlogPost = ([sourcePath, content]: [string, string]): BlogPost | null => {
-  const filename = getFilename(sourcePath);
+export const getBlogPostBySlug = (slug?: string) =>
+  blogPosts.find((post) => post.slug === slug);
 
-  if (filename.toLowerCase() === "readme.md") {
-    return null;
-  }
-
-  const { date, slug } = getSlugParts(filename);
-  const wordCount = getWordCount(content);
-  const title = getTitle(content, slug);
-  const dek = getDek(content);
-  const postImage = getPostImage(slug);
-  const seoOverride = blogPostSeoOverrides[slug];
-  const dateModified = seoOverride?.dateModified ?? date;
-
-  return {
-    author: seoOverride?.author ?? DEFAULT_BLOG_AUTHOR,
-    slug,
-    title,
-    dek,
-    summary: getSummary(content),
-    content,
-    articleContent: getArticleContent(content),
-    sourcePath,
-    filename,
-    wordCount,
-    readTimeMinutes: Math.max(1, Math.ceil(wordCount / WORDS_PER_MINUTE)),
-    image: postImage,
-    imageAlt:
-      seoOverride?.imageAlt ??
-      (postImage ? `${title} social share image` : undefined),
-    imageFit: seoOverride?.imageFit,
-    keywords: seoOverride?.keywords,
-    seoDescription: seoOverride?.seoDescription ?? truncateSummary(dek, 160),
-    seoTitle: getSeoTitle(title, seoOverride?.seoTitle),
-    date,
-    dateLabel: getDateLabel(date),
-    dateModified,
-    dateModifiedLabel: getDateLabel(dateModified),
-  };
-};
-
-export const blogPosts = Object.entries(markdownFiles)
-  .map(createBlogPost)
-  .filter((post): post is BlogPost => Boolean(post))
-  .sort((first, second) => {
-    if (first.date && second.date) {
-      return second.date.localeCompare(first.date);
-    }
-
-    if (first.date) {
-      return -1;
-    }
-
-    if (second.date) {
-      return 1;
-    }
-
-    return first.title.localeCompare(second.title);
-  });
-
-export const getBlogPostBySlug = (slug?: string) => blogPosts.find((post) => post.slug === slug);
-
-export const getBlogPostUrl = (post: Pick<BlogPost, "slug">) => `${BLOG_ROUTE}/${post.slug}`;
+export const getBlogPostUrl = (post: Pick<BlogPostSummary, "slug">) =>
+  `${BLOG_ROUTE}/${post.slug}`;
 
 export const getBlogIndexJsonLd = () => ({
   "@context": "https://schema.org",
@@ -321,7 +133,7 @@ export const getBlogIndexJsonLd = () => ({
   })),
 });
 
-export const getBlogPostJsonLd = (post: BlogPost) => {
+export const getBlogPostJsonLd = (post: BlogPostSummary) => {
   const postUrl = new URL(getBlogPostUrl(post), SITE_URL).toString();
 
   return {

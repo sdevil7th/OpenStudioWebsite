@@ -3,15 +3,13 @@ import {
   intrinsicImageDimensions,
   maxWidthForTier,
   nearestGeneratedWidth,
-  netlifyImageCdnUrl,
   selectImageWidth,
-  shouldUseCdnForHost,
   supportsImageOptimization,
   withVersionQuery,
   type AssetPriorityTier,
   type AssetSlotKind,
 } from "../../shared/asset-image-plan";
-import { generatedImageIndex } from "@/lib/generatedImageIndex";
+import { getGeneratedImageIndexEntry } from "@/lib/generatedImageRegistry";
 
 export type { AssetPriorityTier, AssetSlotKind };
 
@@ -84,14 +82,15 @@ export const getImageLoadingAttributes = (tier: AssetPriorityTier) => {
 
 export const supportsGeneratedImage = supportsImageOptimization;
 
-const runtimeHost = () => (typeof window === "undefined" ? "" : window.location.host);
-
-export const shouldUseNetlifyImageCdn = () => shouldUseCdnForHost(runtimeHost());
+// Runtime transforms add a cold-edge request before the browser can receive an
+// image. The build already emits the same responsive candidates, so serve those
+// immutable files directly and reserve Netlify transforms for explicit API use.
+export const shouldUseNetlifyImageCdn = () => false;
 
 const cleanImageSrc = (src: string) => src.split(/[?#]/)[0] ?? src;
 
 const manifestEntryFor = (src: string): GeneratedImageEntry | undefined => {
-  const entry = generatedImageIndex[cleanImageSrc(src) as keyof typeof generatedImageIndex];
+  const entry = getGeneratedImageIndexEntry(cleanImageSrc(src));
 
   if (!entry) {
     return undefined;
@@ -170,19 +169,6 @@ export const getOptimizedImageSrc = (
     viewportWidth: maxWidth,
   });
 
-  if (shouldUseNetlifyImageCdn()) {
-    const entry = manifestEntryFor(src);
-
-    return netlifyImageCdnUrl({
-      aspectRatio: entry?.aspectRatio,
-      fit: "contain",
-      hash: entry?.hash,
-      quality: tier === "hero/eager" || tier === "story-active" ? 74 : 68,
-      src,
-      width,
-    });
-  }
-
   return getGeneratedVariantSrc(src, width);
 };
 
@@ -201,19 +187,9 @@ export const getOptimizedSourceSet = (src: string, maxWidth = 1600) => {
       }));
 
   return sourceSetItems
-    .map((variant) => {
-      const url = shouldUseNetlifyImageCdn()
-        ? netlifyImageCdnUrl({
-            aspectRatio: entry?.aspectRatio,
-            fit: "contain",
-            hash: entry?.hash,
-            quality: 72,
-            src,
-            width: variant.width,
-          })
-        : withManifestVersion(variant.src, entry);
-      return `${url} ${variant.width}w`;
-    })
+    .map((variant) =>
+      `${withManifestVersion(variant.src, entry)} ${variant.width}w`,
+    )
     .join(", ");
 };
 

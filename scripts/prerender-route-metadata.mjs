@@ -22,6 +22,24 @@ const DEFAULT_IMAGE_METADATA = {
 };
 const STATIC_ROUTE_START = "<!-- openstudio-static-route:start -->";
 const STATIC_ROUTE_END = "<!-- openstudio-static-route:end -->";
+const ROUTE_MODULE_SOURCES = new Map([
+  ["/", "src/pages/HomePage.tsx"],
+  ["/ai", "src/pages/StemSeparationPage.tsx"],
+  ["/blogs", "src/pages/BlogsPage.tsx"],
+  ["/contact", "src/pages/ContactPage.tsx"],
+  ["/download", "src/pages/DownloadPage.tsx"],
+  ["/features", "src/pages/FeaturesPage.tsx"],
+  ["/github", "src/pages/GithubPage.tsx"],
+  ["/privacy", "src/pages/PrivacyPage.tsx"],
+  ["/releases", "src/pages/ReleasesPage.tsx"],
+  ["/security", "src/pages/SecurityPage.tsx"],
+  ["/terms", "src/pages/TermsPage.tsx"],
+]);
+const BLOG_POST_MODULE_SOURCE = "src/pages/BlogPostPage.tsx";
+const GENERATED_BLOG_CONTENT_ROOT = "src/data/generatedBlogContent";
+
+export const getGeneratedBlogContentModuleSource = (filename) =>
+  `${GENERATED_BLOG_CONTENT_ROOT}/${String(filename).replace(/\.md$/i, ".ts")}`;
 
 const sitemapMetadata = new Map([
   ["/", { changefreq: "weekly", priority: "1.0" }],
@@ -38,7 +56,15 @@ const sitemapMetadata = new Map([
 ]);
 
 const staticRouteStyles = `
-      #root > [data-static-route-content] {
+      .js :is(#root, #openstudio-static-route-fallback) > [data-static-route-content] {
+        position: absolute;
+        inset: 0;
+        visibility: hidden;
+        content-visibility: hidden;
+        contain: strict;
+        pointer-events: none;
+      }
+      :is(#root, #openstudio-static-route-fallback) > [data-static-route-content] {
         box-sizing: border-box;
         width: min(100% - 2rem, 80rem);
         margin: 0 auto;
@@ -174,7 +200,7 @@ const staticRouteStyles = `
         transform: translateX(-50%);
       }
       @media (max-width: 42rem) {
-        #root > [data-static-route-content] { width: min(100% - 1.25rem, 80rem); }
+        :is(#root, #openstudio-static-route-fallback) > [data-static-route-content] { width: min(100% - 1.25rem, 80rem); }
         [data-static-route-content] h1 { font-size: clamp(2.25rem, 12vw, 3.5rem); }
         [data-static-route-content] th,
         [data-static-route-content] td { padding: 0.5rem; }
@@ -668,7 +694,7 @@ export const renderHomeStaticContent = ({
           staticFigure({
             asset: homeData.homeNamRack.screenshot,
             generatedImageIndex,
-            loading: "eager",
+            loading: "lazy",
             siteUrl,
           }),
         ),
@@ -1232,6 +1258,155 @@ const setStaticRouteStyles = (html, enabled) => {
   );
 };
 
+const getRouteModuleSource = (routePath) =>
+  routePath.startsWith("/blogs/")
+    ? BLOG_POST_MODULE_SOURCE
+    : ROUTE_MODULE_SOURCES.get(routePath);
+
+const getManifestRecordForSource = (buildManifest, moduleSource) => {
+  if (!buildManifest || !moduleSource) {
+    return undefined;
+  }
+
+  const directEntry = buildManifest[moduleSource];
+  if (directEntry?.file) {
+    return [moduleSource, directEntry];
+  }
+
+  const entries = Object.entries(buildManifest);
+  const sourceMatches = entries.filter(
+    ([, entry]) => entry?.src === moduleSource && entry.file,
+  );
+  if (sourceMatches.length === 1) {
+    return sourceMatches[0];
+  }
+
+  const moduleName = moduleSource.split("/").at(-1)?.replace(/\.[^.]+$/, "");
+  const nameMatches = entries.filter(
+    ([, entry]) =>
+      entry?.isDynamicEntry && entry?.name === moduleName && entry.file,
+  );
+
+  return nameMatches.length === 1 ? nameMatches[0] : undefined;
+};
+
+const getRoutePreloadHrefs = (buildManifest, routePath, moduleSources) => {
+  if (!buildManifest || moduleSources.length === 0) {
+    return { css: [], modules: [] };
+  }
+
+  const mainEntryKeys = new Set(
+    Object.entries(buildManifest)
+      .filter(
+        ([key, entry]) =>
+          key === "index.html" ||
+          (entry?.isEntry && entry?.src === "index.html"),
+      )
+      .map(([key]) => key),
+  );
+  const cssHrefs = [];
+  const moduleHrefs = [];
+  const visitedKeys = new Set();
+
+  const visitStaticImports = ([manifestKey, manifestEntry]) => {
+    if (visitedKeys.has(manifestKey) || mainEntryKeys.has(manifestKey)) {
+      return;
+    }
+
+    visitedKeys.add(manifestKey);
+
+    if (manifestEntry?.file) {
+      moduleHrefs.push(`/${String(manifestEntry.file).replace(/^\/+/, "")}`);
+    }
+
+    for (const cssFile of manifestEntry?.css ?? []) {
+      cssHrefs.push(`/${String(cssFile).replace(/^\/+/, "")}`);
+    }
+
+    for (const importKey of manifestEntry?.imports ?? []) {
+      const importEntry = buildManifest[importKey];
+      if (importEntry) {
+        visitStaticImports([importKey, importEntry]);
+      }
+    }
+  };
+
+  for (const moduleSource of moduleSources) {
+    const moduleRecord = getManifestRecordForSource(buildManifest, moduleSource);
+
+    if (!moduleRecord) {
+      if (buildManifest && moduleSource) {
+        throw new Error(
+          `[seo] Vite manifest is missing the lazy route entry for ${routePath} (${moduleSource}).`,
+        );
+      }
+      continue;
+    }
+
+    visitStaticImports(moduleRecord);
+  }
+
+  return {
+    css: [...new Set(cssHrefs)],
+    modules: [...new Set(moduleHrefs)],
+  };
+};
+
+const setRouteModulePreload = (html, route, buildManifest) => {
+  const withoutExisting = html.replace(
+    /<link\b(?=[^>]*\bdata-static-route-(?:modulepreload|css-preload)\b)[^>]*>\s*/gi,
+    "",
+  );
+  const moduleSources = [
+    getRouteModuleSource(route.path),
+    ...(route.preloadModuleSources ?? []),
+  ].filter(Boolean);
+  const preloadHrefs = getRoutePreloadHrefs(
+    buildManifest,
+    route.path,
+    moduleSources,
+  );
+  const modulePreloadHrefs = preloadHrefs.modules.filter(
+    (href) =>
+      !new RegExp(
+        `<link\\b(?=[^>]*\\brel=["'][^"']*\\bmodulepreload\\b[^"']*["'])(?=[^>]*\\bhref=["']${escapeRegExp(href)}["'])[^>]*>`,
+        "i",
+      ).test(withoutExisting),
+  );
+  const cssPreloadHrefs = preloadHrefs.css.filter(
+    (href) =>
+      !new RegExp(
+        `<link\\b(?=[^>]*\\bhref=["']${escapeRegExp(href)}["'])[^>]*>`,
+        "i",
+      ).test(withoutExisting),
+  );
+
+  if (modulePreloadHrefs.length === 0 && cssPreloadHrefs.length === 0) {
+    return withoutExisting;
+  }
+
+  const cssPreloadLinks = cssPreloadHrefs
+    .map(
+      (href) =>
+        `    <link rel="preload" as="style" crossorigin href="${escapeHtml(href)}" data-static-route-css-preload />`,
+    )
+    .join("\n");
+  const modulePreloadLinks = modulePreloadHrefs
+    .map(
+      (href) =>
+        `    <link rel="modulepreload" crossorigin href="${escapeHtml(href)}" data-static-route-modulepreload />`,
+    )
+    .join("\n");
+  const preloadLinks = [cssPreloadLinks, modulePreloadLinks]
+    .filter(Boolean)
+    .join("\n");
+
+  return withoutExisting.replace(
+    "</head>",
+    `${preloadLinks}\n  </head>`,
+  );
+};
+
 const clearGeneratedArtifacts = (html) =>
   removeMeta(
     removeMeta(
@@ -1305,6 +1480,7 @@ export const buildRouteHtml = (
   template,
   route,
   {
+    buildManifest,
     generatedImageIndex = {},
     siteImage = DEFAULT_SITE_IMAGE,
     siteName = DEFAULT_SITE_NAME,
@@ -1382,6 +1558,7 @@ export const buildRouteHtml = (
   html = setCanonical(html, url);
   html = setRouteJsonLd(html, jsonLd);
   html = setStaticRouteStyles(html, Boolean(route.staticContent));
+  html = setRouteModulePreload(html, route, buildManifest);
   html = setRootContent(html, route.staticContent);
 
   return html;
@@ -1421,6 +1598,33 @@ export const buildSitemapXml = (
     "</urlset>",
     "",
   ].join("\n");
+};
+
+export const findMissingPrerenderRewrites = (netlifyConfig, routes) => {
+  const redirectRules = [
+    ...String(netlifyConfig).matchAll(
+      /\[\[redirects\]\]([\s\S]*?)(?=\r?\n\[\[redirects\]\]|$)/g,
+    ),
+  ].map(([, block]) => ({
+    force: /^\s*force\s*=\s*true\s*$/m.test(block),
+    from: block.match(/^\s*from\s*=\s*"([^"]+)"/m)?.[1],
+    status: Number(block.match(/^\s*status\s*=\s*(\d+)/m)?.[1]),
+    to: block.match(/^\s*to\s*=\s*"([^"]+)"/m)?.[1],
+  }));
+
+  return routes
+    .filter((route) => route.path !== "/")
+    .map((route) => route.path)
+    .filter((routePath) => {
+      const expectedTarget = `${routePath}/index.html`;
+      return !redirectRules.some(
+        (rule) =>
+          rule.force &&
+          rule.from === routePath &&
+          rule.status === 200 &&
+          rule.to === expectedTarget,
+      );
+    });
 };
 
 const loadRuntimeData = async (repoRoot) => {
@@ -1466,9 +1670,32 @@ const loadRuntimeData = async (repoRoot) => {
       vite.ssrLoadModule("/src/lib/generatedImageIndex.ts"),
     ]);
 
+    const blogPosts = await Promise.all(
+      blogData.blogPosts.map(async (post) => {
+        const sourcePath = path.resolve(repoRoot, post.sourcePath);
+        const relativeSourcePath = path.relative(path.join(repoRoot, "blogs"), sourcePath);
+
+        if (
+          !relativeSourcePath ||
+          relativeSourcePath.startsWith("..") ||
+          path.isAbsolute(relativeSourcePath)
+        ) {
+          throw new Error(`Blog source path is outside the blogs directory: ${post.sourcePath}`);
+        }
+
+        return blogData.withBlogPostContent(
+          post,
+          await fs.readFile(sourcePath, "utf8"),
+        );
+      }),
+    );
+
     return {
       aiData,
-      blogData,
+      blogData: {
+        ...blogData,
+        blogPosts,
+      },
       constants,
       contactData,
       downloadData,
@@ -1684,6 +1911,9 @@ const createRoutes = (runtime) => {
 
     return {
       path: pathName,
+      preloadModuleSources: [
+        getGeneratedBlogContentModuleSource(post.filename),
+      ],
       title: post.seoTitle ?? `${post.title} | ${siteName} Blog`,
       description: post.seoDescription ?? post.summary,
       image: post.image,
@@ -1760,12 +1990,27 @@ export const generateStaticSeo = async ({
   const distRoot = path.join(repoRoot, "dist");
   const publicRoot = path.join(repoRoot, "public");
   const templatePath = path.join(distRoot, "index.html");
-  const [runtime, template] = await Promise.all([
+  const manifestPath = path.join(distRoot, ".vite", "manifest.json");
+  const netlifyConfigPath = path.join(repoRoot, "netlify.toml");
+  const [runtime, template, buildManifest, netlifyConfig] = await Promise.all([
     loadRuntimeData(repoRoot),
     fs.readFile(templatePath, "utf8"),
+    fs.readFile(manifestPath, "utf8").then(JSON.parse),
+    fs.readFile(netlifyConfigPath, "utf8"),
   ]);
   const routes = createRoutes(runtime);
+  const missingPrerenderRewrites = findMissingPrerenderRewrites(
+    netlifyConfig,
+    routes,
+  );
+
+  if (missingPrerenderRewrites.length > 0) {
+    throw new Error(
+      `Missing forced 200 Netlify rewrites for prerendered routes: ${missingPrerenderRewrites.join(", ")}`,
+    );
+  }
   const context = {
+    buildManifest,
     generatedImageIndex: runtime.generatedImageIndex,
     siteImage: runtime.constants.SITE_OG_IMAGE,
     siteName: runtime.constants.SITE_NAME,

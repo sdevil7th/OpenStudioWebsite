@@ -8,6 +8,7 @@ interface DeferredClientStageProps {
   idle?: boolean;
   idleDelay?: number;
   idleTimeout?: number;
+  mediaQuery?: string;
   rootMargin?: string;
 }
 
@@ -30,12 +31,35 @@ const DeferredClientStage = ({
   idle = true,
   idleDelay = 1800,
   idleTimeout = 3200,
+  mediaQuery,
   rootMargin = "900px 0px",
 }: DeferredClientStageProps) => {
   const ref = useRef<HTMLDivElement | null>(null);
+  const [mediaEligible, setMediaEligible] = useState(() =>
+    mediaQuery && typeof window !== "undefined" ? window.matchMedia(mediaQuery).matches : true,
+  );
   const [shouldRender, setShouldRender] = useState(false);
 
   useEffect(() => {
+    if (!mediaQuery) {
+      setMediaEligible(true);
+      return undefined;
+    }
+
+    const query = window.matchMedia(mediaQuery);
+    const syncEligibility = () => setMediaEligible(query.matches);
+
+    syncEligibility();
+    query.addEventListener("change", syncEligibility);
+    return () => query.removeEventListener("change", syncEligibility);
+  }, [mediaQuery]);
+
+  useEffect(() => {
+    if (!mediaEligible) {
+      setShouldRender(false);
+      return;
+    }
+
     if (shouldRender || !canLoadHeavyStage()) {
       return;
     }
@@ -88,11 +112,11 @@ const DeferredClientStage = ({
       cancelIdleSchedule?.();
       observer.disconnect();
     };
-  }, [idle, idleDelay, idleTimeout, rootMargin, shouldRender]);
+  }, [idle, idleDelay, idleTimeout, mediaEligible, rootMargin, shouldRender]);
 
   return (
     <div className={className} ref={ref}>
-      {shouldRender ? children : fallback}
+      {mediaEligible && shouldRender ? children : fallback}
     </div>
   );
 };

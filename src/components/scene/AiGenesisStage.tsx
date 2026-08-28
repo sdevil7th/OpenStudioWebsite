@@ -183,6 +183,7 @@ const AiGenesisStage = ({ className, progressRef, pointerRef }: AiGenesisStagePr
     let renderer: THREE.WebGLRenderer | undefined;
     let frameId = 0;
     let disposed = false;
+    let resizeObserver: ResizeObserver | undefined;
 
     try {
       renderer = new THREE.WebGLRenderer({
@@ -245,7 +246,6 @@ const AiGenesisStage = ({ className, progressRef, pointerRef }: AiGenesisStagePr
       if (disposed || !renderer) {
         return;
       }
-      resize();
       const time = now / 1000;
       const converge = Math.max(0, Math.min(1, progressRef?.current ?? fallbackProgress.current));
       const pointer = pointerRef?.current ?? fallbackPointer.current;
@@ -285,6 +285,10 @@ const AiGenesisStage = ({ className, progressRef, pointerRef }: AiGenesisStagePr
 
     setFailed(false);
     resize();
+    if (canvas.parentElement && typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(resize);
+      resizeObserver.observe(canvas.parentElement);
+    }
     window.addEventListener("resize", resize);
     frameId = window.requestAnimationFrame(animate);
 
@@ -292,6 +296,7 @@ const AiGenesisStage = ({ className, progressRef, pointerRef }: AiGenesisStagePr
       disposed = true;
       window.cancelAnimationFrame(frameId);
       window.removeEventListener("resize", resize);
+      resizeObserver?.disconnect();
       field.geometry.dispose();
       (field.material as THREE.Material).dispose();
       waveLines.forEach((line) => {

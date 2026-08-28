@@ -4,10 +4,28 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { BRANDING_ASSETS, SITE_NAME } from "@/constants/site";
 import { mainNavigation } from "@/data/navigation";
 import { trackEvent } from "@/lib/analytics";
+import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-const MobileNavSheet = lazy(() => import("@/components/MobileNavSheet"));
+let mobileNavModulePromise: ReturnType<typeof importMobileNavSheet> | null = null;
+
+function importMobileNavSheet() {
+  return import("@/components/MobileNavSheet");
+}
+
+const loadMobileNavSheet = () => {
+  if (!mobileNavModulePromise) {
+    mobileNavModulePromise = importMobileNavSheet().catch((error) => {
+      mobileNavModulePromise = null;
+      throw error;
+    });
+  }
+
+  return mobileNavModulePromise;
+};
+
+const MobileNavSheet = lazy(loadMobileNavSheet);
 
 const navItemClass = ({ isActive }: { isActive: boolean }) =>
   cn(
@@ -32,14 +50,26 @@ const SiteNavbar = () => {
   }, []);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 1279px)");
-
-    if (mediaQuery.matches) {
-      setMobileNavRequested(true);
-    }
+    return scheduleAfterInitialLoad(
+      () => {
+        if (window.matchMedia("(max-width: 1279px)").matches) {
+          void loadMobileNavSheet().catch(() => undefined);
+        }
+      },
+      { delay: 800, runOnInput: false, timeout: 1800 },
+    );
   }, []);
 
-  const requestMobileNav = () => setMobileNavRequested(true);
+  const preloadMobileNav = () => {
+    void loadMobileNavSheet().catch(() => undefined);
+  };
+
+  const requestMobileNav = () => {
+    setOpen(true);
+    void loadMobileNavSheet()
+      .then(() => setMobileNavRequested(true))
+      .catch(() => undefined);
+  };
 
   return (
     <header
@@ -87,7 +117,12 @@ const SiteNavbar = () => {
             </Link>
           </Button>
         </nav>
-        <div className="xl:hidden" onFocus={requestMobileNav} onPointerEnter={requestMobileNav}>
+        <div
+          className="xl:hidden"
+          onFocus={preloadMobileNav}
+          onPointerDown={preloadMobileNav}
+          onPointerEnter={preloadMobileNav}
+        >
           {mobileNavRequested ? (
             <Suspense
               fallback={
@@ -112,8 +147,7 @@ const SiteNavbar = () => {
             <Button
               aria-label="Open navigation"
               onClick={() => {
-                setMobileNavRequested(true);
-                setOpen(true);
+                requestMobileNav();
                 trackEvent("mobile_nav_opened", {
                   source: "site_nav",
                 });

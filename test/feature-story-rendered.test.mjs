@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { mkdtemp, rm } from "node:fs/promises";
 import { createServer as createNetServer } from "node:net";
+import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -40,7 +42,9 @@ test(
   { timeout: 120_000 },
   async () => {
     const port = await getFreePort();
+    const cacheDir = await mkdtemp(resolve(tmpdir(), "openstudio-vite-test-"));
     const server = await createViteServer({
+      cacheDir,
       configFile: resolve(rootDir, "vite.config.ts"),
       logLevel: "error",
       root: rootDir,
@@ -117,7 +121,7 @@ test(
           );
           const target =
             chapterIndex === 0 ? firstChapterStageTarget : markerTarget;
-          window.scrollTo(0, target);
+          window.scrollTo({ top: target, behavior: "instant" });
           return target;
         }, index);
 
@@ -292,6 +296,7 @@ test(
     } finally {
       await browser?.close();
       await server.close();
+      await rm(cacheDir, { force: true, recursive: true });
     }
   },
 );

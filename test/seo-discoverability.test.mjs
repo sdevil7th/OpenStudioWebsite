@@ -9,7 +9,8 @@ const read = (path) =>
 
 const files = {
   article: read("blogs/2026-07-26-building-openstudio-nam-rack.md"),
-  blogs: read("src/data/blogs.ts"),
+  blogs:
+    read("src/data/blogs.ts") + read("src/data/generatedBlogIndex.ts"),
   features: read("src/data/features.ts"),
   home: read("src/data/home.ts"),
   index: read("index.html"),
@@ -34,10 +35,9 @@ test("competitor discovery lives in visible, sourced comparison content", () => 
   assert.match(files.features, /https:\/\/www\.ikmultimedia\.com\/products\/amplitube5/);
   assert.match(files.features, /https:\/\/www\.native-instruments\.com\/.+guitar-rig/);
   assert.match(files.features, /https:\/\/neuraldsp\.com\/plugins/);
-  assert.match(
-    files.article,
-    /\[AmpliTube\].*\[Guitar Rig\].*\[Neural DSP\].*and similar amp modelers/s,
-  );
+  assert.match(files.features, /AmpliTube 5 \/ CS/);
+  assert.match(files.features, /Guitar Rig 7 \/ Player/);
+  assert.match(files.features, /Neural DSP plug-ins/);
 });
 
 test("unsupported keyword tags and invalid search schema are not emitted", () => {
@@ -113,11 +113,11 @@ test("article metadata includes authorship, update dates, and page identity", ()
 test("sitemap and 404 handling expose current crawl state", () => {
   assert.match(
     files.sitemap,
-    /<loc>https:\/\/openstudio\.org\.in\/blogs<\/loc>\s+<lastmod>2026-07-28<\/lastmod>/,
+    /<loc>https:\/\/openstudio\.org\.in\/blogs<\/loc>\s+<lastmod>2026-08-28<\/lastmod>/,
   );
   assert.match(
     files.sitemap,
-    /<loc>https:\/\/openstudio\.org\.in\/blogs\/building-openstudio-nam-rack<\/loc>\s+<lastmod>2026-07-28<\/lastmod>/,
+    /<loc>https:\/\/openstudio\.org\.in\/blogs\/building-openstudio-nam-rack<\/loc>\s+<lastmod>2026-08-28<\/lastmod>/,
   );
   assert.match(files.prerender, /path\.join\(publicRoot, "sitemap\.xml"\)/);
   assert.match(

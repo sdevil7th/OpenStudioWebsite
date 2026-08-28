@@ -14,6 +14,14 @@ const blogDataSource = readFileSync(
   new URL("../src/data/blogs.ts", import.meta.url),
   "utf8",
 );
+const generatedBlogIndexSource = readFileSync(
+  new URL("../src/data/generatedBlogIndex.ts", import.meta.url),
+  "utf8",
+);
+const blogSyncSource = readFileSync(
+  new URL("../scripts/sync-blog-image-manifest.mjs", import.meta.url),
+  "utf8",
+);
 const blogPageSource = readFileSync(
   new URL("../src/pages/BlogPostPage.tsx", import.meta.url),
   "utf8",
@@ -34,7 +42,7 @@ test("homepage keeps broad DAW intent and links to deeper product intents", () =
     homeDataSource,
     /OpenStudio \| Free Open-Source DAW for Music Production/,
   );
-  assert.match(homeDataSource, /lastModified: "2026-07-28"/);
+  assert.match(homeDataSource, /lastModified: "2026-08-28"/);
   assert.match(homeDataSource, /open-source alternative built around the complete session/);
   assert.match(homeDataSource, /to: "\/features"/);
   assert.match(homeDataSource, /to: "\/ai"/);
@@ -45,8 +53,9 @@ test("homepage keeps broad DAW intent and links to deeper product intents", () =
 
 test("blog articles expose visible and machine-readable authorship dates", () => {
   assert.match(blogDataSource, /const DEFAULT_BLOG_AUTHOR = "OpenStudio engineering team"/);
-  assert.match(blogDataSource, /dateModified: "2026-07-28"/);
-  assert.match(blogDataSource, /const dateModified = seoOverride\?\.dateModified \?\? date/);
+  assert.match(generatedBlogIndexSource, /"dateModified":"2026-08-28"/);
+  assert.match(blogSyncSource, /const dateModified = override\?\.dateModified \?\? date/);
+  assert.match(generatedBlogIndexSource, /"dateModified":"2026-08-28"/);
   assert.match(blogDataSource, /mainEntityOfPage:/);
   assert.match(blogDataSource, /"@type": "ImageObject"/);
   assert.match(blogPageSource, /authorProfileUrl=\{SITE_URL\}/);

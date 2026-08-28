@@ -3,6 +3,8 @@ import { test } from "node:test";
 import {
   buildRouteHtml,
   buildSitemapXml,
+  findMissingPrerenderRewrites,
+  getGeneratedBlogContentModuleSource,
   getNewestPostModifiedDate,
   renderBlogPostStaticContent,
   renderGenericStaticContent,
@@ -138,6 +140,175 @@ test("route generation is idempotent and keeps one fallback and schema block", (
   assert.equal(count(second, /<h1\b/g), 1);
 });
 
+test("static fallback stays visible without JavaScript and is removed from layout during hydration", () => {
+  const html = buildRouteHtml(template, route);
+
+  assert.match(
+    html,
+    /\.js :is\(#root, #openstudio-static-route-fallback\) > \[data-static-route-content\]\s*\{[^}]*position:\s*absolute;[^}]*visibility:\s*hidden;[^}]*content-visibility:\s*hidden;/,
+  );
+  assert.match(
+    html,
+    /:is\(#root, #openstudio-static-route-fallback\) > \[data-static-route-content\]\s*\{[^}]*width:/,
+  );
+  assert.doesNotMatch(
+    html,
+    /:is\(#root, #openstudio-static-route-fallback\) > \[data-static-route-content\]\s*\{[^}]*display:\s*none/,
+  );
+});
+
+test("route HTML recursively preloads only its static page graph once", () => {
+  const buildManifest = {
+    "_DownloadPage-download789.js": {
+      file: "assets/DownloadPage-download789.js",
+      isDynamicEntry: true,
+      imports: ["index.html", "_shared.js"],
+      name: "DownloadPage",
+      css: ["assets/DownloadPage-download789.css"],
+    },
+    "_nested.js": {
+      file: "assets/nested.js",
+      imports: ["_vendor.js"],
+    },
+    "_shared.js": {
+      file: "assets/shared.js",
+      css: ["assets/shared.css"],
+    },
+    "_vendor.js": {
+      file: "assets/vendor.js",
+    },
+    "index.html": {
+      file: "assets/index.js",
+      isEntry: true,
+      src: "index.html",
+      css: ["assets/index.css"],
+    },
+    "src/pages/BlogPostPage.tsx": {
+      file: "assets/BlogPostPage-route123.js",
+      imports: ["index.html", "_vendor.js", "_nested.js"],
+      dynamicImports: ["src/components/ArticleEnhancement.tsx"],
+      css: ["assets/BlogPostPage-route123.css"],
+    },
+    "src/components/ArticleEnhancement.tsx": {
+      file: "assets/ArticleEnhancement-dynamic.js",
+      css: ["assets/ArticleEnhancement-dynamic.css"],
+    },
+    "src/pages/GithubPage.tsx": {
+      file: "assets/GithubPage-route456.js",
+    },
+  };
+  const templateWithVendorPreload = template.replace(
+    "</head>",
+    '    <link href="/assets/vendor.js" rel="modulepreload" crossorigin />\n  </head>',
+  );
+  const first = buildRouteHtml(templateWithVendorPreload, route, { buildManifest });
+  const second = buildRouteHtml(first, route, { buildManifest });
+
+  assert.match(
+    second,
+    /<link rel="modulepreload" crossorigin href="\/assets\/BlogPostPage-route123\.js" data-static-route-modulepreload \/>/,
+  );
+  assert.match(
+    second,
+    /<link rel="modulepreload" crossorigin href="\/assets\/nested\.js" data-static-route-modulepreload \/>/,
+  );
+  assert.equal(count(second, /data-static-route-modulepreload/g), 2);
+  assert.equal(count(second, /href="\/assets\/vendor\.js"/g), 1);
+  assert.doesNotMatch(second, /assets\/index\.js/);
+  assert.doesNotMatch(second, /ArticleEnhancement-dynamic/);
+  assert.doesNotMatch(second, /GithubPage-route456/);
+  assert.match(
+    second,
+    /<link rel="preload" as="style" crossorigin href="\/assets\/BlogPostPage-route123\.css" data-static-route-css-preload \/>/,
+  );
+  assert.equal(count(second, /data-static-route-css-preload/g), 1);
+  assert.doesNotMatch(second, /assets\/index\.css/);
+  assert.doesNotMatch(second, /ArticleEnhancement-dynamic\.css/);
+
+  const downloadHtml = buildRouteHtml(template, { ...route, path: "/download" }, { buildManifest });
+  assert.match(
+    downloadHtml,
+    /<link rel="modulepreload" crossorigin href="\/assets\/DownloadPage-download789\.js" data-static-route-modulepreload \/>/,
+  );
+  assert.match(
+    downloadHtml,
+    /<link rel="modulepreload" crossorigin href="\/assets\/shared\.js" data-static-route-modulepreload \/>/,
+  );
+  assert.match(
+    downloadHtml,
+    /<link rel="preload" as="style" crossorigin href="\/assets\/DownloadPage-download789\.css" data-static-route-css-preload \/>/,
+  );
+  assert.match(
+    downloadHtml,
+    /<link rel="preload" as="style" crossorigin href="\/assets\/shared\.css" data-static-route-css-preload \/>/,
+  );
+  assert.equal(count(downloadHtml, /data-static-route-css-preload/g), 2);
+  assert.doesNotMatch(downloadHtml, /assets\/index\.js/);
+  assert.throws(
+    () => buildRouteHtml(template, { ...route, path: "/download" }, { buildManifest: {} }),
+    /manifest is missing the lazy route entry for \/download/,
+  );
+});
+
+test("direct blog HTML preloads only its matching generated article chunk", () => {
+  const selectedSource = getGeneratedBlogContentModuleSource(
+    "2026-07-26-building-openstudio-nam-rack.md",
+  );
+  const otherSource = getGeneratedBlogContentModuleSource(
+    "2026-06-04-ace-step-diffusers-almost-3x-faster.md",
+  );
+  const buildManifest = {
+    "index.html": {
+      file: "assets/index.js",
+      isEntry: true,
+      src: "index.html",
+    },
+    "src/pages/BlogPostPage.tsx": {
+      file: "assets/BlogPostPage-route.js",
+      imports: ["index.html"],
+    },
+    [selectedSource]: {
+      file: "assets/2026-07-26-building-openstudio-nam-rack.js",
+      isDynamicEntry: true,
+      src: selectedSource,
+    },
+    [otherSource]: {
+      file: "assets/2026-06-04-ace-step-diffusers-almost-3x-faster.js",
+      isDynamicEntry: true,
+      src: otherSource,
+    },
+  };
+  const articleRoute = {
+    ...route,
+    preloadModuleSources: [selectedSource],
+  };
+  const html = buildRouteHtml(template, articleRoute, { buildManifest });
+
+  assert.equal(
+    selectedSource,
+    "src/data/generatedBlogContent/2026-07-26-building-openstudio-nam-rack.ts",
+  );
+  assert.match(html, /assets\/BlogPostPage-route\.js/);
+  assert.match(
+    html,
+    /assets\/2026-07-26-building-openstudio-nam-rack\.js/,
+  );
+  assert.doesNotMatch(
+    html,
+    /assets\/2026-06-04-ace-step-diffusers-almost-3x-faster\.js/,
+  );
+  assert.equal(count(html, /data-static-route-modulepreload/g), 2);
+  assert.throws(
+    () =>
+      buildRouteHtml(template, articleRoute, {
+        buildManifest: {
+          "src/pages/BlogPostPage.tsx": buildManifest["src/pages/BlogPostPage.tsx"],
+        },
+      }),
+    /manifest is missing the lazy route entry.*generatedBlogContent\/2026-07-26-building-openstudio-nam-rack\.ts/,
+  );
+});
+
 test("generic route fallback supports href actions and clears article metadata", () => {
   const articleHtml = buildRouteHtml(template, route);
   const staticContent = renderGenericStaticContent({
@@ -205,4 +376,30 @@ test("blog sitemap freshness follows the newest modified post", () => {
     xml,
     /building-openstudio-nam-rack<\/loc>\s+<lastmod>2026-07-28<\/lastmod>/,
   );
+});
+
+test("prerender validation requires an exact forced rewrite for every clean route", () => {
+  const netlifyConfig = `
+[[redirects]]
+  from = "/features"
+  to = "/features/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/blogs/example"
+  to = "/blogs/example/index.html"
+  status = 200
+  force = true
+`;
+  const routes = [
+    { path: "/" },
+    { path: "/features" },
+    { path: "/blogs/example" },
+    { path: "/blogs/new-post" },
+  ];
+
+  assert.deepEqual(findMissingPrerenderRewrites(netlifyConfig, routes), [
+    "/blogs/new-post",
+  ]);
 });

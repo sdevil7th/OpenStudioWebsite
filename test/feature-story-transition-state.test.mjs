@@ -26,10 +26,13 @@ const packageSource = readFileSync(
   new URL("../package.json", import.meta.url),
   "utf8",
 );
-const cssSource = readFileSync(
-  new URL("../src/index.css", import.meta.url),
-  "utf8",
-);
+const cssSource = [
+  "../src/index.css",
+  "../src/styles/features.css",
+  "../src/styles/ai.css",
+]
+  .map((source) => readFileSync(new URL(source, import.meta.url), "utf8"))
+  .join("\n");
 
 const stripComments = (source) =>
   source
@@ -96,6 +99,10 @@ test("canonical scene keeps low-cost rendering and scheduled image loading", () 
   assert.match(pageSource, /warmScheduledImages/);
   assert.match(pageSource, /canonicalRouteUpcoming/);
   assert.match(pageSource, /slot: "cinematic"/);
+  assert.match(
+    pageSource,
+    /if \(!window\.matchMedia\(DESKTOP_STORY_MEDIA_QUERY\)\.matches\) \{\s*return;/,
+  );
   assert.match(imageSchedulerSource, /MAX_IDLE_IMAGE_DECODE = 2/);
   assert.match(imageSchedulerSource, /MAX_SCROLL_IMAGE_DECODE = 1/);
   assert.match(imageSchedulerSource, /resolveImageAssetUrl/);

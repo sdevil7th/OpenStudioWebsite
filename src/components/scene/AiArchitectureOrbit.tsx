@@ -200,6 +200,7 @@ const AiArchitectureOrbit = ({
     let renderer: THREE.WebGLRenderer | undefined;
     let frameId = 0;
     let disposed = false;
+    let resizeObserver: ResizeObserver | undefined;
 
     try {
       renderer = new THREE.WebGLRenderer({
@@ -279,7 +280,6 @@ const AiArchitectureOrbit = ({
       if (disposed || !renderer) {
         return;
       }
-      resize();
       const time = now / 1000;
       const pointer = pointerRef?.current ?? fallbackPointer.current;
       smoothActive += (activeNodeRef.current - smoothActive) * 0.08;
@@ -330,6 +330,10 @@ const AiArchitectureOrbit = ({
 
     setFailed(false);
     resize();
+    if (canvas.parentElement && typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(resize);
+      resizeObserver.observe(canvas.parentElement);
+    }
     window.addEventListener("resize", resize);
     frameId = window.requestAnimationFrame(animate);
 
@@ -337,6 +341,7 @@ const AiArchitectureOrbit = ({
       disposed = true;
       window.cancelAnimationFrame(frameId);
       window.removeEventListener("resize", resize);
+      resizeObserver?.disconnect();
       core.geometry.dispose();
       (core.material as THREE.Material).dispose();
       innerCore.geometry.dispose();

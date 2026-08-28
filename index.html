@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>document.documentElement.classList.add("js");</script>
     <style id="openstudio-instant-loader-style">
       html,
       body {
@@ -14,6 +15,11 @@
       }
 
       #openstudio-instant-loader {
+        --os-loader-backdrop-exit-duration: 220ms;
+        --os-loader-panel-exit-duration: 1050ms;
+        --os-loader-content-opacity-exit-duration: 280ms;
+        --os-loader-content-filter-exit-duration: 360ms;
+        --os-loader-progress-exit-duration: 240ms;
         position: fixed;
         inset: 0;
         z-index: 2147483647;
@@ -33,7 +39,7 @@
         inset: 0;
         z-index: 0;
         background: #04050a;
-        transition: opacity 220ms ease;
+        transition: opacity var(--os-loader-backdrop-exit-duration) ease;
       }
 
       .os-instant-loader__panel {
@@ -47,7 +53,7 @@
           radial-gradient(circle at 52% var(--os-loader-soft-y), rgba(136, 188, 236, 0.13), transparent 31%),
           linear-gradient(180deg, rgba(3, 5, 12, 0.995), rgba(5, 8, 18, 0.985));
         box-shadow: 0 0 80px rgba(12, 250, 247, 0.08);
-        transition: transform 1050ms cubic-bezier(0.22, 1, 0.36, 1);
+        transition: transform var(--os-loader-panel-exit-duration) cubic-bezier(0.22, 1, 0.36, 1);
         will-change: transform;
       }
 
@@ -85,8 +91,8 @@
         text-align: center;
         pointer-events: none;
         transition:
-          opacity 280ms ease,
-          filter 360ms ease;
+          opacity var(--os-loader-content-opacity-exit-duration) ease,
+          filter var(--os-loader-content-filter-exit-duration) ease;
       }
 
       .os-instant-loader__mark {
@@ -161,8 +167,8 @@
           0 0 0 1px rgba(255, 255, 255, 0.035),
           0 0 34px rgba(12, 250, 247, 0.18);
         transition:
-          opacity 240ms ease,
-          transform 240ms ease;
+          opacity var(--os-loader-progress-exit-duration) ease,
+          transform var(--os-loader-progress-exit-duration) ease;
       }
 
       .os-instant-loader__progress span {
@@ -227,6 +233,16 @@
         }
       }
 
+      @media (max-width: 767px) {
+        #openstudio-instant-loader {
+          --os-loader-backdrop-exit-duration: 200ms;
+          --os-loader-panel-exit-duration: 200ms;
+          --os-loader-content-opacity-exit-duration: 140ms;
+          --os-loader-content-filter-exit-duration: 180ms;
+          --os-loader-progress-exit-duration: 140ms;
+        }
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .os-instant-loader__progress span {
           animation: none;
@@ -281,8 +297,8 @@
     />
     <meta property="og:url" content="https://openstudio.org.in/" />
     <meta property="og:site_name" content="OpenStudio" />
-    <meta property="og:image" content="https://openstudio.org.in/assets/blogs/building-openstudio-nam-rack.webp?v=d7c82fcb1ebdfb" />
-    <meta property="og:image:alt" content="OpenStudio NAM Rack showing pre-FX pedals, an A2 amp capture, and post-FX pedals." />
+    <meta property="og:image" content="https://openstudio.org.in/assets/blogs/building-openstudio-nam-rack.webp?v=1ab18641912af0" />
+    <meta property="og:image:alt" content="OpenStudio NAM Rack redesigned amp view with an A2 capture, input and output meters, cabinet navigation, and preset controls." />
     <meta property="og:image:width" content="3360" />
     <meta property="og:image:height" content="1764" />
     <meta property="og:locale" content="en_US" />
@@ -292,8 +308,8 @@
       name="twitter:description"
       content="Free, open-source DAW for multitrack recording, MIDI, plug-in hosting, pitch editing, mixing, and rendering, with a built-in Neural Amp Modeler guitar rig."
     />
-    <meta name="twitter:image" content="https://openstudio.org.in/assets/blogs/building-openstudio-nam-rack.webp?v=d7c82fcb1ebdfb" />
-    <meta name="twitter:image:alt" content="OpenStudio NAM Rack showing pre-FX pedals, an A2 amp capture, and post-FX pedals." />
+    <meta name="twitter:image" content="https://openstudio.org.in/assets/blogs/building-openstudio-nam-rack.webp?v=1ab18641912af0" />
+    <meta name="twitter:image:alt" content="OpenStudio NAM Rack redesigned amp view with an A2 capture, input and output meters, cabinet navigation, and preset controls." />
     <script type="application/ld+json">
       [
         {
@@ -383,12 +399,23 @@
         markPerformance("loader-visible");
 
         const startedAt = performance.now();
-        const minimumVisibleMs = 620;
+        const mobileIntro = window.matchMedia("(max-width: 767px)").matches;
+        const minimumVisibleMs = mobileIntro ? 0 : 620;
         const fallbackMs = 9500;
         const cssFallbackMs = 6500;
         const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        const revealMs = reduceMotion ? 160 : 1120;
-        const assembleMs = reduceMotion ? 0 : 900;
+        const mobileAssembleMs = 160;
+        const mobileRevealMs = 220;
+        const desktopAssembleMs = 900;
+        const desktopRevealMs = 1120;
+        const revealMs = reduceMotion
+          ? mobileIntro
+            ? 120
+            : 160
+          : mobileIntro
+            ? mobileRevealMs
+            : desktopRevealMs;
+        const assembleMs = reduceMotion ? 0 : mobileIntro ? mobileAssembleMs : desktopAssembleMs;
         let routeReady = Boolean(window.__openstudioAppReady);
         let cssReady = false;
         let hidden = false;
@@ -396,6 +423,7 @@
         let assembling = false;
         let assembleStartedAt = 0;
         let pieceRaf = 0;
+        let pieceFilterFrame = 0;
 
         window.__openstudioLoaderReady = true;
         window.__openstudioAppCssReady = false;
@@ -513,7 +541,7 @@
           };
         };
 
-        const applyPiece = (plan, state) => {
+        const applyPiece = (plan, state, updateFilter = true) => {
           plan.current = state;
           const centerX = plan.center.x.toFixed(2);
           const centerY = plan.center.y.toFixed(2);
@@ -525,30 +553,38 @@
             `translate(${state.x.toFixed(2)} ${state.y.toFixed(2)}) translate(${centerX} ${centerY}) rotate(${state.rotate.toFixed(2)}) scale(${state.scale.toFixed(3)}) translate(${negativeCenterX} ${negativeCenterY})`,
           );
           plan.element.style.opacity = state.opacity.toFixed(3);
-          plan.element.style.filter = `brightness(${state.brightness.toFixed(3)}) blur(${state.blur.toFixed(2)}px) drop-shadow(0 0 ${Math.round(10 + state.opacity * 18)}px ${plan.glow})`;
+          if (updateFilter) {
+            plan.element.style.filter = `brightness(${state.brightness.toFixed(3)}) blur(${state.blur.toFixed(2)}px) drop-shadow(0 0 ${Math.round(10 + state.opacity * 18)}px ${plan.glow})`;
+          }
         };
 
         const applyFinalPieces = () => {
-          piecePlans.forEach((plan) => applyPiece(plan, finalPieceState));
+          piecePlans.forEach((plan) => applyPiece(plan, finalPieceState, true));
         };
 
         const tickPieces = (now) => {
           pieceRaf = 0;
           if (hidden) return;
+          const updatePieceFilter = !mobileIntro || pieceFilterFrame % 2 === 0;
+          pieceFilterFrame += 1;
 
           if (assembling) {
             const amount = assembleMs === 0 ? 1 : ease((now - assembleStartedAt) / assembleMs);
             piecePlans.forEach((plan) => {
               const from = plan.from || plan.current || finalPieceState;
-              applyPiece(plan, {
-                x: mix(from.x, finalPieceState.x, amount),
-                y: mix(from.y, finalPieceState.y, amount),
-                rotate: mix(from.rotate, finalPieceState.rotate, amount),
-                scale: mix(from.scale, finalPieceState.scale, amount),
-                opacity: mix(from.opacity, finalPieceState.opacity, amount),
-                brightness: mix(from.brightness, finalPieceState.brightness, amount),
-                blur: mix(from.blur, finalPieceState.blur, amount),
-              });
+              applyPiece(
+                plan,
+                {
+                  x: mix(from.x, finalPieceState.x, amount),
+                  y: mix(from.y, finalPieceState.y, amount),
+                  rotate: mix(from.rotate, finalPieceState.rotate, amount),
+                  scale: mix(from.scale, finalPieceState.scale, amount),
+                  opacity: mix(from.opacity, finalPieceState.opacity, amount),
+                  brightness: mix(from.brightness, finalPieceState.brightness, amount),
+                  blur: mix(from.blur, finalPieceState.blur, amount),
+                },
+                updatePieceFilter,
+              );
             });
 
             if (amount >= 1) {
@@ -559,7 +595,9 @@
               return;
             }
           } else {
-            piecePlans.forEach((plan) => applyPiece(plan, pieceStateAt(plan, now)));
+            piecePlans.forEach((plan) =>
+              applyPiece(plan, pieceStateAt(plan, now), updatePieceFilter),
+            );
           }
 
           pieceRaf = requestAnimationFrame(tickPieces);
@@ -626,24 +664,13 @@
         const loadFonts = () => {
           if (document.querySelector("link[data-openstudio-fonts]")) return;
 
-          const googlePreconnect = document.createElement("link");
-          googlePreconnect.rel = "preconnect";
-          googlePreconnect.href = "https://fonts.googleapis.com";
-          googlePreconnect.dataset.openstudioFonts = "true";
-
-          const gstaticPreconnect = document.createElement("link");
-          gstaticPreconnect.rel = "preconnect";
-          gstaticPreconnect.href = "https://fonts.gstatic.com";
-          gstaticPreconnect.crossOrigin = "";
-          gstaticPreconnect.dataset.openstudioFonts = "true";
-
           const fontStylesheet = document.createElement("link");
           fontStylesheet.rel = "stylesheet";
           fontStylesheet.href =
-            "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Orbitron:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,500;1,9..144,600;1,9..144,700&display=swap";
+            "/assets/openstudio/fonts/google-fonts-20260815.css";
           fontStylesheet.dataset.openstudioFonts = "true";
 
-          document.head.append(googlePreconnect, gstaticPreconnect, fontStylesheet);
+          document.head.append(fontStylesheet);
         };
         requestAnimationFrame(() => requestAnimationFrame(loadFonts));
 
@@ -689,11 +716,76 @@
           },
           { once: true },
         );
+        window.addEventListener(
+          "openstudio:static-route-restored",
+          () => {
+            routeReady = true;
+            finishWhenReady();
+          },
+          { once: true },
+        );
 
         window.setTimeout(() => {
+          if (!window.__openstudioAppReady) {
+            window.__openstudioRestoreStaticRoute?.();
+          }
           routeReady = true;
           finishWhenReady();
         }, fallbackMs);
+      })();
+    </script>
+    <script>
+      (() => {
+        const root = document.getElementById("root");
+        const staticContent = root?.querySelector(":scope > [data-static-route-content]");
+        if (!root || !staticContent) return;
+
+        const fallback = document.createElement("div");
+        fallback.id = "openstudio-static-route-fallback";
+        fallback.hidden = true;
+        fallback.append(staticContent);
+        root.after(fallback);
+
+        const cleanup = () => {
+          window.removeEventListener("error", restoreOnError, true);
+          window.removeEventListener("unhandledrejection", restoreOnRejection);
+          window.__openstudioRestoreStaticRoute = undefined;
+        };
+        const restore = () => {
+          if (window.__openstudioAppReady || !fallback.isConnected) return;
+
+          document.documentElement.classList.remove("js");
+          root.hidden = true;
+          fallback.hidden = false;
+          window.__openstudioStaticRouteRestored = true;
+          window.dispatchEvent(new CustomEvent("openstudio:static-route-restored"));
+        };
+        function restoreOnError(event) {
+          const target = event.target;
+          if (
+            event instanceof ErrorEvent ||
+            (target instanceof HTMLScriptElement && target.type === "module")
+          ) {
+            restore();
+          }
+        }
+        function restoreOnRejection() {
+          restore();
+        }
+
+        window.__openstudioRestoreStaticRoute = restore;
+        window.addEventListener("error", restoreOnError, true);
+        window.addEventListener("unhandledrejection", restoreOnRejection);
+        window.addEventListener(
+          "openstudio:app-ready",
+          () => {
+            root.hidden = false;
+            document.documentElement.classList.add("js");
+            fallback.remove();
+            cleanup();
+          },
+          { once: true },
+        );
       })();
     </script>
     <script type="module" src="/src/main.tsx"></script>

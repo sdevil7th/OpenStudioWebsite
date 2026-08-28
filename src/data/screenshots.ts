@@ -564,9 +564,9 @@ export const screenshots: Record<ScreenshotAsset["id"], ScreenshotAsset> = {
   namRackHero: {
     id: "namRackHero",
     src: "/assets/blogs/building-openstudio-nam-rack.webp",
-    alt: "OpenStudio NAM Rack showing pre-FX pedals, an A2 amp capture, and post-FX pedals.",
+    alt: "OpenStudio NAM Rack redesigned amp view with an A2 capture, input and output meters, cabinet navigation, and preset controls.",
     label: "Complete NAM Rack",
-    caption: "The native pedalboard, A1/A2 capture slot, cabinet stage, and post effects stay inside the DAW project.",
+    caption: "Pedals, A1/A2 captures, cabinet shaping, Cabinet Space, and studio effects stay inside the DAW project.",
     required: true,
     priority: "core",
     orientation: "wide",
@@ -594,7 +594,7 @@ export const screenshots: Record<ScreenshotAsset["id"], ScreenshotAsset> = {
   namRackPreFx: {
     id: "namRackPreFx",
     src: "/assets/openstudio/screenshots/nam-rack-pre-fx.webp",
-    alt: "OpenStudio NAM Rack pre-effects pedalboard with compressor, tape echo, octaver, drive, and distortion pedals.",
+    alt: "OpenStudio NAM Rack Pedals page with Compressor, Stereo Poly Octaver, PRE EQ, Precision Drive, and Distortion.",
     label: "Native pre-FX",
     caption: "Hardware-style native pedals shape the input before it reaches the NAM capture.",
     required: true,
@@ -609,9 +609,9 @@ export const screenshots: Record<ScreenshotAsset["id"], ScreenshotAsset> = {
   namRackPostFx: {
     id: "namRackPostFx",
     src: "/assets/openstudio/screenshots/nam-rack-post-fx.webp",
-    alt: "OpenStudio NAM Rack post-effects pedalboard with modulation, stereo delay, reverb, and shimmer controls.",
+    alt: "OpenStudio NAM Rack post-effects page with Modulator, Stereo Delay, and Studio Reverb controls.",
     label: "Studio post-FX",
-    caption: "EQ, modulation, delay, reverb, and shimmer finish the recorded sound after the cabinet stage.",
+    caption: "Reorderable EQ, modulation, delay, and reverb finish the sound after the cabinet and Cabinet Space stages.",
     required: true,
     priority: "core",
     orientation: "wide",

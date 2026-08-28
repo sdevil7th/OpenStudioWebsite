@@ -1,198 +1,154 @@
 # Building a Free NAM Guitar Rig Inside OpenStudio
 
-*OpenStudio now includes a complete, free NAM guitar rig inside the DAW: A1 and A2 captures, native pre- and post-effects, cabinet IRs, TONE3000 access, tuning, presets, project recall, and offline rendering.*
+*OpenStudio now includes a redesigned, complete NAM guitar rig inside the DAW: A1 and A2 captures, native pre-effects, optional Pedal NAM, cabinet shaping, Cabinet Space, studio effects, TONE3000 access, tuning, presets, project recall, and offline rendering.*
 
-OpenStudio’s NAM Rack is built for the full guitar workflow. Plug in, tune, choose a capture, shape the front and back of the amp, record, and reopen the project with the same tone intact. This is not a model loader bolted onto OpenStudio; the rack belongs to the DAW’s audio engine, automation, project state, and render path.
+> Updated 28 August 2026 for the current NAM Rack interface and effects engine v19.
 
-There is no paid NAM Rack tier or subscription. Local captures and IRs work without an account. A TONE3000 account is required only when connecting to TONE3000, and every third-party capture or IR keeps its creator’s license.
+OpenStudio's NAM Rack is built for the full guitar workflow. Plug in, tune, choose a capture, shape the signal before and after it, record, and reopen the project with the same tone intact. It is not a model loader sitting beside the DAW: the rack belongs to OpenStudio's audio engine, automation, project state, and render path.
 
-You can explore the complete workflow in the [NAM Rack feature chapter](/features#nam-rack), or [download OpenStudio](/download) when you are ready to try it.
+There is no paid NAM Rack tier or separate NAM download. The rack engine ships inside the normal OpenStudio installer. Local `.nam` captures and cabinet IRs work without an account; a TONE3000 account is needed only for connected TONE3000 delivery. Third-party models and IRs remain subject to their creators' licenses.
 
-## One rack, one recording workflow
+Explore the complete workflow in the [NAM Rack feature chapter](/features#nam-rack), read the practical [tone-building guide](/blogs/build-guitar-tones-with-openstudio-nam-rack), or [download OpenStudio](/download).
 
-The main rack keeps the input and output meters, gate, tuner, A/B comparison, presets, section navigation, amp capture, and library controls in one workspace. The amp panel uses familiar Gain, Bass, Mid, Treble, Presence, and Level controls around the selected NAM capture. It keeps the capture name and amp-only or full-rig cabinet state visible, while architecture, creator, and license details remain available in the Capture Library.
+## The rack was rebuilt around the way guitarists work
 
-[![OpenStudio NAM Rack amp and capture overview](/assets/blogs/nam-rack-overview.webp)](/assets/blogs/nam-rack-overview.webp)
+The current Rack view is divided into Pedals, Amp, Cab, EQ, and Post pages. Input and output meters, gate, presets, A/B comparison, instrument profile, oversampling, tuner, and the compact signal-chain drawer remain available around those pages. The result is a rack that can show real hardware-style controls without hiding the session-level information that matters.
 
-*The amp view keeps capture selection, A/B comparison, input and output metering, capture details, and the main tone controls in one place. Open the image to inspect it at full resolution.*
+[![OpenStudio NAM Rack redesigned amp view with an A2 capture, meters, preset controls, and installed amp library](/assets/blogs/nam-rack-overview.webp)](/assets/blogs/nam-rack-overview.webp)
 
-### Tune before the signal is processed
+*The Amp page keeps the current capture, wrapper controls, installed captures, A/B slots, meters, and preset actions in one view.*
 
-The tuner reads the matching armed or input-monitored hardware route before effects, so tuning never becomes part of the audible or recorded signal. It reports the chromatic note, cents from pitch, frequency, input level, tracking confidence, and a 440 Hz reference. The tracker holds a stable reading through a guitar note’s decay instead of dropping the display immediately after the transient.
+The amp controls sit around the selected capture rather than pretending to change the original hardware. Gain changes how the capture is driven; Bass, Mid, Treble, and Presence shape the result; Tight and Bright offer focused voicing changes; Mix and Output make parallel use and gain matching explicit.
 
-[![OpenStudio NAM Rack tuner showing E4, cents, pitch, input level, and tracking confidence](/assets/blogs/nam-rack-tuner.webp)](/assets/blogs/nam-rack-tuner.webp)
+## The current signal path is explicit
 
-*The tuner observes the raw input route; it does not color, delay, or otherwise enter the guitar signal.*
-
-## Why NAM belongs inside the session
-
-A NAM file is more than a static EQ curve. A neural model learns the nonlinear behavior of a real signal chain: how it responds to a soft note, how it compresses when the pick digs in, and how its harmonics change with input level.
-
-That is what makes [Neural Amp Modeler](https://github.com/sdatkinson/neural-amp-modeler) valuable. It gives musicians an open format for captured gear and gives developers an open inference engine through [NeuralAmpModelerCore](https://github.com/sdatkinson/NeuralAmpModelerCore). The capture does not have to be trapped in one company’s pedal, plug-in, or account.
-
-Inside OpenStudio, the NAM Rack lives on the track and is recalled with the project. Recorded audio remains raw before effects, while monitoring, playback, and offline export run through the rack beside automation, sends, editing, and the rest of the mix.
-
-### A1 and A2, without locking the rack to one generation
-
-OpenStudio loads both A1 and A2 NAM captures, whether they represent an amp or a complete captured rig. A2 is the newer Neural Amp Modeler architecture, while existing A1 libraries remain fully useful. The code-backed promise here is compatibility with both generations—not a guarantee that one capture will sound better than another. Guitarists can choose the capture that sounds and responds correctly for the session.
-
-OpenStudio now sits in the same practical category as [AmpliTube](https://www.ikmultimedia.com/products/amplitube5/), [Guitar Rig](https://www.native-instruments.com/en/products/komplete/guitar/guitar-rig-7-pro/), [Neural DSP](https://neuraldsp.com/plugins) and similar amp modelers: it takes a direct guitar input through an amp, cabinet, effects, and into a record-ready session.
-
-OpenStudio’s proposition is straightforward. The NAM capture host, native pedalboard, cabinet stage, effects, recording, editing, automation, mixing, and export are built into one free, open-source DAW. Capture quality, input calibration, cabinet choice, monitoring, and the player still shape the result, but the workflow itself is complete and does not require a paid rack tier.
-
-## The signal path is explicit
-
-The implemented route is:
+Effects engine v19 uses this audible route:
 
 ```text
-Input (the tuner observes here without entering the audible path)
+Input (the tuner observes here)
   -> input trim
   -> gate
   -> compressor
-  -> tape echo
-  -> mono octaver
+  -> Stereo Poly Octaver
+  -> PRE EQ
   -> Precision Drive
-  -> distortion
+  -> Distortion
+  -> optional Pedal NAM capture
   -> A1/A2 amp or full-rig NAM capture
-  -> cabinet IR and cabinet shaping
-  -> reorderable graphic EQ, modulation, delay, and reverb
+  -> cabinet IR and cabinet shaping when the capture is amp-only
+  -> Cabinet Space: Room and optional Doubler
+  -> reorderable Graphic EQ, Modulator, Stereo Delay, and Reverb
   -> output trim and meters
 ```
 
-[![OpenStudio NAM Rack signal-chain drawer showing every processing stage](/assets/blogs/nam-rack-signal-chain.webp)](/assets/blogs/nam-rack-signal-chain.webp)
+[![OpenStudio NAM Rack signal-chain drawer showing the v19 processing route](/assets/blogs/nam-rack-signal-chain.webp)](/assets/blogs/nam-rack-signal-chain.webp)
 
-*The signal-chain drawer shows the actual audible order. The five pre-effects keep a fixed order, while the four post-cab effects can be reordered.*
+*The signal-chain drawer reports the route that is actually running, including bypass state, Pedal NAM, Cabinet Space, DAW routing, and the reorderable post section.*
 
-## Developer notes: the pre-effects
+The old dedicated pre-capture Tape Echo was retired. Tape remains available as a mode in the post-cab Stereo Delay, where repeats do not repeatedly drive the amp capture. The old monophonic octaver was also replaced by a Stereo Poly Octaver that keeps left and right processing independent. Old Tape Echo state is pruned during preset migration instead of being silently mapped onto a different effect.
 
-The main Pedals page exposes five focused devices. Each faceplate maps a small set of controls to parameters implemented by the rack, while Device Controls exposes additional settings such as Precision Drive’s Gate. The DSP underneath handles smoothing, state recall, bypass behavior, and the work needed to keep those controls safe in a real-time project.
+## Five focused devices before the capture
 
-[![OpenStudio NAM Rack pre-effects with Compressor, Tape Echo, Mono Octaver, Precision Drive, and Distortion](/assets/blogs/nam-rack-pre-fx.webp)](/assets/blogs/nam-rack-pre-fx.webp)
+The Pedals page now shows Compressor, Stereo Poly Octaver, PRE EQ, Precision Drive, and Distortion. The gate remains in the rack header because it is input conditioning rather than a pedal slot.
 
-*The main Pedals screen contains exactly the five devices shown above. Gate lives in the rack header, while Device Controls exposes the pedals' additional settings.*
+[![OpenStudio NAM Rack Pedals page with Compressor, Stereo Poly Octaver, PRE EQ, Precision Drive, and Distortion](/assets/blogs/nam-rack-pre-fx.webp)](/assets/blogs/nam-rack-pre-fx.webp)
 
-- **Gate** — Threshold and Release control the rack’s first processing stage, before compression and gain can raise the noise floor. Taking Threshold to its minimum effectively bypasses the stage.
+*Five devices cover dynamics, polyphonic octave voices, pre-gain EQ, tightening, and dedicated distortion before the capture.*
 
-- **Compressor** — Comp is a musician-facing macro over threshold, ratio, and knee. Detail moves the attack and release behavior together, while Mix enables parallel compression and Level makes gain matching explicit. A high-pass filter in the detector stops low-end energy from dominating the compression decision.
+- **Gate** — Threshold and Release control the first audible stage. The threshold can be set low for natural decays or raised for tight stops; Release decides whether the close feels smooth or abrupt.
 
-- **Tape Echo** — Time, Feedback, Mix, Mod, and Tone cover slapback, longer echoes, darker repeats, and tape-like movement. The feedback loop is filtered and saturated. Because the effect sits before the capture, its repeats can push and react with the amp model; bypass stops new input while existing repeats spill naturally.
+- **Compressor** — Comp, Attack, Release, Tone, Mix, Level, Intensity, and detector HPF cover gentle clean levelling through assertive parallel compression. Its detector high-pass filter prevents low strings from dominating the gain-reduction decision.
 
-- **Mono Octaver** — Down, Up, and Direct set the sub octave, upper octave, and original guitar levels. The implementation uses a monophonic detector with hysteresis and smoothing to stabilize single-note tracking; it does not claim polyphonic tracking.
+- **Stereo Poly Octaver** — Down, Up, and Direct blend octave voices with the dry signal. Unlike the retired mono design, it can follow polyphonic material and preserves stereo routing.
 
-- **Precision Drive** — Drive, Bright, Attack, and Level make this a focused tightening stage. Attack controls the pre-drive low cut, Bright shapes the upper voice, and the advanced view also exposes a gate. The circuit uses transistor-style saturation and remains separate from Distortion, so it can tighten a capture without becoming the main high-gain sound.
+- **PRE EQ** — Eight bands from 120 Hz to 12 kHz, plus high- and low-pass filters, shape what reaches the gain stages. A low cut here tightens distortion differently from removing bass after the amp; an upper-mid boost here changes pick attack and the way the capture saturates.
 
-- **Distortion** — This is a dedicated diode-clipping stage with Drive, Tone, Mix, and Level, not a hidden mode inside Precision Drive. Keeping the two pedals independent lets a player use one as a boost, the other as the main gain source, or stack both. Precision Drive and Distortion share one fixed 2× nonlinear processing pass instead of nesting a separate resampler around each stage.
+- **Precision Drive** — Drive, Bright, Attack, Gate, and Volume make this the focused tightening stage. It can be used as a low-drive, high-level boost or as a more audible overdrive.
 
-The five visible pedals run in a fixed order before the capture. Graphic EQ, Modulator, Stereo Delay, and Reverb are the four reorderable post-cab stages.
+- **Distortion** — Heavy, Extreme, and Crunch modes add a separate gain voice with Drive, Weight, Tone, Gate, Mix, and Level. It can be the main distortion or be stacked with Precision Drive and a NAM capture.
 
-## Amp capture and cabinet decisions stay separate
+An optional Pedal NAM slot follows these native devices. It accepts a pedal capture separately from the amp slot, so a captured drive or preamp can become part of the saved rack without being confused with the main amp model.
 
-The NAM slot accepts A1 and A2 amp-only or full-rig captures. Model files are validated and prepared away from the audio callback, then swapped into the running processor with a crossfade. File parsing, allocation, and model preparation never belong on the real-time thread.
+## A1 and A2 captures, with amp-only and full-rig behavior
 
-When an amp-only capture needs a speaker, the cabinet screen loads an external IR and adds focused shaping: Edge, Damp, Blend, Bloom, high- and low-pass filters, Level, Pan, and Phase. These names describe musical outcomes while the engine handles filter smoothing and IR transitions underneath.
+The amp slot loads local A1 and A2 NAM captures. A capture may represent an amp, a pedal, or a complete rig. A2 is the newer NAM architecture, but the rack does not assume newer means better for every song: the right capture is the one that responds correctly to the guitar, input level, and part.
 
-[![OpenStudio NAM Rack cabinet IR and IR Shaper screen](/assets/blogs/nam-rack-cabinet-ir.webp)](/assets/blogs/nam-rack-cabinet-ir.webp)
+[Neural Amp Modeler](https://github.com/sdatkinson/neural-amp-modeler) provides the open model format, while [NeuralAmpModelerCore](https://github.com/sdatkinson/NeuralAmpModelerCore) provides the inference engine compiled into OpenStudio. Model loading and preparation happen away from the audio callback, then the prepared resource is moved into use safely.
 
-*The cabinet stage keeps the active IR, source actions, shaping controls, and library visible together.*
+For an amp-only capture, the Cab page loads an external impulse response and exposes Edge, Damp, Blend, Low Bloom, HPF, LPF, Level, Pan, and Phase. For a full-rig capture, OpenStudio bypasses the separate cabinet rather than stacking a second speaker response. The selected external IR is retained so it returns when an amp-only capture is loaded later.
 
-If a full-rig capture already includes its cabinet, OpenStudio bypasses and locks the separate cabinet stage instead of stacking another IR on top. The previous external IR choice is remembered, so switching back to an amp-only capture restores the player’s cabinet rather than discarding it.
+[![OpenStudio NAM Rack Cabinet page with active IR, shaping controls, Room, and Cabinet Space](/assets/blogs/nam-rack-cabinet-ir.webp)](/assets/blogs/nam-rack-cabinet-ir.webp)
 
-## Developer notes: the post-effects
+*The redesigned Cab page combines the active IR, installed IR library, cabinet shaping, and Cabinet Space Room controls.*
 
-The post section starts after the cabinet, so these tools shape the resulting rig without changing how the amp capture is driven. Graphic EQ, Modulator, Stereo Delay, and Reverb can be reordered, with EQ → Modulator → Delay → Reverb as the default.
+## Cabinet Space adds width after the speaker stage
 
-### Post-cab graphic EQ
+Cabinet Space is separate from the convolution IR. **Room** adds early ambience with Amount and Width, while **Doubler** adds a short, spread delay with Mix, Delay, and Spread. Because this stage follows the cabinet decision, it also remains useful when the loaded capture is a full rig.
 
-Nine fixed musical bands from 65 Hz to 16 kHz make broad, repeatable correction faster than creating parametric nodes for every tone. Each band covers ±12 dB, coefficient changes are smoothed, and the whole EQ can move within the post-effect order.
+The Doubler is routing-aware: it needs a stereo path to create width and pauses when the effective route is mono. Its side signal is designed to remain useful when the mix is checked in mono, but a guitarist should still audition important tones in both stereo and mono.
 
-[![OpenStudio NAM Rack nine-band post-cab graphic EQ](/assets/blogs/nam-rack-graphic-eq.webp)](/assets/blogs/nam-rack-graphic-eq.webp)
+## Post-cab correction and ambience
 
-*This is a nine-band graphic EQ—not a parametric EQ—with fixed centers at 65, 125, 250, 500 Hz and 1, 2, 4, 8, and 16 kHz.*
+The dedicated EQ page contains nine fixed bands at 65, 125, 250, 500 Hz, 1, 2, 4, 8, and 16 kHz, plus HPF, LPF, and output Level. It is a fast correction stage for fitting a completed rig into a mix.
 
-### Modulation, delay, and reverb
+[![OpenStudio NAM Rack nine-band post-cab Graphic EQ](/assets/blogs/nam-rack-graphic-eq.webp)](/assets/blogs/nam-rack-graphic-eq.webp)
 
-[![OpenStudio NAM Rack Modulator, Stereo Delay, and Reverb pedals](/assets/blogs/nam-rack-post-fx.webp)](/assets/blogs/nam-rack-post-fx.webp)
+*The Graphic EQ makes broad, repeatable post-cab moves without turning the rack into a surgical mixing plug-in.*
 
-*The post-effects share a consistent pedal layout but keep the controls that matter to each algorithm.*
+Graphic EQ, Modulator, Stereo Delay, and Reverb are the four reorderable post effects. Their default order is EQ → Modulator → Delay → Reverb, but the signal-chain drawer can move them when a different interaction is wanted.
 
-- **Modulator** — Chorus and Flanger share one device because both are built on time modulation. Rate, Position, Depth, Feedback, and Mix cover the movement, while Clean, Ensemble, and BBD choose the tonal family. Pedal mode makes Position a coordinated manual macro; Auto mode creates evolving motion without multiplying the rack with near-identical devices.
+[![OpenStudio NAM Rack Post page with Modulator, Stereo Delay, and Studio Reverb](/assets/blogs/nam-rack-post-fx.webp)](/assets/blogs/nam-rack-post-fx.webp)
 
-- **Stereo Delay** — Digital, Tape, and Analog modes change the filtering and saturation, not just the label. Time, Feedback, Mix, Mod, and Ducker cover the core behavior; Ping Pong and Tempo Sync are available in the full controls. When Sync is active, the manual time control yields to musical subdivisions so the UI never presents two conflicting timing sources. Ducking keeps repeats behind active playing, and bypass lets the bounded tail finish naturally.
+*The Post page keeps the three pedal-style time and modulation devices visible; Graphic EQ has its own page and still participates in post-effect ordering.*
 
-- **Reverb** — The plate algorithm exposes Pre Delay, Decay, Mix, Low Cut, Tone, and Shimmer. Low Cut keeps the reverb bed clear, Tone controls high-frequency damping, Shimmer uses a pitch-shifted feedback branch, and an existing decay continues after bypass instead of being cut off.
+- **Modulator** switches between Chorus and Flanger, with Pedal or Auto movement, Clean or Ensemble character, Rate, Position, Depth, Feedback, and Mix.
 
-## TONE3000 inside the rack
+- **Stereo Delay** provides Digital, Tape, Analog, Multi, and Dual modes. Time, Feedback, Mix, Mod, Ducker, Ping Pong, and Tempo Sync cover slapback through wide rhythmic repeats.
 
-TONE3000 is integrated directly into the rack workflow. Connect an account, browse the available library views, inspect capture and creator metadata, audition a choice in the current session, and install the selected A1 or A2 model from TONE3000’s official delivery URL.
+- **Reverb** provides Studio, Plate, Hall, and Room voices with Mix, Decay, Pre Delay, Low Cut, Tone, Air, and Pad. Pre-delay can leave the pick attack clear before the reverb blooms; Low Cut prevents the ambience from taking over the bass range.
 
-[![OpenStudio TONE3000 library interface with filters, capture list, and selected model details](/assets/blogs/nam-rack-tone3000-library.webp)](/assets/blogs/nam-rack-tone3000-library.webp)
+## Tune and calibrate before chasing knobs
 
-*The connected browser keeps filters, results, creator details, and install actions inside the rack. The visible rows are deterministic development fixtures for interface review, not live TONE3000 catalog entries.*
+The tuner observes the raw matched input route without entering the audible signal. It shows note, cents, frequency, input level, tracking confidence, and the 440 Hz reference, and it holds a stable reading as a note decays.
 
-The connection uses OAuth 2.0 with PKCE: OpenStudio opens the normal TONE3000 sign-in page, verifies the local callback, and exchanges the authorization code without embedding a client secret. The current library presents Latest, Trending, and Downloaded online views alongside local Installed and Favorites views, with filters for architecture and capture metadata. OpenStudio keeps creator attribution and license metadata visible and does not bulk-download, proxy, mirror, or re-host creator content. Richer catalog access will not be promised until TONE3000 approves that scope in writing.
+[![OpenStudio NAM Rack chromatic tuner showing E4, cents, pitch, input level, and tracking confidence](/assets/blogs/nam-rack-tuner.webp)](/assets/blogs/nam-rack-tuner.webp)
 
-### Audition first, commit deliberately
+*The tuner reads the input before effects, so opening it does not color or delay the guitar signal.*
 
-Capture and IR audition is temporary. **Stop Audition** restores the previous source, while **Use Capture** or **Use IR** commits the selection. OpenStudio FX Collection presets use a separate **Preview Preset**, **Apply Preset**, and **Cancel Preview** flow.
+Calibration is separate from creative Input and Output trims. When a capture includes useful input/output reference metadata, Model calibration aligns that reference with the interface setting. Off ignores capture calibration, while Override lets the user supply a deliberate reference. This matters because a level-sensitive neural capture can feel cleaner, softer, or more compressed depending on how hard it is driven.
 
-### Cabinet IR sources
+## Browse deliberately, then commit
 
-The IR source screen brings local and permitted connected sources into the same cabinet workflow. A player can inspect a result, audition it against the active capture, and use it without losing the context of the rack.
+The Capture Library combines local installed models with optional connected TONE3000 views. A connected account can browse Latest, Trending, and Downloaded items, inspect creator and license metadata, and install a chosen capture from TONE3000's official delivery path. Installed and Favorites remain useful local views.
 
-[![OpenStudio cabinet IR source browser with audition and use actions](/assets/blogs/nam-rack-ir-library.webp)](/assets/blogs/nam-rack-ir-library.webp)
+Audition is temporary: **Stop Audition** restores the previous source, while **Use Capture** or **Use IR** commits the choice. OpenStudio does not bulk-download, mirror, proxy, or re-host creator libraries. It keeps source and license metadata visible so a tone can be useful without obscuring where its assets came from.
 
-*The source-browser entries shown here are deterministic development records used to review the interface; they are not presented as production catalog content.*
+## Presets now remember the complete creative rack
 
-## Calibration keeps “tone” separate from hardware level
+A user preset can store the complete creative signal chain, including amp and optional pedal capture identity, the external IR choice, enabled states, effect values, Cabinet Space, and post-effect order. Search, favorites, recent items, folders, tags, notes, Save As, import/export, duplicate, rename, and delete make the library useful beyond a single session.
 
-Neural captures are level-sensitive. A model trained around one analogue reference can respond differently when an interface feeds it a much hotter or quieter digital signal.
+[![OpenStudio NAM Rack preset library with templates, user presets, search, import, and export](/assets/blogs/nam-rack-preset-library.webp)](/assets/blogs/nam-rack-preset-library.webp)
 
-The calibration panel aligns the interface’s 0 dBFS reference with capture input and output dBu metadata. Each capture can use its metadata, turn calibration off, or apply an override. Calibration stays inside the NAM wet path and never moves the musician’s creative Input or Output trims.
+*Factory entries are capture-agnostic starting points; user presets are complete saved racks.*
 
-[![OpenStudio NAM capture dBu calibration screen](/assets/blogs/nam-rack-input-calibration.webp)](/assets/blogs/nam-rack-input-calibration.webp)
+Factory templates such as Current Capture · Clean Polish, Wide Chorus, Edge & Echo, Mid Push, Tight High Gain, and Shimmer Bloom shape the currently loaded capture. They deliberately do not bundle a third-party NAM model or cabinet IR. User presets can be exported as `.s13nampreset` files, but sharing a preset does not grant permission to redistribute the model or IR it refers to.
 
-*Hardware reference is playback-environment state, while capture metadata and deliberate overrides belong to the portable tone. Keeping those domains separate prevents an A/B or preset change from silently recalibrating the interface.*
+## The less visible work that makes it a DAW rack
 
-## Presets remember the complete tone
-
-A rack preset stores the creative signal chain rather than only the amp filename. The library provides search, favorites, recent items, folders, tags, notes, Save As, import/export, duplication, rename, and delete. Factory starting points such as Current Capture · Clean Polish, Current Capture · Wide Chorus, Current Capture · Tight High Gain, and Current Capture · Shimmer Bloom adapt the controls around the current capture; they do not include a NAM model or IR.
-
-[![OpenStudio NAM Rack preset library with search, templates, user presets, import, and export](/assets/blogs/nam-rack-preset-library.webp)](/assets/blogs/nam-rack-preset-library.webp)
-
-*The preset library combines factory templates for the current capture with saved user presets, search, organization, and import/export.*
-
-## The less visible work that makes the rack dependable
-
-The screen is only the front of the feature. The audio engine also has to make every change safe and repeatable:
-
-- NAM models and cabinet IRs are parsed, allocated, and prepared away from the audio callback, then published as ready resources.
-- Sample-rate conversion is explicit when a model and session expect different rates.
-- The rack reports latency introduced by model-rate conversion and the shared drive stage. Model and cabinet swaps, plus supported power and bypass transitions, use aligned paths and click-safe transitions where the processor requires them.
-- Working buffers are preallocated, controls are atomic, and the callback performs bounded work with no file access.
+- NAM models and cabinet IRs are validated and prepared away from the real-time callback.
+- Automatic mono/stereo behavior follows the DAW route and model capability instead of exposing a misleading rack-wide channel switch.
+- Working buffers are prepared ahead of time, control values are smoothed or atomic where needed, and the audio callback performs no file access.
+- Capture, cabinet, bypass, and supported routing transitions use aligned paths and click-safe changes.
 - Delay and reverb tails are reported to the render path, and offline export uses the same processor graph as playback.
-- Project state stores model and IR identity, parameters, order, and bypass state; missing assets offer Locate, Replace, Bypass, and supported Re-download actions.
+- Project state stores model and IR identity, parameter state, effect order, and bypass state. Missing assets offer supported Locate, Replace, Bypass, and Re-download recovery actions.
+- Preset migration removes retired Tape Echo state and upgrades older rack state to the current effects schema.
 
-Those choices are what turn NAM support from a file loader into a dependable DAW instrument.
+Those details are what turn NAM support from a file picker into a dependable part of a recording session.
 
-## Help us improve the rack
+## Download once, then bring the captures you trust
 
-The next decisions should come from guitarists using the rack in real sessions. Tell us which control feels missing, redundant, or unclear; whether the defaults work across single coils, humbuckers, active pickups, and different interface levels; how quickly the tuner settles on sustained notes; and whether the fixed pre order and reorderable post section feel obvious.
+The Windows installer, macOS DMG, and Linux AppImage already contain the NAM Rack engine. There is no separate model-player package or NAM runtime to install. Add local `.nam` files and WAV cabinet IRs, or connect TONE3000 when you want optional account-based delivery.
 
-We would especially like to know:
+[Download OpenStudio](/download), put the rack on a guitar track, and keep the DI recording dry so the tone can change later. If something behaves differently with a specific guitar, interface, capture, sample rate, or buffer size, share those details in the [OpenStudio issue tracker](https://github.com/sdevil7th/OpenStudio/issues).
 
-- Should Precision Drive’s Gate move onto the main faceplate?
-- How does Mono Octaver tracking behave with your guitar and playing style?
-- Do Pedal and Auto modes make the Modulator easier or harder to use?
-- Which delay subdivisions, reverb controls, or cabinet-shaping terms need improvement?
-- What would make TONE3000 browsing, preset organization, or missing-file recovery faster?
-- Which native pedal should come next, and which three to five controls does it truly need?
-
-Share what you hear and what slows you down in the [OpenStudio issue tracker](https://github.com/sdevil7th/OpenStudio/issues). Specific guitars, interfaces, buffer sizes, captures, and IRs are especially useful because they help us reproduce the experience instead of guessing.
-
-## Thank you to the people who made the foundation
-
-Thank you to Steve Atkinson and everyone who has built, tested, documented, and shared work around Neural Amp Modeler. Open-sourcing both the ideas and the production-grade core made it possible to build this as a real part of an open DAW instead of another closed island.
-
-Thank you as well to the TONE3000 team and to the capture creators who keep the ecosystem useful. A model loader becomes a guitar rig because there are great models, clear metadata, and people willing to share the sound of their gear.
-
-The current build brings the NAM guitar workflow together inside OpenStudio: tune, shape, audition, record, automate, recall, and render without leaving the project. The next step is musician feedback on the controls, defaults, and remaining release validation.
+Thank you to Steve Atkinson, the Neural Amp Modeler contributors, the TONE3000 team, and the capture and IR creators who make an open guitar ecosystem possible.

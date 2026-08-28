@@ -18,16 +18,51 @@ const decodeHashId = (hash: string) => {
   }
 };
 
+// getBoundingClientRect includes route entrance transforms, which can make a
+// freshly mounted deep-link target look several pixels lower than its settled
+// layout position. Offset-parent geometry is transform-free and keeps the
+// final navbar clearance exact after the entrance animation completes.
+const getDocumentLayoutTop = (element: HTMLElement) => {
+  let node: HTMLElement | null = element;
+  let top = 0;
+
+  while (node) {
+    top += node.offsetTop;
+    node = node.offsetParent as HTMLElement | null;
+  }
+
+  return top;
+};
+
 const ShellContent = () => {
   const location = useLocation();
   const { lenis } = useSmoothScroll();
   const lenisRef = useRef(lenis);
+  const [initialRoutePending, setInitialRoutePending] = useState(
+    () => typeof window === "undefined" || !window.__openstudioAppReady,
+  );
   const [routeFallbackTokens, setRouteFallbackTokens] = useState<Set<string>>(() => new Set());
-  const routePending = routeFallbackTokens.size > 0;
+  const routePending = initialRoutePending || routeFallbackTokens.size > 0;
 
   useEffect(() => {
     lenisRef.current = lenis;
   }, [lenis]);
+
+  useEffect(() => {
+    const handleInitialRouteReady = () => setInitialRoutePending(false);
+
+    // RouteFallback announces itself from an effect, which is too late to keep
+    // the footer out of the shell's first committed frame. Treat the first
+    // route as pending synchronously, then release the footer once that route
+    // has rendered and emitted the existing ready signal.
+    if (window.__openstudioAppReady) {
+      handleInitialRouteReady();
+      return;
+    }
+
+    window.addEventListener("openstudio:app-ready", handleInitialRouteReady, { once: true });
+    return () => window.removeEventListener("openstudio:app-ready", handleInitialRouteReady);
+  }, []);
 
   useEffect(() => {
     let hashTargetObserver: MutationObserver | undefined;
@@ -66,18 +101,17 @@ const ShellContent = () => {
       }
 
       const currentLenis = lenisRef.current;
+      const targetTop = Math.max(
+        0,
+        getDocumentLayoutTop(hashTarget) + HASH_SCROLL_OFFSET,
+      );
 
       if (currentLenis) {
-        currentLenis.scrollTo(hashTarget, {
+        currentLenis.scrollTo(targetTop, {
           immediate: true,
-          offset: HASH_SCROLL_OFFSET,
         });
       } else {
-        const targetTop =
-          hashTarget.getBoundingClientRect().top +
-          window.scrollY +
-          HASH_SCROLL_OFFSET;
-        window.scrollTo(0, Math.max(0, targetTop));
+        window.scrollTo(0, targetTop);
       }
 
       stopWaitingForHashTarget();

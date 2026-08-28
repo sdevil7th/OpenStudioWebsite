@@ -41,15 +41,15 @@ test("NAM Rack copy matches the app-derived five-pedal pre-effect chain", () => 
     assert.match(features, new RegExp(escapeRegExp(label), "i"));
   });
 
-  assert.match(blog, /main Pedals screen contains exactly the five devices/);
+  assert.match(blog, /Pedals page now shows Compressor, Stereo Poly Octaver, PRE EQ, Precision Drive, and Distortion/);
 
   const preEffectOrder = contract.preEffects
     .map(({ label }) => `->\\s*${escapeRegExp(label)}`)
     .join("[\\s\\S]*");
   assert.match(blog, new RegExp(`${preEffectOrder}[\\s\\S]*->\\s*A1/A2 amp`, "i"));
 
-  assert.match(features, /five pedals shown before the capture/);
-  assert.match(features, /Precision Drive .* distortion .* A1\/A2 amp or full-rig capture/);
+  assert.match(features, /Compressor, Stereo Poly Octaver, PRE EQ, Precision Drive, and Distortion/);
+  assert.match(features, /Precision Drive → distortion → optional Pedal NAM → A1\/A2 amp or full-rig capture/);
 });
 
 test("NAM Rack post-effect copy matches the app-derived reorderable stages", () => {
@@ -63,7 +63,7 @@ test("NAM Rack post-effect copy matches the app-derived reorderable stages", () 
     assert.match(blog, new RegExp(escapeRegExp(label), "i"));
   });
 
-  assert.match(blog, /four reorderable post-cab stages/);
+  assert.match(blog, /four reorderable post effects/);
 });
 
 test("NAM Rack copy excludes the removed Laser stage and retired UI claims", () => {
