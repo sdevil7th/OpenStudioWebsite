@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import ts from "typescript";
+import { normalizeBlogMarkdown } from "../scripts/blog-markdown-renderer.mjs";
 import { selectVariantWidths } from "../scripts/generate-image-assets.mjs";
 
 const blogPostSource = readFileSync(
@@ -57,6 +58,15 @@ const compiledImagePlan = ts.transpileModule(imagePlanSource, {
 const imagePlan = await import(
   `data:text/javascript;base64,${Buffer.from(compiledImagePlan).toString("base64")}`
 );
+
+test("blog generation normalizes checkout line endings", () => {
+  const markdown = "# Title\r\n\r\nParagraph\rNext line\n";
+
+  assert.equal(
+    normalizeBlogMarkdown(markdown),
+    "# Title\n\nParagraph\nNext line\n",
+  );
+});
 
 test("all blog surfaces use responsive image attributes", () => {
   assert.match(blogPostSource, /getResponsiveImageAttributes/);

@@ -1,7 +1,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { renderBlogArticleHtml } from "./blog-markdown-renderer.mjs";
+import {
+  normalizeBlogMarkdown,
+  renderBlogArticleHtml,
+} from "./blog-markdown-renderer.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const blogRoot = path.join(repoRoot, "blogs");
@@ -19,7 +22,9 @@ await fs.mkdir(outputRoot, { recursive: true });
 
 const keepFiles = new Set();
 for (const filename of filenames) {
-  const markdown = await fs.readFile(path.join(blogRoot, filename), "utf8");
+  const markdown = normalizeBlogMarkdown(
+    await fs.readFile(path.join(blogRoot, filename), "utf8"),
+  );
   const articleHtml = renderBlogArticleHtml(markdown, imageManifest);
   const outputName = filename.replace(/\.md$/i, ".ts");
   const outputPath = path.join(outputRoot, outputName);

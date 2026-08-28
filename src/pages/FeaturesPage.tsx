@@ -245,18 +245,40 @@ const FeaturesPage = () => {
 
   useScrollScene(
     pageRef,
-    ({ isDesktop, prefersReducedMotion, gsap, ScrollTrigger }) => {
-      const useDesktopStory = isDesktop;
+    ({ prefersReducedMotion, gsap }) => {
+      if (prefersReducedMotion) {
+        return;
+      }
 
-      if (!prefersReducedMotion) {
-        gsap.from("[data-features-hero] > *", {
-          y: 22,
+      gsap.from("[data-features-hero] > *", {
+        y: 22,
+        opacity: 0,
+        duration: 0.72,
+        stagger: 0.08,
+        ease: "power3.out",
+      });
+
+      if (window.matchMedia("(max-width: 1023px)").matches) {
+        gsap.from("[data-feature-story-mobile]", {
+          y: 28,
           opacity: 0,
-          duration: 0.72,
-          stagger: 0.08,
+          duration: 0.78,
+          stagger: 0.12,
           ease: "power3.out",
+          scrollTrigger: {
+            trigger: "[data-feature-story-mobile]",
+            start: "top 82%",
+          },
         });
       }
+    },
+    { delay: 320, runOnInput: false, timeout: 1400 },
+  );
+
+  useScrollScene(
+    pageRef,
+    ({ isDesktop, gsap, ScrollTrigger }) => {
+      const useDesktopStory = isDesktop;
 
       const progressCache = new Map<string, number>();
       const progressTargets = gsap.utils.toArray<HTMLElement>(
@@ -314,19 +336,6 @@ const FeaturesPage = () => {
       });
 
       if (!useDesktopStory) {
-        if (!prefersReducedMotion) {
-          gsap.from("[data-feature-story-mobile]", {
-            y: 28,
-            opacity: 0,
-            duration: 0.78,
-            stagger: 0.12,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: "[data-feature-story-mobile]",
-              start: "top 82%",
-            },
-          });
-        }
         return;
       }
 
@@ -342,7 +351,7 @@ const FeaturesPage = () => {
         );
       };
     },
-    { delay: 320, runOnInput: false, timeout: 1400 },
+    { delay: 320, runOnInput: false, timeout: 1400, watchDesktopBreakpoint: true },
   );
 
   const activeProgress = clampProgress(progressById[activeChapter.id]);

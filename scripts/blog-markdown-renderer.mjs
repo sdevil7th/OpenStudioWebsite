@@ -10,6 +10,8 @@ const GENERATED_WIDTHS = [
 const INLINE_IMAGE_SIZES =
   "(min-width: 824px) 760px, (min-width: 768px) calc(100vw - 4rem), calc(100vw - 2rem)";
 
+export const normalizeBlogMarkdown = (markdown) => markdown.replace(/\r\n?/g, "\n");
+
 const cleanImageSrc = (src) => src.split(/[?#]/)[0] ?? src;
 
 const supportsImageOptimization = (src) => {

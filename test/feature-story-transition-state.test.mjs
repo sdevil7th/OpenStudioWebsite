@@ -18,6 +18,26 @@ const imageSchedulerSource = readFileSync(
   new URL("../src/lib/imageScheduler.ts", import.meta.url),
   "utf8",
 );
+const scrollSceneSource = readFileSync(
+  new URL("../src/lib/gsap.ts", import.meta.url),
+  "utf8",
+);
+const aiPageSource = readFileSync(
+  new URL("../src/pages/StemSeparationPage.tsx", import.meta.url),
+  "utf8",
+);
+const downloadCinematicSource = readFileSync(
+  new URL("../src/components/scene/DownloadCinematicStory.tsx", import.meta.url),
+  "utf8",
+);
+const oneShotSceneSource = [
+  "../src/pages/HomePage.tsx",
+  "../src/pages/GithubPage.tsx",
+  "../src/pages/ReleasesPage.tsx",
+  "../src/pages/DownloadPage.tsx",
+]
+  .map((source) => readFileSync(new URL(source, import.meta.url), "utf8"))
+  .join("\n");
 const featureSource = readFileSync(
   new URL("../src/data/features.ts", import.meta.url),
   "utf8",
@@ -134,6 +154,14 @@ test("features and AI responsive rules keep their separate breakpoint intent", (
     cssSource,
     /@media \(max-width: 1279px\) \{[\s\S]*\.ai-genesis-overlay__headline \{[\s\S]*\.ai-arch-node-card,/,
   );
+});
+
+test("only breakpoint-dependent scroll scenes rebuild after responsive changes", () => {
+  assert.match(scrollSceneSource, /watchDesktopBreakpoint = false/);
+  assert.match(pageSource, /watchDesktopBreakpoint: true/);
+  assert.match(aiPageSource, /watchDesktopBreakpoint: true/);
+  assert.match(downloadCinematicSource, /watchDesktopBreakpoint: true/);
+  assert.doesNotMatch(oneShotSceneSource, /watchDesktopBreakpoint/);
 });
 
 test("feature cinematic copy uses product-facing DAW capability language", () => {

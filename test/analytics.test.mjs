@@ -28,7 +28,9 @@ test("mobile navigation loads after startup or direct navigation intent", () => 
   assert.match(navbarSource, /mobileNavModulePromise = importMobileNavSheet\(\)\.catch/);
   assert.match(navbarSource, /mobileNavModulePromise = null/);
   assert.match(navbarSource, /loadMobileNavSheet\(\)\.catch\(\(\) => undefined\)/);
-  assert.match(navbarSource, /\.then\(\(\) => setMobileNavRequested\(true\)\)/);
+  assert.match(navbarSource, /setMobileNavRequested\(true\)/);
+  assert.match(navbarSource, /\.catch\(\(\) => setMobileNavLoadFailed\(true\)\)/);
+  assert.match(navbarSource, /<MobileNavFallback/);
   assert.match(navbarSource, /scheduleAfterInitialLoad\(/);
   assert.match(navbarSource, /onFocus=\{preloadMobileNav\}/);
   assert.match(navbarSource, /onPointerDown=\{preloadMobileNav\}/);

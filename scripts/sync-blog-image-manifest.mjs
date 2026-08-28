@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { normalizeBlogMarkdown } from "./blog-markdown-renderer.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const blogContentRoot = path.join(repoRoot, "blogs");
@@ -221,7 +222,9 @@ const createBlogIndex = async (images) => {
     entries
       .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".md") && entry.name.toLowerCase() !== "readme.md")
       .map(async (entry) => {
-        const content = await fs.readFile(path.join(blogContentRoot, entry.name), "utf8");
+        const content = normalizeBlogMarkdown(
+          await fs.readFile(path.join(blogContentRoot, entry.name), "utf8"),
+        );
         const { date, slug } = getSlugParts(entry.name);
         const title = getTitle(content, slug);
         const dek = getDek(content);

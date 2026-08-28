@@ -32,6 +32,11 @@ const mojibakePattern = new RegExp(`[${String.fromCharCode(0xe2)}${String.fromCh
 
 const normalizePath = (value) => value.replaceAll("\\", "/");
 
+export const collectAssetReferences = (text) => {
+  const assetPattern = /["'(](\/assets\/[^\\"'()\s?#]+)(?:[?#][^\\"'()\s]*)?\\?["')]/g;
+  return [...text.matchAll(assetPattern)].map((match) => match[1]);
+};
+
 const pathExists = async (filePath) => {
   try {
     await fs.access(filePath);
@@ -101,14 +106,12 @@ const assertCleanText = async (files) => {
 
 const assertAssetReferencesExist = async (files) => {
   const failures = [];
-  const assetPattern = /["'(](\/assets\/[^"'()\s?#]+)(?:[?#][^"'()\s]*)?["')]/g;
   const seen = new Set();
 
   for (const file of files) {
     const text = await fs.readFile(file, "utf8");
     const relative = normalizePath(path.relative(repoRoot, file));
-    for (const match of text.matchAll(assetPattern)) {
-      const assetPath = match[1];
+    for (const assetPath of collectAssetReferences(text)) {
       const key = `${relative}:${assetPath}`;
       if (seen.has(key)) continue;
       seen.add(key);

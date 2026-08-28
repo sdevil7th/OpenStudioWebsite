@@ -397,61 +397,12 @@ const StemSeparationPage = () => {
 
   useScrollScene(
     pageRef,
-    ({ prefersReducedMotion, isDesktop, gsap, ScrollTrigger }) => {
-      const cleanups: Array<() => void> = [];
-      studioStateRef.current.reducedMotion = prefersReducedMotion;
+    ({ prefersReducedMotion, gsap }) => {
+      if (prefersReducedMotion) {
+        return;
+      }
 
-      // Keep the HUD synchronized from ScrollTrigger updates instead of polling it
-      // continuously. The values only change when scroll progress changes.
-      let hudElements:
-        | {
-            globalPctEl: HTMLElement | null;
-            phasePctEl: HTMLElement | null;
-            progressBarEl: HTMLElement | null;
-          }
-        | undefined;
-      const resolveHudElements = () => {
-        if (
-          hudElements?.globalPctEl?.isConnected &&
-          hudElements.phasePctEl?.isConnected &&
-          hudElements.progressBarEl?.isConnected
-        ) {
-          return hudElements;
-        }
-
-        const root = pageRef.current;
-        hudElements = {
-          globalPctEl: root?.querySelector<HTMLElement>("[data-ai-neural-global-pct]") ?? null,
-          phasePctEl: root?.querySelector<HTMLElement>("[data-ai-neural-phase-pct]") ?? null,
-          progressBarEl: root?.querySelector<HTMLElement>("[data-ai-neural-progress-bar]") ?? null,
-        };
-        return hudElements;
-      };
-      let lastHudGlobal = -1;
-      let lastHudPhase = -1;
-      const updateHud = () => {
-        const { globalPctEl, phasePctEl, progressBarEl } = resolveHudElements();
-        const globalPercentage = Math.round(globalProgressRef.current * 100);
-        const phasePercentage = Math.round(phaseProgressRef.current * 100);
-
-        if (globalPercentage !== lastHudGlobal || globalPctEl?.textContent === "00%") {
-          lastHudGlobal = globalPercentage;
-          if (globalPctEl) {
-            globalPctEl.textContent = `${String(globalPercentage).padStart(2, "0")}%`;
-          }
-          if (progressBarEl) {
-            progressBarEl.style.width = `${Math.max(6, globalPercentage)}%`;
-          }
-        }
-        if (phasePercentage !== lastHudPhase || phasePctEl?.textContent === "00%") {
-          lastHudPhase = phasePercentage;
-          if (phasePctEl) {
-            phasePctEl.textContent = `${String(phasePercentage).padStart(2, "0")}%`;
-          }
-        }
-      };
-      if (!prefersReducedMotion) {
-        gsap.fromTo(
+      gsap.fromTo(
         "[data-ai-neural-hud] > *",
         { y: 22, autoAlpha: 0 },
         {
@@ -565,8 +516,65 @@ const StemSeparationPage = () => {
           scrollTrigger: { trigger: "[data-ai-usecases]", start: "top 88%", once: true },
         },
       );
-      }
+    },
+    { delay: 360, runOnInput: true, timeout: 1400 },
+  );
 
+  useScrollScene(
+    pageRef,
+    ({ prefersReducedMotion, isDesktop, gsap, ScrollTrigger }) => {
+      const cleanups: Array<() => void> = [];
+      studioStateRef.current.reducedMotion = prefersReducedMotion;
+
+      // Keep the HUD synchronized from ScrollTrigger updates instead of polling it
+      // continuously. The values only change when scroll progress changes.
+      let hudElements:
+        | {
+            globalPctEl: HTMLElement | null;
+            phasePctEl: HTMLElement | null;
+            progressBarEl: HTMLElement | null;
+          }
+        | undefined;
+      const resolveHudElements = () => {
+        if (
+          hudElements?.globalPctEl?.isConnected &&
+          hudElements.phasePctEl?.isConnected &&
+          hudElements.progressBarEl?.isConnected
+        ) {
+          return hudElements;
+        }
+
+        const root = pageRef.current;
+        hudElements = {
+          globalPctEl: root?.querySelector<HTMLElement>("[data-ai-neural-global-pct]") ?? null,
+          phasePctEl: root?.querySelector<HTMLElement>("[data-ai-neural-phase-pct]") ?? null,
+          progressBarEl: root?.querySelector<HTMLElement>("[data-ai-neural-progress-bar]") ?? null,
+        };
+        return hudElements;
+      };
+      let lastHudGlobal = -1;
+      let lastHudPhase = -1;
+      const updateHud = () => {
+        const { globalPctEl, phasePctEl, progressBarEl } = resolveHudElements();
+        const globalPercentage = Math.round(globalProgressRef.current * 100);
+        const phasePercentage = Math.round(phaseProgressRef.current * 100);
+
+        if (globalPercentage !== lastHudGlobal || globalPctEl?.textContent === "00%") {
+          lastHudGlobal = globalPercentage;
+          if (globalPctEl) {
+            globalPctEl.textContent = `${String(globalPercentage).padStart(2, "0")}%`;
+          }
+          if (progressBarEl) {
+            progressBarEl.style.width = `${Math.max(6, globalPercentage)}%`;
+          }
+        }
+        if (phasePercentage !== lastHudPhase || phasePctEl?.textContent === "00%") {
+          lastHudPhase = phasePercentage;
+          if (phasePctEl) {
+            phasePctEl.textContent = `${String(phasePercentage).padStart(2, "0")}%`;
+          }
+        }
+      };
       if (isDesktop) {
         const syncNeuralProgress = (progress: number) => {
         const nextProgress = clampProgress(progress);
@@ -739,7 +747,7 @@ const StemSeparationPage = () => {
 
       return () => cleanups.forEach((cleanup) => cleanup());
     },
-    { delay: 360, runOnInput: true, timeout: 1400 },
+    { delay: 360, runOnInput: true, timeout: 1400, watchDesktopBreakpoint: true },
   );
 
   return (
@@ -899,7 +907,7 @@ const StemSeparationPage = () => {
             idleDelay={720}
             idleTimeout={2000}
             mediaQuery={DESKTOP_MOTION_MEDIA_QUERY}
-            rootMargin="1400px 0px"
+            rootMargin="900px 0px"
           >
             <Suspense fallback={<NeuralFallbackInstrument phase={activePhase} />}>
               <AiNeuralStudioStage

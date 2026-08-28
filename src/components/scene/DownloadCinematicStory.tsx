@@ -256,7 +256,7 @@ const DownloadCinematicStory = ({
       timeline.scrollTrigger?.kill();
       timeline.kill();
     };
-  }, { delay: 180, runOnInput: false, timeout: 900 });
+  }, { delay: 180, runOnInput: false, timeout: 900, watchDesktopBreakpoint: true });
 
   return (
     <section

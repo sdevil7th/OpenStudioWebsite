@@ -41,7 +41,6 @@ const BlogPostPage = () => {
     post ? getLoadedBlogPost(post) : undefined,
   );
   const [articleLoadError, setArticleLoadError] = useState(false);
-  const [articleLoadAttempt, setArticleLoadAttempt] = useState(0);
 
   useEffect(() => {
     setArticleLoadError(false);
@@ -74,7 +73,7 @@ const BlogPostPage = () => {
     return () => {
       active = false;
     };
-  }, [articleLoadAttempt, post]);
+  }, [post]);
 
   if (!post) {
     return <BlogPostNotFound slug={slug} />;
@@ -180,7 +179,7 @@ const BlogPostPage = () => {
                   </p>
                   <Button
                     className="mt-5 rounded-full"
-                    onClick={() => setArticleLoadAttempt((attempt) => attempt + 1)}
+                    onClick={() => window.location.reload()}
                     variant="outline"
                   >
                     Retry article
