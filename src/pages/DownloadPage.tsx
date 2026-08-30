@@ -29,6 +29,7 @@ import DeferredClientStage from "@/components/DeferredClientStage";
 import BrandLogoConstructScene from "@/components/brand/BrandLogoConstructScene";
 import SectionReveal from "@/components/motion/SectionReveal";
 import { Button } from "@/components/ui/button";
+import "@/styles/download.css";
 import { designMedia } from "@/data/designMedia";
 import {
   downloadCinematicPlates,
@@ -46,12 +47,16 @@ import {
 import { externalLinks } from "@/data/siteLinks";
 import { useGithubRepoSnapshot } from "@/hooks/useGithubRepoSnapshot";
 import { getResponsiveImageAttributes } from "@/lib/assetLoading";
+import "@/lib/generatedImageRoutes/download";
 import { trackEvent } from "@/lib/analytics";
 import { useScrollScene } from "@/lib/gsap";
 import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
 import { warmScheduledImages } from "@/lib/imageScheduler";
 import { formatGithubDate } from "@/lib/github";
 import { cn } from "@/lib/utils";
+
+const DESKTOP_MOTION_MEDIA_QUERY =
+  "(min-width: 1024px) and (prefers-reduced-motion: no-preference)";
 
 type BrowserPlatform = "windows" | "macos" | "linux" | "other";
 type DownloadPlatform = "windows" | "macos" | "linux";
@@ -767,6 +772,7 @@ const DownloadPage = () => {
           fallback={<DownloadCinematicStaticSurface />}
           idleDelay={520}
           idleTimeout={1800}
+          mediaQuery={DESKTOP_MOTION_MEDIA_QUERY}
           rootMargin="1400px 0px"
         >
           <Suspense fallback={<DownloadCinematicStaticSurface />}>

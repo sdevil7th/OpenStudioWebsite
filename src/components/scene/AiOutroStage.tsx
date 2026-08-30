@@ -142,6 +142,7 @@ const AiOutroStage = ({ className, collapseRef, pointerRef }: AiOutroStageProps)
     let renderer: THREE.WebGLRenderer | undefined;
     let frameId = 0;
     let disposed = false;
+    let resizeObserver: ResizeObserver | undefined;
 
     try {
       renderer = new THREE.WebGLRenderer({
@@ -209,7 +210,6 @@ const AiOutroStage = ({ className, collapseRef, pointerRef }: AiOutroStageProps)
       if (disposed || !renderer) {
         return;
       }
-      resize();
       const time = now / 1000;
       const pointer = pointerRef?.current ?? fallbackPointer.current;
       const collapseValue = Math.max(0, Math.min(1, collapseRef?.current ?? fallbackCollapse.current));
@@ -239,6 +239,10 @@ const AiOutroStage = ({ className, collapseRef, pointerRef }: AiOutroStageProps)
 
     setFailed(false);
     resize();
+    if (canvas.parentElement && typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(resize);
+      resizeObserver.observe(canvas.parentElement);
+    }
     window.addEventListener("resize", resize);
     frameId = window.requestAnimationFrame(animate);
 
@@ -246,6 +250,7 @@ const AiOutroStage = ({ className, collapseRef, pointerRef }: AiOutroStageProps)
       disposed = true;
       window.cancelAnimationFrame(frameId);
       window.removeEventListener("resize", resize);
+      resizeObserver?.disconnect();
       field.geometry.dispose();
       (field.material as THREE.Material).dispose();
       core.geometry.dispose();

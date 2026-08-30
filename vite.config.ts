@@ -274,6 +274,7 @@ export default defineConfig({
     },
   },
   build: {
+    manifest: true,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -300,8 +301,15 @@ export default defineConfig({
             return "lenis-vendor";
           }
 
-          if (normalizedId.includes("/node_modules/@radix-ui/")) {
-            return "radix-vendor";
+          if (
+            normalizedId.includes("/node_modules/@radix-ui/react-slot/") ||
+            normalizedId.includes("/node_modules/@radix-ui/react-compose-refs/")
+          ) {
+            return "radix-slot";
+          }
+
+          if (normalizedId.includes("/node_modules/@radix-ui/react-dialog/")) {
+            return "radix-dialog";
           }
 
           if (normalizedId.includes("/node_modules/@chenglou/pretext/")) {

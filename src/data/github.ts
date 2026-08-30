@@ -6,14 +6,6 @@ export const githubSeo: SeoMeta = {
   description:
     "Explore OpenStudio's GitHub repository — an open source DAW project. See the public codebase, contribution flow, release transparency, and architecture notes.",
   path: "/github",
-  keywords: [
-    "open source daw",
-    "openstudio github",
-    "daw github",
-    "open source music production software",
-    "open source audio workstation",
-    "daw source code",
-  ],
 };
 
 export const githubHero = {

@@ -3,13 +3,18 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 const source = readFileSync(new URL("../src/data/features.ts", import.meta.url), "utf8");
-const chapters = ["arrangement", "midi", "mixer", "engine", "automation"];
+const chapters = ["arrangement", "midi", "mixer", "engine", "nam-rack", "automation"];
+const chapterMarker = (chapter) =>
+  chapter.includes("-") ? `  "${chapter}": {` : `  ${chapter}: {`;
 
 const chapterBlock = (chapter) => {
-  const start = source.indexOf(`  ${chapter}: {`, source.indexOf("const curatedFeatureAssets"));
+  const start = source.indexOf(
+    chapterMarker(chapter),
+    source.indexOf("const curatedFeatureAssets"),
+  );
   assert.notEqual(start, -1, `Missing curated assets for ${chapter}`);
   const nextStart = chapters
-    .map((candidate) => source.indexOf(`  ${candidate}: {`, start + 1))
+    .map((candidate) => source.indexOf(chapterMarker(candidate), start + 1))
     .filter((index) => index > start)
     .sort((a, b) => a - b)[0];
   return source.slice(start, nextStart === undefined ? source.indexOf("};", start) : nextStart);
@@ -29,4 +34,9 @@ test("feature story uses unique real screenshot role assets for every chapter", 
       `${chapter} should use real OpenStudio screenshots or existing feature-story crops`,
     );
   });
+});
+
+test("Engine and NAM use destination-neutral transitions until matching bridge art exists", () => {
+  assert.doesNotMatch(source, /engine-to-automation/);
+  assert.match(source, /id: "engine"[\s\S]*id: "nam-rack"[\s\S]*id: "automation"/);
 });

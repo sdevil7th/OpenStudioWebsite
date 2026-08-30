@@ -35,6 +35,12 @@ const smoothScrollSource = readFileSync(
   "utf8",
 );
 
+const inlineTiming = (name) => {
+  const match = indexHtml.match(new RegExp(`const ${name} = (\\d+);`));
+  assert.ok(match, `missing ${name} timing`);
+  return Number(match[1]);
+};
+
 const svgPathCount = (iconSvg.match(/<path\b/g) ?? []).length;
 const svgFills = [...new Set([...iconSvg.matchAll(/fill="([^"]+)"/g)].map((match) => match[1]))];
 
@@ -108,6 +114,18 @@ test("homepage logo animation is viewport-driven and replayable", () => {
 });
 
 test("html-first loader appears before react and owns the split reveal", () => {
+  assert.match(
+    indexHtml,
+    /fontStylesheet\.href =\s*"\/assets\/openstudio\/fonts\/google-fonts-20260815\.css"/,
+  );
+  assert.doesNotMatch(indexHtml, /fonts\.(?:googleapis|gstatic)\.com/);
+  assert.match(
+    indexHtml,
+    /document\.documentElement\.classList\.add\("js"\)/,
+  );
+  assert.match(indexHtml, /openstudio-static-route-fallback/);
+  assert.match(indexHtml, /__openstudioRestoreStaticRoute/);
+  assert.match(indexHtml, /openstudio:static-route-restored/);
   assert.match(indexHtml, /id="openstudio-instant-loader"/);
   assert.ok(indexHtml.indexOf('id="openstudio-instant-loader"') < indexHtml.indexOf('id="root"'));
   assert.match(indexHtml, /data-openstudio-loader-state="loading"/);
@@ -140,6 +158,59 @@ test("html-first loader appears before react and owns the split reveal", () => {
   assert.match(viteConfigSource, /data-openstudio-app-css/);
 });
 
+test("mobile intro keeps the branded sequence while revealing within 400ms of readiness", () => {
+  const mobileAssembleMs = inlineTiming("mobileAssembleMs");
+  const mobileRevealMs = inlineTiming("mobileRevealMs");
+
+  assert.match(indexHtml, /const mobileIntro = window\.matchMedia\("\(max-width: 767px\)"\)\.matches/);
+  assert.match(indexHtml, /const minimumVisibleMs = mobileIntro \? 0 : 620/);
+  assert.equal(mobileAssembleMs, 160);
+  assert.equal(mobileRevealMs, 220);
+  assert.equal(mobileAssembleMs + mobileRevealMs, 380);
+  assert.ok(mobileAssembleMs + mobileRevealMs <= 400);
+  assert.match(
+    indexHtml,
+    /@media \(max-width: 767px\)\s*\{[\s\S]*?#openstudio-instant-loader\s*\{[\s\S]*?--os-loader-panel-exit-duration: 200ms;/,
+  );
+  assert.ok(200 < mobileRevealMs, "the split-panel transition must finish before removal");
+  assert.match(
+    indexHtml,
+    /const revealMs = reduceMotion\s*\? mobileIntro\s*\? 120\s*: 160\s*: mobileIntro\s*\? mobileRevealMs\s*: desktopRevealMs/,
+  );
+  assert.match(
+    indexHtml,
+    /const assembleMs = reduceMotion \? 0 : mobileIntro \? mobileAssembleMs : desktopAssembleMs/,
+  );
+});
+
+test("desktop and reduced-motion intro timings retain their existing behavior", () => {
+  assert.equal(inlineTiming("desktopAssembleMs"), 900);
+  assert.equal(inlineTiming("desktopRevealMs"), 1120);
+  assert.match(
+    indexHtml,
+    /@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\.os-instant-loader__panel,[\s\S]*?transition-duration: 120ms;/,
+  );
+});
+
+test("mobile loader halves SVG filter writes without changing motion or final state", () => {
+  assert.match(indexHtml, /let pieceFilterFrame = 0/);
+  assert.match(
+    indexHtml,
+    /const updatePieceFilter = !mobileIntro \|\| pieceFilterFrame % 2 === 0/,
+  );
+  assert.match(indexHtml, /pieceFilterFrame \+= 1/);
+  assert.match(indexHtml, /const applyPiece = \(plan, state, updateFilter = true\) =>/);
+  assert.match(indexHtml, /if \(updateFilter\) \{\s*plan\.element\.style\.filter =/);
+  assert.match(
+    indexHtml,
+    /piecePlans\.forEach\(\(plan\) => applyPiece\(plan, finalPieceState, true\)\)/,
+  );
+  assert.match(
+    indexHtml,
+    /applyPiece\(plan, pieceStateAt\(plan, now\), updatePieceFilter\)/,
+  );
+});
+
 test("homepage atmosphere is full-bleed and first input does not force heavy scroll libraries", () => {
   assert.match(indexCssSource, /\.home-logo-atmosphere\s*\{[^}]*inset: -18svh -14vw/);
   assert.match(indexCssSource, /\.home-logo-scroll-section\s*\{[\s\S]*--home-logo-progress: 0/);
@@ -167,7 +238,7 @@ test("homepage atmosphere is full-bleed and first input does not force heavy scr
   assert.match(gsapSource, /runOnInput = false/);
   assert.match(smoothScrollSource, /runOnInput: false/);
   assert.match(shellSource, /lenisRef/);
-  assert.match(shellSource, /\[location\.pathname\]/);
+  assert.match(shellSource, /\[location\.hash, location\.pathname\]/);
   assert.doesNotMatch(shellSource, /\[lenis,\s*location\.pathname\]/);
 });
 
@@ -177,7 +248,11 @@ test("initial routes are lazy-loaded behind the html-first loader", () => {
   assert.match(appSource, /const loadHomePage = \(\) => preloadModuleOnce\("route:home", \(\) => import\("@\/pages\/HomePage"\)\)/);
   assert.match(appSource, /const HomePage = lazy\(loadHomePage\)/);
   assert.match(appSource, /const RouteFallback = \(\) =>/);
+  assert.match(appSource, /useLayoutEffect\(\(\) => \{\s*const token = `route-/);
   assert.match(appSource, /openstudio:route-fallback/);
+  assert.match(shellSource, /initialRoutePending/);
+  assert.match(shellSource, /!window\.__openstudioAppReady/);
+  assert.match(shellSource, /openstudio:app-ready/);
   assert.match(shellSource, /routeFallbackTokens/);
   assert.match(shellSource, /data-route-pending=\{routePending \? "true" : "false"\}/);
   assert.match(shellSource, /\{!routePending \? <SiteFooter \/> : null\}/);
@@ -205,13 +280,16 @@ test("heavy route dependencies are deferred behind polished surfaces", () => {
   assert.doesNotMatch(aiSource, /from "framer-motion"/);
   assert.match(viteConfigSource, /"gsap-vendor"/);
   assert.match(viteConfigSource, /"lenis-vendor"/);
-  assert.match(viteConfigSource, /"radix-vendor"/);
+  assert.match(viteConfigSource, /"radix-slot"/);
+  assert.match(viteConfigSource, /"radix-dialog"/);
+  assert.doesNotMatch(viteConfigSource, /"radix-vendor"/);
   assert.match(assetLoadingSource, /assetPriorityManifest/);
   assert.match(assetLoadingSource, /"heavy-story\/on-viewport"/);
   assert.match(assetLoadingSource, /generatedImagePath/);
-  assert.match(assetLoadingSource, /netlifyImageCdnUrl/);
+  assert.match(assetLoadingSource, /shouldUseNetlifyImageCdn = \(\) => false/);
+  assert.doesNotMatch(assetLoadingSource, /netlifyImageCdnUrl\(/);
   assert.match(assetLoadingSource, /getResponsiveImageAttributes/);
-  assert.match(assetLoadingSource, /\[320, 480, 640, 768, 960, 1280, 1600\]/);
+  assert.match(assetLoadingSource, /\[320, 480, 640, 768, 960, 1280, 1600, 1920, 2560, 3200, 3360\]/);
   assert.match(assetGraphqlSource, /assets-graphql/);
   assert.match(assetGraphqlSource, /OpenStudioImagePlan/);
   assert.match(assetGraphqlFunctionSource, /buildAssetPlan/);

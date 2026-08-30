@@ -27,77 +27,29 @@ export interface FeatureCategory {
 }
 
 export const featurePageSeo: SeoMeta = {
-  title: "OpenStudio Features | Recording, MIDI, Mixing & AI Tools",
+  title: "OpenStudio Features | Free NAM Guitar Rig & Full DAW",
   description:
-    "Explore OpenStudio features for an alternative to Cubase, Pro Tools, Reaper, Ableton Live, FL Studio, Logic Pro, Studio One, and Bitwig with recording, MIDI, mixing, plugins, and AI tools.",
+    "Explore OpenStudio's free NAM A1/A2 guitar rig, native pedals, and cabinet IRs inside a full DAW, with an AmpliTube, Guitar Rig, and Neural DSP comparison.",
   path: "/features",
-  keywords: [
-    "daw features",
-    "Cubase alternative",
-    "alternative to Cubase",
-    "Pro Tools alternative",
-    "alternative to Pro Tools",
-    "Reaper alternative",
-    "alternative to Reaper",
-    "Ableton Live alternative",
-    "alternative to Ableton Live",
-    "FL Studio alternative",
-    "alternative to FL Studio",
-    "Logic Pro alternative",
-    "alternative to Logic Pro",
-    "Studio One alternative",
-    "alternative to Studio One",
-    "Bitwig Studio alternative",
-    "alternative to Bitwig",
-    "Reason alternative",
-    "GarageBand alternative",
-    "Audacity alternative",
-    "Cakewalk alternative",
-    "Waveform alternative",
-    "Mixcraft alternative",
-    "Suno AI alternative",
-    "alternative to Suno AI",
-    "Suno AI killer",
-    "Udio alternative",
-    "alternative to Udio",
-    "ElevenLabs Music alternative",
-    "alternative to ElevenLabs Music",
-    "Stable Audio 3 alternative",
-    "Google MusicFX alternative",
-    "Google Lyria alternative",
-    "MiniMax Music alternative",
-    "Mureka alternative",
-    "Sonauto alternative",
-    "AIVA alternative",
-    "Beatoven.ai alternative",
-    "Mubert alternative",
-    "Soundraw alternative",
-    "Boomy alternative",
-    "music production software",
-    "audio editing software",
-    "audio mixing software",
-    "midi software",
-    "plugin hosting daw",
-    "vst3 daw",
-    "stem separation daw",
-    "music recording software",
-  ],
+  lastModified: "2026-08-28",
+  image: screenshots.namRackHero.src,
+  imageAlt: screenshots.namRackHero.alt,
 };
 
 export const featurePageHero = {
   eyebrow: "Features",
   title: "A broad DAW feature set, with deeper workflows where they matter.",
   description:
-    "OpenStudio covers the expected ground, but it also brings optional AI tools, pitch editing, native plugin windows, detached mixing, and scripting directly into the same production environment.",
+    "OpenStudio covers the expected ground, then goes deeper with a built-in NAM A1/A2 guitar rig, optional AI tools, pitch editing, native plugin windows, detached mixing, and scripting in one production environment.",
 };
 
 export const featureHighlights = [
+  "Built-in NAM A1/A2 rig",
   "Optional AI tools",
   "Graphical pitch editing",
   "Detached mixer workflow",
   "Native plugin windows",
   "Lua scripting",
-  "Optional ARA hosting",
 ];
 
 export const featureCategories: FeatureCategory[] = [
@@ -759,12 +711,96 @@ const featureChapterBlueprints: FeatureChapterBlueprint[] = [
     density: 0.96,
   },
   {
+    id: "nam-rack",
+    label: "NAM Rack",
+    eyebrow: "Module 05 / guitar production",
+    screenshot: screenshots.namRackUi,
+    accent: "frost",
+    numeral: "V",
+    introTitle: "NAM Rack",
+    introTagline: "Plug in. Stay in the project.",
+    stagePrimary: {
+      asset: screenshots.namRackUi,
+      label: "A1/A2 capture stage",
+      caption: "Load local A1 or A2 amp-only and full-rig NAM captures, then keep the complete tone with the session.",
+      tone: "frost",
+    },
+    stageSecondary: {
+      asset: screenshots.namRackPreFx,
+      label: "Native pedalboard",
+      caption: "Compressor, Stereo Poly Octaver, PRE EQ, Precision Drive, and Distortion shape the signal before the capture.",
+      tone: "amber",
+    },
+    stageDetail: {
+      asset: screenshots.namRackPostFx,
+      label: "Cabinet and studio effects",
+      caption: "Cabinet IR shaping and Cabinet Space feed reorderable EQ, modulation, delay, and reverb before output metering.",
+      tone: "emerald",
+    },
+    story: {
+      title: "A complete guitar rig, inside the project.",
+      description:
+        "Load local NAM A1 or A2 amp-only and full-rig captures, shape them with native pedals and cabinet IRs, then record, automate, recall, and render the complete signal chain in the same OpenStudio session.",
+      standout:
+        "OpenStudio and the NAM Rack have no paid tier. Third-party capture and IR licenses still apply, and authenticated TONE3000 delivery requires a TONE3000 account.",
+      rail: ["NAM A1 + A2", "Native pedalboard", "Cabinet + project recall"],
+    },
+    details: {
+      callouts: [
+        {
+          eyebrow: "Signal flow",
+          title: "The whole playable rig travels with the session.",
+          description:
+            "Input conditioning, native pre-effects, the NAM capture, cabinet shaping, and studio post-effects remain one inspectable route beside the take, automation, and mix.",
+          tone: "frost",
+        },
+        {
+          eyebrow: "Safe by design",
+          title: "Tone changes stay out of the real-time hot path.",
+          description:
+            "Prepared model and IR swaps, model-rate handling, fixed latency, crossfades, and separate capture calibration keep the processor dependable in a live project.",
+          metric: "05 / Track",
+          tone: "emerald",
+        },
+      ],
+      items: [
+        {
+          title: "Correct audible path",
+          description:
+            "Input trim → gate → compressor → Stereo Poly Octaver → PRE EQ → Precision Drive → distortion → optional Pedal NAM → A1/A2 amp or full-rig capture → cabinet IR and shaping → Cabinet Space → reorderable EQ, modulation, delay, reverb → output trim and meters. The tuner observes the input without joining the audible path.",
+        },
+        {
+          title: "Amp-only and full-rig cabinet behavior",
+          description:
+            "Use a separate cabinet IR for amp-only captures, or bypass the extra cabinet for full-rig captures while preserving the previous cabinet choice for later recall.",
+        },
+        {
+          title: "Calibration, presets, and restore",
+          description:
+            "Keep interface calibration separate from creative trim, compare A/B states, save presets, restore models and IRs with the project, recover missing media, and use the same graph for offline render.",
+        },
+        {
+          title: "Optional TONE3000 account delivery",
+          description:
+            "Connect a TONE3000 account for authenticated, attributed delivery through the current Latest, Trending, and Downloaded online views, alongside local Installed and Favorites views. Richer catalog access is not promised without written scope approval.",
+        },
+      ],
+    },
+    transition: {
+      motionPreset: "drift-left",
+      rotationIntensity: 1.02,
+      burnSeed: 0.71,
+    },
+    scrollSpan: 214,
+    density: 1,
+  },
+  {
     id: "automation",
     label: "Automation",
-    eyebrow: "Module 05 / extensibility",
+    eyebrow: "Module 06 / extensibility",
     screenshot: screenshots.scriptingView,
     accent: "amber",
-    numeral: "V",
+    numeral: "VI",
     introTitle: "Automation",
     introTagline: "Close with intent.",
     stagePrimary: {
@@ -803,7 +839,7 @@ const featureChapterBlueprints: FeatureChapterBlueprint[] = [
           eyebrow: "Close-out",
           title: "The same session can be scripted, rendered, and delivered.",
           description: "Lua/API scripting, JSFX-style effects, render queues, region matrices, stems, selected item renders, DDP, and batch conversion support finishing work.",
-          metric: "05 / Ship",
+          metric: "06 / Ship",
           tone: "emerald",
         },
       ],
@@ -868,6 +904,12 @@ const curatedFeatureAssets: Record<FeatureChapterBlueprint["id"], CuratedFeature
     detail: screenshots.pluginHostingFx,
     matte: screenshots.pitchWorkflowComposite,
   },
+  "nam-rack": {
+    hero: screenshots.namRackUi,
+    motion: screenshots.namRackPreFx,
+    detail: screenshots.namRackPostFx,
+    matte: screenshots.namRackHero,
+  },
   automation: {
     hero: screenshots.automationLanes,
     motion: screenshots.scriptingView,
@@ -881,6 +923,7 @@ const sceneFragmentLayouts: Record<string, Array<FeatureSceneFragment["layout"]>
   midi: ["inset-right", "inset-left"],
   mixer: ["inset-right", "inset-left"],
   engine: ["inset-right", "inset-left"],
+  "nam-rack": ["inset-right", "inset-left"],
   automation: ["inset-right", "inset-left"],
 };
 
@@ -1037,22 +1080,31 @@ const transitionProfiles: Record<string, Omit<FeatureTransitionProfile, "burnSee
     collapseMaskSrc: "/assets/openstudio/feature-story/transitions/engine-collapse-mask.png",
     remnantMaskSrc: "/assets/openstudio/feature-story/transitions/engine-remnant-mask.png",
     voidBridgeSrc: "/assets/openstudio/feature-story/transitions/engine-void-bridge.png",
-    arrivalMatteSrc: "/assets/openstudio/feature-story/transitions/engine-arrival-matte.png",
-    authoredBridge: {
-      collapseFieldSrc:
-        "/assets/openstudio/feature-story/transitions/reference-match/engine-to-automation/collapse-field.png",
-      remnantEtchedSrc:
-        "/assets/openstudio/feature-story/transitions/reference-match/engine-to-automation/remnant-etched.png",
-      voidCoreSrc: "/assets/openstudio/feature-story/transitions/reference-match/engine-to-automation/void-core.png",
-      voidEdgeSrc: "/assets/openstudio/feature-story/transitions/reference-match/engine-to-automation/void-edge.png",
-      arrivalMatteSrc:
-        "/assets/openstudio/feature-story/transitions/reference-match/engine-to-automation/arrival-matte.png",
-      coreScale: 1.18,
-      edgeScale: 1.12,
-      arrivalDelay: 0,
-      arrivalComposition: "automation-tableau",
-      pointerDepthStrength: 1.54,
-    },
+    fragmentLag: 0.09,
+  },
+  "nam-rack": {
+    entryDirection: "left",
+    collapseStart: 0.18,
+    voidPeak: 0.56,
+    arrivalStart: 0.72,
+    settleEnd: 0.88,
+    edgeAngle: 188,
+    edgeRoughness: 1.28,
+    charWidth: 0.074,
+    emberWidth: 0.018,
+    smokeStrength: 0.24,
+    spreadDepth: 1.34,
+    shellIgnitionDelay: 0.1,
+    degradationDensity: 0.92,
+    tearAmount: 0.56,
+    particleDrift: 0.64,
+    voidShape: "veil",
+    voidScale: 1.04,
+    remnantStrength: 0.82,
+    contourExtraction: 0.78,
+    bridgeHold: 0.16,
+    arrivalStyle: "glide",
+    pointerDepthProfile: "stage",
     fragmentLag: 0.09,
   },
   automation: {
@@ -1160,6 +1212,150 @@ export const featureChapters: FeatureChapter[] = featureChapterBlueprints.map((c
     introTagline: chapter.introTagline,
   };
 });
+
+export const tone3000Feature = {
+  eyebrow: "Optional account delivery",
+  title: "Reach TONE3000 without turning its catalog into ours.",
+  description:
+    "Sign up or sign in through TONE3000’s browser-based OAuth flow, then request A1/A2 captures from the current Latest, Trending, and Downloaded online views. Installed captures and Favorites remain available as local library views, with creator attribution and license context visible.",
+  points: [
+    "A TONE3000 account is required only for authenticated TONE3000 delivery.",
+    "Requested downloads come from TONE3000; OpenStudio does not bulk-download, mirror, proxy, or re-host the catalog.",
+    "Richer catalog search is not promised unless TONE3000 confirms that endpoint scope for OpenStudio in writing.",
+  ],
+  screenshot: screenshots.tone3000Browser,
+  mobileScreenshot: screenshots.tone3000BrowserMobile,
+  caption:
+    "Development review UI shown with deterministic mock records; production delivery remains authenticated, user-requested, attributed, and subject to each capture creator’s license.",
+  termsHref: "https://www.tone3000.com/api/terms",
+};
+
+export const guitarRigComparison = {
+  eyebrow: "A fair category comparison",
+  title: "OpenStudio compared with AmpliTube, Guitar Rig, and Neural DSP.",
+  description:
+    "People looking for an AmpliTube alternative, a Guitar Rig alternative, or a Neural DSP alternative are often comparing different product shapes, not just tones. AmpliTube CS and Guitar Rig Player have useful free editions, while Neural DSP offers trials. OpenStudio's distinction is that its complete open-source NAM Rack and the recording, arranging, mixing, automation, and rendering workflow remain free together.",
+  products: ["OpenStudio NAM Rack", "AmpliTube 5 / CS", "Guitar Rig 7 / Player", "Neural DSP plug-ins"],
+  rows: [
+    {
+      label: "Product shape",
+      values: [
+        "Guitar rack inside a full DAW project.",
+        "Standalone and plug-in guitar/bass suite with a focused recorder.",
+        "Modular standalone and plug-in amp/effects rack.",
+        "Separate artist, amp, and bass suites in standalone or plug-in form.",
+      ],
+    },
+    {
+      label: "Base cost / free limit",
+      values: [
+        "Free and open source; no paid NAM Rack tier.",
+        "CS is permanently free with limited gear and a 2-track recorder; paid editions expand both.",
+        "Player is free with 2 amps, 26 effects/tools, and 60 presets; Pro is paid.",
+        "Paid per title, with unrestricted 14-day trials and no permanent free plug-in tier.",
+      ],
+    },
+    {
+      label: "Open source",
+      values: [
+        "Yes. OpenStudio is AGPLv3; the NAM core is MIT-licensed.",
+        "No; proprietary.",
+        "No; proprietary.",
+        "No public open-source release.",
+      ],
+    },
+    {
+      label: "Native NAM A1/A2",
+      values: [
+        "Yes—local A1 and A2 amp-only or full-rig .nam models.",
+        "No vendor-documented native .nam A1/A2 import; TONEX uses IK Tone Models.",
+        "No vendor-documented native .nam A1/A2 import.",
+        "No vendor-documented native .nam A1/A2 import.",
+      ],
+    },
+    {
+      label: "Custom capture / IR",
+      values: [
+        "Loads local .nam captures and local cabinet IRs; it is a player, not a capture trainer.",
+        "Loads TONEX Tone Models; capture creation uses TONEX Modeler. Custom IR loading starts above CS.",
+        "No user amp-capture importer; custom cabinet IR loading is Pro-only.",
+        "Curated amp rigs per title; guitar and bass plug-ins support custom IRs.",
+      ],
+    },
+    {
+      label: "Pedals / effects",
+      values: [
+        "Native pre-pedals, cabinet shaping, EQ, modulation, delay, reverb, and shimmer.",
+        "Large stomp, rack, room, cabinet, and mixer-effect ecosystem; CS includes a subset.",
+        "Flexible modular chains; Player is limited while Pro carries the larger catalog.",
+        "Polished title-specific pedals, amps, cabinets, and studio effects.",
+      ],
+    },
+    {
+      label: "Full DAW context",
+      values: [
+        "Yes—multitrack recording, arranging, editing, routing, mixing, automation, and offline render.",
+        "Focused 2-/8-track guitar recorder rather than a general-purpose production DAW.",
+        "No full DAW; recording and production need a host.",
+        "No full DAW; recording and production need a host.",
+      ],
+    },
+    {
+      label: "Account / activation",
+      values: [
+        "No OpenStudio license account or activation. A TONE3000 account is optional for that integration.",
+        "IK account plus product registration and authorization.",
+        "Native ID and Native Access for download and activation.",
+        "Neural DSP account linked to iLok activation.",
+      ],
+    },
+    {
+      label: "Where the commercial option wins",
+      values: [
+        "Trade-off: younger implementation, fewer bundled licensed tones and presets, and less mature commercial support.",
+        "Large branded catalog, deep cabinet/mic routing, TONEX/ToneNET, controller workflows, and paid support.",
+        "Mature modular UX, broad Pro catalog, established presets, looper, and ecosystem.",
+        "Highly curated artist/brand suites, polished presets, focused support, and Cortex compatibility for supported titles.",
+      ],
+    },
+  ],
+  note:
+    "Comparison checked 27 July 2026 from current vendor documentation. Product names are used only for factual comparison; OpenStudio is not affiliated with IK Multimedia, Native Instruments, Neural DSP, or TONE3000.",
+  sources: [
+    {
+      label: "AmpliTube 5 editions",
+      href: "https://www.ikmultimedia.com/products/amplitube5/",
+    },
+    {
+      label: "Guitar Rig 7 Player",
+      href: "https://www.native-instruments.com/en/products/komplete/guitar/guitar-rig-7-player/",
+    },
+    {
+      label: "Guitar Rig comparison",
+      href: "https://www.native-instruments.com/en/products/komplete/guitar/guitar-rig-7-player/comparison-chart/",
+    },
+    {
+      label: "Neural DSP plug-ins",
+      href: "https://neuraldsp.com/plugins",
+    },
+    {
+      label: "Neural DSP activation",
+      href: "https://neuraldsp.com/getting-started/downloading-installing-and-activating-plugins",
+    },
+    {
+      label: "TONE3000 API terms",
+      href: "https://www.tone3000.com/api/terms",
+    },
+    {
+      label: "NAM A2 guide",
+      href: "https://www.tone3000.com/guides/nam-a2-the-complete-guide",
+    },
+    {
+      label: "NeuralAmpModelerCore A2 release",
+      href: "https://github.com/sdatkinson/NeuralAmpModelerCore/releases/tag/v0.5.2",
+    },
+  ],
+};
 
 export const galleryScreenshots = [
   screenshots.heroTimeline,

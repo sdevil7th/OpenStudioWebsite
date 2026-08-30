@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
+  ArrowUpRight,
+  Guitar,
   Layers3,
   Piano,
   Settings2,
@@ -21,14 +23,20 @@ import {
   featurePageHero,
   featurePageSeo,
   featuresFinalCta,
+  guitarRigComparison,
+  tone3000Feature,
 } from "@/data/features";
 import type { FeatureChapter } from "@/data/marketing";
 import { getResponsiveImageAttributes } from "@/lib/assetLoading";
+import "@/lib/generatedImageRoutes/features";
 import { trackEvent } from "@/lib/analytics";
 import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
 import { warmScheduledImages } from "@/lib/imageScheduler";
 import { useScrollScene } from "@/lib/gsap";
+import "@/styles/features.css";
 import { cn } from "@/lib/utils";
+
+const DESKTOP_STORY_MEDIA_QUERY = "(min-width: 1024px)";
 
 const accentBadgeClass = {
   lavender: "border-primary/25 bg-primary/10 text-primary",
@@ -42,6 +50,7 @@ const chapterIcons: Record<string, LucideIcon> = {
   midi: Piano,
   mixer: SlidersHorizontal,
   engine: Sparkles,
+  "nam-rack": Guitar,
   automation: Settings2,
 };
 
@@ -193,6 +202,10 @@ const FeaturesPage = () => {
     () =>
       scheduleAfterInitialLoad(
         () => {
+          if (!window.matchMedia(DESKTOP_STORY_MEDIA_QUERY).matches) {
+            return;
+          }
+
           const firstChapter = featureChapters[0];
           const nextChapter = featureChapters[1];
           const firstFrameSources = [
@@ -232,8 +245,10 @@ const FeaturesPage = () => {
 
   useScrollScene(
     pageRef,
-    ({ isDesktop, gsap, ScrollTrigger }) => {
-      const useDesktopStory = isDesktop;
+    ({ prefersReducedMotion, gsap }) => {
+      if (prefersReducedMotion) {
+        return;
+      }
 
       gsap.from("[data-features-hero] > *", {
         y: 22,
@@ -242,6 +257,28 @@ const FeaturesPage = () => {
         stagger: 0.08,
         ease: "power3.out",
       });
+
+      if (window.matchMedia("(max-width: 1023px)").matches) {
+        gsap.from("[data-feature-story-mobile]", {
+          y: 28,
+          opacity: 0,
+          duration: 0.78,
+          stagger: 0.12,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: "[data-feature-story-mobile]",
+            start: "top 82%",
+          },
+        });
+      }
+    },
+    { delay: 320, runOnInput: false, timeout: 1400 },
+  );
+
+  useScrollScene(
+    pageRef,
+    ({ isDesktop, gsap, ScrollTrigger }) => {
+      const useDesktopStory = isDesktop;
 
       const progressCache = new Map<string, number>();
       const progressTargets = gsap.utils.toArray<HTMLElement>(
@@ -299,17 +336,6 @@ const FeaturesPage = () => {
       });
 
       if (!useDesktopStory) {
-        gsap.from("[data-feature-story-mobile]", {
-          y: 28,
-          opacity: 0,
-          duration: 0.78,
-          stagger: 0.12,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: "[data-feature-story-mobile]",
-            start: "top 82%",
-          },
-        });
         return;
       }
 
@@ -325,12 +351,28 @@ const FeaturesPage = () => {
         );
       };
     },
-    { delay: 320, runOnInput: false, timeout: 1400 },
+    { delay: 320, runOnInput: false, timeout: 1400, watchDesktopBreakpoint: true },
   );
 
   const activeProgress = clampProgress(progressById[activeChapter.id]);
   const ActiveChapterIcon = chapterIcons[activeChapter.id] ?? Sparkles;
   const HeroChapterIcon = chapterIcons[featureChapters[0]?.id ?? ""] ?? Layers3;
+  const tone3000DesktopImage = getResponsiveImageAttributes(
+    tone3000Feature.screenshot.src,
+    "below-fold",
+    {
+      maxWidth: 1280,
+      sizes: "(min-width: 1024px) 58vw, 100vw",
+    },
+  );
+  const tone3000MobileImage = getResponsiveImageAttributes(
+    tone3000Feature.mobileScreenshot.src,
+    "below-fold",
+    {
+      maxWidth: 380,
+      sizes: "calc(100vw - 3rem)",
+    },
+  );
 
   return (
     <main
@@ -515,6 +557,184 @@ const FeaturesPage = () => {
               </section>
             ))}
           </div>
+        </section>
+
+        <section
+          aria-labelledby="tone3000-feature-title"
+          className="py-12"
+          id="tone3000"
+        >
+          <SectionReveal className="scroll-spotlight overflow-hidden rounded-[2.75rem] border border-white/10 p-6 md:p-10 xl:p-12">
+            <div className="grid gap-10 xl:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] xl:items-center">
+              <div className="max-w-2xl">
+                <div className="design-badge border border-white/15 bg-white/[0.06] text-white/82">
+                  {tone3000Feature.eyebrow}
+                </div>
+                <h2
+                  className="mt-6 font-headline text-3xl font-bold leading-tight text-white md:text-5xl"
+                  id="tone3000-feature-title"
+                >
+                  {tone3000Feature.title}
+                </h2>
+                <p className="mt-6 text-base leading-8 text-white/68 md:text-lg">
+                  {tone3000Feature.description}
+                </p>
+                <div className="mt-7 grid gap-3">
+                  {tone3000Feature.points.map((point) => (
+                    <div
+                      className="rounded-[1.35rem] border border-white/10 bg-black/24 px-5 py-4 text-sm leading-7 text-white/68"
+                      key={point}
+                    >
+                      {point}
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                  <Button asChild>
+                    <Link
+                      onClick={() =>
+                        trackEvent("primary_cta_clicked", {
+                          cta_name: "download_openstudio",
+                          destination_path: "/download",
+                          source: "features_tone3000",
+                        })
+                      }
+                      to="/download"
+                    >
+                      Download OpenStudio
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <a
+                      href={tone3000Feature.termsHref}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      Read the API terms
+                      <ArrowUpRight className="h-4 w-4" />
+                    </a>
+                  </Button>
+                </div>
+              </div>
+
+              <figure className="design-glass-panel overflow-hidden rounded-[2rem] border border-white/10 bg-black/45 p-3">
+                <picture>
+                  <source
+                    height={tone3000MobileImage.height}
+                    media="(max-width: 639px)"
+                    sizes={tone3000MobileImage.sizes}
+                    srcSet={
+                      tone3000MobileImage.srcSet ?? tone3000MobileImage.src
+                    }
+                    width={tone3000MobileImage.width}
+                  />
+                  <img
+                    {...tone3000DesktopImage}
+                    alt={tone3000Feature.screenshot.alt}
+                    className="mx-auto h-auto w-full max-w-[380px] rounded-[1.45rem] object-cover sm:max-w-none"
+                  />
+                </picture>
+                <figcaption className="px-3 pb-1 pt-4 text-sm leading-6 text-white/48">
+                  {tone3000Feature.caption}
+                </figcaption>
+              </figure>
+            </div>
+          </SectionReveal>
+        </section>
+
+        <section
+          aria-labelledby="guitar-rig-comparison-title"
+          className="py-12"
+          id="nam-comparison"
+        >
+          <SectionReveal className="feature-story-exit feature-story-exit--premium mx-auto max-w-[94rem] p-6 md:p-10 xl:p-12">
+            <div className="max-w-4xl">
+              <div className="design-badge design-badge-primary mb-5 w-fit">
+                {guitarRigComparison.eyebrow}
+              </div>
+              <h2
+                className="font-headline text-3xl font-bold leading-tight text-white md:text-5xl"
+                id="guitar-rig-comparison-title"
+              >
+                {guitarRigComparison.title}
+              </h2>
+              <p className="mt-5 text-base leading-8 text-white/66 md:text-lg">
+                {guitarRigComparison.description}
+              </p>
+            </div>
+
+            <div
+              aria-labelledby="guitar-rig-comparison-title"
+              className="mt-9 overflow-x-auto rounded-[1.5rem] border border-white/10 bg-black/28 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+              role="region"
+              tabIndex={0}
+            >
+              <table className="w-full min-w-[70rem] border-collapse text-left text-sm leading-6 text-white/70">
+                <caption className="sr-only">
+                  OpenStudio NAM Rack compared with AmpliTube 5 and CS, Guitar
+                  Rig 7 and Player, and Neural DSP plug-ins.
+                </caption>
+                <thead className="bg-white/[0.055]">
+                  <tr>
+                    <th
+                      className="sticky left-0 z-10 w-40 border-b border-r border-white/10 bg-[#0b0d15] px-5 py-4 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-white/52"
+                      scope="col"
+                    >
+                      Comparison
+                    </th>
+                    {guitarRigComparison.products.map((product) => (
+                      <th
+                        className="w-60 border-b border-white/10 px-5 py-4 font-headline text-base font-semibold text-white"
+                        key={product}
+                        scope="col"
+                      >
+                        {product}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {guitarRigComparison.rows.map((row) => (
+                    <tr className="border-b border-white/[0.07] last:border-0" key={row.label}>
+                      <th
+                        className="sticky left-0 z-10 border-r border-white/10 bg-[#090b12] px-5 py-4 align-top font-mono text-[0.66rem] uppercase tracking-[0.16em] text-secondary"
+                        scope="row"
+                      >
+                        {row.label}
+                      </th>
+                      {row.values.map((value, valueIndex) => (
+                        <td
+                          className="px-5 py-4 align-top"
+                          key={`${row.label}-${guitarRigComparison.products[valueIndex]}`}
+                        >
+                          {value}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <p className="mt-6 max-w-5xl text-sm leading-7 text-white/48">
+              {guitarRigComparison.note}
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {guitarRigComparison.sources.map((source) => (
+                <a
+                  className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/10 bg-black/25 px-4 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-white/58 transition hover:border-primary/35 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+                  href={source.href}
+                  key={source.href}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {source.label}
+                  <ArrowUpRight className="h-3.5 w-3.5" />
+                </a>
+              ))}
+            </div>
+          </SectionReveal>
         </section>
 
         <section className="py-12">

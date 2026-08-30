@@ -1,19 +1,19 @@
 import {
   generatedImagePath,
+  intrinsicImageDimensions,
   maxWidthForTier,
   nearestGeneratedWidth,
-  netlifyImageCdnUrl,
   selectImageWidth,
-  shouldUseCdnForHost,
   supportsImageOptimization,
+  withVersionQuery,
   type AssetPriorityTier,
   type AssetSlotKind,
 } from "../../shared/asset-image-plan";
-import { generatedImageIndex } from "@/lib/generatedImageIndex";
+import { getGeneratedImageIndexEntry } from "@/lib/generatedImageRegistry";
 
 export type { AssetPriorityTier, AssetSlotKind };
 
-const GENERATED_WIDTHS = [320, 480, 640, 768, 960, 1280, 1600] as const;
+const GENERATED_WIDTHS = [320, 480, 640, 768, 960, 1280, 1600, 1920, 2560, 3200, 3360] as const;
 
 type GeneratedImageVariant = {
   src: string;
@@ -23,6 +23,8 @@ type GeneratedImageVariant = {
 type GeneratedImageEntry = {
   aspectRatio?: number;
   hash?: string;
+  intrinsicHeight?: number;
+  intrinsicWidth: number;
   variants: GeneratedImageVariant[];
   width: number;
 };
@@ -80,27 +82,32 @@ export const getImageLoadingAttributes = (tier: AssetPriorityTier) => {
 
 export const supportsGeneratedImage = supportsImageOptimization;
 
-const runtimeHost = () => (typeof window === "undefined" ? "" : window.location.host);
-
-export const shouldUseNetlifyImageCdn = () => shouldUseCdnForHost(runtimeHost());
+// Runtime transforms add a cold-edge request before the browser can receive an
+// image. The build already emits the same responsive candidates, so serve those
+// immutable files directly and reserve Netlify transforms for explicit API use.
+export const shouldUseNetlifyImageCdn = () => false;
 
 const cleanImageSrc = (src: string) => src.split(/[?#]/)[0] ?? src;
 
 const manifestEntryFor = (src: string): GeneratedImageEntry | undefined => {
-  const entry = generatedImageIndex[cleanImageSrc(src) as keyof typeof generatedImageIndex];
+  const entry = getGeneratedImageIndexEntry(cleanImageSrc(src));
 
   if (!entry) {
     return undefined;
   }
 
+  const intrinsicDimensions = intrinsicImageDimensions(entry[0], entry[1] || undefined);
+
   return {
     aspectRatio: entry[1] || undefined,
     hash: entry[2] || undefined,
+    intrinsicHeight: intrinsicDimensions.height,
+    intrinsicWidth: intrinsicDimensions.width,
     variants: entry[3].map((variant) => ({
       src: variant[1],
       width: variant[0],
     })),
-    width: entry[0],
+    width: Math.max(entry[0], ...entry[3].map((variant) => variant[0])),
   };
 };
 
@@ -114,7 +121,7 @@ const selectManifestVariant = (src: string, targetWidth: number) => {
 };
 
 const withManifestVersion = (src: string, entry: GeneratedImageEntry | undefined) =>
-  entry?.hash ? `${src}?v=${entry.hash}` : src;
+  withVersionQuery(src, entry?.hash);
 
 const getGeneratedVariantSrc = (src: string, targetWidth: number) => {
   const entry = manifestEntryFor(src);
@@ -162,19 +169,6 @@ export const getOptimizedImageSrc = (
     viewportWidth: maxWidth,
   });
 
-  if (shouldUseNetlifyImageCdn()) {
-    const entry = manifestEntryFor(src);
-
-    return netlifyImageCdnUrl({
-      aspectRatio: entry?.aspectRatio,
-      fit: "contain",
-      hash: entry?.hash,
-      quality: tier === "hero/eager" || tier === "story-active" ? 74 : 68,
-      src,
-      width,
-    });
-  }
-
   return getGeneratedVariantSrc(src, width);
 };
 
@@ -193,19 +187,9 @@ export const getOptimizedSourceSet = (src: string, maxWidth = 1600) => {
       }));
 
   return sourceSetItems
-    .map((variant) => {
-      const url = shouldUseNetlifyImageCdn()
-        ? netlifyImageCdnUrl({
-            aspectRatio: entry?.aspectRatio,
-            fit: "contain",
-            hash: entry?.hash,
-            quality: 72,
-            src,
-            width: variant.width,
-          })
-        : withManifestVersion(variant.src, entry);
-      return `${url} ${variant.width}w`;
-    })
+    .map((variant) =>
+      `${withManifestVersion(variant.src, entry)} ${variant.width}w`,
+    )
     .join(", ");
 };
 
@@ -216,9 +200,15 @@ export const getResponsiveImageAttributes = (
     maxWidth = tier === "hero/eager" ? 1600 : 1280,
     sizes = "100vw",
   }: { maxWidth?: number; sizes?: string } = {},
-) => ({
-  ...getImageLoadingAttributes(tier),
-  sizes,
-  src: getOptimizedImageSrc(src, tier, maxWidth),
-  srcSet: getOptimizedSourceSet(src, maxWidth),
-});
+) => {
+  const entry = manifestEntryFor(src);
+
+  return {
+    ...getImageLoadingAttributes(tier),
+    height: entry?.intrinsicHeight,
+    sizes,
+    src: getOptimizedImageSrc(src, tier, maxWidth),
+    srcSet: getOptimizedSourceSet(src, maxWidth),
+    width: entry?.intrinsicWidth,
+  };
+};

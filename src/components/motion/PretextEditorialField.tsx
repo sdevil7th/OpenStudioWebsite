@@ -24,6 +24,7 @@ interface EditorialFragment {
 }
 
 const AI_OBJECT_LABELS = ["signal"];
+const COMPACT_VIEWPORT_QUERY = "(max-width: 767px)";
 
 const clamp = (value: number, min = 0, max = 1) => Math.min(Math.max(value, min), max);
 const smooth = (value: number) => {
@@ -108,6 +109,9 @@ const PretextEditorialField = ({
   const layoutRef = useRef({ width: 1, height: 1, left: 0, top: 0 });
   const pointerRef = useRef({ x: 0, y: 0, active: 0 });
   const reduceMotion = usePrefersReducedMotion();
+  const [compactViewport, setCompactViewport] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia(COMPACT_VIEWPORT_QUERY).matches,
+  );
   const [fragments, setFragments] = useState<EditorialFragment[]>([]);
   const [height, setHeight] = useState(0);
   const objectLabels = useMemo(
@@ -116,17 +120,22 @@ const PretextEditorialField = ({
   );
 
   useEffect(() => {
-    if (reduceMotion) {
+    const query = window.matchMedia(COMPACT_VIEWPORT_QUERY);
+    const syncViewport = () => setCompactViewport(query.matches);
+
+    syncViewport();
+    query.addEventListener("change", syncViewport);
+    return () => query.removeEventListener("change", syncViewport);
+  }, []);
+
+  useEffect(() => {
+    if (reduceMotion || compactViewport) {
       return;
     }
 
     const measure = measureRef.current;
     const field = fieldRef.current;
     if (!measure || !field || typeof window === "undefined") {
-      return;
-    }
-
-    if (window.matchMedia("(max-width: 767px)").matches) {
       return;
     }
 
@@ -183,15 +192,15 @@ const PretextEditorialField = ({
       observer.disconnect();
       clearCache();
     };
-  }, [reduceMotion, text]);
+  }, [compactViewport, reduceMotion, text]);
 
   useEffect(() => {
-    if (reduceMotion || fragments.length === 0) {
+    if (reduceMotion || compactViewport || fragments.length === 0) {
       return;
     }
 
     const field = fieldRef.current;
-    if (!field || window.matchMedia("(max-width: 767px)").matches) {
+    if (!field) {
       return;
     }
 
@@ -206,8 +215,21 @@ const PretextEditorialField = ({
     const observer = new IntersectionObserver(
       ([entry]) => {
         inView = Boolean(entry?.isIntersecting);
+        if (!inView) {
+          window.cancelAnimationFrame(frameId);
+          frameId = 0;
+          objectRefs.current.forEach((object) => {
+            object?.style.setProperty("--pretext-object-alpha", "0");
+          });
+          fragmentRefs.current.forEach((fragment) => {
+            if (fragment) clearVars(fragment);
+          });
+          return;
+        }
+        updateFieldRect();
+        queueFrame();
       },
-      { rootMargin: "24% 0px" },
+      { rootMargin: "0px" },
     );
     observer.observe(field);
 
@@ -239,7 +261,17 @@ const PretextEditorialField = ({
       field.addEventListener("pointercancel", handlePointerLeave);
     }
 
+    const queueFrame = () => {
+      if (inView && !document.hidden && frameId === 0) {
+        frameId = window.requestAnimationFrame(tick);
+      }
+    };
+
     const tick = (now: number) => {
+      frameId = 0;
+      if (!inView || document.hidden) {
+        return;
+      }
       const time = (now - startedAt) / 1000;
       const width = layoutRef.current.width;
       const fieldHeight = Math.max(1, layoutRef.current.height);
@@ -317,23 +349,33 @@ const PretextEditorialField = ({
         node.style.setProperty("--pretext-blur", `${(activeForce * (variant === "ai" ? 0.18 : 0.12)).toFixed(2)}px`);
       });
 
-      frameId = window.requestAnimationFrame(tick);
+      queueFrame();
     };
 
-    frameId = window.requestAnimationFrame(tick);
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        window.cancelAnimationFrame(frameId);
+        frameId = 0;
+        return;
+      }
+      queueFrame();
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    queueFrame();
 
     return () => {
       window.cancelAnimationFrame(frameId);
       observer.disconnect();
       window.removeEventListener("scroll", updateFieldRect);
       window.removeEventListener("resize", updateFieldRect);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (cursorRepel) {
         field.removeEventListener("pointermove", handlePointerMove);
         field.removeEventListener("pointerleave", handlePointerLeave);
         field.removeEventListener("pointercancel", handlePointerLeave);
       }
     };
-  }, [cursorRepel, forceCount, fragments, reduceMotion, variant]);
+  }, [compactViewport, cursorRepel, forceCount, fragments, reduceMotion, variant]);
 
   if (reduceMotion) {
     return <p className={className}>{text}</p>;

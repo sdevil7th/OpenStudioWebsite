@@ -107,9 +107,10 @@ export interface AssetPlanResponse {
 }
 
 const OPENSTUDIO_ASSET_PREFIX = "/assets/openstudio/";
+const BLOG_ASSET_PREFIX = "/assets/blogs/";
 const GENERATED_PREFIX = "/assets/openstudio/generated/";
 const OPTIMIZABLE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp"]);
-const WIDTHS = [320, 480, 640, 768, 960, 1280, 1600] as const;
+const WIDTHS = [320, 480, 640, 768, 960, 1280, 1600, 1920, 2560, 3200, 3360] as const;
 
 const extensionOf = (src: string) => {
   const cleanPath = src.split(/[?#]/)[0] ?? src;
@@ -118,7 +119,7 @@ const extensionOf = (src: string) => {
 };
 
 export const supportsImageOptimization = (src: string) =>
-  src.startsWith(OPENSTUDIO_ASSET_PREFIX) &&
+  (src.startsWith(OPENSTUDIO_ASSET_PREFIX) || src.startsWith(BLOG_ASSET_PREFIX)) &&
   !src.startsWith(GENERATED_PREFIX) &&
   OPTIMIZABLE_EXTENSIONS.has(extensionOf(src));
 
@@ -128,7 +129,10 @@ export const generatedImagePath = (src: string, width: number) => {
   }
 
   const cleanPath = src.split(/[?#]/)[0] ?? src;
-  const relative = cleanPath.slice(OPENSTUDIO_ASSET_PREFIX.length);
+  const isBlogAsset = cleanPath.startsWith(BLOG_ASSET_PREFIX);
+  const relative = cleanPath.slice(
+    isBlogAsset ? BLOG_ASSET_PREFIX.length : OPENSTUDIO_ASSET_PREFIX.length,
+  );
   const dotIndex = relative.lastIndexOf(".");
 
   if (dotIndex === -1) {
@@ -136,12 +140,44 @@ export const generatedImagePath = (src: string, width: number) => {
   }
 
   const extensionToken = relative.slice(dotIndex + 1).toLowerCase();
-  return `${GENERATED_PREFIX}${relative.slice(0, dotIndex)}-${extensionToken}-${width}.webp`;
+  const generatedDirectory = isBlogAsset ? "blogs/" : "";
+  return `${GENERATED_PREFIX}${generatedDirectory}${relative.slice(0, dotIndex)}-${extensionToken}-${width}.webp`;
 };
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
-export const nearestGeneratedWidth = (targetWidth: number, sourceWidth = 1600) => {
+export const intrinsicImageDimensions = (width: number, aspectRatio?: number) => {
+  const validAspectRatio =
+    typeof aspectRatio === "number" && Number.isFinite(aspectRatio) && aspectRatio > 0
+      ? aspectRatio
+      : undefined;
+
+  return {
+    height: validAspectRatio
+      ? Math.max(1, Math.round(width / validAspectRatio))
+      : undefined,
+    width,
+  };
+};
+
+export const withVersionQuery = (src: string, hash?: string) => {
+  if (!hash) {
+    return src;
+  }
+
+  const fragmentIndex = src.indexOf("#");
+  const fragment = fragmentIndex >= 0 ? src.slice(fragmentIndex) : "";
+  const srcWithoutFragment = fragmentIndex >= 0 ? src.slice(0, fragmentIndex) : src;
+  const queryIndex = srcWithoutFragment.indexOf("?");
+  const pathname = queryIndex >= 0 ? srcWithoutFragment.slice(0, queryIndex) : srcWithoutFragment;
+  const query = queryIndex >= 0 ? srcWithoutFragment.slice(queryIndex + 1) : "";
+  const params = new URLSearchParams(query);
+
+  params.set("v", hash);
+  return `${pathname}?${params.toString()}${fragment}`;
+};
+
+export const nearestGeneratedWidth = (targetWidth: number, sourceWidth = 3360) => {
   const maxWidth = Math.max(1, sourceWidth);
   const clampedTarget = clamp(Math.ceil(targetWidth), WIDTHS[0], Math.min(WIDTHS[WIDTHS.length - 1], maxWidth));
   const availableWidths = WIDTHS.filter((width) => width <= maxWidth);
@@ -156,7 +192,7 @@ export const nearestGeneratedWidth = (targetWidth: number, sourceWidth = 1600) =
 export const maxWidthForTier = (tier: AssetPriorityTier, maxWidth = 1600) => {
   const cap =
     tier === "hero/eager"
-      ? 1600
+      ? 3360
       : tier === "story-active"
         ? 1280
         : tier === "story-next" || tier === "near-fold" || tier === "nearby/idle-prefetch"
@@ -180,6 +216,7 @@ const slotBaseWidth = (
   switch (slot) {
     case "full-bleed":
     case "cinematic":
+      return viewportWidth;
     case "hero":
       return viewportWidth;
     case "webgl-base":
@@ -217,6 +254,8 @@ const slotCap = (slot: AssetSlotKind) => {
       return 960;
     case "thumbnail":
       return 480;
+    case "hero":
+      return 3360;
     default:
       return 1600;
   }
@@ -271,11 +310,16 @@ const selectGeneratedVariant = (entry: ImageManifestEntry | undefined, width: nu
   return variants.find((variant) => variant.width >= width) ?? variants[variants.length - 1];
 };
 
+const maximumAvailableWidth = (entry: ImageManifestEntry | undefined) =>
+  entry
+    ? Math.max(entry.width, ...(entry.variants ?? []).map((variant) => variant.width))
+    : undefined;
+
 const generatedFallbackUrl = (src: string, entry: ImageManifestEntry | undefined, width: number) => {
   const variant = selectGeneratedVariant(entry, width);
   const fallbackSrc = variant?.src ?? generatedImagePath(src, width);
 
-  return `${fallbackSrc}${entry?.hash ? `?v=${entry.hash}` : ""}`;
+  return withVersionQuery(fallbackSrc, entry?.hash);
 };
 
 export const netlifyImageCdnUrl = ({
@@ -306,7 +350,7 @@ export const netlifyImageCdnUrl = ({
         ? Math.max(1, Math.round(width / aspectRatio))
         : undefined;
   const resolvedFit = fit === "cover" && resolvedHeight ? "cover" : "contain";
-  const sourceUrl = hash ? `${src}?v=${encodeURIComponent(hash)}` : src;
+  const sourceUrl = withVersionQuery(src, hash);
   const params = new URLSearchParams({
     fit: resolvedFit,
     q: String(quality),
@@ -363,7 +407,7 @@ export const buildAssetPlan = (
           maxWidth: asset.maxWidth,
           requestedWidth: asset.width,
           slot,
-          sourceWidth: entry?.width,
+          sourceWidth: maximumAvailableWidth(entry),
           tier,
           viewportWidth,
         });

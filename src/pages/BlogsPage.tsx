@@ -3,8 +3,16 @@ import { Link } from "react-router-dom";
 import PageSeo from "@/components/PageSeo";
 import SectionReveal from "@/components/motion/SectionReveal";
 import { blogPosts, blogsSeo, getBlogIndexJsonLd, getBlogPostUrl } from "@/data/blogs";
+import { preloadBlogPostContent } from "@/data/blogContent";
+import { getResponsiveImageAttributes } from "@/lib/assetLoading";
+import "@/lib/generatedImageRoutes/blogs";
+import { cn } from "@/lib/utils";
 
 const [featuredPost, ...archivePosts] = blogPosts;
+const FEATURED_BLOG_IMAGE_SIZES =
+  "(min-width: 2048px) 920px, (min-width: 1024px) 50vw, calc(100vw - 2rem)";
+const BLOG_CARD_IMAGE_SIZES =
+  "(min-width: 2048px) 600px, (min-width: 1280px) 30vw, (min-width: 768px) 45vw, calc(100vw - 2rem)";
 
 const BlogsPage = () => (
   <main
@@ -33,17 +41,26 @@ const BlogsPage = () => (
             <Link
               className="group block overflow-hidden rounded-lg border border-white/10 bg-white/[0.035] transition duration-300 hover:border-primary/35 hover:bg-white/[0.055] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
               data-blog-card
+              onFocus={() => preloadBlogPostContent(featuredPost)}
+              onPointerDown={() => preloadBlogPostContent(featuredPost)}
+              onPointerEnter={() => preloadBlogPostContent(featuredPost)}
               to={getBlogPostUrl(featuredPost)}
             >
               <article className="grid gap-0 lg:grid-cols-[minmax(0,1.04fr)_minmax(22rem,0.96fr)]">
                 {featuredPost.image ? (
                   <div className="relative aspect-[1200/630] overflow-hidden bg-black/35 lg:aspect-auto lg:min-h-[26rem]">
                     <img
+                      {...getResponsiveImageAttributes(featuredPost.image, "hero/eager", {
+                        maxWidth: 1920,
+                        sizes: FEATURED_BLOG_IMAGE_SIZES,
+                      })}
                       alt={featuredPost.imageAlt ?? ""}
-                      className="h-full w-full object-cover opacity-[0.9] transition duration-500 group-hover:scale-[1.02] group-hover:opacity-100"
-                      decoding="async"
-                      loading="eager"
-                      src={featuredPost.image}
+                      className={cn(
+                        "h-full w-full bg-black opacity-[0.9] transition duration-500 group-hover:scale-[1.02] group-hover:opacity-100",
+                        featuredPost.imageFit === "contain"
+                          ? "object-contain"
+                          : "object-cover",
+                      )}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/52 via-transparent to-black/10" />
                   </div>
@@ -96,17 +113,26 @@ const BlogsPage = () => (
                 <Link
                   className="group block min-h-full rounded-lg border border-white/10 bg-white/[0.03] transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.052] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
                   data-blog-card
+                  onFocus={() => preloadBlogPostContent(post)}
+                  onPointerDown={() => preloadBlogPostContent(post)}
+                  onPointerEnter={() => preloadBlogPostContent(post)}
                   to={getBlogPostUrl(post)}
                 >
                   <article className="flex min-h-full flex-col overflow-hidden rounded-lg">
                     {post.image ? (
                       <div className="relative aspect-[1200/630] overflow-hidden bg-black/35">
                         <img
+                          {...getResponsiveImageAttributes(post.image, "below-fold", {
+                            maxWidth: 1280,
+                            sizes: BLOG_CARD_IMAGE_SIZES,
+                          })}
                           alt={post.imageAlt ?? ""}
-                          className="h-full w-full object-cover opacity-[0.88] transition duration-500 group-hover:scale-[1.025] group-hover:opacity-100"
-                          decoding="async"
-                          loading="lazy"
-                          src={post.image}
+                          className={cn(
+                            "h-full w-full bg-black opacity-[0.88] transition duration-500 group-hover:scale-[1.025] group-hover:opacity-100",
+                            post.imageFit === "contain"
+                              ? "object-contain"
+                              : "object-cover",
+                          )}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/46 via-transparent to-black/10" />
                       </div>

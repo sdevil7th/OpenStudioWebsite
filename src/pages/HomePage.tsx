@@ -1,4 +1,4 @@
-import { Download, Github, Sparkles } from "lucide-react";
+import { ArrowRight, Download, Guitar, Github, Sparkles } from "lucide-react";
 import { useRef } from "react";
 import { Link } from "react-router-dom";
 import PageSeo from "@/components/PageSeo";
@@ -10,7 +10,9 @@ import { BRANDING_ASSETS } from "@/constants/site";
 import { designMedia } from "@/data/designMedia";
 import {
   homeAlternativePositioning,
+  homeFaqs,
   homeHero,
+  homeNamRack,
   homeOriginStory,
   homePillars,
   homeProofBarItems,
@@ -19,6 +21,8 @@ import {
 } from "@/data/home";
 import { externalLinks } from "@/data/siteLinks";
 import { trackEvent } from "@/lib/analytics";
+import { getResponsiveImageAttributes } from "@/lib/assetLoading";
+import "@/lib/generatedImageRoutes/home";
 import { useScrollScene } from "@/lib/gsap";
 
 const pillarMedia = [
@@ -278,6 +282,81 @@ const HomePage = () => {
         </div>
       </section>
 
+      <section
+        aria-labelledby="home-nam-rack-title"
+        className="px-4 py-10 md:px-8 xl:px-12"
+      >
+        <div className="page-frame-wide">
+          <SectionReveal className="scroll-spotlight overflow-hidden rounded-[2.75rem] border border-white/10 p-6 md:p-10 xl:p-12">
+            <div className="grid gap-10 xl:grid-cols-[minmax(0,0.84fr)_minmax(0,1.16fr)] xl:items-center">
+              <div className="max-w-2xl">
+                <div className="design-badge border border-white/15 bg-white/[0.06] text-white/82">
+                  <Guitar className="h-3.5 w-3.5" />
+                  {homeNamRack.eyebrow}
+                </div>
+                <h2
+                  className="section-display mt-6 font-headline font-bold text-white"
+                  id="home-nam-rack-title"
+                >
+                  {homeNamRack.title}
+                </h2>
+                <p className="mt-6 text-lg leading-8 text-white/72">
+                  {homeNamRack.description}
+                </p>
+                <div className="mt-7 flex flex-wrap gap-3">
+                  {homeNamRack.proof.map((item) => (
+                    <span
+                      className="design-badge border border-secondary/20 bg-secondary/[0.07] text-secondary"
+                      key={item}
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+                <p className="mt-6 border-l border-white/15 pl-4 text-sm leading-7 text-white/52">
+                  {homeNamRack.caveat}
+                </p>
+                <Button asChild className="mt-8 h-auto px-7 py-3.5">
+                  <Link
+                    onClick={() =>
+                      trackEvent("internal_link_clicked", {
+                        destination_path: homeNamRack.cta.to,
+                        link_label: homeNamRack.cta.label,
+                        source: "home_nam_rack",
+                      })
+                    }
+                    to={homeNamRack.cta.to}
+                  >
+                    {homeNamRack.cta.label}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+
+              <figure className="design-glass-panel overflow-hidden rounded-[2rem] border border-white/10 bg-black/45 p-3">
+                <div className="overflow-hidden rounded-[1.45rem] bg-black">
+                  <img
+                    {...getResponsiveImageAttributes(
+                      homeNamRack.screenshot.src,
+                      "below-fold",
+                      {
+                        maxWidth: 1200,
+                        sizes: "(min-width: 1280px) 52vw, 100vw",
+                      },
+                    )}
+                    alt={homeNamRack.screenshot.alt}
+                    className="aspect-[1200/630] h-auto w-full object-contain"
+                  />
+                </div>
+                <figcaption className="px-3 pb-1 pt-4 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white/42">
+                  {homeNamRack.screenshot.caption}
+                </figcaption>
+              </figure>
+            </div>
+          </SectionReveal>
+        </div>
+      </section>
+
       <section className="px-4 py-8 md:px-8 xl:px-12">
         <div className="page-frame-wide">
           <div className="grid gap-8 border-y border-white/10 py-10 xl:grid-cols-[0.78fr_1.22fr] xl:items-center">
@@ -297,13 +376,15 @@ const HomePage = () => {
                 {homeAlternativePositioning.supporting}
               </p>
               <div className="flex flex-wrap gap-3">
-                {homeAlternativePositioning.terms.map((term) => (
-                  <span
-                    className="rounded-full border border-white/10 px-4 py-2 font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white/50"
-                    key={term}
+                {homeAlternativePositioning.links.map((link) => (
+                  <Link
+                    className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/10 px-4 py-2 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-white/58 transition hover:border-primary/35 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+                    key={link.to}
+                    to={link.to}
                   >
-                    {term}
-                  </span>
+                    {link.label}
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
                 ))}
               </div>
             </div>
@@ -349,12 +430,18 @@ const HomePage = () => {
               data-home-origin-media
             >
               <img
+                {...getResponsiveImageAttributes(
+                  designMedia.homeStoryServer.src,
+                  "below-fold",
+                  {
+                    maxWidth: 512,
+                    sizes:
+                      "(min-width: 1280px) 52vw, (min-width: 768px) calc(100vw - 4rem), calc(100vw - 2rem)",
+                  },
+                )}
                 alt={designMedia.homeStoryServer.alt}
                 className="absolute inset-0 h-full w-full object-cover opacity-58 grayscale contrast-125"
                 data-parallax-image
-                decoding="async"
-                loading="lazy"
-                src={designMedia.homeStoryServer.src}
               />
               <div className="absolute inset-0 bg-gradient-to-tr from-black/48 via-black/8 to-secondary/8" />
               <div className="home-origin-license-card">
@@ -402,12 +489,18 @@ const HomePage = () => {
               >
                 <div className="relative aspect-[16/10] overflow-hidden">
                   <img
+                    {...getResponsiveImageAttributes(
+                      step.screenshot.src,
+                      "below-fold",
+                      {
+                        maxWidth: 1600,
+                        sizes:
+                          "(min-width: 1536px) 48vw, (min-width: 768px) calc(100vw - 4rem), calc(100vw - 2rem)",
+                      },
+                    )}
                     alt={step.screenshot.alt}
                     className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
                     data-parallax-image
-                    decoding="async"
-                    loading="lazy"
-                    src={step.screenshot.src}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/10" />
                   <div className="absolute left-5 top-5 design-badge bg-black/40 text-white/75">
@@ -459,12 +552,18 @@ const HomePage = () => {
               >
                 <div className="relative h-56 overflow-hidden rounded-[1.75rem]">
                   <img
+                    {...getResponsiveImageAttributes(
+                      pillarMedia[index]!.src,
+                      "below-fold",
+                      {
+                        maxWidth: 512,
+                        sizes:
+                          "(min-width: 768px) 31vw, calc(100vw - 4rem)",
+                      },
+                    )}
                     alt={pillarMedia[index]!.alt}
                     className="h-full w-full object-cover transition duration-700 hover:scale-105"
                     data-parallax-image
-                    decoding="async"
-                    loading="lazy"
-                    src={pillarMedia[index]!.src}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
                 </div>
@@ -475,6 +574,45 @@ const HomePage = () => {
                   {pillar.description}
                 </p>
               </SectionReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section
+        aria-labelledby="home-faq-title"
+        className="px-4 py-14 md:px-8 xl:px-12"
+      >
+        <div className="page-frame-wide">
+          <div className="mx-auto max-w-4xl text-center">
+            <div className="design-badge design-badge-secondary mx-auto w-fit">
+              OpenStudio FAQ
+            </div>
+            <h2
+              className="mt-6 font-headline text-4xl font-bold leading-tight text-white md:text-5xl"
+              id="home-faq-title"
+            >
+              Start with the practical questions.
+            </h2>
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-white/64">
+              The essentials about cost, platforms, plug-ins, and optional AI
+              tools before you download.
+            </p>
+          </div>
+
+          <div className="mx-auto mt-10 grid max-w-6xl gap-5 md:grid-cols-2">
+            {homeFaqs.map(({ answer, question }) => (
+              <article
+                className="rounded-[1.75rem] border border-white/10 bg-white/[0.035] p-6 md:p-7"
+                key={question}
+              >
+                <h3 className="font-headline text-xl font-semibold leading-snug text-white">
+                  {question}
+                </h3>
+                <p className="mt-4 text-sm leading-7 text-white/66">
+                  {answer}
+                </p>
+              </article>
             ))}
           </div>
         </div>

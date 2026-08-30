@@ -1330,6 +1330,9 @@ const AiNeuralStudioStage = ({ phases, stateRef, fallback, className }: AiNeural
     let renderer: THREE.WebGLRenderer | undefined;
     let frameId = 0;
     let disposed = false;
+    let inView = true;
+    let visibilityObserver: IntersectionObserver | undefined;
+    let resizeObserver: ResizeObserver | undefined;
 
     try {
       renderer = new THREE.WebGLRenderer({
@@ -1450,9 +1453,15 @@ const AiNeuralStudioStage = ({ phases, stateRef, fallback, className }: AiNeural
       camera.updateProjectionMatrix();
     };
 
+    const queueFrame = () => {
+      if (!disposed && inView && !document.hidden && frameId === 0) {
+        frameId = window.requestAnimationFrame(animate);
+      }
+    };
+
     const animate = (now: number) => {
+      frameId = 0;
       if (disposed || !renderer) return;
-      resize();
 
       const time = now / 1000;
       const state = stateRef.current;
@@ -1583,14 +1592,43 @@ const AiNeuralStudioStage = ({ phases, stateRef, fallback, className }: AiNeural
       camera.lookAt(lookTarget);
 
       renderer.render(scene, camera);
-      frameId = window.requestAnimationFrame(animate);
+      queueFrame();
     };
 
     setFailed(false);
     setReady(true);
     resize();
+    if (canvas.parentElement && typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(resize);
+      resizeObserver.observe(canvas.parentElement);
+    }
     window.addEventListener("resize", resize);
-    frameId = window.requestAnimationFrame(animate);
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        window.cancelAnimationFrame(frameId);
+        frameId = 0;
+        return;
+      }
+      queueFrame();
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    if (typeof IntersectionObserver !== "undefined") {
+      visibilityObserver = new IntersectionObserver(
+        ([entry]) => {
+          inView = Boolean(entry?.isIntersecting);
+          if (inView) {
+            resize();
+            queueFrame();
+          } else {
+            window.cancelAnimationFrame(frameId);
+            frameId = 0;
+          }
+        },
+        { rootMargin: "20% 0px", threshold: 0.01 },
+      );
+      visibilityObserver.observe(canvas);
+    }
+    queueFrame();
 
     const disposeNode = (obj: THREE.Object3D) => {
       obj.traverse((child) => {
@@ -1606,6 +1644,9 @@ const AiNeuralStudioStage = ({ phases, stateRef, fallback, className }: AiNeural
       disposed = true;
       window.cancelAnimationFrame(frameId);
       window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      visibilityObserver?.disconnect();
+      resizeObserver?.disconnect();
       disposeNode(root);
       renderer?.dispose();
     };

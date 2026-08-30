@@ -64,7 +64,11 @@ const FeaturesStoryBackdrop = ({
             key={item.id}
             style={
               {
-                "--feature-backdrop-node-x": `${14 + index * 18}%`,
+                "--feature-backdrop-node-x": `${
+                  chapters.length <= 1
+                    ? 50
+                    : 14 + (index / (chapters.length - 1)) * 72
+                }%`,
                 "--feature-backdrop-node-y": `${index % 2 === 0 ? 28 : 68}%`,
               } as React.CSSProperties
             }
@@ -74,11 +78,11 @@ const FeaturesStoryBackdrop = ({
 
       <span
         className="feature-story-backdrop__ghost feature-story-backdrop__ghost--primary absolute left-[8%] top-[18%] aspect-[16/10]"
-        style={{ opacity: 0.08 + stageProgress * 0.04 }}
+        style={{ opacity: prefersReducedMotion ? 0.08 : 0.08 + stageProgress * 0.04 }}
       />
       <span
         className="feature-story-backdrop__ghost feature-story-backdrop__ghost--secondary absolute bottom-[12%] right-[10%] aspect-[4/3]"
-        style={{ opacity: 0.06 + stageProgress * 0.03 }}
+        style={{ opacity: prefersReducedMotion ? 0.06 : 0.06 + stageProgress * 0.03 }}
       />
 
       <div

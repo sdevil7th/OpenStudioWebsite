@@ -200,6 +200,7 @@ const AiUseCaseConstellation = ({
     let renderer: THREE.WebGLRenderer | undefined;
     let frameId = 0;
     let disposed = false;
+    let resizeObserver: ResizeObserver | undefined;
 
     try {
       renderer = new THREE.WebGLRenderer({
@@ -255,7 +256,6 @@ const AiUseCaseConstellation = ({
       if (disposed || !renderer) {
         return;
       }
-      resize();
       const time = now / 1000;
       const pointer = pointerRef?.current ?? fallbackPointer.current;
       smoothActive += (activeIndexRef.current - smoothActive) * 0.06;
@@ -297,6 +297,10 @@ const AiUseCaseConstellation = ({
 
     setFailed(false);
     resize();
+    if (canvas.parentElement && typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(resize);
+      resizeObserver.observe(canvas.parentElement);
+    }
     window.addEventListener("resize", resize);
     frameId = window.requestAnimationFrame(animate);
 
@@ -304,6 +308,7 @@ const AiUseCaseConstellation = ({
       disposed = true;
       window.cancelAnimationFrame(frameId);
       window.removeEventListener("resize", resize);
+      resizeObserver?.disconnect();
       stars.geometry.dispose();
       (stars.material as THREE.Material).dispose();
       anchors.forEach((anchor) => {
