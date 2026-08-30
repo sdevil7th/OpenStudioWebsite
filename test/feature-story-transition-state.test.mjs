@@ -18,6 +18,26 @@ const imageSchedulerSource = readFileSync(
   new URL("../src/lib/imageScheduler.ts", import.meta.url),
   "utf8",
 );
+const scrollSceneSource = readFileSync(
+  new URL("../src/lib/gsap.ts", import.meta.url),
+  "utf8",
+);
+const aiPageSource = readFileSync(
+  new URL("../src/pages/StemSeparationPage.tsx", import.meta.url),
+  "utf8",
+);
+const downloadCinematicSource = readFileSync(
+  new URL("../src/components/scene/DownloadCinematicStory.tsx", import.meta.url),
+  "utf8",
+);
+const oneShotSceneSource = [
+  "../src/pages/HomePage.tsx",
+  "../src/pages/GithubPage.tsx",
+  "../src/pages/ReleasesPage.tsx",
+  "../src/pages/DownloadPage.tsx",
+]
+  .map((source) => readFileSync(new URL(source, import.meta.url), "utf8"))
+  .join("\n");
 const featureSource = readFileSync(
   new URL("../src/data/features.ts", import.meta.url),
   "utf8",
@@ -26,10 +46,13 @@ const packageSource = readFileSync(
   new URL("../package.json", import.meta.url),
   "utf8",
 );
-const cssSource = readFileSync(
-  new URL("../src/index.css", import.meta.url),
-  "utf8",
-);
+const cssSource = [
+  "../src/index.css",
+  "../src/styles/features.css",
+  "../src/styles/ai.css",
+]
+  .map((source) => readFileSync(new URL(source, import.meta.url), "utf8"))
+  .join("\n");
 
 const stripComments = (source) =>
   source
@@ -61,6 +84,8 @@ test("features page uses the canonical story as its only desktop renderer", () =
   assert.doesNotMatch(pageCodeSource, /FeatureSceneCompositorSurface/);
   assert.doesNotMatch(pageCodeSource, /FeatureStoryUnifiedTransition/);
   assert.doesNotMatch(pageCodeSource, /FeatureSceneWebGLStage/);
+  assert.match(pageSource, /prefersReducedMotion/);
+  assert.match(canonicalStorySource, /usePrefersReducedMotion/);
 });
 
 test("canonical chapter title layer replaces the route and stays center anchored", () => {
@@ -70,7 +95,7 @@ test("canonical chapter title layer replaces the route and stays center anchored
   assert.match(canonicalStorySource, /chapter\.introTitle \?\? chapter\.label/);
   assert.match(
     canonicalStorySource,
-    /const titleExitProgress = isActive[\s\S]*revealProgress\(activeProgress, 0\.34, 0\.52\)/,
+    /const titleExitProgress = prefersReducedMotion[\s\S]*revealProgress\(activeProgress, 0\.34, 0\.52\)/,
   );
   assert.match(canonicalStorySource, /\? \(1 - titleExitProgress\) \* 0\.9[\s\S]*: 0/);
   assert.doesNotMatch(canonicalCodeSource, /feature-canonical-story__route/);
@@ -94,6 +119,10 @@ test("canonical scene keeps low-cost rendering and scheduled image loading", () 
   assert.match(pageSource, /warmScheduledImages/);
   assert.match(pageSource, /canonicalRouteUpcoming/);
   assert.match(pageSource, /slot: "cinematic"/);
+  assert.match(
+    pageSource,
+    /if \(!window\.matchMedia\(DESKTOP_STORY_MEDIA_QUERY\)\.matches\) \{\s*return;/,
+  );
   assert.match(imageSchedulerSource, /MAX_IDLE_IMAGE_DECODE = 2/);
   assert.match(imageSchedulerSource, /MAX_SCROLL_IMAGE_DECODE = 1/);
   assert.match(imageSchedulerSource, /resolveImageAssetUrl/);
@@ -127,6 +156,14 @@ test("features and AI responsive rules keep their separate breakpoint intent", (
   );
 });
 
+test("only breakpoint-dependent scroll scenes rebuild after responsive changes", () => {
+  assert.match(scrollSceneSource, /watchDesktopBreakpoint = false/);
+  assert.match(pageSource, /watchDesktopBreakpoint: true/);
+  assert.match(aiPageSource, /watchDesktopBreakpoint: true/);
+  assert.match(downloadCinematicSource, /watchDesktopBreakpoint: true/);
+  assert.doesNotMatch(oneShotSceneSource, /watchDesktopBreakpoint/);
+});
+
 test("feature cinematic copy uses product-facing DAW capability language", () => {
   assert.doesNotMatch(
     featureCodeSource,
@@ -136,6 +173,10 @@ test("feature cinematic copy uses product-facing DAW capability language", () =>
   assert.match(featureSource, /MIDI composition is built into the session/);
   assert.match(featureSource, /Mixing, routing, and metering get a real workstation surface/);
   assert.match(featureSource, /Plugins, pitch, FX, and optional AI stay inside the project/);
+  assert.match(featureSource, /A complete guitar rig, inside the project/);
+  assert.match(featureSource, /NAM A1 \+ A2/);
+  assert.match(featureSource, /The tuner observes the input without joining the audible path/);
+  assert.match(featureSource, /Rich(?:er)? catalog search is not promised/);
   assert.match(featureSource, /Automation, scripting, and delivery close the production loop/);
   assert.match(featureSource, /Multitrack audio and MIDI recording/);
   assert.match(featureSource, /Ripple, razor, takes, and fades/);

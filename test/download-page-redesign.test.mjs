@@ -10,7 +10,9 @@ const downloadCinematicSource = readFileSync(
   "utf8",
 );
 const featuresPageSource = readFileSync(new URL("../src/pages/FeaturesPage.tsx", import.meta.url), "utf8");
-const cssSource = readFileSync(new URL("../src/index.css", import.meta.url), "utf8");
+const cssSource = ["../src/index.css", "../src/styles/download.css"]
+  .map((source) => readFileSync(new URL(source, import.meta.url), "utf8"))
+  .join("\n");
 
 test("features page no longer renders the stale workflow-detail placeholder", () => {
   assert.doesNotMatch(featuresPageSource, /Dense chapter context now rides inside the scene/);

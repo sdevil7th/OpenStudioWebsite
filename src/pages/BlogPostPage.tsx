@@ -1,77 +1,79 @@
-import { ArrowLeft, ArrowRight, BookOpen, CalendarDays, Clock3 } from "lucide-react";
-import ReactMarkdown, { type Components } from "react-markdown";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  CalendarDays,
+  Clock3,
+  History,
+  UserRound,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import remarkGfm from "remark-gfm";
 import PageSeo from "@/components/PageSeo";
 import { Button } from "@/components/ui/button";
-import { SITE_NAME } from "@/constants/site";
+import { SITE_NAME, SITE_URL } from "@/constants/site";
+import {
+  getLoadedBlogPost,
+  loadBlogPostContent,
+  preloadBlogPostContent,
+} from "@/data/blogContent";
 import { blogPosts, getBlogPostBySlug, getBlogPostJsonLd, getBlogPostUrl } from "@/data/blogs";
+import { getResponsiveImageAttributes } from "@/lib/assetLoading";
+import "@/lib/generatedImageRoutes/blogs";
 import { cn } from "@/lib/utils";
 
-const markdownComponents: Components = {
-  h1: ({ children }) => <h2 className="mt-12 font-headline text-3xl font-bold leading-tight text-white md:text-[2.45rem]">{children}</h2>,
-  h2: ({ children }) => <h2 className="mt-12 font-headline text-3xl font-bold leading-tight text-white md:text-[2.45rem]">{children}</h2>,
-  h3: ({ children }) => <h3 className="mt-10 font-headline text-2xl font-semibold leading-tight text-white">{children}</h3>,
-  h4: ({ children }) => <h4 className="mt-8 font-headline text-xl font-semibold leading-tight text-white">{children}</h4>,
-  p: ({ children }) => <p className="mt-5 text-[1.06rem] leading-[1.82] text-white/82 md:text-[1.12rem]">{children}</p>,
-  a: ({ children, href }) => {
-    const external = href?.startsWith("http");
+const BLOG_HERO_SIZES =
+  "(min-width: 1984px) 1920px, (min-width: 768px) calc(100vw - 4rem), calc(100vw - 2rem)";
+const BLOG_ARTICLE_BODY_CLASS = "mx-auto mt-10 max-w-[760px] md:mt-12";
 
-    return (
-      <a
-        className="font-medium text-primary underline decoration-primary/35 underline-offset-4 transition hover:text-secondary hover:decoration-secondary/45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
-        href={href}
-        rel={external ? "noreferrer" : undefined}
-        target={external ? "_blank" : undefined}
-      >
-        {children}
-      </a>
-    );
-  },
-  blockquote: ({ children }) => (
-    <blockquote className="mt-8 border-l-2 border-secondary/70 pl-6 text-white/82 [&>p]:mt-0 [&>p]:text-xl [&>p]:leading-9 [&>p]:text-white/82">
-      {children}
-    </blockquote>
-  ),
-  ul: ({ children }) => <ul className="mt-6 space-y-3 pl-6 text-[1.04rem] leading-8 text-white/80 marker:text-primary">{children}</ul>,
-  ol: ({ children }) => <ol className="mt-6 list-decimal space-y-3 pl-6 text-[1.04rem] leading-8 text-white/80 marker:text-primary">{children}</ol>,
-  li: ({ children }) => <li className="pl-2">{children}</li>,
-  strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
-  em: ({ children }) => <em className="text-white/82">{children}</em>,
-  hr: () => <hr className="my-12 border-white/10" />,
-  pre: ({ children }) => (
-    <pre className="mt-8 overflow-x-auto rounded-lg border border-white/10 bg-black/55 p-5 text-sm leading-7 text-white/84 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-      {children}
-    </pre>
-  ),
-  code: ({ children, className }) => (
-    <code
-      className={cn(
-        className
-          ? "text-sm text-white/88"
-          : "rounded-md border border-white/10 bg-white/[0.06] px-1.5 py-0.5 text-[0.9em] text-secondary",
-        className,
-      )}
-    >
-      {children}
-    </code>
-  ),
-  table: ({ children }) => (
-    <div className="mt-9 overflow-x-auto rounded-lg border border-white/10">
-      <table className="w-full min-w-[42rem] border-collapse text-left text-sm text-white/80">{children}</table>
-    </div>
-  ),
-  thead: ({ children }) => <thead className="bg-white/[0.06] text-white">{children}</thead>,
-  th: ({ children }) => <th className="border-b border-white/10 px-4 py-3 font-mono text-[0.68rem] uppercase tracking-[0.18em]">{children}</th>,
-  td: ({ children }) => <td className="border-b border-white/10 px-4 py-3 align-top">{children}</td>,
-  img: ({ alt, src }) => (
-    <img alt={alt ?? ""} className="mt-9 w-full rounded-lg border border-white/10 object-cover" decoding="async" loading="lazy" src={src ?? ""} />
-  ),
-};
+if (typeof window !== "undefined") {
+  const initialSlug = window.location.pathname.match(/^\/blogs\/([^/]+)\/?$/)?.[1];
+  const initialPost = getBlogPostBySlug(initialSlug);
+  if (initialPost) {
+    preloadBlogPostContent(initialPost);
+  }
+}
 
 const BlogPostPage = () => {
   const { slug } = useParams();
   const post = getBlogPostBySlug(slug);
+  const [loadedPost, setLoadedPost] = useState(() =>
+    post ? getLoadedBlogPost(post) : undefined,
+  );
+  const [articleLoadError, setArticleLoadError] = useState(false);
+
+  useEffect(() => {
+    setArticleLoadError(false);
+
+    if (!post) {
+      setLoadedPost(undefined);
+      return undefined;
+    }
+
+    const cachedPost = getLoadedBlogPost(post);
+    if (cachedPost) {
+      setLoadedPost(cachedPost);
+      return undefined;
+    }
+
+    setLoadedPost(undefined);
+    let active = true;
+    void loadBlogPostContent(post)
+      .then((hydratedPost) => {
+        if (active) {
+          setLoadedPost(hydratedPost);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setArticleLoadError(true);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [post]);
 
   if (!post) {
     return <BlogPostNotFound slug={slug} />;
@@ -83,18 +85,21 @@ const BlogPostPage = () => {
       id="main-content"
     >
       <PageSeo
-        description={post.dek}
+        authorProfileUrl={SITE_URL}
+        description={post.seoDescription ?? post.dek}
         image={post.image}
         imageAlt={post.imageAlt}
         jsonLd={getBlogPostJsonLd(post)}
+        modifiedTime={post.dateModified}
         ogType="article"
         path={getBlogPostUrl(post)}
-        title={`${post.title} | ${SITE_NAME} Blog`}
+        publishedTime={post.date}
+        title={post.seoTitle ?? `${post.title} | ${SITE_NAME} Blog`}
       />
 
-      <div className="page-frame-wide pb-24">
-        <article className="mx-auto max-w-5xl pt-3 md:pt-6">
-          <div className="mx-auto max-w-[720px]">
+      <div className="px-4 pb-24 md:px-8">
+        <article className="mx-auto max-w-[1920px] pt-3 md:pt-6">
+          <div className="w-full" data-blog-masthead>
             <Link
               className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/10 bg-black/25 px-4 text-sm font-medium text-white/70 transition hover:border-primary/35 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
               to="/blogs"
@@ -108,15 +113,27 @@ const BlogPostPage = () => {
                 <BookOpen className="h-3.5 w-3.5" />
                 OpenStudio blog
               </div>
-              <h1 className="font-headline text-4xl font-bold leading-[1.08] text-white md:text-[3.45rem] md:leading-[1.04]">
+              <h1 className="max-w-[1200px] font-headline text-4xl font-bold leading-[1.08] text-white md:text-[3.45rem] md:leading-[1.04]">
                 {post.title}
               </h1>
-              <p className="mt-5 text-lg leading-8 text-white/70 md:text-xl md:leading-9">{post.dek}</p>
+              <p className="mt-5 max-w-[960px] text-lg leading-8 text-white/70 md:text-xl md:leading-9">{post.dek}</p>
               <div className="mt-7 flex flex-wrap gap-x-5 gap-y-3 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-white/48">
+                <span className="inline-flex items-center gap-2">
+                  <UserRound className="h-3.5 w-3.5 text-primary" />
+                  By {post.author}
+                </span>
                 <span className="inline-flex items-center gap-2">
                   <CalendarDays className="h-3.5 w-3.5 text-secondary" />
                   {post.dateLabel ?? "Engineering note"}
                 </span>
+                {post.dateModified &&
+                post.dateModified !== post.date &&
+                post.dateModifiedLabel ? (
+                  <span className="inline-flex items-center gap-2">
+                    <History className="h-3.5 w-3.5 text-secondary" />
+                    Updated {post.dateModifiedLabel}
+                  </span>
+                ) : null}
                 <span className="inline-flex items-center gap-2">
                   <Clock3 className="h-3.5 w-3.5 text-primary" />
                   {post.readTimeMinutes} min read
@@ -126,26 +143,59 @@ const BlogPostPage = () => {
           </div>
 
           {post.image ? (
-            <figure className="mx-auto mt-9 max-w-[880px] overflow-hidden rounded-lg border border-white/10 bg-black/30 md:mt-10">
+            <figure
+              className="mt-9 aspect-[1200/630] w-full overflow-hidden rounded-lg border border-white/10 bg-black/30 md:mt-10"
+              data-blog-hero
+            >
               <img
+                {...getResponsiveImageAttributes(post.image, "hero/eager", {
+                  maxWidth: 3360,
+                  sizes: BLOG_HERO_SIZES,
+                })}
                 alt={post.imageAlt ?? ""}
-                className="aspect-[1200/630] w-full object-cover"
-                decoding="async"
-                loading="eager"
-                src={post.image}
+                className={cn(
+                  "h-full w-full bg-black",
+                  post.imageFit === "contain" ? "object-contain" : "object-cover",
+                )}
               />
             </figure>
           ) : null}
 
-          <div className="mx-auto mt-10 max-w-[680px] md:mt-12">
-            <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}>
-              {post.articleContent}
-            </ReactMarkdown>
-          </div>
+          {loadedPost?.slug === post.slug ? (
+            <div
+              className={BLOG_ARTICLE_BODY_CLASS}
+              dangerouslySetInnerHTML={{ __html: loadedPost.articleHtml }}
+              data-blog-body
+            />
+          ) : (
+            <div className={BLOG_ARTICLE_BODY_CLASS} data-blog-body>
+              {articleLoadError ? (
+                <div
+                  className="rounded-lg border border-white/10 bg-white/[0.03] p-6 text-center"
+                  role="alert"
+                >
+                  <p className="text-base leading-7 text-white/72">
+                    The article text could not be loaded. Check your connection and try again.
+                  </p>
+                  <Button
+                    className="mt-5 rounded-full"
+                    onClick={() => window.location.reload()}
+                    variant="outline"
+                  >
+                    Retry article
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-sm text-white/48" role="status">
+                  Loading article…
+                </p>
+              )}
+            </div>
+          )}
         </article>
 
         {blogPosts.length > 1 ? (
-          <section className="mx-auto mt-16 max-w-[720px] border-t border-white/10 pt-8">
+          <section className="mx-auto mt-16 max-w-[760px] border-t border-white/10 pt-8">
             <div className="font-mono text-[0.68rem] uppercase tracking-[0.2em] text-primary">Keep reading</div>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               {blogPosts
@@ -155,6 +205,9 @@ const BlogPostPage = () => {
                   <Link
                     className="group rounded-lg border border-white/10 bg-white/[0.03] p-5 transition hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.052] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
                     key={candidate.slug}
+                    onFocus={() => preloadBlogPostContent(candidate)}
+                    onPointerDown={() => preloadBlogPostContent(candidate)}
+                    onPointerEnter={() => preloadBlogPostContent(candidate)}
                     to={getBlogPostUrl(candidate)}
                   >
                     <div className="font-headline text-lg font-semibold leading-snug text-white transition group-hover:text-primary">{candidate.title}</div>
@@ -180,6 +233,7 @@ const BlogPostNotFound = ({ slug }: { slug?: string }) => (
     <PageSeo
       description="That OpenStudio blog post could not be found. Return to the blog archive to browse the available engineering notes."
       path={slug ? `/blogs/${slug}` : "/blogs"}
+      robots="noindex, nofollow"
       title={`Blog post not found | ${SITE_NAME}`}
     />
     <div className="mx-auto max-w-3xl rounded-lg border border-white/10 bg-white/[0.03] p-8 text-center md:p-12">

@@ -1,4 +1,12 @@
-import { lazy, Suspense, useEffect, useState, type ReactElement, type ReactNode } from "react";
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useLayoutEffect,
+  useState,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import SiteShell from "@/components/SiteShell";
@@ -48,7 +56,7 @@ const RouteFallback = () => {
     typeof window !== "undefined" ? Boolean(window.__openstudioIntroHidden) : false,
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const token = `route-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
     window.dispatchEvent(

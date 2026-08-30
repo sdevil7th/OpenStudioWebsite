@@ -76,6 +76,120 @@
   force = true
 
 [[redirects]]
-  from = "/*"
+  from = "/home"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/stem-separation"
+  to = "/ai"
+  status = 301
+
+# Serve prerendered route documents without Netlify's directory-slash redirect.
+# These must stay above the 404 catch-all, and the download function rewrites
+# above must retain priority over the canonical /download page.
+[[redirects]]
+  from = "/features"
+  to = "/features/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/ai"
+  to = "/ai/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/download"
+  to = "/download/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/github"
+  to = "/github/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/releases"
+  to = "/releases/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/blogs"
+  to = "/blogs/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/blogs/building-the-midi-editor-harness"
+  to = "/blogs/building-the-midi-editor-harness/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/blogs/ace-step-diffusers-almost-3x-faster"
+  to = "/blogs/ace-step-diffusers-almost-3x-faster/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/blogs/building-openstudio-nam-rack"
+  to = "/blogs/building-openstudio-nam-rack/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/blogs/build-guitar-tones-with-openstudio-nam-rack"
+  to = "/blogs/build-guitar-tones-with-openstudio-nam-rack/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/blogs/ace-step-integration-challenges"
+  to = "/blogs/ace-step-integration-challenges/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/blogs/ara2-hosting-challenges-blog"
+  to = "/blogs/ara2-hosting-challenges-blog/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/contact"
+  to = "/contact/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/privacy"
+  to = "/privacy/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/security"
+  to = "/security/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/terms"
+  to = "/terms/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/og-card"
   to = "/index.html"
   status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 404

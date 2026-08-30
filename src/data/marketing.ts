@@ -4,10 +4,10 @@ export interface SeoMeta {
   title: string;
   description: string;
   path: string;
+  lastModified?: string;
   image?: string;
   imageAlt?: string;
   jsonLd?: object | object[];
-  keywords?: string[];
   ogType?: "website" | "article";
 }
 

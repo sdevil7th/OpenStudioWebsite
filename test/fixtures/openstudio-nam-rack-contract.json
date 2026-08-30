@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "provenance": {
+    "repository": "https://github.com/sdevil7th/OpenStudio",
+    "baseCommit": "4b0edee1973764f158f9af886f53960120aef558",
+    "capturedAt": "2026-08-28",
+    "workingTreeSnapshot": true,
+    "sources": [
+      {
+        "path": "frontend/src/services/NativeBridge.ts",
+        "sha256": "66baf91a56bc7c956a3e9343ddbb16002a4643041acbd894c8581db24d4785ff"
+      },
+      {
+        "path": "frontend/src/components/NAMRackPanel.tsx",
+        "sha256": "8c68f04f3fc75293c4f645e0ccf899c10eed4412f6f6796cf7cdab866c542358"
+      }
+    ]
+  },
+  "preEffects": [
+    {
+      "id": "compressor",
+      "label": "Compressor",
+      "parameterId": "compressorEnabled"
+    },
+    {
+      "id": "octaver",
+      "label": "Stereo Poly Octaver",
+      "parameterId": "octaverEnabled"
+    },
+    {
+      "id": "preEq",
+      "label": "PRE EQ",
+      "parameterId": "preEqEnabled"
+    },
+    {
+      "id": "precisionDrive",
+      "label": "Precision Drive",
+      "parameterId": "precisionDriveEnabled"
+    },
+    {
+      "id": "distortion",
+      "label": "Distortion",
+      "parameterId": "chaosEnabled"
+    }
+  ],
+  "postEffects": [
+    {
+      "id": "eq",
+      "label": "Graphic EQ",
+      "parameterId": "eqEnabled"
+    },
+    {
+      "id": "mod",
+      "label": "Modulator",
+      "parameterId": "modulatorEnabled"
+    },
+    {
+      "id": "delay",
+      "label": "Stereo Delay",
+      "parameterId": "delayEnabled"
+    },
+    {
+      "id": "reverb",
+      "label": "Reverb",
+      "parameterId": "reverbEnabled"
+    }
+  ],
+  "retiredEffects": [
+    {
+      "id": "special",
+      "label": "Laser"
+    }
+  ]
+}

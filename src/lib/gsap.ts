@@ -1,4 +1,4 @@
-import { type RefObject, useEffect, useRef } from "react";
+import { type RefObject, useEffect, useRef, useState } from "react";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
 
@@ -41,12 +41,34 @@ export const useScrollScene = <T extends HTMLElement>(
     delay,
     runOnInput = false,
     timeout,
-  }: { delay?: number; runOnInput?: boolean; timeout?: number } = {},
+    watchDesktopBreakpoint = false,
+  }: {
+    delay?: number;
+    runOnInput?: boolean;
+    timeout?: number;
+    watchDesktopBreakpoint?: boolean;
+  } = {},
 ) => {
   const prefersReducedMotion = usePrefersReducedMotion();
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches,
+  );
   const setupRef = useRef(setup);
 
   setupRef.current = setup;
+
+  useEffect(() => {
+    if (!watchDesktopBreakpoint) {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+    const syncDesktop = () => setIsDesktop(mediaQuery.matches);
+
+    syncDesktop();
+    mediaQuery.addEventListener("change", syncDesktop);
+    return () => mediaQuery.removeEventListener("change", syncDesktop);
+  }, [watchDesktopBreakpoint]);
 
   useEffect(() => {
     const element = scope.current;
@@ -70,7 +92,7 @@ export const useScrollScene = <T extends HTMLElement>(
             cleanup = setupRef.current({
               gsap,
               ScrollTrigger,
-              isDesktop: window.matchMedia("(min-width: 1024px)").matches,
+              isDesktop,
               prefersReducedMotion,
             });
           }, element);
@@ -85,5 +107,5 @@ export const useScrollScene = <T extends HTMLElement>(
       cleanup?.();
       context?.revert();
     };
-  }, [delay, prefersReducedMotion, runOnInput, scope, timeout]);
+  }, [delay, isDesktop, prefersReducedMotion, runOnInput, scope, timeout]);
 };

@@ -5,27 +5,158 @@ import SiteFooter from "@/components/SiteFooter";
 import SiteNavbar from "@/components/SiteNavbar";
 import SmoothScrollProvider, { useSmoothScroll } from "@/components/SmoothScrollProvider";
 
+const HASH_SCROLL_OFFSET = -96;
+const HASH_TARGET_WAIT_MS = 15_000;
+
+const decodeHashId = (hash: string) => {
+  const encodedId = hash.startsWith("#") ? hash.slice(1) : hash;
+
+  try {
+    return decodeURIComponent(encodedId);
+  } catch {
+    return encodedId;
+  }
+};
+
+// getBoundingClientRect includes route entrance transforms, which can make a
+// freshly mounted deep-link target look several pixels lower than its settled
+// layout position. Offset-parent geometry is transform-free and keeps the
+// final navbar clearance exact after the entrance animation completes.
+const getDocumentLayoutTop = (element: HTMLElement) => {
+  let node: HTMLElement | null = element;
+  let top = 0;
+
+  while (node) {
+    top += node.offsetTop;
+    node = node.offsetParent as HTMLElement | null;
+  }
+
+  return top;
+};
+
 const ShellContent = () => {
   const location = useLocation();
   const { lenis } = useSmoothScroll();
   const lenisRef = useRef(lenis);
+  const [initialRoutePending, setInitialRoutePending] = useState(
+    () => typeof window === "undefined" || !window.__openstudioAppReady,
+  );
   const [routeFallbackTokens, setRouteFallbackTokens] = useState<Set<string>>(() => new Set());
-  const routePending = routeFallbackTokens.size > 0;
+  const routePending = initialRoutePending || routeFallbackTokens.size > 0;
 
   useEffect(() => {
     lenisRef.current = lenis;
   }, [lenis]);
 
   useEffect(() => {
-    const currentLenis = lenisRef.current;
+    const handleInitialRouteReady = () => setInitialRoutePending(false);
 
-    if (currentLenis) {
-      currentLenis.scrollTo(0, { immediate: true });
+    // RouteFallback announces itself from an effect, which is too late to keep
+    // the footer out of the shell's first committed frame. Treat the first
+    // route as pending synchronously, then release the footer once that route
+    // has rendered and emitted the existing ready signal.
+    if (window.__openstudioAppReady) {
+      handleInitialRouteReady();
       return;
     }
 
-    window.scrollTo(0, 0);
-  }, [location.pathname]);
+    window.addEventListener("openstudio:app-ready", handleInitialRouteReady, { once: true });
+    return () => window.removeEventListener("openstudio:app-ready", handleInitialRouteReady);
+  }, []);
+
+  useEffect(() => {
+    let hashTargetObserver: MutationObserver | undefined;
+    let hashTargetTimeout: number | undefined;
+    let frame = 0;
+    const hashId = decodeHashId(location.hash);
+
+    const stopWaitingForHashTarget = () => {
+      hashTargetObserver?.disconnect();
+      hashTargetObserver = undefined;
+
+      if (hashTargetTimeout !== undefined) {
+        window.clearTimeout(hashTargetTimeout);
+        hashTargetTimeout = undefined;
+      }
+
+      window.removeEventListener("openstudio:app-ready", handleRouteReady);
+    };
+
+    const scrollToTop = () => {
+      const currentLenis = lenisRef.current;
+
+      if (currentLenis) {
+        currentLenis.scrollTo(0, { immediate: true });
+        return;
+      }
+
+      window.scrollTo(0, 0);
+    };
+
+    const scrollToHashTarget = () => {
+      const hashTarget = hashId ? document.getElementById(hashId) : null;
+
+      if (!hashTarget) {
+        return false;
+      }
+
+      const currentLenis = lenisRef.current;
+      const targetTop = Math.max(
+        0,
+        getDocumentLayoutTop(hashTarget) + HASH_SCROLL_OFFSET,
+      );
+
+      if (currentLenis) {
+        currentLenis.scrollTo(targetTop, {
+          immediate: true,
+        });
+      } else {
+        window.scrollTo(0, targetTop);
+      }
+
+      stopWaitingForHashTarget();
+      return true;
+    };
+
+    function handleRouteReady() {
+      scrollToHashTarget();
+    }
+
+    frame = window.requestAnimationFrame(() => {
+      if (!hashId) {
+        scrollToTop();
+        return;
+      }
+
+      if (scrollToHashTarget()) {
+        return;
+      }
+
+      scrollToTop();
+
+      const routeFrame = document.querySelector(".site-shell-route-frame");
+      hashTargetObserver = new MutationObserver(() => {
+        scrollToHashTarget();
+      });
+      hashTargetObserver.observe(routeFrame ?? document.body, {
+        childList: true,
+        subtree: true,
+      });
+      window.addEventListener("openstudio:app-ready", handleRouteReady);
+      hashTargetTimeout = window.setTimeout(
+        stopWaitingForHashTarget,
+        HASH_TARGET_WAIT_MS,
+      );
+
+      // Cover a target mounting between the first lookup and observer setup.
+      scrollToHashTarget();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      stopWaitingForHashTarget();
+    };
+  }, [location.hash, location.pathname]);
 
   useEffect(() => {
     const handleRouteFallback = (event: Event) => {

@@ -5,14 +5,6 @@ export const releasesSeo: SeoMeta = {
   description:
     "Track the OpenStudio release timeline — update notes, distribution status, and Windows, macOS, and Linux build details for the free, open source DAW.",
   path: "/releases",
-  keywords: [
-    "openstudio releases",
-    "daw release notes",
-    "open source daw updates",
-    "free daw windows",
-    "free daw mac",
-    "free daw linux",
-  ],
 };
 
 export const releasesHero = {

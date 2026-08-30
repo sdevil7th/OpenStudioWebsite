@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+*.tsbuildinfo
 *.local
 public/appcast/*
 public/releases/*.json
@@ -19,6 +20,8 @@ release-input/*
 
 # Local throwaway screenshots and scratch files (design comparisons, audit passes)
 .screenshots/
+.playwright-cli/
+/output/
 /tmp-*
 /local-*.png
 /shopify-*.png

@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { Activity, Cable, Sparkles } from "lucide-react";
 import type { AccentTone, FeatureChapter } from "@/data/marketing";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { getResponsiveImageAttributes } from "@/lib/assetLoading";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,7 @@ const FeatureCanonicalStory = ({
   chapters,
   progressById,
 }: FeatureCanonicalStoryProps) => {
+  const prefersReducedMotion = usePrefersReducedMotion();
   const activeIndex = Math.max(
     0,
     chapters.findIndex((chapter) => chapter.id === activeId),
@@ -45,7 +47,9 @@ const FeatureCanonicalStory = ({
   const activeChapter = chapters[activeIndex] ?? chapters[0]!;
   const activeAccent = activeChapter.accent ?? "lavender";
   const activeProgress = clampProgress(progressById[activeChapter.id]);
-  const nextReveal = revealProgress(activeProgress, 0.72, 0.96);
+  const nextReveal = prefersReducedMotion
+    ? 0
+    : revealProgress(activeProgress, 0.72, 0.96);
   const activeCallout = activeChapter.details.callouts[0];
   const supportingCallout = activeChapter.details.callouts[1];
   const detailItems = activeChapter.details.items.slice(0, 3);
@@ -75,21 +79,29 @@ const FeatureCanonicalStory = ({
             const isNext = index === activeIndex + 1;
             const isPrevious = index === activeIndex - 1;
             const shouldLoadMedia = isActive || isNext || isPrevious;
-            const stageOpacity = isActive
-              ? 1 - nextReveal * 0.34
-              : isNext
-                ? nextReveal
-                : isPrevious && activeProgress < 0.08
-                  ? 0.18 * (1 - activeProgress / 0.08)
+            const stageOpacity = prefersReducedMotion
+              ? isActive
+                ? 1
+                : 0
+              : isActive
+                ? 1 - nextReveal * 0.34
+                : isNext
+                  ? nextReveal
+                  : isPrevious && activeProgress < 0.08
+                    ? 0.18 * (1 - activeProgress / 0.08)
+                    : 0;
+            const stageShift = prefersReducedMotion
+              ? 0
+              : isActive
+                ? -activeProgress * 8
+                : isNext
+                  ? 18 * (1 - nextReveal)
                   : 0;
-            const stageShift = isActive
-              ? -activeProgress * 8
-              : isNext
-                ? 18 * (1 - nextReveal)
-                : 0;
-            const stageScale = isActive
-              ? 1 + activeProgress * 0.018
-              : 0.975 + nextReveal * 0.025;
+            const stageScale = prefersReducedMotion
+              ? 1
+              : isActive
+                ? 1 + activeProgress * 0.018
+                : 0.975 + nextReveal * 0.025;
 
             return (
               <section
@@ -162,9 +174,13 @@ const FeatureCanonicalStory = ({
             const isActive = index === activeIndex;
             const accent = chapter.accent ?? "lavender";
             const numeral = chapter.numeral ?? String(index + 1);
-            const titleExitProgress = isActive
-              ? revealProgress(activeProgress, 0.34, 0.52)
-              : 1;
+            const titleExitProgress = prefersReducedMotion
+              ? isActive
+                ? 0
+                : 1
+              : isActive
+                ? revealProgress(activeProgress, 0.34, 0.52)
+                : 1;
             const titleOpacity = isActive
               ? (1 - titleExitProgress) * 0.9
               : 0;

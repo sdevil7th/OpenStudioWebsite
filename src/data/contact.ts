@@ -6,11 +6,6 @@ export const contactSeo: SeoMeta = {
   description:
     "Reach the OpenStudio maintainer for release feedback, contributions, website work, and product direction tied to the live repository and public DAW releases.",
   path: "/contact",
-  keywords: [
-    "openstudio contact",
-    "open source daw maintainer",
-    "daw project contact",
-  ],
 };
 
 export const contactHero = {
