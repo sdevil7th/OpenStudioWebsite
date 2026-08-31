@@ -53,9 +53,15 @@ test("homepage keeps broad DAW intent and links to deeper product intents", () =
 
 test("blog articles expose visible and machine-readable authorship dates", () => {
   assert.match(blogDataSource, /const DEFAULT_BLOG_AUTHOR = "OpenStudio engineering team"/);
-  assert.match(generatedBlogIndexSource, /"dateModified":"2026-08-28"/);
+  assert.match(
+    generatedBlogIndexSource,
+    /"building-openstudio-nam-rack":\{[^}]*"dateModified":"2026-08-31"/,
+  );
+  assert.match(
+    generatedBlogIndexSource,
+    /"build-guitar-tones-with-openstudio-nam-rack":\{[^}]*"dateModified":"2026-08-29"/,
+  );
   assert.match(blogSyncSource, /const dateModified = override\?\.dateModified \?\? date/);
-  assert.match(generatedBlogIndexSource, /"dateModified":"2026-08-28"/);
   assert.match(blogDataSource, /mainEntityOfPage:/);
   assert.match(blogDataSource, /"@type": "ImageObject"/);
   assert.match(blogPageSource, /authorProfileUrl=\{SITE_URL\}/);
