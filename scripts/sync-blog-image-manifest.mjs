@@ -46,7 +46,7 @@ const blogPostSeoOverrides = {
   },
   "build-guitar-tones-with-openstudio-nam-rack": {
     author: "OpenStudio team",
-    dateModified: "2026-08-28",
+    dateModified: "2026-08-29",
     imageSlug: "build-guitar-tones-with-openstudio-nam-rack-v2",
     seoTitle: "How to Build Clean and High-Gain Tones with OpenStudio NAM Rack",
     seoDescription:
