@@ -6,6 +6,8 @@ There is no magic preset that works for every guitar, pickup, tuning, interface,
 
 This guide uses two real OpenStudio v19 user presets as examples: **Bestest clean!** and **good highgain riff**. Their values were read from the saved rack presets and rounded for readability. The referenced third-party NAM captures and IR are not bundled with OpenStudio, so treat these settings as recipes and use models you own or can download under their creators' licenses.
 
+Both **Bestest clean!** and **good highgain riff** were tested with a Kramer Baretta Special and a Fender Telecaster. The result still depends on the output and voicing of the pickups, the DI level, and the interface input gain. Treat the numbers below as tested starting points, then level-match and adjust them for the signal your guitar sends into the rack.
+
 [![OpenStudio NAM Rack redesigned amp view with an A2 capture and installed capture library](/assets/blogs/nam-rack-overview.webp)](/assets/blogs/nam-rack-overview.webp)
 
 *The Amp page is the centre of the tone, but the input, pedals, cabinet, Cabinet Space, EQ, and post effects decide how that capture behaves in the song.*
@@ -20,7 +22,7 @@ This guide uses two real OpenStudio v19 user presets as examples: **Bestest clea
 
 4. **Choose the right kind of capture.** An amp-only capture needs a cabinet IR. A full-rig capture already contains its cabinet, so OpenStudio bypasses the external cabinet automatically. A capture that is already close will beat heroic EQ on the wrong model.
 
-5. **Start with fewer stages.** Turn off Compressor, Octaver, PRE EQ, Precision Drive, Distortion, Graphic EQ, Modulator, Delay, Reverb, Room, and Doubler. Make the capture and cabinet work first, then enable one stage at a time.
+5. **Start with fewer stages.** Turn off Compressor, Octaver, EQ Boost, Precision Drive, Distortion, Graphic EQ, Modulator, Delay, Reverb, Room, and Doubler. Make the capture and cabinet work first, then enable one stage at a time.
 
 6. **Level-match every decision.** Use A/B slots and adjust stage/output level so louder does not automatically win. Compare in the song, not only while playing alone.
 
@@ -30,7 +32,7 @@ The Pedals page is not just a row of colours. Its position before the NAM captur
 
 [![OpenStudio NAM Rack Pedals page with Compressor, Stereo Poly Octaver, PRE EQ, Precision Drive, and Distortion](/assets/blogs/nam-rack-pre-fx.webp)](/assets/blogs/nam-rack-pre-fx.webp)
 
-*Everything on this page changes what reaches the capture. PRE EQ and Precision Drive therefore change the distortion response, not merely the final frequency balance.*
+*Everything on this page changes what reaches the capture. EQ Boost (shown as PRE EQ in the current UI) and Precision Drive therefore change the distortion response, not merely the final frequency balance.*
 
 - **Gate** controls silence and note endings before gain raises the noise floor. Raise Threshold until pauses become clean, then back it down if sustains or pick detail disappear. Release controls whether the gate closes naturally or snaps shut.
 
@@ -38,7 +40,7 @@ The Pedals page is not just a row of colours. Its position before the NAM captur
 
 - **Stereo Poly Octaver** blends octave-down and octave-up voices while supporting chords and stereo material. Keep Direct high for a recognisable guitar attack, then add octave voices to taste.
 
-- **PRE EQ** changes the signal before the gain stages. Cutting low frequencies here can stop palm mutes from overwhelming a high-gain capture. Boosting upper mids here can make the capture distort more aggressively around the pick attack.
+- **EQ Boost (PRE EQ)** changes the signal before the gain stages. Cutting low frequencies here can stop palm mutes from overwhelming a high-gain capture. Boosting upper mids here can make the capture distort more aggressively around the pick attack.
 
 - **Precision Drive** is the rack's tightening overdrive. Low Drive with higher Volume is the classic boost approach; more Drive adds its own clipping. Bright and Attack decide whether it feels sharper, leaner, or fuller.
 
@@ -56,10 +58,10 @@ This preset is not a dry, clinical clean. It is a large stereo clean built from 
 | --- | --- | --- |
 | Input | 0.0 dB | Leaves the saved interface/capture calibration relationship unchanged. |
 | Gate | −92.6 dB, 80 ms Release | A very gentle safety net. It should leave clean sustains and finger noise mostly untouched. |
-| Compressor / Octaver / PRE EQ / Distortion | Off | The preset gets its feel and size elsewhere instead of stacking every device. |
+| Compressor / Octaver / EQ Boost / Distortion | Off | The preset gets its feel and size elsewhere instead of stacking every device. |
 | Precision Drive | On; Drive 64.8%, Bright 55%, Attack 33.6%, Gate 0%, Volume +5.2 dB | Adds front-end harmonics and pushes the capture. The moderate Bright and softer Attack keep it from becoming a thin metal boost. |
-| Amp capture | Fender TwinVerb Vibrato Bright | Provides the clean American-style foundation. This is a third-party capture, not a bundled model. |
-| Amp wrapper | Gain +7.5 dB; Bass +4.3 dB; Mid −1.0 dB; Treble +1.6 dB; Presence 0 dB; Mix 100%; Output −1.4 dB | Drives the clean capture into a more responsive, polished edge while keeping full wet tone. Bass adds body; the small mid dip and treble lift open the sound. |
+| Amp capture | Fender TwinVerb Vibrato Bright; Amp Quality Economy | Provides the clean American-style foundation. This is a third-party capture, not a bundled model. Economy is the saved A2 quality mode for this preset. |
+| Amp wrapper | Gain +7.5 dB; Bright Voice off; Bass +4.3 dB; Mid −1.0 dB; Treble +1.6 dB; Presence 0 dB; Mix 100%; Output −1.4 dB | Drives the clean capture into a more responsive, polished edge while keeping full wet tone. Bass adds body; the small mid dip and treble lift open the sound. |
 | Cabinet IR | Dumble IR | Changes the speaker/microphone fingerprint. The IR is at least as important as the amp name for the final clean colour. |
 | Cabinet shaping | Level +12 dB; HPF 80 Hz; LPF 8.5 kHz; Edge 50%; Damp 6.6%; Blend 50%; Low Bloom 11.6%; Phase inverted | Removes sub rumble and excess top fizz while restoring level. Phase inversion does not change a lone track's timbre by itself; it matters when this tone is layered with another path. |
 | Cabinet Room | On; Amount 51.8%, Width 79.8% | Supplies a broad early reflection before the main reverb, making the cab feel less close-miked. |
@@ -82,27 +84,28 @@ This preset is not a dry, clinical clean. It is a large stereo clean built from 
 
 ## Tone example 2: “good highgain riff”
 
-This preset takes the opposite approach: one full-rig capture already containing the familiar 5150, Maxon, Mesa oversized cabinet, and SM57 chain; no separate cabinet; no added Precision Drive or Distortion; strong pre-capture EQ; and only a little Cabinet Room after the capture.
+This preset takes the opposite approach: one full-rig capture already containing the familiar Peavey 5150, Maxon/OD808, Mesa oversized cabinet, and SM57 chain; no separate cabinet; no added Precision Drive or Distortion; a restrained EQ Boost before the capture; a deliberate Graphic EQ curve afterward; and no Cabinet Room.
 
 | Stage | Enabled setting | What it does here |
 | --- | --- | --- |
 | Input | 0.0 dB | Preserves the input reference used while the preset was built. |
-| Gate | −59.8 dB, 80 ms Release | Much firmer than the clean preset, giving palm-muted stops a defined edge without using the pedal gates. |
+| Gate | −54.4 dB, 80 ms Release | Much firmer than the clean preset, giving palm-muted stops a defined edge without using the pedal gates. |
 | Compressor / Octaver | Off | Keeps pick transients direct and avoids extra low octave energy before high gain. |
-| PRE EQ | On; 120 Hz +5.7 dB, 250 Hz +1.0 dB, 500 Hz −1.5 dB, 1 kHz flat, 2.5 kHz +3.3 dB, 5 kHz flat, 8 kHz +1.8 dB, 12 kHz +7.0 dB; HPF/LPF off | A capture-specific curve: low weight at 120 Hz, less boxiness at 500 Hz, and more pick definition from 2.5 kHz upward. The large 12 kHz boost works only because the full rig's cabinet response already limits the extreme top; copy it cautiously. |
-| Precision Drive / Distortion / Pedal NAM | Off / Off / empty | Avoids adding another standalone drive because the selected full-rig capture already includes a Maxon in the captured chain. |
-| Full-rig capture | Peavey 5150 + Maxon + Mesa OS + SM57 | Supplies amp, boost, speaker, and microphone as one captured response. This is a third-party capture, not a bundled model. |
-| Amp wrapper | Gain −7.4 dB; Tight Boost on; Bass +5.1 dB; Mid −3.1 dB; Treble +2.6 dB; Presence 0 dB; Mix 100%; Output −3.2 dB | The lower input gain stops the full rig from turning to blur. Tight adds extra control before the capture; the broad tone curve adds weight and attack around the capture's existing voice. |
+| EQ Boost (PRE EQ) | On; 120 Hz +4.2 dB, 250 Hz +1.0 dB, 500 Hz −1.5 dB, 1 kHz flat, 2.5 kHz +4.5 dB, 5 kHz flat, 8 kHz +1.8 dB, 12 kHz +4.0 dB; HPF/LPF off | Mild, capture-specific shaping adds some low weight, trims boxiness at 500 Hz, and brings out pick definition without using another clipping stage. |
+| Precision Drive / Distortion / Pedal NAM | Off / Off / empty | The full-rig capture already has a Maxon/OD808 baked into it, so I preferred this mild EQ Boost shaping rather than stacking another drive or overdrive in front. |
+| Full-rig capture | Peavey 5150 + Maxon/OD808 + Mesa OS + SM57; Amp Quality Full | Supplies amp, boost, speaker, and microphone as one captured response. This is a third-party capture, not a bundled model. Full is the saved A2 quality mode for this preset. |
+| Amp wrapper | Gain −4.2 dB; Tight Boost on; Bright Voice off; Bass +4.9 dB; Mid −3.3 dB; Treble +2.6 dB; Presence 0 dB; Mix 100%; Output −1.4 dB | The lower input gain stops the full rig from turning to blur. Tight adds extra control before the capture; the broad tone curve adds weight and attack around the capture's existing voice. |
 | External cabinet | Off automatically | The full-rig capture already contains its Mesa/SM57 cabinet response, so a second IR would double-filter it. |
-| Cabinet Room | On; Amount 22%, Width 65% | Adds enough early space to avoid a flat direct sound while keeping the riff centred and immediate. |
-| Doubler / Graphic EQ / Modulator / Delay / Reverb | Off | Keeps the rhythm tone dry, focused, and easy to double-track. Stored values behind bypassed effects are not part of the audible preset. |
-| Output | 0.0 dB | Leaves final level neutral after the amp wrapper's output reduction. |
+| Cabinet Room | Off | Keeps the riff dry and immediate. The stored Amount and Width values are bypassed and do not affect the audible preset. |
+| Graphic EQ | On; HPF 50 Hz; 65 Hz +0.6 dB, 125 Hz +2.9 dB, 250 Hz −3.1 dB, 500 Hz +1.6 dB, 1 kHz flat, 2 kHz +3.0 dB, 4 kHz +3.1 dB, 8 kHz +3.5 dB, 16 kHz −0.1 dB; LPF 19.1 kHz; Level −2.0 dB | Finishes the full-rig response after the capture, balancing weight, low-mid space, and pick presence while its level trim keeps the shaped signal under control. |
+| Doubler / Modulator / Delay / Reverb | Off | Keeps the rhythm tone dry, focused, and easy to double-track. Stored values behind bypassed effects are not part of the audible preset. |
+| Output | −2.8 dB | Brings the final preset level down after the amp wrapper and active Graphic EQ. Re-match it before comparing with another tone. |
 
 ### Why the high-gain recipe works
 
-The preset uses gain reduction and frequency shaping before the capture instead of asking more distortion to create heaviness. Its standalone Precision Drive is off, yet the source capture already contains a Maxon and the rack Tight switch is on. That is why reading only the visible pedal row would miss part of the story.
+The preset uses controlled input level and frequency shaping instead of asking more distortion to create heaviness. Its standalone Precision Drive is off because the source capture already contains a Maxon/OD808, while the rack Tight switch remains on. That is why reading only the visible pedal row would miss part of the story.
 
-The large PRE EQ boosts are specific to this capture and guitar. Start flat on another model. If palm mutes bloom too much, reduce 120 Hz before raising the gate. If the tone is fizzy, reduce 8 and 12 kHz before cutting all treble. If it disappears beside bass and drums, restore some Mid instead of adding more gain.
+Both EQ stages are specific to this capture, guitar, and input level. EQ Boost makes the restrained pre-capture moves; Graphic EQ does the more detailed finishing afterward. Start flatter on another model. If palm mutes bloom too much, reduce 120 Hz in EQ Boost or 125 Hz in Graphic EQ before raising the gate. If the tone is fizzy, reduce the Graphic EQ's 8 kHz band or lower its LPF before cutting all treble. If it disappears beside bass and drums, restore some Amp Mid instead of adding more gain.
 
 For wide rhythm guitars, record the part twice and hard-pan two real performances. Leave Doubler off on the main high-gain tracks; a short artificial double can be useful for a sketch, but it cannot reproduce the timing and articulation differences of two performances.
 
@@ -112,7 +115,7 @@ Three experienced modern players/producers arrive at a similar conclusion from d
 
 In D'Addario's [Sound Advice session with Rabea Massaad](https://www.youtube.com/watch?v=jy_StnCv874), Rabea breaks tone into the pick, fingers, pedals, amp, and guitar. That is a useful order of responsibility. If the pick attack is too sharp or the fretting hand is noisy, a rack can reshape it but cannot make it irrelevant. Record yourself, listen back, and change the source before building a larger corrective chain.
 
-In a detailed [Guitar World interview with Adam “Nolly” Getgood](https://www.guitarworld.com/gear/guitars/adam-nolly-getgood-on-the-myths-surrounding-high-gain-guitar-tone), Nolly stresses the player's technique, pick and string choices, controlled low end before distortion, and enough midrange to keep a high-gain sound present. In NAM Rack terms: use PRE EQ or a low-drive Precision Drive to stop excessive bass from hitting the capture, and do not assume a dramatic mid scoop is automatically heavier.
+In a detailed [Guitar World interview with Adam “Nolly” Getgood](https://www.guitarworld.com/gear/guitars/adam-nolly-getgood-on-the-myths-surrounding-high-gain-guitar-tone), Nolly stresses the player's technique, pick and string choices, controlled low end before distortion, and enough midrange to keep a high-gain sound present. In NAM Rack terms: use EQ Boost or a low-drive Precision Drive to stop excessive bass from hitting the capture, and do not assume a dramatic mid scoop is automatically heavier.
 
 In Sweetwater's workshop summary, [Misha Mansoor describes a 5150-style amp, boost, Vintage 30 cabinet, and SM57](https://www.sweetwater.com/insync/record-guitar-misha-mansoor/) as a familiar clear high-gain route. He explains that the boost removes low frequencies before the amp so low tunings and palm mutes stay controlled. In a separate [modern-metal tone walkthrough](https://www.sweetwater.com/insync/how-to-dial-in-a-modern-metal-tone-with-misha-mansoor/), he starts amp EQ around noon, uses conservative gain, keeps an overdrive's Drive low and Level high, uses gates for precise stops, and damps unused strings behind the nut.
 
@@ -126,7 +129,7 @@ None of those ideas require copying an artist's gear. They translate directly in
 
 3. **Use less gain than the solo button suggests.** Double-tracking and bass make a restrained guitar sound larger. Too much gain reduces pick contrast and makes editing feel less tight.
 
-4. **Remove low end before gain, weight it after.** PRE EQ, Precision Drive Attack, and Tight control what distorts. Amp Bass, cabinet response, post EQ, and the bass guitar can provide weight later.
+4. **Remove low end before gain, weight it after.** EQ Boost, Precision Drive Attack, and Tight control what distorts. Amp Bass, cabinet response, post EQ, and the bass guitar can provide weight later.
 
 5. **Choose the cabinet before polishing EQ.** With an amp-only capture, try several IRs before building a complicated curve. A different speaker/microphone response can solve the whole problem.
 

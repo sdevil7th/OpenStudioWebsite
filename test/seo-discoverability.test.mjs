@@ -113,11 +113,15 @@ test("article metadata includes authorship, update dates, and page identity", ()
 test("sitemap and 404 handling expose current crawl state", () => {
   assert.match(
     files.sitemap,
-    /<loc>https:\/\/openstudio\.org\.in\/blogs<\/loc>\s+<lastmod>2026-08-28<\/lastmod>/,
+    /<loc>https:\/\/openstudio\.org\.in\/blogs<\/loc>\s+<lastmod>2026-08-31<\/lastmod>/,
   );
   assert.match(
     files.sitemap,
-    /<loc>https:\/\/openstudio\.org\.in\/blogs\/building-openstudio-nam-rack<\/loc>\s+<lastmod>2026-08-28<\/lastmod>/,
+    /<loc>https:\/\/openstudio\.org\.in\/blogs\/build-guitar-tones-with-openstudio-nam-rack<\/loc>\s+<lastmod>2026-08-29<\/lastmod>/,
+  );
+  assert.match(
+    files.sitemap,
+    /<loc>https:\/\/openstudio\.org\.in\/blogs\/building-openstudio-nam-rack<\/loc>\s+<lastmod>2026-08-31<\/lastmod>/,
   );
   assert.match(files.prerender, /path\.join\(publicRoot, "sitemap\.xml"\)/);
   assert.match(
