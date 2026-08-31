@@ -17,6 +17,7 @@
     "validate-launch-readiness": "node scripts/validate-launch-readiness.mjs",
     "prerender-route-metadata": "node scripts/prerender-route-metadata.mjs",
     "test:ai-runtime": "node --test test/ai-runtime-manifest.test.mjs",
+    "test:release-metadata": "node --test test/release-metadata-hydration.test.mjs",
     "test:feature-story": "node --test test/feature-story-*.test.mjs",
     "test:launch": "node --test test/launch-readiness.test.mjs",
     "test": "node --test --test-concurrency=1 test/*.test.mjs",

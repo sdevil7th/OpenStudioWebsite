@@ -15,6 +15,7 @@ dist-ssr
 public/appcast/*
 public/releases/*.json
 public/releases/ai-runtime/*
+public/releases/stable/*
 release-input/*
 !release-input/README.md
 
