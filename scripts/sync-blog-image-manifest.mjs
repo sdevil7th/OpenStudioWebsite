@@ -23,12 +23,13 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
 const blogPostSeoOverrides = {
   "building-openstudio-nam-rack": {
     author: DEFAULT_BLOG_AUTHOR,
-    dateModified: "2026-08-28",
+    dateModified: "2026-08-31",
+    imageSlug: "building-openstudio-nam-rack-free-guitar-rig",
     seoTitle: "Building a Free NAM Guitar Rig Inside OpenStudio | OpenStudio Blog",
     seoDescription:
       "How OpenStudio’s free NAM guitar rig brings A1/A2 captures, native pedals, cabinet IRs, TONE3000 access, presets, and project recall into one open-source DAW.",
     imageAlt:
-      "OpenStudio NAM Rack redesigned amp view with an A2 capture, meters, cabinet navigation, and preset controls.",
+      "OpenStudio NAM Rack amp, pedals, post effects, and TONE3000 capture browser arranged in a music studio.",
     imageFit: "contain",
     keywords: [
       "free guitar amp simulator",
