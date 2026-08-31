@@ -4,6 +4,7 @@ export const blogImageManifest = {
   "ara2-hosting-challenges-blog": "/assets/blogs/ara2-hosting-challenges-blog.webp?v=0de1365f6f18",
   "build-guitar-tones-with-openstudio-nam-rack-v2": "/assets/blogs/build-guitar-tones-with-openstudio-nam-rack-v2.webp?v=e7b476333487",
   "building-openstudio-nam-rack": "/assets/blogs/building-openstudio-nam-rack.webp?v=1ab18641912a",
+  "building-openstudio-nam-rack-free-guitar-rig": "/assets/blogs/building-openstudio-nam-rack-free-guitar-rig.webp?v=8f6e918d26dd",
   "building-the-midi-editor-harness": "/assets/blogs/building-the-midi-editor-harness.webp?v=d9aebc44146b",
   "nam-rack-cabinet-ir": "/assets/blogs/nam-rack-cabinet-ir.webp?v=357860dbe485",
   "nam-rack-graphic-eq": "/assets/blogs/nam-rack-graphic-eq.webp?v=3f8e75aa91a7",
