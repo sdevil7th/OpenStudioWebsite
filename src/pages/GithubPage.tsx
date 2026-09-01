@@ -103,7 +103,7 @@ const GithubPage = () => {
               </div>
 
               <div className="grid gap-4">
-                <div className="rounded-[2rem] border border-white/10 bg-black/25 p-6">
+                <div className="hover-card rounded-[2rem] border border-white/10 bg-black/25 p-6">
                   <div className="font-mono text-[0.62rem] uppercase tracking-[0.24em] text-primary">Repository snapshot</div>
                   <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     <SnapshotFact icon={GitBranch} label="Default branch" value={snapshot.defaultBranch} />
@@ -113,7 +113,7 @@ const GithubPage = () => {
                   </div>
                 </div>
 
-                <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-6">
+                <div className="hover-card hover-card--emerald rounded-[2rem] border border-white/10 bg-white/[0.03] p-6">
                   <div className="font-mono text-[0.62rem] uppercase tracking-[0.24em] text-secondary">Why this page exists</div>
                   <p className="mt-4 text-sm leading-7 text-white/66">
                     This page should help people read the repository, not squeeze the information into a decorative center strip. On large displays, the layout needs enough width for metrics, contributors, and repository context to breathe.
@@ -162,7 +162,7 @@ const GithubPage = () => {
               </div>
               <div className="grid gap-4">
                 {githubPillars.map((pillar, index) => (
-                  <div className="rounded-[1.45rem] border border-white/10 bg-black/25 px-5 py-4" key={pillar.title}>
+                  <div className="hover-card rounded-[1.45rem] border border-white/10 bg-black/25 px-5 py-4" key={pillar.title}>
                     <div className={`mb-2 font-mono text-[0.68rem] uppercase tracking-[0.22em] ${index === 0 ? "text-primary" : index === 1 ? "text-secondary" : "text-accent"}`}>
                       {pillar.title}
                     </div>
@@ -209,8 +209,8 @@ const GithubPage = () => {
 
           <div className="mt-16 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             {snapshot.contributors.slice(0, 8).map((contributor, index) => (
-              <article className="rounded-[1.8rem] border border-white/10 bg-black/20 p-6 text-left" data-contributor-card key={contributor.login}>
-                <a className="block transition hover:-translate-y-1" href={contributor.profileUrl} rel="noreferrer" target="_blank">
+              <article className="hover-card rounded-[1.8rem] border border-white/10 bg-black/20 p-6 text-left" data-contributor-card key={contributor.login}>
+                <a className="block" href={contributor.profileUrl} rel="noreferrer" target="_blank">
                   <div className="flex items-center gap-4">
                     <div className={`w-20 rounded-full border-2 p-1 ${index === 0 ? "border-primary/40" : index === 1 ? "border-secondary/40" : "border-white/20"}`}>
                       <div className="aspect-square overflow-hidden rounded-full bg-white/[0.04]">
@@ -232,7 +232,7 @@ const GithubPage = () => {
             ))}
 
             {githubHighlights.map((highlight, index) => (
-              <article className="rounded-[1.8rem] border border-white/10 bg-white/[0.03] p-6" key={highlight.title}>
+              <article className="hover-card rounded-[1.8rem] border border-white/10 bg-white/[0.03] p-6" key={highlight.title}>
                 <div className={`font-mono text-[0.62rem] uppercase tracking-[0.22em] ${index === 0 ? "text-primary" : index === 1 ? "text-secondary" : "text-accent"}`}>
                   {highlight.eyebrow}
                 </div>
@@ -308,7 +308,7 @@ interface MetricCardProps {
 }
 
 const MetricCard = ({ body, label, tone, value }: MetricCardProps) => (
-  <div className="design-glass-panel relative overflow-hidden rounded-[2.5rem] p-8" data-github-metric>
+  <div className="design-glass-panel hover-card relative overflow-hidden rounded-[2.5rem] p-8" data-github-metric>
     <div className="bg-carbon-fibre absolute inset-0 opacity-[0.04]" />
     <div className="relative z-10">
       <span className={`mb-4 block font-mono text-sm uppercase tracking-[0.22em] ${tone}`}>{label}</span>
@@ -325,7 +325,7 @@ interface InfoChipProps {
 }
 
 const InfoChip = ({ icon: Icon, label, value }: InfoChipProps) => (
-  <div className="rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-5">
+  <div className="hover-card rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-5">
     <div className="flex items-center gap-3">
       <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/30">
         <Icon className="h-4 w-4 text-primary" />
@@ -345,7 +345,7 @@ interface SnapshotFactProps {
 }
 
 const SnapshotFact = ({ icon: Icon, label, value }: SnapshotFactProps) => (
-  <div className="rounded-[1.4rem] border border-white/10 bg-black/25 p-4">
+  <div className="hover-card rounded-[1.4rem] border border-white/10 bg-black/25 p-4">
     <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]">
       <Icon className="h-4 w-4 text-primary" />
     </div>

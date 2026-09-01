@@ -582,7 +582,7 @@ const FeaturesPage = () => {
                 <div className="mt-7 grid gap-3">
                   {tone3000Feature.points.map((point) => (
                     <div
-                      className="rounded-[1.35rem] border border-white/10 bg-black/24 px-5 py-4 text-sm leading-7 text-white/68"
+                      className="hover-card rounded-[1.35rem] border border-white/10 bg-black/24 px-5 py-4 text-sm leading-7 text-white/68"
                       key={point}
                     >
                       {point}

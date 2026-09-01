@@ -162,7 +162,15 @@
       transform 240ms ease;
   }
 
-  .ai-mode-switch__button:hover,
+  @media (hover: hover) and (pointer: fine) {
+    .ai-mode-switch__button:hover {
+      border-color: rgba(127, 255, 208, 0.28);
+      background: rgba(127, 255, 208, 0.1);
+      color: #fff;
+      transform: translate3d(0, -1px, 0);
+    }
+  }
+
   .ai-mode-switch__button[aria-selected="true"] {
     border-color: rgba(127, 255, 208, 0.28);
     background: rgba(127, 255, 208, 0.1);
@@ -694,7 +702,9 @@
       0 32px 100px rgba(0, 0, 0, 0.4),
       inset 0 1px 0 rgba(255, 255, 255, 0.05);
     overflow: hidden;
-    transition: transform 0.4s ease, border-color 0.4s ease;
+    transition:
+      transform var(--duration-hover) var(--ease-out-soft),
+      border-color var(--duration-hover) var(--ease-out-soft);
   }
 
   .ai-pillar-card::before {
@@ -719,9 +729,11 @@
     background: linear-gradient(135deg, rgba(255, 201, 113, 0.42), rgba(143, 244, 255, 0.32));
   }
 
-  .ai-pillar-card:hover {
-    transform: translateY(-3px);
-    border-color: rgba(255, 255, 255, 0.14);
+  @media (hover: hover) and (pointer: fine) {
+    .ai-pillar-card:hover {
+      transform: translate3d(0, -3px, 0);
+      border-color: rgba(255, 255, 255, 0.14);
+    }
   }
 
   .ai-pillar-card__index {

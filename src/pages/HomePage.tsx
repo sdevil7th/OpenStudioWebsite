@@ -410,7 +410,7 @@ const HomePage = () => {
               <div className="grid gap-4">
                 {homeOriginStory.points.map((point) => (
                   <div
-                    className="rounded-[1.45rem] border border-white/10 bg-white/[0.03] px-5 py-4 text-sm leading-7 text-white/70"
+                    className="hover-card hover-card--emerald rounded-[1.45rem] border border-white/10 bg-white/[0.03] px-5 py-4 text-sm leading-7 text-white/70"
                     key={point}
                   >
                     {point}
@@ -444,7 +444,7 @@ const HomePage = () => {
                 data-parallax-image
               />
               <div className="absolute inset-0 bg-gradient-to-tr from-black/48 via-black/8 to-secondary/8" />
-              <div className="home-origin-license-card">
+              <div className="home-origin-license-card hover-card hover-card--emerald">
                 <div className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-secondary">
                   License
                 </div>
