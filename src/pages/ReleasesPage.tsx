@@ -128,7 +128,7 @@ const ReleasesPage = () => {
                 <p className="mt-6 max-w-4xl text-lg leading-8 text-white/64 2xl:text-[1.3rem]">{releasesHero.description}</p>
 
                 <div className="mt-8 grid gap-4 xl:grid-cols-2">
-                  <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.03] px-5 py-5">
+                  <div className="hover-card rounded-[1.6rem] border border-white/10 bg-white/[0.03] px-5 py-5">
                     <div className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-primary">Current release state</div>
                     <h2 className="mt-4 font-headline text-2xl font-semibold text-white">
                       {snapshot.latestRelease ? snapshot.latestRelease.name : "No GitHub release published yet"}
@@ -139,7 +139,7 @@ const ReleasesPage = () => {
                         : `As of ${formatGithubDate(snapshot.fetchedAt)}, the public download path is live while GitHub Releases is still catching up.`}
                     </p>
                   </div>
-                  <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.03] px-5 py-5">
+                  <div className="hover-card hover-card--emerald rounded-[1.6rem] border border-white/10 bg-white/[0.03] px-5 py-5">
                     <div className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-secondary">Release philosophy</div>
                     <p className="mt-4 text-sm leading-7 text-white/66">
                       This page should feel like a premium editorial surface for shipping truth: what exists now, what the current trust story is, and what gets cleaner next.
@@ -175,21 +175,21 @@ const ReleasesPage = () => {
                 </div>
 
                 <div className="grid gap-4">
-                  <div className="rounded-[1.8rem] border border-white/10 bg-black/30 p-5">
+                  <div className="hover-card rounded-[1.8rem] border border-white/10 bg-black/30 p-5">
                     <div className="flex items-center gap-3 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-primary">
                       <Download className="h-4 w-4" />
                       Distribution
                     </div>
                     <p className="mt-4 text-sm leading-7 text-white/66">Stable redirect endpoints keep the website in control of current builds.</p>
                   </div>
-                  <div className="rounded-[1.8rem] border border-white/10 bg-black/30 p-5">
+                  <div className="hover-card hover-card--emerald rounded-[1.8rem] border border-white/10 bg-black/30 p-5">
                     <div className="flex items-center gap-3 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-secondary">
                       <ShieldCheck className="h-4 w-4" />
                       Trust cues
                     </div>
                     <p className="mt-4 text-sm leading-7 text-white/66">Unsigned install guidance stays explicit until the installer trust story gets stronger.</p>
                   </div>
-                  <div className="rounded-[1.8rem] border border-white/10 bg-black/30 p-5">
+                  <div className="hover-card hover-card--amber rounded-[1.8rem] border border-white/10 bg-black/30 p-5">
                     <div className="flex items-center gap-3 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-accent">
                       <Clock3 className="h-4 w-4" />
                       Version rhythm
@@ -212,13 +212,13 @@ const ReleasesPage = () => {
                   The current public build story needs to be understandable in the first viewport: what ships now, how updates are discovered, and what parts of the install path still depend on visible trust notes.
                 </p>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-[1.5rem] border border-white/10 bg-black/25 p-5">
+                  <div className="hover-card rounded-[1.5rem] border border-white/10 bg-black/25 p-5">
                     <div className="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-primary">What exists now</div>
                     <p className="mt-3 text-sm leading-7 text-white/66">
                       Browser-first downloads, platform notes, and a release surface that refuses to fake more automation than exists.
                     </p>
                   </div>
-                  <div className="rounded-[1.5rem] border border-white/10 bg-black/25 p-5">
+                  <div className="hover-card hover-card--emerald rounded-[1.5rem] border border-white/10 bg-black/25 p-5">
                     <div className="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-secondary">What gets better next</div>
                     <p className="mt-3 text-sm leading-7 text-white/66">
                       Cleaner packaging, stronger trust cues, and a more polished changelog rhythm around public builds.
@@ -254,7 +254,7 @@ const ReleasesPage = () => {
           <div className="grid gap-6 2xl:grid-cols-3">
             {releaseTimeline.map((entry) => (
               <SectionReveal
-                className="scroll-spotlight flex min-h-[32rem] flex-col rounded-[2.2rem] border border-white/10 p-6 md:p-7"
+                className="hover-card hover-card--emerald scroll-spotlight flex min-h-[32rem] flex-col rounded-[2.2rem] border border-white/10 p-6 md:p-7"
                 data-release-timeline-card
                 key={entry.id}
               >
@@ -278,7 +278,7 @@ const ReleasesPage = () => {
                 <p className="mt-4 text-sm leading-7 text-white/62">{entry.summary}</p>
                 <div className="mt-6 grid flex-1 gap-3">
                   {entry.bullets.map((bullet) => (
-                    <div className="rounded-[1.25rem] border border-white/10 bg-black/25 px-4 py-3 text-sm leading-7 text-white/66" key={bullet}>
+                    <div className="hover-card rounded-[1.25rem] border border-white/10 bg-black/25 px-4 py-3 text-sm leading-7 text-white/66" key={bullet}>
                       {bullet}
                     </div>
                   ))}

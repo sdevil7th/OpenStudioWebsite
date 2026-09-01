@@ -1185,13 +1185,15 @@
     transition: color 240ms ease, background-color 240ms ease;
   }
 
-  .chapter-rail__link:hover {
-    color: rgba(255, 255, 255, 0.88);
-  }
+  @media (hover: hover) and (pointer: fine) {
+    .chapter-rail__link:hover {
+      color: rgba(255, 255, 255, 0.88);
+    }
 
-  .chapter-rail__link:hover .chapter-rail__tick {
-    transform: scaleX(1);
-    opacity: 1;
+    .chapter-rail__link:hover .chapter-rail__tick {
+      transform: scaleX(1);
+      opacity: 1;
+    }
   }
 
   .chapter-rail__link--active {

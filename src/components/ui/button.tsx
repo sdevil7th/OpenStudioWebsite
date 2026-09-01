@@ -37,9 +37,38 @@ export interface ButtonProps
   asChild?: boolean;
 }
 
+const isManuallyWrapped = (node: React.ReactNode) =>
+  React.isValidElement(node) &&
+  typeof (node.props as { className?: unknown }).className === "string" &&
+  ((node.props as { className: string }).className.includes("openstudio-button__"));
+
+function decorateChildren(children: React.ReactNode): React.ReactNode {
+  if (React.Children.toArray(children).some(isManuallyWrapped)) {
+    return children;
+  }
+  return React.Children.map(children, (child) => {
+    if (typeof child === "string" || typeof child === "number") {
+      return <span className="openstudio-button__label">{child}</span>;
+    }
+    return child;
+  });
+}
+
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, onPointerMove, onPointerDown, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, onPointerMove, onPointerDown, children, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
+
+    let content: React.ReactNode = children;
+    if (asChild) {
+      if (React.isValidElement(children) && React.Children.count(children) === 1) {
+        const element = children as React.ReactElement<{ children?: React.ReactNode }>;
+        content = React.cloneElement(element, {
+          children: decorateChildren(element.props.children),
+        });
+      }
+    } else {
+      content = decorateChildren(children);
+    }
 
     const updatePointer = (event: React.PointerEvent<HTMLElement>) => {
       const target = event.currentTarget;
@@ -72,7 +101,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         onPointerMove={handlePointerMove}
         ref={ref}
         {...props}
-      />
+      >
+        {content}
+      </Comp>
     );
   },
 );

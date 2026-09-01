@@ -244,13 +244,12 @@
     text-align: left;
     color: rgba(255, 255, 255, 0.74);
     transition:
-      border-color 180ms ease,
-      background 180ms ease,
-      color 180ms ease,
-      transform 180ms ease;
+      border-color var(--duration-hover) ease,
+      background var(--duration-hover) ease,
+      color var(--duration-hover) ease,
+      transform var(--duration-hover) var(--ease-out-soft);
   }
 
-  .download-platform-selector__button:hover,
   .download-platform-selector__button:focus-visible,
   .download-platform-selector__button--active {
     border-color: var(--download-border-strong);
@@ -265,8 +264,15 @@
     outline-offset: 3px;
   }
 
-  .download-platform-selector__button:hover {
-    transform: translateY(-1px);
+  @media (hover: hover) and (pointer: fine) {
+    .download-platform-selector__button:hover {
+      border-color: var(--download-border-strong);
+      background:
+        linear-gradient(135deg, rgba(199, 180, 255, 0.16), rgba(127, 255, 208, 0.08)),
+        rgba(0, 0, 0, 0.28);
+      color: #fff;
+      transform: translateY(-1px);
+    }
   }
 
   .download-platform-selector__button strong {
@@ -613,9 +619,9 @@
     border-radius: 1.6rem;
     padding: 1rem;
     transition:
-      border-color 180ms ease,
-      transform 180ms ease,
-      background 180ms ease;
+      border-color var(--duration-hover) var(--ease-out-soft),
+      transform var(--duration-hover) var(--ease-out-soft),
+      background var(--duration-hover) var(--ease-out-soft);
   }
 
   .download-platform-card--active {
@@ -625,9 +631,11 @@
       radial-gradient(ellipse at 70% 0%, var(--download-glow-secondary), transparent 44%);
   }
 
-  .download-platform-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.16);
+  @media (hover: hover) and (pointer: fine) {
+    .download-platform-card:hover {
+      transform: translate3d(0, -3px, 0);
+      border-color: hsl(var(--primary) / 0.35);
+    }
   }
 
   .download-platform-card__chips {
