@@ -28,6 +28,21 @@ const loadSecurityPage = () => preloadModuleOnce("route:security", () => import(
 const loadStemSeparationPage = () => preloadModuleOnce("route:ai", () => import("@/pages/StemSeparationPage"));
 const loadTermsPage = () => preloadModuleOnce("route:terms", () => import("@/pages/TermsPage"));
 
+// Studio Paper (v2) redesign preview subtree — its own light shell, native scroll.
+const loadV2Shell = () => preloadModuleOnce("route:v2-shell", () => import("@/v2/V2Shell"));
+const loadV2HomePage = () => preloadModuleOnce("route:v2-home", () => import("@/v2/pages/V2HomePage"));
+const loadV2FeaturesPage = () => preloadModuleOnce("route:v2-features", () => import("@/v2/pages/V2FeaturesPage"));
+const loadV2NamRackPage = () => preloadModuleOnce("route:v2-nam-rack", () => import("@/v2/pages/V2NamRackPage"));
+const loadV2AiPage = () => preloadModuleOnce("route:v2-ai", () => import("@/v2/pages/V2AiPage"));
+const loadV2DownloadPage = () => preloadModuleOnce("route:v2-download", () => import("@/v2/pages/V2DownloadPage"));
+const loadV2DocsPage = () => preloadModuleOnce("route:v2-docs", () => import("@/v2/pages/V2DocsPage"));
+const loadV2DocsGettingStartedPage = () =>
+  preloadModuleOnce("route:v2-docs-getting-started", () => import("@/v2/pages/V2DocsGettingStartedPage"));
+const loadV2ComparePage = () => preloadModuleOnce("route:v2-compare", () => import("@/v2/pages/V2ComparePage"));
+const loadV2CommunityPage = () => preloadModuleOnce("route:v2-community", () => import("@/v2/pages/V2CommunityPage"));
+const loadV2BlogPage = () => preloadModuleOnce("route:v2-blog", () => import("@/v2/pages/V2BlogPage"));
+const loadV2ReleasesPage = () => preloadModuleOnce("route:v2-releases", () => import("@/v2/pages/V2ReleasesPage"));
+
 const ContactPage = lazy(loadContactPage);
 const BlogPostPage = lazy(loadBlogPostPage);
 const BlogsPage = lazy(loadBlogsPage);
@@ -42,6 +57,19 @@ const ReleasesPage = lazy(loadReleasesPage);
 const SecurityPage = lazy(loadSecurityPage);
 const StemSeparationPage = lazy(loadStemSeparationPage);
 const TermsPage = lazy(loadTermsPage);
+
+const V2Shell = lazy(loadV2Shell);
+const V2HomePage = lazy(loadV2HomePage);
+const V2FeaturesPage = lazy(loadV2FeaturesPage);
+const V2NamRackPage = lazy(loadV2NamRackPage);
+const V2AiPage = lazy(loadV2AiPage);
+const V2DownloadPage = lazy(loadV2DownloadPage);
+const V2DocsPage = lazy(loadV2DocsPage);
+const V2DocsGettingStartedPage = lazy(loadV2DocsGettingStartedPage);
+const V2ComparePage = lazy(loadV2ComparePage);
+const V2CommunityPage = lazy(loadV2CommunityPage);
+const V2BlogPage = lazy(loadV2BlogPage);
+const V2ReleasesPage = lazy(loadV2ReleasesPage);
 
 const markPerformance = (name: string) => {
   try {
@@ -149,6 +177,27 @@ const App = () => (
     <Routes>
       {/* Standalone route - no navbar/footer, used for OG image generation */}
       <Route path="/og-card" element={withRouteFallback(<OgCardPage />)} />
+      {/* Studio Paper (v2) redesign preview — separate light shell, not SiteShell */}
+      <Route
+        element={
+          <Suspense fallback={<RouteFallback />}>
+            <V2Shell />
+          </Suspense>
+        }
+        path="/v2"
+      >
+        <Route index element={withRouteFallback(<V2HomePage />)} />
+        <Route path="features" element={withRouteFallback(<V2FeaturesPage />)} />
+        <Route path="nam-rack" element={withRouteFallback(<V2NamRackPage />)} />
+        <Route path="ai" element={withRouteFallback(<V2AiPage />)} />
+        <Route path="download" element={withRouteFallback(<V2DownloadPage />)} />
+        <Route path="docs" element={withRouteFallback(<V2DocsPage />)} />
+        <Route path="docs/getting-started" element={withRouteFallback(<V2DocsGettingStartedPage />)} />
+        <Route path="compare" element={withRouteFallback(<V2ComparePage />)} />
+        <Route path="community" element={withRouteFallback(<V2CommunityPage />)} />
+        <Route path="blog" element={withRouteFallback(<V2BlogPage />)} />
+        <Route path="releases" element={withRouteFallback(<V2ReleasesPage />)} />
+      </Route>
       <Route element={<SiteShell />}>
         <Route path="/" element={withRouteFallback(<HomePage />)} />
         <Route path="/features" element={withRouteFallback(<FeaturesPage />)} />
