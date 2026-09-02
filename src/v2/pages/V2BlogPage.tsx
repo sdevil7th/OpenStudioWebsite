@@ -44,7 +44,7 @@ const V2BlogPage = () => {
       {/* Featured post */}
       {featured ? (
         <div className="sp-container" style={{ paddingTop: 34 }}>
-          <div className="sp-card sp-featured-post" style={{ overflow: "hidden" }}>
+          <div className="sp-card sp-card--interactive sp-featured-post" style={{ overflow: "hidden" }}>
             {featured.image ? (
               <img
                 alt={featured.imageAlt ?? featured.title}
@@ -89,7 +89,7 @@ const V2BlogPage = () => {
       <div className="sp-container" style={{ padding: "34px 34px 62px" }}>
         <div className="sp-grid-3">
           {rest.map((post) => (
-            <div key={post.slug} className="sp-card" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
+            <div key={post.slug} className="sp-card sp-card--interactive" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
               {post.image ? (
                 <img
                   alt={post.imageAlt ?? post.title}

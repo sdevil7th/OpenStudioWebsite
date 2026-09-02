@@ -54,7 +54,7 @@ const V2Nav = () => {
           </span>
           <Link className="sp-btn sp-btn--sm" to={V2_PATHS.download}>
             <Download aria-hidden="true" size={16} strokeWidth={1.8} />
-            Download for macOS
+            <span className="sp-btn__label">Download for macOS</span>
           </Link>
           <button
             aria-expanded={open}

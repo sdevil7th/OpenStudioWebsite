@@ -540,3 +540,351 @@
 .sp-scroll-x {
   overflow-x: auto;
 }
+
+/* ---------- interactions ----------
+ * Ported from the v1 hover language in index.css (`.openstudio-button`,
+ * `.hover-card`, `.site-nav-link`) and retuned for paper: v1 leans on white
+ * glow and screen blending over a dark ground, which washes out here, so the
+ * light variants tint with indigo/teal instead and lift on a soft slate shadow.
+ */
+
+.sp-root {
+  --sp-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --sp-dur-hover: 220ms;
+  --sp-dur-motion: 320ms;
+}
+
+/* ---------- buttons ---------- */
+
+.sp-root .sp-btn {
+  --sp-btn-x: 50%;
+  --sp-btn-y: 50%;
+  --sp-btn-glow: rgba(255, 255, 255, 0.55);
+  --sp-btn-sheen: rgba(255, 255, 255, 0.5);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  text-decoration: none;
+  transform: translate3d(0, 0, 0) scale(1);
+  transition:
+    transform var(--sp-dur-motion) var(--sp-ease),
+    box-shadow var(--sp-dur-motion) var(--sp-ease),
+    border-color var(--sp-dur-motion) ease,
+    background-color var(--sp-dur-motion) ease,
+    color var(--sp-dur-motion) ease,
+    filter var(--sp-dur-motion) ease;
+}
+
+.sp-root .sp-btn::before,
+.sp-root .sp-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* cursor-tracked glow */
+.sp-root .sp-btn::before {
+  z-index: 0;
+  background: radial-gradient(circle at var(--sp-btn-x) var(--sp-btn-y), var(--sp-btn-glow) 0%, transparent 46%);
+  opacity: 0;
+  transform: scale(0.78);
+  transition:
+    opacity 260ms ease,
+    transform 420ms var(--sp-ease);
+}
+
+/* one-shot sheen sweep */
+.sp-root .sp-btn::after {
+  z-index: 1;
+  background: linear-gradient(110deg, transparent 0 26%, var(--sp-btn-sheen) 44%, transparent 60% 100%);
+  opacity: 0;
+  transform: translate3d(-125%, 0, 0) skewX(-18deg);
+}
+
+.sp-root .sp-btn > svg,
+.sp-root .sp-btn__label {
+  position: relative;
+  z-index: 2;
+}
+
+.sp-root .sp-btn > svg {
+  transition: transform var(--sp-dur-motion) var(--sp-ease);
+}
+
+.sp-root .sp-btn__label {
+  display: inline-flex;
+  align-items: center;
+  gap: inherit;
+  transition: transform var(--sp-dur-motion) var(--sp-ease);
+}
+
+/* paper-ground variants tint rather than glow white */
+.sp-root .sp-btn--outline {
+  --sp-btn-glow: rgba(80, 0, 255, 0.12);
+  --sp-btn-sheen: rgba(80, 0, 255, 0.07);
+}
+
+.sp-root .sp-btn--paper {
+  --sp-btn-glow: rgba(80, 0, 255, 0.14);
+  --sp-btn-sheen: rgba(255, 255, 255, 0.66);
+}
+
+.sp-root .sp-btn--ghost-dark {
+  --sp-btn-glow: rgba(0, 234, 210, 0.2);
+  --sp-btn-sheen: rgba(255, 255, 255, 0.28);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sp-root .sp-btn:hover {
+    transform: translate3d(0, -3px, 0) scale(1.015);
+    filter: saturate(1.06);
+  }
+
+  .sp-root .sp-btn:hover::before {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .sp-root .sp-btn:hover::after {
+    animation: sp-btn-shine 820ms var(--sp-ease) both;
+  }
+
+  .sp-root .sp-btn:hover {
+    box-shadow:
+      0 20px 44px rgba(62, 0, 227, 0.24),
+      0 0 26px rgba(0, 177, 143, 0.16);
+  }
+
+  .sp-root .sp-btn--outline:hover {
+    border-color: rgba(80, 0, 255, 0.42);
+    box-shadow:
+      0 16px 34px rgba(19, 27, 38, 0.1),
+      0 0 22px rgba(80, 0, 255, 0.08);
+  }
+
+  .sp-root .sp-btn--ghost-dark:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+    color: #fff;
+    box-shadow:
+      0 18px 40px rgba(0, 0, 0, 0.3),
+      0 0 24px rgba(0, 234, 210, 0.14);
+  }
+
+  .sp-root .sp-btn--paper:hover {
+    box-shadow:
+      0 20px 44px rgba(4, 1, 40, 0.34),
+      0 0 24px rgba(205, 249, 242, 0.24);
+  }
+
+  .sp-root .sp-btn:hover > svg {
+    transform: translate3d(0, -1px, 0) rotate(-8deg) scale(1.12);
+  }
+
+  .sp-root .sp-btn:hover .sp-btn__label {
+    transform: translate3d(2px, 0, 0);
+  }
+}
+
+.sp-root .sp-btn:active,
+.sp-root .sp-btn[data-pressed="true"] {
+  transform: translate3d(0, -1px, 0) scale(0.985);
+}
+
+.sp-root .sp-btn[data-pressed="true"]::before {
+  animation: sp-btn-burst 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.sp-root .sp-btn:focus-visible {
+  outline: 2px solid var(--sp-accent);
+  outline-offset: 3px;
+}
+
+@keyframes sp-btn-shine {
+  0% {
+    opacity: 0;
+    transform: translate3d(-125%, 0, 0) skewX(-18deg);
+  }
+
+  24% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(125%, 0, 0) skewX(-18deg);
+  }
+}
+
+@keyframes sp-btn-burst {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.22);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+
+/* ---------- text links ---------- */
+
+.sp-root .sp-link {
+  transition:
+    color var(--sp-dur-hover) ease,
+    border-bottom-color var(--sp-dur-hover) ease;
+}
+
+.sp-root .sp-link > svg {
+  transition: transform var(--sp-dur-hover) var(--sp-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sp-root .sp-link:hover {
+    color: var(--sp-accent-deep);
+    border-bottom-color: var(--sp-accent-deep);
+  }
+
+  .sp-root .sp-link--teal:hover {
+    color: var(--sp-teal-bright);
+    border-bottom-color: var(--sp-teal-bright);
+  }
+
+  .sp-root .sp-link--plain:hover {
+    color: var(--sp-accent);
+  }
+
+  .sp-root .sp-link:hover > svg {
+    transform: translate3d(4px, 0, 0);
+  }
+}
+
+.sp-root .sp-link:focus-visible {
+  outline: 2px solid var(--sp-accent);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* ---------- nav ---------- */
+
+.sp-root .sp-nav__link {
+  position: relative;
+  transition: color var(--sp-dur-hover) ease;
+}
+
+.sp-root .sp-nav__link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--sp-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--sp-dur-hover) var(--sp-ease);
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sp-root .sp-nav__link:hover::after {
+    transform: scaleX(1);
+  }
+}
+
+.sp-root .sp-nav__link--active::after {
+  content: none;
+}
+
+.sp-root .sp-footer__list a {
+  transition: color var(--sp-dur-hover) ease;
+}
+
+/* ---------- cards ----------
+ * v1 puts `.hover-card` on content panels generally, not only clickable ones,
+ * so the lift here is on `.sp-card` itself. The gradient border is painted as a
+ * background pair, so hover reads through lift and shadow, not border-color.
+ * Media zoom stays opt-in (`sp-card--interactive`, or a card that is itself a
+ * link) because it only reads right where the card clips its overflow.
+ */
+
+.sp-root .sp-card {
+  --sp-card-shadow: 0 22px 48px rgba(19, 27, 38, 0.13), 0 0 34px rgba(80, 0, 255, 0.07);
+  transition:
+    transform var(--sp-dur-hover) var(--sp-ease),
+    box-shadow var(--sp-dur-hover) var(--sp-ease);
+}
+
+.sp-root .sp-card--dark {
+  --sp-card-shadow: 0 24px 52px rgba(4, 1, 40, 0.42), 0 0 34px rgba(0, 234, 210, 0.1);
+}
+
+.sp-root a.sp-card img,
+.sp-root .sp-card--interactive img {
+  transition: transform 420ms var(--sp-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sp-root .sp-card:hover {
+    transform: translate3d(0, -3px, 0);
+    box-shadow: var(--sp-card-shadow);
+  }
+
+  .sp-root a.sp-card:hover img,
+  .sp-root .sp-card--interactive:hover img {
+    transform: scale(1.03);
+  }
+
+  .sp-root .sp-card:hover .sp-link > svg {
+    transform: translate3d(4px, 0, 0);
+  }
+}
+
+.sp-root a.sp-card:focus-visible,
+.sp-root .sp-card--interactive:focus-within {
+  outline: 2px solid var(--sp-accent);
+  outline-offset: 3px;
+}
+
+/* ---------- reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-root .sp-btn,
+  .sp-root .sp-btn > svg,
+  .sp-root .sp-btn__label,
+  .sp-root .sp-link > svg,
+  .sp-root .sp-nav__link::after,
+  .sp-root .sp-card,
+  .sp-root a.sp-card img,
+  .sp-root .sp-card--interactive img {
+    transition-duration: 1ms;
+  }
+
+  .sp-root .sp-btn:hover,
+  .sp-root .sp-btn:active,
+  .sp-root .sp-btn[data-pressed="true"],
+  .sp-root .sp-card:hover {
+    transform: none;
+  }
+
+  .sp-root .sp-btn:hover > svg,
+  .sp-root .sp-btn:hover .sp-btn__label,
+  .sp-root .sp-link:hover > svg,
+  .sp-root a.sp-card:hover img,
+  .sp-root .sp-card--interactive:hover img {
+    transform: none;
+  }
+
+  .sp-root .sp-btn:hover::after,
+  .sp-root .sp-btn[data-pressed="true"]::before {
+    animation: none;
+  }
+
+  .sp-root .sp-nav__link:hover::after {
+    transform: scaleX(1);
+    transition: none;
+  }
+}

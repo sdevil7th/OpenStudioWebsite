@@ -1,4 +1,4 @@
-import type { ComponentType, CSSProperties, ReactNode } from "react";
+import type { ComponentType, CSSProperties, PointerEvent, ReactNode } from "react";
 import { ArrowRight, ShieldCheck, TriangleAlert, type LucideProps } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -58,6 +58,29 @@ interface CtaProps {
   className?: string;
 }
 
+/**
+ * Writes the pointer position onto the button as `--sp-btn-x/y` so the hover
+ * glow in v2.css originates under the cursor (same trick as the v1 Button).
+ */
+const trackPointer = (event: PointerEvent<HTMLElement>) => {
+  const target = event.currentTarget;
+  const rect = target.getBoundingClientRect();
+  target.style.setProperty("--sp-btn-x", `${((event.clientX - rect.left) / rect.width) * 100}%`);
+  target.style.setProperty("--sp-btn-y", `${((event.clientY - rect.top) / rect.height) * 100}%`);
+};
+
+/** Flags the press so the glow can burst, then clears once the animation ends. */
+const markPressed = (event: PointerEvent<HTMLElement>) => {
+  trackPointer(event);
+  const target = event.currentTarget;
+  target.dataset.pressed = "true";
+  window.setTimeout(() => {
+    if (target.isConnected) {
+      delete target.dataset.pressed;
+    }
+  }, 420);
+};
+
 /** Gradient CTA / outline button rendered as a router link or anchor. */
 export const Cta = ({ children, to, href, icon: Icon, variant = "primary", className = "" }: CtaProps) => {
   const variantClass =
@@ -73,21 +96,22 @@ export const Cta = ({ children, to, href, icon: Icon, variant = "primary", class
   const content = (
     <>
       {Icon ? <Icon aria-hidden="true" size={variant === "sm" ? 16 : 16} strokeWidth={1.8} /> : null}
-      {children}
+      <span className="sp-btn__label">{children}</span>
     </>
   );
   const classes = `${variantClass} ${className}`.trim();
+  const motion = { onPointerDown: markPressed, onPointerMove: trackPointer };
 
   if (to) {
     return (
-      <Link className={classes} to={to}>
+      <Link className={classes} to={to} {...motion}>
         {content}
       </Link>
     );
   }
 
   return (
-    <a className={classes} href={href} rel={href?.startsWith("http") ? "noreferrer" : undefined}>
+    <a className={classes} href={href} rel={href?.startsWith("http") ? "noreferrer" : undefined} {...motion}>
       {content}
     </a>
   );
