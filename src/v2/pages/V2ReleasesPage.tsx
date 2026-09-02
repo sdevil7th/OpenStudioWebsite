@@ -4,6 +4,7 @@ import PageSeo from "@/components/PageSeo";
 import { DOWNLOAD_PATHS } from "@/constants/site";
 import { V2_PATHS, VERSION_LABEL } from "../content";
 import { Cta, Eyebrow, WarnCallout } from "../primitives";
+import { useSpReveal } from "../useSpReveal";
 
 type ChangeKind = "Added" | "Changed" | "Faster" | "Fixed";
 
@@ -76,7 +77,10 @@ const CurrentBadge = () => (
   </span>
 );
 
-const V2ReleasesPage = () => (
+const V2ReleasesPage = () => {
+  useSpReveal();
+
+  return (
   <>
     <PageSeo
       description="Every release, what changed, and the public release metadata endpoints."
@@ -85,7 +89,7 @@ const V2ReleasesPage = () => (
       title="Releases & Changelog | OpenStudio"
     />
 
-    <div className="sp-container" style={{ paddingTop: 64 }}>
+    <div className="sp-container" data-sp-reveal="hero" style={{ paddingTop: 64 }}>
       <Eyebrow icon={Tag}>Changelog · Release metadata</Eyebrow>
       <h1 className="sp-h1">Releases.</h1>
       <p className="sp-lede" style={{ maxWidth: 620 }}>
@@ -115,7 +119,7 @@ const V2ReleasesPage = () => (
 
     <div className="sp-container" style={{ paddingTop: 26 }}>
       <div className="sp-releases-layout">
-        <aside style={{ borderRight: "1px solid var(--sp-hairline)", paddingRight: 22 }}>
+        <aside data-sp-reveal="rise" style={{ borderRight: "1px solid var(--sp-hairline)", paddingRight: 22 }}>
           <div className="sp-kicker">Versions</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {RELEASES.map((release, index) => (
@@ -139,7 +143,7 @@ const V2ReleasesPage = () => (
         </aside>
         <div style={{ paddingLeft: 30, display: "flex", flexDirection: "column", gap: 26 }}>
           {RELEASES.map((release, index) => (
-            <div key={index} className="sp-card" style={{ padding: "26px 28px" }}>
+            <div key={index} className="sp-card" data-sp-reveal="rise" style={{ padding: "26px 28px" }}>
               <div
                 style={{
                   display: "flex",
@@ -184,7 +188,7 @@ const V2ReleasesPage = () => (
       </div>
     </div>
 
-    <div className="sp-container" style={{ paddingTop: 44 }}>
+    <div className="sp-container" data-sp-reveal="rise" style={{ paddingTop: 44 }}>
       <div className="sp-kicker">Release metadata endpoints</div>
       <div className="sp-card sp-card--tight sp-scroll-x" style={{ overflow: "hidden" }}>
         {ENDPOINTS.map(([endpoint, description], index) => (
@@ -211,13 +215,14 @@ const V2ReleasesPage = () => (
       </div>
     </div>
 
-    <div className="sp-container" style={{ padding: "26px 34px 62px" }}>
+    <div className="sp-container" data-sp-reveal="rise" style={{ padding: "26px 34px 62px" }}>
       <WarnCallout label="A public contract">
         These endpoints and redirects are consumed by shipped app builds for update checks. Nothing in the
         redesign changes them.
       </WarnCallout>
     </div>
   </>
-);
+  );
+};
 
 export default V2ReleasesPage;

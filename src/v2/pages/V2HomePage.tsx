@@ -19,6 +19,7 @@ import {
 import PageSeo from "@/components/PageSeo";
 import { SHOTS, V2_PATHS, VERSION_LABEL, SIZE_LABEL } from "../content";
 import { ArrowLink, Cta, Eyebrow, Frame, GradIcon } from "../primitives";
+import { useSpReveal } from "../useSpReveal";
 
 const NAM_CHIPS = [
   "NAM A1 / A2",
@@ -76,7 +77,10 @@ const STAT_TILES = [
   { value: "00", label: "Contributors", icon: Users },
 ];
 
-const V2HomePage = () => (
+const V2HomePage = () => {
+  useSpReveal();
+
+  return (
   <>
     <PageSeo
       description="A free, open-source DAW with a built-in Neural Amp Modeler guitar rig, multitrack recording, MIDI, plugin hosting, pitch editing, and optional local AI stem separation. AGPLv3."
@@ -88,7 +92,7 @@ const V2HomePage = () => (
     {/* Hero */}
     <div className="sp-container">
       <div className="sp-split" style={{ gridTemplateColumns: "1.05fr .95fr", paddingTop: 72 }}>
-        <div>
+        <div data-sp-reveal="hero">
           <Eyebrow icon={ShieldCheck}>
             Free · Open source · AGPLv3
           </Eyebrow>
@@ -109,13 +113,14 @@ const V2HomePage = () => (
             {VERSION_LABEL} · {SIZE_LABEL} · released 00 Aug 2026 · also Windows and Linux
           </div>
         </div>
-        <Frame alt="OpenStudio timeline" hero src={SHOTS.heroTimeline} />
+        <Frame alt="OpenStudio timeline" hero reveal="media-right" src={SHOTS.heroTimeline} />
       </div>
     </div>
 
     {/* Proof strip */}
     <div
       className="sp-grid-4"
+      data-sp-reveal="stagger"
       style={{
         gap: 0,
         borderTop: "1px solid var(--sp-hairline)",
@@ -152,7 +157,7 @@ const V2HomePage = () => (
     </div>
 
     {/* NAM Rack set piece (dark) */}
-    <section className="sp-dark-panel">
+    <section className="sp-dark-panel" data-sp-reveal="band">
       <div className="sp-container" style={{ paddingTop: 78, paddingBottom: 78 }}>
         <div className="sp-row" style={{ gridTemplateColumns: ".85fr 1.15fr", gap: 52 }}>
           <div>
@@ -205,17 +210,19 @@ const V2HomePage = () => (
 
     {/* The full session */}
     <div className="sp-container" style={{ paddingTop: 78 }}>
-      <h2 className="sp-h2" style={{ fontSize: 44, lineHeight: 1.05, maxWidth: 620 }}>
-        One project, from first take to final render.
-      </h2>
-      <p className="sp-lede" style={{ fontSize: 16, maxWidth: 560, marginBottom: 40 }}>
-        Recording, MIDI, editing, pitch work, mixing, and export live in the same window. No round trips, no
-        exporting a clip to a separate tool and importing it back.
-      </p>
+      <div data-sp-reveal="hero">
+        <h2 className="sp-h2" style={{ fontSize: 44, lineHeight: 1.05, maxWidth: 620 }}>
+          One project, from first take to final render.
+        </h2>
+        <p className="sp-lede" style={{ fontSize: 16, maxWidth: 560, marginBottom: 40 }}>
+          Recording, MIDI, editing, pitch work, mixing, and export live in the same window. No round trips, no
+          exporting a clip to a separate tool and importing it back.
+        </p>
+      </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 34, paddingBottom: 78 }}>
         {SESSION_ROWS.map((row) => {
           const copyBlock = (
-            <div key="copy">
+            <div key="copy" data-sp-reveal="rise">
               <div className="sp-mono" style={{ fontSize: 11, lineHeight: 1, marginBottom: 12 }}>
                 {row.number}
               </div>
@@ -235,7 +242,9 @@ const V2HomePage = () => (
               <p className="sp-body">{row.copy}</p>
             </div>
           );
-          const imageBlock = <Frame key="image" alt={row.alt} src={row.shot} />;
+          const imageBlock = (
+            <Frame key="image" alt={row.alt} reveal={row.imageFirst ? "media-left" : "media-right"} src={row.shot} />
+          );
 
           return (
             <div
@@ -256,7 +265,7 @@ const V2HomePage = () => (
 
     {/* Plugins / AI split */}
     <div className="sp-container">
-      <div className="sp-row" style={{ gridTemplateColumns: "1fr 1fr", gap: 0, borderTop: "1px solid var(--sp-hairline)", paddingBottom: 78, alignItems: "start" }}>
+      <div className="sp-row" data-sp-reveal="stagger" style={{ gridTemplateColumns: "1fr 1fr", gap: 0, borderTop: "1px solid var(--sp-hairline)", paddingBottom: 78, alignItems: "start" }}>
         <div style={{ padding: "44px 40px 0 0", borderRight: "1px solid var(--sp-hairline)" }}>
           <h2 className="sp-h2" style={{ lineHeight: 1.12 }}>
             Your plugins, hosted natively.
@@ -289,6 +298,7 @@ const V2HomePage = () => (
     <div className="sp-container">
       <div
         className="sp-row"
+        data-sp-reveal="stagger"
         style={{ gridTemplateColumns: "1fr 1fr", gap: 52, borderTop: "1px solid var(--sp-hairline)", padding: "64px 0" }}
       >
         <div>
@@ -341,7 +351,7 @@ const V2HomePage = () => (
     </div>
 
     {/* Get started (dark) */}
-    <section style={{ background: "linear-gradient(120deg, #120157 0%, #131b26 52%, #002b1e 100%)", color: "#f7f8fa" }}>
+    <section data-sp-reveal="band" style={{ background: "linear-gradient(120deg, #120157 0%, #131b26 52%, #002b1e 100%)", color: "#f7f8fa" }}>
       <div className="sp-container" style={{ paddingTop: 64, paddingBottom: 64 }}>
         <div className="sp-row" style={{ gridTemplateColumns: "1fr 1fr", gap: 52 }}>
           <div>
@@ -393,6 +403,7 @@ const V2HomePage = () => (
       </div>
     </section>
   </>
-);
+  );
+};
 
 export default V2HomePage;

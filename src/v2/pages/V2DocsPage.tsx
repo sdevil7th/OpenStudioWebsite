@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import PageSeo from "@/components/PageSeo";
 import { V2_PATHS } from "../content";
 import { Cta, GradIcon } from "../primitives";
+import { useSpReveal } from "../useSpReveal";
 
 interface DocEntry {
   title: string;
@@ -60,7 +61,10 @@ const DOC_GROUPS: DocGroup[] = [
   },
 ];
 
-const V2DocsPage = () => (
+const V2DocsPage = () => {
+  useSpReveal();
+
+  return (
   <>
     <PageSeo
       description="Setup guides, workflow walkthroughs, keyboard shortcuts, scripting reference, and troubleshooting."
@@ -69,7 +73,7 @@ const V2DocsPage = () => (
       title="Documentation | OpenStudio"
     />
 
-    <div className="sp-container" style={{ paddingTop: 64 }}>
+    <div className="sp-container" data-sp-reveal="hero" style={{ paddingTop: 64 }}>
       <h1 className="sp-h1">Documentation.</h1>
       <p className="sp-lede" style={{ maxWidth: 640 }}>
         Everything from installing to scripting. If something is missing or wrong, open an issue or edit the page
@@ -86,7 +90,7 @@ const V2DocsPage = () => (
     </div>
 
     <div className="sp-container" style={{ padding: "44px 34px 62px" }}>
-      <div className="sp-grid-2">
+      <div className="sp-grid-2" data-sp-reveal="stagger">
         {DOC_GROUPS.map((group) => (
           <div key={group.heading} className="sp-card" style={{ padding: "26px 28px 22px" }}>
             <div
@@ -139,6 +143,7 @@ const V2DocsPage = () => (
       </div>
     </div>
   </>
-);
+  );
+};
 
 export default V2DocsPage;

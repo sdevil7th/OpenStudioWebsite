@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import PageSeo from "@/components/PageSeo";
 import { SHOTS, V2_PATHS, VERSION_LABEL } from "../content";
 import { Frame, Kicker, WarnCallout } from "../primitives";
+import { useSpReveal } from "../useSpReveal";
 
 const SIDEBAR_DOCS = [
   "Getting Started",
@@ -53,7 +54,10 @@ const StepBody = ({ children }: { children: ReactNode }) => (
   </p>
 );
 
-const V2DocsGettingStartedPage = () => (
+const V2DocsGettingStartedPage = () => {
+  useSpReveal();
+
+  return (
   <>
     <PageSeo
       description="Install OpenStudio, set up your audio device, scan plugins, and create your first project."
@@ -64,7 +68,7 @@ const V2DocsGettingStartedPage = () => (
 
     <div className="sp-container" style={{ paddingLeft: 0, paddingRight: 0, maxWidth: 1240 }}>
       <div className="sp-docs-layout" style={{ borderBottom: "1px solid var(--sp-hairline)" }}>
-        <aside className="sp-docs-sidebar">
+        <aside className="sp-docs-sidebar" data-sp-reveal="rise">
           <Kicker>Documentation</Kicker>
           <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 26 }}>
             {SIDEBAR_DOCS.map((doc, index) => (
@@ -104,6 +108,7 @@ const V2DocsGettingStartedPage = () => (
           </div>
         </aside>
         <article style={{ padding: "44px 44px 52px", maxWidth: 760 }}>
+          <header data-sp-reveal="hero">
           <Kicker>Docs · Start here</Kicker>
           <h1 style={{ font: "700 42px/1.08 'Space Grotesk', sans-serif", letterSpacing: "-0.035em", margin: "0 0 14px" }}>
             Getting started
@@ -138,8 +143,9 @@ const V2DocsGettingStartedPage = () => (
               Edit on GitHub
             </a>
           </div>
+          </header>
 
-          <section style={{ marginBottom: 34 }}>
+          <section data-sp-reveal="rise" style={{ marginBottom: 34 }}>
             <StepHeading number="01">Download and install</StepHeading>
             <StepBody>
               Grab the build for your platform from the download page. Builds are currently unsigned, so your OS
@@ -154,7 +160,7 @@ const V2DocsGettingStartedPage = () => (
             </WarnCallout>
           </section>
 
-          <section style={{ marginBottom: 34 }}>
+          <section data-sp-reveal="rise" style={{ marginBottom: 34 }}>
             <StepHeading number="02">First launch</StepHeading>
             <StepBody>
               OpenStudio opens on an empty arrangement. The timeline is the centre, the mixer docks below or
@@ -168,7 +174,7 @@ const V2DocsGettingStartedPage = () => (
             </div>
           </section>
 
-          <section style={{ marginBottom: 34 }}>
+          <section data-sp-reveal="rise" style={{ marginBottom: 34 }}>
             <StepHeading number="03">Audio device and buffer size</StepHeading>
             <StepBody>
               Open <strong>Settings → Audio</strong> and pick your interface. Start at a 256-sample buffer, then
@@ -197,7 +203,7 @@ const V2DocsGettingStartedPage = () => (
             </div>
           </section>
 
-          <section style={{ marginBottom: 34 }}>
+          <section data-sp-reveal="rise" style={{ marginBottom: 34 }}>
             <StepHeading number="04">Scan your plugins</StepHeading>
             <StepBody>
               Point OpenStudio at your plugin folders in <strong>Settings → Plugins</strong> and run a scan.
@@ -221,7 +227,7 @@ const V2DocsGettingStartedPage = () => (
             </p>
           </section>
 
-          <section style={{ marginBottom: 34 }}>
+          <section data-sp-reveal="rise" style={{ marginBottom: 34 }}>
             <StepHeading number="05">Create a project and arm a track</StepHeading>
             <StepBody>
               New project, add an audio track, choose the input, and arm it. Input monitoring lets you hear the
@@ -231,6 +237,7 @@ const V2DocsGettingStartedPage = () => (
 
           <div
             className="sp-card"
+            data-sp-reveal="rise"
             style={{
               padding: "26px 28px",
               display: "flex",
@@ -259,6 +266,7 @@ const V2DocsGettingStartedPage = () => (
       </div>
     </div>
   </>
-);
+  );
+};
 
 export default V2DocsGettingStartedPage;

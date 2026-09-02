@@ -2,6 +2,8 @@ import type { ComponentType, CSSProperties, PointerEvent, ReactNode } from "reac
 import { ArrowRight, ShieldCheck, TriangleAlert, type LucideProps } from "lucide-react";
 import { Link } from "react-router-dom";
 
+import type { SpReveal } from "./useSpReveal";
+
 export const ICON_GRADIENT_ID = "sp-icon-grad";
 
 /**
@@ -156,13 +158,15 @@ export const Frame = ({
   src,
   hero = false,
   className = "",
+  reveal,
 }: {
   alt: string;
   src: string;
   hero?: boolean;
   className?: string;
+  reveal?: SpReveal;
 }) => (
-  <div className={`sp-frame${hero ? " sp-frame--hero" : ""} ${className}`.trim()}>
+  <div className={`sp-frame${hero ? " sp-frame--hero" : ""} ${className}`.trim()} data-sp-reveal={reveal}>
     <img alt={alt} loading={hero ? "eager" : "lazy"} src={src} />
   </div>
 );

@@ -3,6 +3,7 @@ import { Fragment, type CSSProperties } from "react";
 import PageSeo from "@/components/PageSeo";
 import { V2_PATHS } from "../content";
 import { Cta, Eyebrow } from "../primitives";
+import { useSpReveal } from "../useSpReveal";
 
 type Verdict = "good" | "bad" | "warn" | "plain";
 
@@ -153,7 +154,10 @@ const cellStyle = (options: { header?: boolean; first?: boolean; withBorderRight
   borderRight: options.withBorderRight ? "1px solid var(--sp-hairline)" : undefined,
 });
 
-const V2ComparePage = () => (
+const V2ComparePage = () => {
+  useSpReveal();
+
+  return (
   <>
     <PageSeo
       description="An honest side-by-side, including where OpenStudio isn't the right choice."
@@ -162,7 +166,7 @@ const V2ComparePage = () => (
       title="OpenStudio vs Reaper, Ardour & Other Free DAWs"
     />
 
-    <div className="sp-container" style={{ paddingTop: 64 }}>
+    <div className="sp-container" data-sp-reveal="hero" style={{ paddingTop: 64 }}>
       <Eyebrow icon={Scale}>Including where we lose</Eyebrow>
       <h1 className="sp-h1">How OpenStudio compares.</h1>
       <p className="sp-lede" style={{ maxWidth: 680 }}>
@@ -173,7 +177,7 @@ const V2ComparePage = () => (
 
     {/* Comparison table */}
     <div className="sp-container" style={{ paddingTop: 38 }}>
-      <div className="sp-card sp-card--tight sp-scroll-x">
+      <div className="sp-card sp-card--tight sp-scroll-x" data-sp-reveal="rise">
         <div style={{ display: "grid", gridTemplateColumns: "1.15fr repeat(4, 1fr)", minWidth: 880 }}>
           <div style={cellStyle({ header: true })} />
           {COLUMNS.map((column, index) => (
@@ -224,14 +228,14 @@ const V2ComparePage = () => (
 
     {/* When not / when yes */}
     <div className="sp-container" style={{ paddingTop: 44 }}>
-      <div className="sp-grid-2">
+      <div className="sp-grid-2" data-sp-reveal="stagger">
         <ProsConsCard entries={NOT_FOR_YOU} label="When not to use OpenStudio" tone="bad" />
         <ProsConsCard entries={RIGHT_CALL} label="When it is the right call" tone="good" />
       </div>
     </div>
 
     {/* Child page chips */}
-    <div className="sp-container" style={{ padding: "44px 34px 62px", display: "flex", gap: 14, flexWrap: "wrap" }}>
+    <div className="sp-container" data-sp-reveal="stagger" style={{ padding: "44px 34px 62px", display: "flex", gap: 14, flexWrap: "wrap" }}>
       {["vs Reaper", "vs Ardour", "vs LMMS", "Free DAW roundup"].map((label) => (
         <Cta key={label} icon={Scale} to={V2_PATHS.compare} variant="outline">
           {label}
@@ -239,6 +243,7 @@ const V2ComparePage = () => (
       ))}
     </div>
   </>
-);
+  );
+};
 
 export default V2ComparePage;

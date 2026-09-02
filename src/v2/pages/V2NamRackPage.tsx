@@ -2,6 +2,7 @@ import { AudioWaveform, Book, Download, Folder, Key, Speaker, Zap } from "lucide
 import PageSeo from "@/components/PageSeo";
 import { SHOTS, V2_PATHS, VERSION_LABEL, SIZE_LABEL } from "../content";
 import { ArrowLink, Cta, Eyebrow, Frame, GradIcon, HonestCallout, Kicker } from "../primitives";
+import { useSpReveal } from "../useSpReveal";
 
 const CHAIN_STAGES = [
   { label: "01 Tuner", shot: SHOTS.namRackTuner, alt: "Tuner" },
@@ -55,7 +56,10 @@ const BLOG_CARDS = [
   },
 ];
 
-const V2NamRackPage = () => (
+const V2NamRackPage = () => {
+  useSpReveal();
+
+  return (
   <>
     <PageSeo
       description="OpenStudio ships a full Neural Amp Modeler rack — NAM A1/A2 captures, native pedals, cabinet IRs, graphic EQ, tuner, presets, and offline render. Free, built in, no add-on runtime."
@@ -67,7 +71,7 @@ const V2NamRackPage = () => (
     {/* Hero */}
     <div className="sp-container">
       <div className="sp-split" style={{ gridTemplateColumns: "1.05fr .95fr", paddingTop: 64 }}>
-        <div>
+        <div data-sp-reveal="hero">
           <Eyebrow icon={Zap}>Included in the base app</Eyebrow>
           <h1 className="sp-h1">A full amp rig, inside the DAW.</h1>
           <p className="sp-lede" style={{ maxWidth: 540 }}>
@@ -85,12 +89,12 @@ const V2NamRackPage = () => (
             {VERSION_LABEL} · {SIZE_LABEL} · Windows · macOS · Linux
           </div>
         </div>
-        <Frame alt="The OpenStudio NAM Rack amp page" hero src={SHOTS.namRackOverview} />
+        <Frame alt="The OpenStudio NAM Rack amp page" hero reveal="media-right" src={SHOTS.namRackOverview} />
       </div>
     </div>
 
     {/* Signal chain */}
-    <div className="sp-container" style={{ paddingTop: 52 }}>
+    <div className="sp-container" data-sp-reveal="hero" style={{ paddingTop: 52 }}>
       <Kicker>Signal chain · left to right</Kicker>
       <h2 className="sp-h2">Tuner → Pre-FX → NAM amp → Cabinet IR → EQ → Post-FX</h2>
       <p className="sp-body" style={{ maxWidth: 700, marginBottom: 14 }}>
@@ -98,7 +102,7 @@ const V2NamRackPage = () => (
       </p>
     </div>
     <div className="sp-container" style={{ paddingTop: 26 }}>
-      <div className="sp-chain-grid">
+      <div className="sp-chain-grid" data-sp-reveal="flow">
         {CHAIN_STAGES.map((stage) => (
           <div key={stage.label} className="sp-card sp-card--tight" style={{ overflow: "hidden" }}>
             <div
@@ -126,7 +130,7 @@ const V2NamRackPage = () => (
 
     {/* Capability blocks */}
     <div className="sp-container" style={{ paddingTop: 46 }}>
-      <div className="sp-grid-4">
+      <div className="sp-grid-4" data-sp-reveal="stagger">
         {RACK_BLOCKS.map((block) => (
           <div key={block.title} className="sp-card sp-card--tight" style={{ padding: "22px 22px 24px" }}>
             <div style={{ marginBottom: 12 }}>
@@ -146,7 +150,7 @@ const V2NamRackPage = () => (
     {/* Preset library */}
     <div className="sp-container" style={{ paddingTop: 46 }}>
       <div className="sp-row" style={{ gridTemplateColumns: "1.15fr .85fr" }}>
-        <Frame alt="The NAM Rack preset library" src={SHOTS.namRackPresetLibrary} />
+        <Frame alt="The NAM Rack preset library" reveal="media-left" src={SHOTS.namRackPresetLibrary} />
         <div>
           <Kicker>Preset library</Kicker>
           <h2 className="sp-h2" style={{ fontSize: 30 }}>
@@ -163,7 +167,7 @@ const V2NamRackPage = () => (
     {/* TONE3000 */}
     <div className="sp-container" style={{ paddingTop: 46 }}>
       <div className="sp-row" style={{ gridTemplateColumns: ".9fr 1.1fr" }}>
-        <div>
+        <div data-sp-reveal="rise">
           <Kicker>TONE3000</Kicker>
           <h2 className="sp-h2" style={{ fontSize: 30 }}>
             Find captures without leaving the rack.
@@ -173,12 +177,12 @@ const V2NamRackPage = () => (
             authenticated delivery.
           </p>
         </div>
-        <Frame alt="The TONE3000 capture browser inside OpenStudio" src={SHOTS.tone3000Browser} />
+        <Frame alt="The TONE3000 capture browser inside OpenStudio" reveal="media-right" src={SHOTS.tone3000Browser} />
       </div>
     </div>
 
     {/* Honest block */}
-    <div className="sp-container" style={{ paddingTop: 46 }}>
+    <div className="sp-container" data-sp-reveal="rise" style={{ paddingTop: 46 }}>
       <HonestCallout>
         There is no paid NAM Rack tier and no separate runtime to install. Third-party captures and IRs are
         distributed by their creators and keep their own licenses. Authenticated TONE3000 delivery requires a
@@ -189,7 +193,7 @@ const V2NamRackPage = () => (
     {/* From the blog */}
     <div className="sp-container" style={{ paddingTop: 46 }}>
       <Kicker>From the blog</Kicker>
-      <div className="sp-grid-2" style={{ gap: 18 }}>
+      <div className="sp-grid-2" data-sp-reveal="stagger" style={{ gap: 18 }}>
         {BLOG_CARDS.map((card) => (
           <a key={card.slug} className="sp-card sp-card--tight" href={card.slug} style={{ overflow: "hidden", display: "flex" }}>
             <img
@@ -210,7 +214,7 @@ const V2NamRackPage = () => (
     </div>
 
     {/* CTA */}
-    <div className="sp-container" style={{ padding: "52px 34px 62px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+    <div className="sp-container" data-sp-reveal="stagger" style={{ padding: "52px 34px 62px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
       <Cta icon={Download} to={V2_PATHS.download}>
         Download OpenStudio
       </Cta>
@@ -219,6 +223,7 @@ const V2NamRackPage = () => (
       </Cta>
     </div>
   </>
-);
+  );
+};
 
 export default V2NamRackPage;

@@ -3,6 +3,7 @@ import PageSeo from "@/components/PageSeo";
 import { blogPosts, getBlogPostUrl, type BlogPostSummary } from "@/data/blogs";
 import { V2_PATHS } from "../content";
 import { ArrowLink, Eyebrow } from "../primitives";
+import { useSpReveal } from "../useSpReveal";
 
 const CATEGORY_BY_SLUG: Record<string, string> = {
   "build-guitar-tones-with-openstudio-nam-rack": "NAM Rack",
@@ -24,6 +25,8 @@ const category = (post: BlogPostSummary) => CATEGORY_BY_SLUG[post.slug] ?? "Engi
 const V2BlogPage = () => {
   const [featured, ...rest] = blogPosts;
 
+  useSpReveal();
+
   return (
     <>
       <PageSeo
@@ -33,7 +36,7 @@ const V2BlogPage = () => {
         title="OpenStudio Blog | Engineering Notes from an Open Source DAW"
       />
 
-      <div className="sp-container" style={{ paddingTop: 64 }}>
+      <div className="sp-container" data-sp-reveal="hero" style={{ paddingTop: 64 }}>
         <Eyebrow icon={Book}>Development notes from the maintainer</Eyebrow>
         <h1 className="sp-h1">Blog.</h1>
         <p className="sp-lede" style={{ maxWidth: 600 }}>
@@ -44,7 +47,7 @@ const V2BlogPage = () => {
       {/* Featured post */}
       {featured ? (
         <div className="sp-container" style={{ paddingTop: 34 }}>
-          <div className="sp-card sp-card--interactive sp-featured-post" style={{ overflow: "hidden" }}>
+          <div className="sp-card sp-card--interactive sp-featured-post" data-sp-reveal="panel" style={{ overflow: "hidden" }}>
             {featured.image ? (
               <img
                 alt={featured.imageAlt ?? featured.title}
@@ -87,7 +90,7 @@ const V2BlogPage = () => {
 
       {/* Remaining posts */}
       <div className="sp-container" style={{ padding: "34px 34px 62px" }}>
-        <div className="sp-grid-3">
+        <div className="sp-grid-3" data-sp-reveal="stagger">
           {rest.map((post) => (
             <div key={post.slug} className="sp-card sp-card--interactive" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
               {post.image ? (

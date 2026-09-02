@@ -3,6 +3,7 @@ import PageSeo from "@/components/PageSeo";
 import { SHOTS, V2_PATHS } from "../content";
 import { Cta, Eyebrow, Frame, GradIcon, HonestCallout, Kicker } from "../primitives";
 import { ArrowLink } from "../primitives";
+import { useSpReveal } from "../useSpReveal";
 
 const AI_CARDS = [
   {
@@ -43,7 +44,10 @@ const PRINCIPLES = [
   },
 ];
 
-const V2AiPage = () => (
+const V2AiPage = () => {
+  useSpReveal();
+
+  return (
   <>
     <PageSeo
       description="Optional, local AI in OpenStudio: BS Roformer 6-stem separation, ACE-Step text-to-music, and Stable Audio 3 import. Runs offline after setup. Never bundled, never sent to a server."
@@ -53,7 +57,7 @@ const V2AiPage = () => (
     />
 
     {/* Hero */}
-    <div className="sp-container" style={{ paddingTop: 64 }}>
+    <div className="sp-container" data-sp-reveal="hero" style={{ paddingTop: 64 }}>
       <Eyebrow icon={Cpu}>Optional download · Local · Offline after setup</Eyebrow>
       <h1 className="sp-h1" style={{ fontSize: "clamp(38px, 4.4vw, 54px)" }}>
         AI that runs on your machine, or not at all.
@@ -74,7 +78,7 @@ const V2AiPage = () => (
 
     {/* Three child cards */}
     <div className="sp-container" style={{ paddingTop: 40 }}>
-      <div className="sp-grid-3">
+      <div className="sp-grid-3" data-sp-reveal="stagger">
         {AI_CARDS.map((card) => (
           <div key={card.title} className="sp-card" style={{ padding: "26px 26px 28px", display: "flex", flexDirection: "column", gap: 10 }}>
             <div>
@@ -96,10 +100,10 @@ const V2AiPage = () => (
     </div>
 
     {/* Principles (dark, full bleed) */}
-    <section className="sp-dark-panel" style={{ marginTop: 52 }}>
+    <section className="sp-dark-panel" data-sp-reveal="band" style={{ marginTop: 52 }}>
       <div className="sp-container" style={{ paddingTop: 56, paddingBottom: 56 }}>
         <Kicker style={{ color: "var(--sp-teal-bright)" }}>How it is built</Kicker>
-        <div className="sp-grid-3" style={{ gap: 30 }}>
+        <div className="sp-grid-3" data-sp-reveal="stagger" style={{ gap: 30 }}>
           {PRINCIPLES.map((principle) => (
             <div key={principle.number} style={{ borderTop: "1px solid rgba(255,255,255,.2)", paddingTop: 16 }}>
               <div style={{ font: "400 11px/1 'JetBrains Mono', monospace", color: "var(--sp-teal-bright)", marginBottom: 10 }}>
@@ -120,8 +124,8 @@ const V2AiPage = () => (
     {/* Six stems */}
     <div className="sp-container" style={{ paddingTop: 46 }}>
       <div className="sp-row" style={{ gridTemplateColumns: "1.1fr .9fr" }}>
-        <Frame alt="Separated stems as tracks in the arrangement" src={SHOTS.arrangementOverviewWide} />
-        <div>
+        <Frame alt="Separated stems as tracks in the arrangement" reveal="media-left" src={SHOTS.arrangementOverviewWide} />
+        <div data-sp-reveal="rise">
           <Kicker>Six stems</Kicker>
           <h2 className="sp-h2" style={{ fontSize: 30 }}>
             Separated parts arrive as tracks.
@@ -135,13 +139,14 @@ const V2AiPage = () => (
     </div>
 
     {/* Honest block */}
-    <div className="sp-container" style={{ padding: "46px 34px 62px" }}>
+    <div className="sp-container" data-sp-reveal="rise" style={{ padding: "46px 34px 62px" }}>
       <HonestCallout>
         The guided setup installs BS Roformer and ACE-Step. Stable Audio 3 is not included — it needs a separate
         gated snapshot import and its own runtime setup.
       </HonestCallout>
     </div>
   </>
-);
+  );
+};
 
 export default V2AiPage;

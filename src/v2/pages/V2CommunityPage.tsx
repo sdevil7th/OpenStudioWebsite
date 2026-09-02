@@ -5,6 +5,7 @@ import PageSeo from "@/components/PageSeo";
 import { githubFallbackSnapshot } from "@/lib/github";
 import { V2_PATHS } from "../content";
 import { ArrowLink, Cta, Eyebrow, GradIcon } from "../primitives";
+import { useSpReveal } from "../useSpReveal";
 
 interface CommunityCard {
   icon: ComponentType<LucideProps>;
@@ -60,7 +61,10 @@ const STATS: { icon: ComponentType<LucideProps>; label: string; value: string }[
   { icon: Scale, label: "license", value: "AGPLv3" },
 ];
 
-const V2CommunityPage = () => (
+const V2CommunityPage = () => {
+  useSpReveal();
+
+  return (
   <>
     <PageSeo
       description="Report bugs, contribute code, read the roadmap, and follow development."
@@ -69,7 +73,7 @@ const V2CommunityPage = () => (
       title="Community & Contributing | OpenStudio"
     />
 
-    <div className="sp-container" style={{ paddingTop: 64 }}>
+    <div className="sp-container" data-sp-reveal="hero" style={{ paddingTop: 64 }}>
       <Eyebrow icon={Users}>AGPLv3 · Developed in the open</Eyebrow>
       <h1 className="sp-h1">Build it with us.</h1>
       <p className="sp-lede" style={{ maxWidth: 640 }}>
@@ -78,7 +82,7 @@ const V2CommunityPage = () => (
     </div>
 
     <div className="sp-container" style={{ paddingTop: 40 }}>
-      <div className="sp-grid-3">
+      <div className="sp-grid-3" data-sp-reveal="stagger">
         {CARDS.map((card) => {
           const inner = (
             <>
@@ -132,6 +136,7 @@ const V2CommunityPage = () => (
     <div className="sp-container" style={{ paddingTop: 44 }}>
       <div
         className="sp-dark-panel sp-row"
+        data-sp-reveal="panel"
         style={{
           gridTemplateColumns: "1fr auto",
           borderRadius: 18,
@@ -182,7 +187,7 @@ const V2CommunityPage = () => (
     </div>
 
     {/* CTA row */}
-    <div className="sp-container" style={{ padding: "44px 34px 62px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+    <div className="sp-container" data-sp-reveal="stagger" style={{ padding: "44px 34px 62px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
       <Cta href={`${githubFallbackSnapshot.repositoryUrl}/issues`} icon={GitFork}>
         Open a good first issue
       </Cta>
@@ -194,6 +199,7 @@ const V2CommunityPage = () => (
       </Cta>
     </div>
   </>
-);
+  );
+};
 
 export default V2CommunityPage;

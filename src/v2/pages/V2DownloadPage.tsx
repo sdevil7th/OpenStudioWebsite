@@ -5,6 +5,7 @@ import { DOWNLOAD_PATHS } from "@/constants/site";
 import { systemRequirementMatrix } from "@/data/downloads";
 import { SIZE_LABEL, V2_PATHS } from "../content";
 import { ArrowLink, Cta, Eyebrow, GradIcon, WarnCallout } from "../primitives";
+import { useSpReveal } from "../useSpReveal";
 
 interface PlatformCard {
   icon: ComponentType<LucideProps>;
@@ -71,7 +72,10 @@ const PLATFORM_CARDS: PlatformCard[] = [
   },
 ];
 
-const V2DownloadPage = () => (
+const V2DownloadPage = () => {
+  useSpReveal();
+
+  return (
   <>
     <PageSeo
       description="Download the current build free. Installers, checksums, system requirements, and honest notes on unsigned builds."
@@ -81,7 +85,7 @@ const V2DownloadPage = () => (
     />
 
     {/* Hero */}
-    <div className="sp-container" style={{ paddingTop: 64 }}>
+    <div className="sp-container" data-sp-reveal="hero" style={{ paddingTop: 64 }}>
       <h1 className="sp-h1">Download OpenStudio.</h1>
       <p className="sp-lede" style={{ maxWidth: 640 }}>
         Free, open source, AGPLv3. Version{" "}
@@ -106,7 +110,7 @@ const V2DownloadPage = () => (
 
     {/* Platform cards */}
     <div className="sp-container" style={{ paddingTop: 40 }}>
-      <div className="sp-grid-3">
+      <div className="sp-grid-3" data-sp-reveal="stagger">
         {PLATFORM_CARDS.map((card) => (
           <div key={card.title} className="sp-card" style={{ padding: "24px 24px 26px" }}>
             <div
@@ -164,7 +168,7 @@ const V2DownloadPage = () => (
     </div>
 
     {/* Before you install */}
-    <div className="sp-container" style={{ paddingTop: 38 }}>
+    <div className="sp-container" data-sp-reveal="rise" style={{ paddingTop: 38 }}>
       <WarnCallout label="Before you install">
         Builds are unsigned. On Windows, SmartScreen may warn on first run. On macOS, right-click OpenStudio and
         choose <strong>Open</strong>, then allow it in System Settings → Privacy &amp; Security if prompted. The
@@ -174,7 +178,7 @@ const V2DownloadPage = () => (
     </div>
 
     {/* System requirements — lifted verbatim from systemRequirementMatrix */}
-    <div className="sp-container" id="requirements" style={{ paddingTop: 46 }}>
+    <div className="sp-container" data-sp-reveal="rise" id="requirements" style={{ paddingTop: 46 }}>
       <div className="sp-kicker">System requirements</div>
       <div className="sp-card sp-card--tight sp-scroll-x" style={{ overflow: "hidden" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr 1fr", minWidth: 640 }}>
@@ -239,7 +243,7 @@ const V2DownloadPage = () => (
 
     {/* AI Runtime + Updates */}
     <div className="sp-container" style={{ paddingTop: 34 }}>
-      <div className="sp-grid-2" style={{ gap: 18 }}>
+      <div className="sp-grid-2" data-sp-reveal="stagger" style={{ gap: 18 }}>
         <div className="sp-card" style={{ padding: "26px 28px" }}>
           <Eyebrow icon={Cpu}>Optional · Separate download</Eyebrow>
           <h2 className="sp-h2" style={{ fontSize: 26 }}>
@@ -268,6 +272,7 @@ const V2DownloadPage = () => (
     {/* Next step — never end a download page on a caveat */}
     <div
       className="sp-container"
+      data-sp-reveal="stagger"
       style={{
         marginTop: 52,
         paddingTop: 44,
@@ -287,6 +292,7 @@ const V2DownloadPage = () => (
       </Cta>
     </div>
   </>
-);
+  );
+};
 
 export default V2DownloadPage;

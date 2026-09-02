@@ -15,6 +15,7 @@ import {
 import PageSeo from "@/components/PageSeo";
 import { SHOTS, V2_PATHS } from "../content";
 import { ArrowLink, Cta, Eyebrow, GradIcon } from "../primitives";
+import { useSpReveal } from "../useSpReveal";
 
 const FEATURE_CARDS = [
   {
@@ -87,7 +88,10 @@ const SPOTLIGHTS = [
   },
 ];
 
-const V2FeaturesPage = () => (
+const V2FeaturesPage = () => {
+  useSpReveal();
+
+  return (
   <>
     <PageSeo
       description="Every feature in OpenStudio: multitrack recording, piano roll and instruments, a full mixer, VST3/CLAP/LV2 hosting, pitch editing, Lua scripting, and export."
@@ -96,7 +100,7 @@ const V2FeaturesPage = () => (
       title="Features — Recording, MIDI, Mixing & Plugins | OpenStudio"
     />
 
-    <div className="sp-container" style={{ paddingTop: 64 }}>
+    <div className="sp-container" data-sp-reveal="hero" style={{ paddingTop: 64 }}>
       <Eyebrow icon={Map}>Eleven categories, seven doors</Eyebrow>
       <h1 className="sp-h1">Every feature in OpenStudio.</h1>
       <p className="sp-lede" style={{ maxWidth: 680 }}>
@@ -106,7 +110,7 @@ const V2FeaturesPage = () => (
     </div>
 
     <div className="sp-container" style={{ paddingTop: 38 }}>
-      <div className="sp-grid-2">
+      <div className="sp-grid-2" data-sp-reveal="stagger">
         {FEATURE_CARDS.map((card) => (
           <div key={card.title} className="sp-card" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
             <div style={{ background: "var(--sp-frame)", padding: "10px 10px 0" }}>
@@ -143,7 +147,7 @@ const V2FeaturesPage = () => (
     </div>
 
     <div className="sp-container" style={{ paddingTop: 34 }}>
-      <div className="sp-grid-2">
+      <div className="sp-grid-2" data-sp-reveal="stagger">
         {SPOTLIGHTS.map((spotlight) => (
           <div key={spotlight.title} className="sp-card sp-card--dark" style={{ padding: "30px 32px" }}>
             <Eyebrow icon={spotlight.icon} tone="teal">
@@ -163,7 +167,7 @@ const V2FeaturesPage = () => (
       </div>
     </div>
 
-    <div className="sp-container" style={{ padding: "52px 34px 62px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+    <div className="sp-container" data-sp-reveal="stagger" style={{ padding: "52px 34px 62px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
       <Cta icon={Download} to={V2_PATHS.download}>
         Download for macOS
       </Cta>
@@ -172,6 +176,7 @@ const V2FeaturesPage = () => (
       </Cta>
     </div>
   </>
-);
+  );
+};
 
 export default V2FeaturesPage;
