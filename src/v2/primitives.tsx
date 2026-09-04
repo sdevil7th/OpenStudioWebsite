@@ -1,0 +1,327 @@
+import type { ComponentType, CSSProperties, PointerEvent, ReactNode } from "react";
+import { Fragment } from "react";
+import { ArrowRight, Download, Info, ShieldCheck, TriangleAlert, type LucideProps } from "lucide-react";
+import { Link } from "react-router-dom";
+
+import { V2_PATHS } from "./content";
+import { formatBytes } from "./format";
+import { PLATFORMS, usePlatform } from "./usePlatform";
+import { useReleaseInfo } from "./useReleaseInfo";
+import type { SpReveal } from "./useSpReveal";
+
+export const ICON_GRADIENT_ID = "sp-icon-grad";
+
+/**
+ * One shared indigo→teal gradient for icon strokes. `userSpaceOnUse` with the
+ * 24×24 icon viewBox keeps the ramp geometry-independent, so straight-line
+ * icons paint correctly (objectBoundingBox degenerates on axis-aligned lines).
+ */
+export const IconGradientDefs = () => (
+  <svg aria-hidden="true" focusable="false" height="0" style={{ position: "absolute" }} width="0">
+    <defs>
+      <linearGradient gradientUnits="userSpaceOnUse" id={ICON_GRADIENT_ID} x1="0" x2="24" y1="0" y2="24">
+        <stop offset="0" stopColor="#5000ff" />
+        <stop offset="1" stopColor="#00b18f" />
+      </linearGradient>
+    </defs>
+  </svg>
+);
+
+interface GradIconProps extends LucideProps {
+  icon: ComponentType<LucideProps>;
+}
+
+/** Lucide icon stroked with the shared indigo→teal gradient. */
+export const GradIcon = ({ icon: Icon, ...props }: GradIconProps) => (
+  <Icon aria-hidden="true" stroke={`url(#${ICON_GRADIENT_ID})`} strokeWidth={1.7} {...props} />
+);
+
+interface EyebrowProps {
+  children: ReactNode;
+  icon?: ComponentType<LucideProps>;
+  tone?: "accent" | "teal" | "warn" | "good";
+  className?: string;
+}
+
+export const Eyebrow = ({ children, icon: Icon, tone = "accent", className = "" }: EyebrowProps) => (
+  <div className={`sp-eyebrow${tone !== "accent" ? ` sp-eyebrow--${tone}` : ""} ${className}`.trim()}>
+    {Icon ? <Icon aria-hidden="true" size={14} strokeWidth={1.8} /> : null}
+    {children}
+  </div>
+);
+
+export const Kicker = ({ children, style }: { children: ReactNode; style?: CSSProperties }) => (
+  <div className="sp-kicker" style={style}>
+    {children}
+  </div>
+);
+
+interface CtaProps {
+  children: ReactNode;
+  to?: string;
+  href?: string;
+  icon?: ComponentType<LucideProps>;
+  variant?: "primary" | "sm" | "outline" | "ghost-dark" | "paper";
+  className?: string;
+}
+
+/**
+ * Writes the pointer position onto the button as `--sp-btn-x/y` so the hover
+ * glow in v2.css originates under the cursor (same trick as the v1 Button).
+ */
+const trackPointer = (event: PointerEvent<HTMLElement>) => {
+  const target = event.currentTarget;
+  const rect = target.getBoundingClientRect();
+  target.style.setProperty("--sp-btn-x", `${((event.clientX - rect.left) / rect.width) * 100}%`);
+  target.style.setProperty("--sp-btn-y", `${((event.clientY - rect.top) / rect.height) * 100}%`);
+};
+
+/** Flags the press so the glow can burst, then clears once the animation ends. */
+const markPressed = (event: PointerEvent<HTMLElement>) => {
+  trackPointer(event);
+  const target = event.currentTarget;
+  target.dataset.pressed = "true";
+  window.setTimeout(() => {
+    if (target.isConnected) {
+      delete target.dataset.pressed;
+    }
+  }, 420);
+};
+
+/** Gradient CTA / outline button rendered as a router link or anchor. */
+export const Cta = ({ children, to, href, icon: Icon, variant = "primary", className = "" }: CtaProps) => {
+  const variantClass =
+    variant === "sm"
+      ? "sp-btn sp-btn--sm"
+      : variant === "outline"
+        ? "sp-btn sp-btn--outline"
+        : variant === "ghost-dark"
+          ? "sp-btn sp-btn--ghost-dark"
+          : variant === "paper"
+            ? "sp-btn sp-btn--paper"
+            : "sp-btn";
+  const content = (
+    <>
+      {Icon ? <Icon aria-hidden="true" size={variant === "sm" ? 16 : 16} strokeWidth={1.8} /> : null}
+      <span className="sp-btn__label">{children}</span>
+    </>
+  );
+  const classes = `${variantClass} ${className}`.trim();
+  const motion = { onPointerDown: markPressed, onPointerMove: trackPointer };
+
+  if (to) {
+    return (
+      <Link className={classes} to={to} {...motion}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <a className={classes} href={href} rel={href?.startsWith("http") ? "noreferrer" : undefined} {...motion}>
+      {content}
+    </a>
+  );
+};
+
+interface ArrowLinkProps {
+  children: ReactNode;
+  to?: string;
+  href?: string;
+  tone?: "accent" | "teal" | "plain";
+  className?: string;
+}
+
+/** Underlined text link with a trailing arrow. */
+export const ArrowLink = ({ children, to, href, tone = "accent", className = "" }: ArrowLinkProps) => {
+  const classes = `sp-link${tone === "teal" ? " sp-link--teal" : tone === "plain" ? " sp-link--plain" : ""} ${className}`.trim();
+  const content = (
+    <>
+      {children}
+      <ArrowRight aria-hidden="true" size={13} strokeWidth={2} />
+    </>
+  );
+
+  if (to) {
+    return (
+      <Link className={classes} to={to}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <a className={classes} href={href} rel={href?.startsWith("http") ? "noreferrer" : undefined}>
+      {content}
+    </a>
+  );
+};
+
+/** Dark indigo→teal gradient frame around a product screenshot. */
+export const Frame = ({
+  alt,
+  src,
+  hero = false,
+  className = "",
+  reveal,
+  children,
+}: {
+  alt?: string;
+  src?: string;
+  hero?: boolean;
+  className?: string;
+  reveal?: SpReveal;
+  /** Live content in place of the screenshot (e.g. the animated DAW session). */
+  children?: ReactNode;
+}) => (
+  <div className={`sp-frame${hero ? " sp-frame--hero" : ""} ${className}`.trim()} data-sp-reveal={reveal}>
+    {children ? (
+      <div className="sp-frame__live">{children}</div>
+    ) : (
+      <img alt={alt ?? ""} loading={hero ? "eager" : "lazy"} src={src} />
+    )}
+  </div>
+);
+
+export const WarnCallout = ({ children, label }: { children: ReactNode; label: string }) => (
+  <div className="sp-callout-warn">
+    <div className="sp-callout-label" style={{ color: "var(--sp-warn)" }}>
+      <TriangleAlert aria-hidden="true" size={13} strokeWidth={1.8} />
+      {label}
+    </div>
+    <p className="sp-body" style={{ fontSize: 13.5, lineHeight: 1.65 }}>
+      {children}
+    </p>
+  </div>
+);
+
+export const HonestCallout = ({ children }: { children: ReactNode }) => (
+  <div className="sp-callout-honest">
+    <div className="sp-callout-label" style={{ color: "var(--sp-mono-muted)" }}>
+      <ShieldCheck aria-hidden="true" size={13} strokeWidth={1.8} />
+      Plainly, so you can decide
+    </div>
+    <p className="sp-body" style={{ fontSize: 13.5, lineHeight: 1.7 }}>
+      {children}
+    </p>
+  </div>
+);
+
+/* ---------- inline markup ----------
+ * Docs, release notes, and a few page strings carry a three-token vocabulary:
+ * **bold**, `code`, and [label](url). Anything else is plain text.
+ */
+
+const INLINE_TOKEN = /(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)\s]+\))/g;
+
+const isInternalHref = (href: string) => href.startsWith("/") && !href.startsWith("//");
+
+/** Anchor that stays inside the router for v2 paths and opens a new tab for external URLs. */
+export const SmartLink = ({ href, children, className }: { href: string; children: ReactNode; className?: string }) => {
+  if (isInternalHref(href)) {
+    return (
+      <Link className={className} to={href}>
+        {children}
+      </Link>
+    );
+  }
+
+  if (href.startsWith("#")) {
+    return (
+      <a className={className} href={href}>
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <a className={className} href={href} rel="noreferrer" target="_blank">
+      {children}
+    </a>
+  );
+};
+
+export const renderInline = (text: string): ReactNode => {
+  const parts = text.split(INLINE_TOKEN);
+
+  return parts.map((part, index) => {
+    if (index % 2 === 0) {
+      return <Fragment key={index}>{part}</Fragment>;
+    }
+
+    if (part.startsWith("**")) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+
+    if (part.startsWith("`")) {
+      return (
+        <code key={index} className="sp-inline-code">
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+
+    const match = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (match) {
+      return (
+        <SmartLink key={index} className="sp-text-link" href={match[2]}>
+          {match[1]}
+        </SmartLink>
+      );
+    }
+
+    return <Fragment key={index}>{part}</Fragment>;
+  });
+};
+
+export const NoteCallout = ({ children, label }: { children: ReactNode; label: string }) => (
+  <div className="sp-callout-honest">
+    <div className="sp-callout-label" style={{ color: "var(--sp-accent)" }}>
+      <Info aria-hidden="true" size={13} strokeWidth={1.8} />
+      {label}
+    </div>
+    <p className="sp-body" style={{ fontSize: 13.5, lineHeight: 1.7 }}>
+      {children}
+    </p>
+  </div>
+);
+
+/* ---------- OS-aware download button ----------
+ * Detects the visitor's desktop OS and names that build. On phones and
+ * unknown platforms it degrades to a neutral "Download" that opens the
+ * download page. `direct` links straight to the stable redirect for the
+ * detected OS (used on the download page itself); otherwise the button goes
+ * to the download page, where the unsigned-build notes live.
+ */
+export const DownloadCta = ({
+  variant = "primary",
+  direct = false,
+  withSize = false,
+  className = "",
+}: {
+  variant?: CtaProps["variant"];
+  direct?: boolean;
+  withSize?: boolean;
+  className?: string;
+}) => {
+  const platform = usePlatform();
+  const release = useReleaseInfo();
+  const info = platform ? PLATFORMS[platform] : null;
+  const size = platform && withSize ? formatBytes(release?.platforms[platform].size) : null;
+  const label = info ? `Download for ${info.label}` : "Download";
+  const text = size ? `${label} · ${size}` : label;
+
+  if (direct && info) {
+    return (
+      <Cta className={className} href={info.href} icon={Download} variant={variant}>
+        {text}
+      </Cta>
+    );
+  }
+
+  return (
+    <Cta className={className} icon={Download} to={V2_PATHS.download} variant={variant}>
+      {text}
+    </Cta>
+  );
+};

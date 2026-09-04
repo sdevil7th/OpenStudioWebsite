@@ -297,6 +297,34 @@ export default defineConfig({
             return "gsap-vendor";
           }
 
+          // The photoreal NAM Rack is ~7.6k lines plus six stylesheets; keep it
+          // out of daw-core so only the NAM page pays for it.
+          if (
+            normalizedId.includes("/src/v2/daw/vendor/NAMRackDesignPort") ||
+            normalizedId.includes("/src/v2/daw/vendor/NAMRackStage.css") ||
+            normalizedId.includes("/src/v2/daw/vendor/NAMRackHardware.css") ||
+            normalizedId.includes("/src/v2/daw/vendor/NAMRackHeader.css") ||
+            normalizedId.includes("/src/v2/daw/vendor/NAMRackFooter.css") ||
+            normalizedId.includes("/src/v2/daw/vendor/NAMDesignAssets") ||
+            normalizedId.includes("/src/v2/daw/vendor/namRackFaceplateGeometry") ||
+            normalizedId.includes("/src/v2/daw/vendor/NAMToneCapturePicker")
+          ) {
+            return "nam-design-port";
+          }
+
+          // Studio Paper live stages: the vendored OpenStudio UI, the Lite
+          // forks, and daw.css load once and are shared by every stage chunk.
+          if (
+            normalizedId.includes("/src/v2/daw/vendor/") ||
+            normalizedId.includes("/src/v2/daw/stage/") ||
+            normalizedId.includes("/src/styles/daw.css") ||
+            /\/src\/v2\/daw\/[^/]+Lite\.tsx$/.test(normalizedId) ||
+            normalizedId.includes("/src/v2/daw/ArrangementLanes.tsx") ||
+            normalizedId.includes("/src/v2/daw/DawButton.tsx")
+          ) {
+            return "daw-core";
+          }
+
           if (normalizedId.includes("/node_modules/lenis/")) {
             return "lenis-vendor";
           }

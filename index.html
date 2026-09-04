@@ -4,6 +4,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>document.documentElement.classList.add("js");</script>
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="/assets/openstudio/fonts/google/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPbF4Cw.woff2"
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="/assets/openstudio/fonts/google/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2"
+    />
+    <link
+      rel="stylesheet"
+      href="/assets/openstudio/fonts/google-fonts-20260815.css"
+      data-openstudio-fonts="true"
+    />
     <style id="openstudio-instant-loader-style">
       html,
       body {
@@ -16,7 +35,7 @@
 
       #openstudio-instant-loader {
         --os-loader-backdrop-exit-duration: 220ms;
-        --os-loader-panel-exit-duration: 1050ms;
+        --os-loader-panel-exit-duration: 200ms;
         --os-loader-content-opacity-exit-duration: 280ms;
         --os-loader-content-filter-exit-duration: 360ms;
         --os-loader-progress-exit-duration: 240ms;
@@ -400,14 +419,14 @@
 
         const startedAt = performance.now();
         const mobileIntro = window.matchMedia("(max-width: 767px)").matches;
-        const minimumVisibleMs = mobileIntro ? 0 : 620;
+        const minimumVisibleMs = 0;
         const fallbackMs = 9500;
         const cssFallbackMs = 6500;
         const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         const mobileAssembleMs = 160;
         const mobileRevealMs = 220;
-        const desktopAssembleMs = 900;
-        const desktopRevealMs = 1120;
+        const desktopAssembleMs = 160;
+        const desktopRevealMs = 250;
         const revealMs = reduceMotion
           ? mobileIntro
             ? 120
@@ -660,19 +679,6 @@
         });
         requestAnimationFrame(markCssIfReady);
         window.setTimeout(setCssReady, cssFallbackMs);
-
-        const loadFonts = () => {
-          if (document.querySelector("link[data-openstudio-fonts]")) return;
-
-          const fontStylesheet = document.createElement("link");
-          fontStylesheet.rel = "stylesheet";
-          fontStylesheet.href =
-            "/assets/openstudio/fonts/google-fonts-20260815.css";
-          fontStylesheet.dataset.openstudioFonts = "true";
-
-          document.head.append(fontStylesheet);
-        };
-        requestAnimationFrame(() => requestAnimationFrame(loadFonts));
 
         function reveal() {
           if (hidden) return;

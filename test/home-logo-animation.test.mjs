@@ -116,7 +116,7 @@ test("homepage logo animation is viewport-driven and replayable", () => {
 test("html-first loader appears before react and owns the split reveal", () => {
   assert.match(
     indexHtml,
-    /fontStylesheet\.href =\s*"\/assets\/openstudio\/fonts\/google-fonts-20260815\.css"/,
+    /<link[^>]*rel="stylesheet"[^>]*href="\/assets\/openstudio\/fonts\/google-fonts-20260815\.css"[^>]*data-openstudio-fonts/s,
   );
   assert.doesNotMatch(indexHtml, /fonts\.(?:googleapis|gstatic)\.com/);
   assert.match(
@@ -163,7 +163,7 @@ test("mobile intro keeps the branded sequence while revealing within 400ms of re
   const mobileRevealMs = inlineTiming("mobileRevealMs");
 
   assert.match(indexHtml, /const mobileIntro = window\.matchMedia\("\(max-width: 767px\)"\)\.matches/);
-  assert.match(indexHtml, /const minimumVisibleMs = mobileIntro \? 0 : 620/);
+  assert.match(indexHtml, /const minimumVisibleMs = 0/);
   assert.equal(mobileAssembleMs, 160);
   assert.equal(mobileRevealMs, 220);
   assert.equal(mobileAssembleMs + mobileRevealMs, 380);
@@ -183,9 +183,21 @@ test("mobile intro keeps the branded sequence while revealing within 400ms of re
   );
 });
 
-test("desktop and reduced-motion intro timings retain their existing behavior", () => {
-  assert.equal(inlineTiming("desktopAssembleMs"), 900);
-  assert.equal(inlineTiming("desktopRevealMs"), 1120);
+test("desktop intro exits fast with no enforced minimum, and reduced-motion stays instant", () => {
+  const desktopAssembleMs = inlineTiming("desktopAssembleMs");
+  const desktopRevealMs = inlineTiming("desktopRevealMs");
+
+  assert.equal(desktopAssembleMs, 160);
+  assert.equal(desktopRevealMs, 250);
+  assert.ok(
+    desktopAssembleMs + desktopRevealMs <= 420,
+    "the desktop exit must stay within the capped budget",
+  );
+  assert.match(
+    indexHtml,
+    /--os-loader-panel-exit-duration: 200ms;/,
+  );
+  assert.ok(200 < desktopRevealMs, "the split-panel transition must finish before removal");
   assert.match(
     indexHtml,
     /@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\.os-instant-loader__panel,[\s\S]*?transition-duration: 120ms;/,
