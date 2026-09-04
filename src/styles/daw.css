@@ -14,6 +14,11 @@
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Upstream renders in Segoe UI, which sits ~8% narrower than Inter at the
+     same pixel size. Tightening tracking keeps the 7–10px chip labels inside
+     the boxes the upstream layout sized for them. */
+  letter-spacing: -0.02em;
   user-select: none;
 }
 
