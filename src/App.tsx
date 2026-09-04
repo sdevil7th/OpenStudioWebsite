@@ -36,12 +36,14 @@ const loadV2NamRackPage = () => preloadModuleOnce("route:v2-nam-rack", () => imp
 const loadV2AiPage = () => preloadModuleOnce("route:v2-ai", () => import("@/v2/pages/V2AiPage"));
 const loadV2DownloadPage = () => preloadModuleOnce("route:v2-download", () => import("@/v2/pages/V2DownloadPage"));
 const loadV2DocsPage = () => preloadModuleOnce("route:v2-docs", () => import("@/v2/pages/V2DocsPage"));
-const loadV2DocsGettingStartedPage = () =>
-  preloadModuleOnce("route:v2-docs-getting-started", () => import("@/v2/pages/V2DocsGettingStartedPage"));
+const loadV2DocPage = () => preloadModuleOnce("route:v2-doc", () => import("@/v2/pages/V2DocPage"));
 const loadV2ComparePage = () => preloadModuleOnce("route:v2-compare", () => import("@/v2/pages/V2ComparePage"));
 const loadV2CommunityPage = () => preloadModuleOnce("route:v2-community", () => import("@/v2/pages/V2CommunityPage"));
 const loadV2BlogPage = () => preloadModuleOnce("route:v2-blog", () => import("@/v2/pages/V2BlogPage"));
 const loadV2ReleasesPage = () => preloadModuleOnce("route:v2-releases", () => import("@/v2/pages/V2ReleasesPage"));
+const loadV2BlogPostPage = () => preloadModuleOnce("route:v2-blog-post", () => import("@/v2/pages/V2BlogPostPage"));
+const loadV2RoadmapPage = () => preloadModuleOnce("route:v2-roadmap", () => import("@/v2/pages/V2RoadmapPage"));
+const loadV2LegalPage = () => preloadModuleOnce("route:v2-legal", () => import("@/v2/pages/V2LegalPage"));
 
 const ContactPage = lazy(loadContactPage);
 const BlogPostPage = lazy(loadBlogPostPage);
@@ -65,11 +67,14 @@ const V2NamRackPage = lazy(loadV2NamRackPage);
 const V2AiPage = lazy(loadV2AiPage);
 const V2DownloadPage = lazy(loadV2DownloadPage);
 const V2DocsPage = lazy(loadV2DocsPage);
-const V2DocsGettingStartedPage = lazy(loadV2DocsGettingStartedPage);
+const V2DocPage = lazy(loadV2DocPage);
 const V2ComparePage = lazy(loadV2ComparePage);
 const V2CommunityPage = lazy(loadV2CommunityPage);
 const V2BlogPage = lazy(loadV2BlogPage);
 const V2ReleasesPage = lazy(loadV2ReleasesPage);
+const V2BlogPostPage = lazy(loadV2BlogPostPage);
+const V2RoadmapPage = lazy(loadV2RoadmapPage);
+const V2LegalPage = lazy(loadV2LegalPage);
 
 const markPerformance = (name: string) => {
   try {
@@ -192,11 +197,17 @@ const App = () => (
         <Route path="ai" element={withRouteFallback(<V2AiPage />)} />
         <Route path="download" element={withRouteFallback(<V2DownloadPage />)} />
         <Route path="docs" element={withRouteFallback(<V2DocsPage />)} />
-        <Route path="docs/getting-started" element={withRouteFallback(<V2DocsGettingStartedPage />)} />
+        <Route path="docs/:slug" element={withRouteFallback(<V2DocPage />)} />
         <Route path="compare" element={withRouteFallback(<V2ComparePage />)} />
         <Route path="community" element={withRouteFallback(<V2CommunityPage />)} />
         <Route path="blog" element={withRouteFallback(<V2BlogPage />)} />
+        <Route path="blog/:slug" element={withRouteFallback(<V2BlogPostPage />)} />
         <Route path="releases" element={withRouteFallback(<V2ReleasesPage />)} />
+        <Route path="roadmap" element={withRouteFallback(<V2RoadmapPage />)} />
+        <Route path="privacy" element={withRouteFallback(<V2LegalPage kind="privacy" />)} />
+        <Route path="terms" element={withRouteFallback(<V2LegalPage kind="terms" />)} />
+        <Route path="security" element={withRouteFallback(<V2LegalPage kind="security" />)} />
+        <Route path="*" element={<Navigate to="/v2" replace />} />
       </Route>
       <Route element={<SiteShell />}>
         <Route path="/" element={withRouteFallback(<HomePage />)} />

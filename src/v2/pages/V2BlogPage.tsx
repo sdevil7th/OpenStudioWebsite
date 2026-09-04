@@ -1,11 +1,12 @@
 import { Book } from "lucide-react";
 import PageSeo from "@/components/PageSeo";
-import { blogPosts, getBlogPostUrl, type BlogPostSummary } from "@/data/blogs";
-import { V2_PATHS } from "../content";
+import { blogPosts, type BlogPostSummary } from "@/data/blogs";
+import { V2_PATHS, blogPostPath } from "../content";
+import { formatDate } from "../format";
 import { ArrowLink, Eyebrow } from "../primitives";
 import { useSpReveal } from "../useSpReveal";
 
-const CATEGORY_BY_SLUG: Record<string, string> = {
+export const CATEGORY_BY_SLUG: Record<string, string> = {
   "build-guitar-tones-with-openstudio-nam-rack": "NAM Rack",
   "building-openstudio-nam-rack": "Engineering",
   "ace-step-diffusers-almost-3x-faster": "AI",
@@ -14,13 +15,7 @@ const CATEGORY_BY_SLUG: Record<string, string> = {
   "ara2-hosting-challenges-blog": "Plugins",
 };
 
-const shortDate = (post: BlogPostSummary) => {
-  if (!post.date) return "—";
-  const parsed = new Date(`${post.date}T00:00:00Z`);
-  return parsed.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" });
-};
-
-const category = (post: BlogPostSummary) => CATEGORY_BY_SLUG[post.slug] ?? "Engineering";
+export const categoryOf = (post: BlogPostSummary) => CATEGORY_BY_SLUG[post.slug] ?? "Engineering";
 
 const V2BlogPage = () => {
   const [featured, ...rest] = blogPosts;
@@ -71,7 +66,7 @@ const V2BlogPage = () => {
                   Latest
                 </span>
                 <div className="sp-mono">
-                  {category(featured)} · {shortDate(featured)}
+                  {categoryOf(featured)} · {formatDate(featured.date) ?? "—"} · {featured.readTimeMinutes} min read
                 </div>
               </div>
               <h2 className="sp-h2" style={{ fontSize: 30, lineHeight: 1.15, marginBottom: 12 }}>
@@ -81,7 +76,7 @@ const V2BlogPage = () => {
                 {featured.summary}
               </p>
               <span>
-                <ArrowLink to={getBlogPostUrl(featured)}>Read the post</ArrowLink>
+                <ArrowLink to={blogPostPath(featured.slug)}>Read the post</ArrowLink>
               </span>
             </div>
           </div>
@@ -89,7 +84,7 @@ const V2BlogPage = () => {
       ) : null}
 
       {/* Remaining posts */}
-      <div className="sp-container" style={{ padding: "34px 34px 62px" }}>
+      <div className="sp-container" style={{ paddingTop: 34, paddingBottom: 62 }}>
         <div className="sp-grid-3" data-sp-reveal="stagger">
           {rest.map((post) => (
             <div key={post.slug} className="sp-card sp-card--interactive" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
@@ -102,10 +97,12 @@ const V2BlogPage = () => {
                 />
               ) : null}
               <div style={{ padding: "20px 22px 22px", display: "flex", flexDirection: "column", gap: 9, flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div className="sp-mono">{category(post)}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <div className="sp-mono">{categoryOf(post)}</div>
                   <span style={{ color: "var(--sp-hairline)" }}>·</span>
-                  <div className="sp-mono">{shortDate(post)}</div>
+                  <div className="sp-mono">{formatDate(post.date) ?? "—"}</div>
+                  <span style={{ color: "var(--sp-hairline)" }}>·</span>
+                  <div className="sp-mono">{post.readTimeMinutes} min</div>
                 </div>
                 <div style={{ font: "700 17px/1.28 'Space Grotesk', sans-serif", letterSpacing: "-0.02em" }}>
                   {post.title}
@@ -114,7 +111,7 @@ const V2BlogPage = () => {
                   {post.summary}
                 </p>
                 <span>
-                  <ArrowLink to={getBlogPostUrl(post)}>Read</ArrowLink>
+                  <ArrowLink to={blogPostPath(post.slug)}>Read</ArrowLink>
                 </span>
               </div>
             </div>

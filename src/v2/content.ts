@@ -1,6 +1,9 @@
 // Shared constants for the Studio Paper (v2) preview subtree.
-// Version / size / date figures are deliberate placeholders — the comps ship
-// with mono placeholders until real release numbers are wired in.
+// Version / size / date figures come from `useReleaseInfo` (release manifest →
+// GitHub → refreshed fallback), never from hand-typed placeholders.
+
+import { projectEmails } from "@/data/siteLinks";
+import { githubFallbackSnapshot } from "@/lib/github";
 
 export const V2_PATHS = {
   home: "/v2",
@@ -14,12 +17,40 @@ export const V2_PATHS = {
   community: "/v2/community",
   blog: "/v2/blog",
   releases: "/v2/releases",
+  roadmap: "/v2/roadmap",
+  privacy: "/v2/privacy",
+  terms: "/v2/terms",
+  security: "/v2/security",
 } as const;
 
-export const VERSION_LABEL = "v0.x.x";
-export const SIZE_LABEL = "00 MB";
-export const VERSION_META = `${VERSION_LABEL} · ${SIZE_LABEL}`;
-export const BUILT_LABEL = "built 00 Aug 2026";
+export const docPath = (slug: string) => `${V2_PATHS.docs}/${slug}`;
+export const blogPostPath = (slug: string) => `${V2_PATHS.blog}/${slug}`;
+
+const REPO_URL = githubFallbackSnapshot.repositoryUrl;
+
+/** Every outbound GitHub destination the preview links to, so nothing points at the repo root by accident. */
+export const REPO = {
+  url: REPO_URL,
+  issues: `${REPO_URL}/issues`,
+  newIssue: `${REPO_URL}/issues/new/choose`,
+  goodFirstIssues: `${REPO_URL}/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22`,
+  pulls: `${REPO_URL}/pulls`,
+  releases: `${REPO_URL}/releases`,
+  license: `${REPO_URL}/blob/main/LICENSE`,
+  docs: `${REPO_URL}/tree/main/docs`,
+  manual: `${REPO_URL}/blob/main/docs/USER_MANUAL.md`,
+  namRackDoc: `${REPO_URL}/blob/main/docs/nam-rack.md`,
+  roadmapDoc: `${REPO_URL}/blob/main/docs/roadmap.md`,
+  apiDoc: `${REPO_URL}/blob/main/docs/API.md`,
+  inputProfilesDoc: `${REPO_URL}/blob/main/docs/input-profiles.md`,
+  runtimeContractDoc: `${REPO_URL}/blob/main/docs/runtime-dependency-contract.md`,
+  implementedFeatures: `${REPO_URL}/blob/main/docs/implemented_features.md`,
+  readme: `${REPO_URL}#readme`,
+} as const;
+
+export const CONTACT_EMAIL = projectEmails.contact;
+export const SUPPORT_EMAIL = projectEmails.support;
+export const TONE3000_URL = "https://www.tone3000.com";
 
 const SCREENSHOTS = "/assets/openstudio/screenshots";
 const BLOG_ASSETS = "/assets/blogs";
@@ -29,7 +60,10 @@ export const SHOTS = {
   recordingSession: `${SCREENSHOTS}/recording-session.webp`,
   pianoRoll: `${SCREENSHOTS}/piano-roll.webp`,
   mixerMeters: `${SCREENSHOTS}/mixer-meters.webp`,
+  channelStrip: `${SCREENSHOTS}/channel-strip-closeup.webp`,
+  automationLanes: `${SCREENSHOTS}/automation-lanes.webp`,
   pluginHosting: `${SCREENSHOTS}/plugin-hosting-1.webp`,
+  pluginHosting2: `${SCREENSHOTS}/plugin-hosting-2.webp`,
   pitchEditor: `${SCREENSHOTS}/pitch-editor.webp`,
   fxChainBrowser: `${SCREENSHOTS}/fx-chain-browser.webp`,
   exportDialog: `${SCREENSHOTS}/export-dialog.webp`,
@@ -43,6 +77,7 @@ export const SHOTS = {
   namRackPostFx: `${BLOG_ASSETS}/nam-rack-post-fx.webp`,
   namRackPresetLibrary: `${BLOG_ASSETS}/nam-rack-preset-library.webp`,
   namRackSignalChain: `${BLOG_ASSETS}/nam-rack-signal-chain.webp`,
+  aceStep: `${BLOG_ASSETS}/ace-step-diffusers-almost-3x-faster.webp`,
 } as const;
 
 export const VISMAY_MARK = "/assets/openstudio/branding/vismay-mark.png";

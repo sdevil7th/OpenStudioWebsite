@@ -38,6 +38,8 @@ export interface GithubReleaseSummary {
   isPrerelease: boolean;
   assetCount: number;
   assets: GithubReleaseAssetSummary[];
+  /** Release notes body (GitHub-flavoured markdown). Absent on older cached snapshots. */
+  body?: string;
 }
 
 export interface GithubRepoSnapshot {
@@ -59,6 +61,10 @@ export interface GithubRepoSnapshot {
   contributors: GithubContributorSummary[];
   latestRelease: GithubReleaseSummary | null;
   hasPublishedReleases: boolean;
+  /** Every published (non-draft) release, newest first, including runtime tags. */
+  releases?: GithubReleaseSummary[];
+  /** Count of published desktop app releases (tags starting with `v`). */
+  releaseCount?: number;
   stats: GithubRepoStats;
 }
 
@@ -102,6 +108,7 @@ interface GithubReleaseResponse {
   published_at: string | null;
   draft: boolean;
   prerelease: boolean;
+  body?: string | null;
   assets: Array<{
     name: string;
     size: number;
@@ -198,30 +205,6 @@ const normalizeLanguages = (languages: Record<string, number>) => {
     }));
 };
 
-const normalizeLatestRelease = (releases: GithubReleaseResponse[]): GithubReleaseSummary | null => {
-  const release = releases.find((entry) => !entry.draft && Boolean(entry.published_at));
-
-  if (!release || !release.published_at) {
-    return null;
-  }
-
-  return {
-    id: release.id,
-    tagName: release.tag_name,
-    name: release.name ?? release.tag_name,
-    htmlUrl: release.html_url,
-    publishedAt: release.published_at,
-    isPrerelease: release.prerelease,
-    assetCount: release.assets.length,
-    assets: release.assets.map((asset) => ({
-      name: asset.name,
-      size: asset.size,
-      downloadUrl: asset.browser_download_url,
-      downloadCount: asset.download_count,
-    })),
-  };
-};
-
 const normalizeRelease = (release: GithubReleaseResponse): GithubReleaseSummary | null => {
   if (!release.published_at || release.draft) {
     return null;
@@ -241,8 +224,19 @@ const normalizeRelease = (release: GithubReleaseResponse): GithubReleaseSummary 
       downloadUrl: asset.browser_download_url,
       downloadCount: asset.download_count,
     })),
+    ...(release.body ? { body: release.body } : {}),
   };
 };
+
+/** Desktop app releases are tagged `vX.Y.Z`; runtime tags (`ai-runtime-*`, `ffmpeg-runtime-*`) are not. */
+export const isDesktopAppRelease = (release: Pick<GithubReleaseSummary, "tagName">) =>
+  /^v\d/.test(release.tagName);
+
+const normalizeReleases = (releases: GithubReleaseResponse[]): GithubReleaseSummary[] =>
+  releases
+    .map(normalizeRelease)
+    .filter((release): release is GithubReleaseSummary => release !== null)
+    .sort((left, right) => right.publishedAt.localeCompare(left.publishedAt));
 
 const scoreReleaseAsset = (assetName: string, platform: GithubPlatform) => {
   const name = assetName.toLowerCase();
@@ -311,11 +305,12 @@ export const fetchGithubRepoSnapshot = async (token?: string): Promise<GithubRep
     fetchGithubJson<GithubRepoResponse>(GITHUB_API_BASE, token),
     fetchGithubJson<GithubContributorResponse[]>(`${GITHUB_API_BASE}/contributors?per_page=8`, token),
     fetchGithubJson<Record<string, number>>(`${GITHUB_API_BASE}/languages`, token),
-    fetchGithubJson<GithubReleaseResponse[]>(`${GITHUB_API_BASE}/releases?per_page=8`, token),
+    fetchGithubJson<GithubReleaseResponse[]>(`${GITHUB_API_BASE}/releases?per_page=100`, token),
     parseCommitCount(token),
   ]);
 
-  const latestRelease = normalizeLatestRelease(releasesResult.data);
+  const releases = normalizeReleases(releasesResult.data);
+  const latestRelease = releases.find(isDesktopAppRelease) ?? releases[0] ?? null;
   const contributors = contributorsResult.data.map((contributor) => ({
     login: contributor.login,
     avatarUrl: contributor.avatar_url,
@@ -342,6 +337,8 @@ export const fetchGithubRepoSnapshot = async (token?: string): Promise<GithubRep
     contributors,
     latestRelease,
     hasPublishedReleases: latestRelease !== null,
+    releases,
+    releaseCount: releases.filter(isDesktopAppRelease).length,
     stats: {
       stars: repoResult.data.stargazers_count,
       forks: repoResult.data.forks_count,

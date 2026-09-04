@@ -1,7 +1,12 @@
 import type { ComponentType, CSSProperties, PointerEvent, ReactNode } from "react";
-import { ArrowRight, ShieldCheck, TriangleAlert, type LucideProps } from "lucide-react";
+import { Fragment } from "react";
+import { ArrowRight, Download, Info, ShieldCheck, TriangleAlert, type LucideProps } from "lucide-react";
 import { Link } from "react-router-dom";
 
+import { V2_PATHS } from "./content";
+import { formatBytes } from "./format";
+import { PLATFORMS, usePlatform } from "./usePlatform";
+import { useReleaseInfo } from "./useReleaseInfo";
 import type { SpReveal } from "./useSpReveal";
 
 export const ICON_GRADIENT_ID = "sp-icon-grad";
@@ -194,3 +199,122 @@ export const HonestCallout = ({ children }: { children: ReactNode }) => (
     </p>
   </div>
 );
+
+/* ---------- inline markup ----------
+ * Docs, release notes, and a few page strings carry a three-token vocabulary:
+ * **bold**, `code`, and [label](url). Anything else is plain text.
+ */
+
+const INLINE_TOKEN = /(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)\s]+\))/g;
+
+const isInternalHref = (href: string) => href.startsWith("/") && !href.startsWith("//");
+
+/** Anchor that stays inside the router for v2 paths and opens a new tab for external URLs. */
+export const SmartLink = ({ href, children, className }: { href: string; children: ReactNode; className?: string }) => {
+  if (isInternalHref(href)) {
+    return (
+      <Link className={className} to={href}>
+        {children}
+      </Link>
+    );
+  }
+
+  if (href.startsWith("#")) {
+    return (
+      <a className={className} href={href}>
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <a className={className} href={href} rel="noreferrer" target="_blank">
+      {children}
+    </a>
+  );
+};
+
+export const renderInline = (text: string): ReactNode => {
+  const parts = text.split(INLINE_TOKEN);
+
+  return parts.map((part, index) => {
+    if (index % 2 === 0) {
+      return <Fragment key={index}>{part}</Fragment>;
+    }
+
+    if (part.startsWith("**")) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+
+    if (part.startsWith("`")) {
+      return (
+        <code key={index} className="sp-inline-code">
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+
+    const match = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (match) {
+      return (
+        <SmartLink key={index} className="sp-text-link" href={match[2]}>
+          {match[1]}
+        </SmartLink>
+      );
+    }
+
+    return <Fragment key={index}>{part}</Fragment>;
+  });
+};
+
+export const NoteCallout = ({ children, label }: { children: ReactNode; label: string }) => (
+  <div className="sp-callout-honest">
+    <div className="sp-callout-label" style={{ color: "var(--sp-accent)" }}>
+      <Info aria-hidden="true" size={13} strokeWidth={1.8} />
+      {label}
+    </div>
+    <p className="sp-body" style={{ fontSize: 13.5, lineHeight: 1.7 }}>
+      {children}
+    </p>
+  </div>
+);
+
+/* ---------- OS-aware download button ----------
+ * Detects the visitor's desktop OS and names that build. On phones and
+ * unknown platforms it degrades to a neutral "Download" that opens the
+ * download page. `direct` links straight to the stable redirect for the
+ * detected OS (used on the download page itself); otherwise the button goes
+ * to the download page, where the unsigned-build notes live.
+ */
+export const DownloadCta = ({
+  variant = "primary",
+  direct = false,
+  withSize = false,
+  className = "",
+}: {
+  variant?: CtaProps["variant"];
+  direct?: boolean;
+  withSize?: boolean;
+  className?: string;
+}) => {
+  const platform = usePlatform();
+  const release = useReleaseInfo();
+  const info = platform ? PLATFORMS[platform] : null;
+  const size = platform && withSize ? formatBytes(release?.platforms[platform].size) : null;
+  const label = info ? `Download for ${info.label}` : "Download";
+  const text = size ? `${label} · ${size}` : label;
+
+  if (direct && info) {
+    return (
+      <Cta className={className} href={info.href} icon={Download} variant={variant}>
+        {text}
+      </Cta>
+    );
+  }
+
+  return (
+    <Cta className={className} icon={Download} to={V2_PATHS.download} variant={variant}>
+      {text}
+    </Cta>
+  );
+};
