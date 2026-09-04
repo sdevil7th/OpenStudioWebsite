@@ -10,7 +10,7 @@ export interface StageProps {
   className?: string;
 }
 
-export type StageId = "arrangement" | "mixer" | "piano-roll" | "render-dialog" | "nam-chain" | "plugin-window" | "nam-rack";
+export type StageId = "arrangement" | "mixer" | "piano-roll" | "render-dialog" | "nam-chain" | "plugin-window" | "nam-rack" | "pitch-editor";
 
 // One lazy chunk per stage. The test walks this map, so every entry must
 // point at an existing src/v2/daw/stages/<Name>.tsx default export.
@@ -22,6 +22,7 @@ const STAGE_LOADERS: Record<StageId, () => Promise<{ default: ComponentType<Stag
   "nam-chain": () => import("../stages/NamChainStage"),
   "plugin-window": () => import("../stages/PluginWindowStage"),
   "nam-rack": () => import("../stages/NamRackStage"),
+  "pitch-editor": () => import("../stages/PitchEditorStage"),
 };
 
 const STAGES = Object.fromEntries(

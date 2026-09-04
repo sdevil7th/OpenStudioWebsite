@@ -90,6 +90,7 @@ const SLIDES: Slide[] = [
     alt: "The graphical pitch editor",
     linkLabel: "Pitch editing in the docs",
     to: docPath("pitch-editing"),
+    stage: { id: "pitch-editor" },
   },
   {
     id: "plugins",

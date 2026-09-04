@@ -62,6 +62,7 @@ const FEATURE_CARDS = [
   },
   {
     id: "pitch",
+    stage: { id: "pitch-editor" as StageId },
     icon: AudioWaveform,
     title: "Graphical pitch editing",
     copy: "Note-level editing with a contour and blobs, scale and chromatic snapping, offline correction on the take, and a real-time corrector effect.",
