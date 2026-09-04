@@ -1,6 +1,7 @@
 import { AudioWaveform, Book, Cpu, Download, Music, Scissors, Sparkles, Wand2 } from "lucide-react";
 import PageSeo from "@/components/PageSeo";
 import { SHOTS, V2_PATHS, blogPostPath, docPath } from "../content";
+import { LiveStage } from "../daw/stage/LiveStage";
 import { ArrowLink, Cta, DownloadCta, Eyebrow, Frame, GradIcon, HonestCallout, Kicker, renderInline } from "../primitives";
 import { useSpReveal } from "../useSpReveal";
 
@@ -133,7 +134,9 @@ const V2AiPage = () => {
       {/* Stem separation */}
       <div className="sp-container" id="stem-separation" style={{ paddingTop: 64 }}>
         <div className="sp-row" style={{ gridTemplateColumns: "1.1fr .9fr" }}>
-          <Frame alt="Separated stems as tracks in the arrangement" reveal="media-left" src={SHOTS.arrangementOverviewWide} />
+          <Frame reveal="media-left">
+            <LiveStage alt="Separated stems as tracks in the arrangement" id="arrangement" poster={SHOTS.arrangementOverviewWide} variant="stems" />
+          </Frame>
           <div data-sp-reveal="rise">
             <Kicker>Stem separation · BS Roformer</Kicker>
             <h2 className="sp-h2" style={{ fontSize: 30 }}>

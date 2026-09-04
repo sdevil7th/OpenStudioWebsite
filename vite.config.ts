@@ -297,6 +297,19 @@ export default defineConfig({
             return "gsap-vendor";
           }
 
+          // Studio Paper live stages: the vendored OpenStudio UI, the Lite
+          // forks, and daw.css load once and are shared by every stage chunk.
+          if (
+            normalizedId.includes("/src/v2/daw/vendor/") ||
+            normalizedId.includes("/src/v2/daw/stage/") ||
+            normalizedId.includes("/src/styles/daw.css") ||
+            /\/src\/v2\/daw\/[^/]+Lite\.tsx$/.test(normalizedId) ||
+            normalizedId.includes("/src/v2/daw/ArrangementLanes.tsx") ||
+            normalizedId.includes("/src/v2/daw/DawButton.tsx")
+          ) {
+            return "daw-core";
+          }
+
           if (normalizedId.includes("/node_modules/lenis/")) {
             return "lenis-vendor";
           }

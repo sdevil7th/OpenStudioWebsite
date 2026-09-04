@@ -23,6 +23,7 @@ import { useGithubRepoSnapshot } from "@/hooks/useGithubRepoSnapshot";
 import { REPO, SHOTS, V2_PATHS, docPath } from "../content";
 import { formatBytes, formatCount, formatDate } from "../format";
 import { ArrowLink, Cta, DownloadCta, Eyebrow, Frame, GradIcon, Kicker } from "../primitives";
+import { LiveStage, preloadStage, type StageId } from "../daw/stage/LiveStage";
 import { useFooterLead } from "../shellContext";
 import { orderPlatforms, usePlatform } from "../usePlatform";
 import { useReleaseInfo } from "../useReleaseInfo";
@@ -44,6 +45,8 @@ interface Slide {
   alt: string;
   linkLabel: string;
   to: string;
+  /** Live stage that replaces the screenshot once loaded. */
+  stage?: { id: StageId; variant?: string };
 }
 
 const SLIDES: Slide[] = [
@@ -59,6 +62,7 @@ const SLIDES: Slide[] = [
     alt: "Separated stems arriving as tracks in the arrangement",
     linkLabel: "How the AI tools work",
     to: V2_PATHS.ai,
+    stage: { id: "arrangement", variant: "stems" },
   },
   {
     id: "nam",
@@ -120,6 +124,14 @@ const Showcase = () => {
     const timer = window.setInterval(() => setIndex((value) => (value + 1) % SLIDES.length), SLIDE_INTERVAL);
     return () => window.clearInterval(timer);
   }, [playing, index]);
+
+  // Warm the next slide's stage chunk so the auto-advance never shows a poster.
+  useEffect(() => {
+    const next = SLIDES[(index + 1) % SLIDES.length].stage;
+    if (!next) return;
+    const idle = window.requestIdleCallback?.(() => void preloadStage(next.id)) ?? window.setTimeout(() => void preloadStage(next.id), 800);
+    return () => (window.cancelIdleCallback ? window.cancelIdleCallback(idle) : window.clearTimeout(idle));
+  }, [index]);
 
   // Stop the clock while the band is off screen so a long page never spins it for nothing.
   useEffect(() => {
@@ -197,7 +209,11 @@ const Showcase = () => {
       </div>
       <div>
         <div className="sp-card sp-card--dark sp-showcase__media">
-          <img key={slide.id} alt={slide.alt} loading="lazy" src={slide.shot} />
+          {slide.stage ? (
+            <LiveStage key={slide.id} alt={slide.alt} eager id={slide.stage.id} poster={slide.shot} priority={1} variant={slide.stage.variant} />
+          ) : (
+            <img key={slide.id} alt={slide.alt} loading="lazy" src={slide.shot} />
+          )}
         </div>
         <div className="sp-showcase__controls">
           {SLIDES.map((entry, slideIndex) => (
@@ -237,6 +253,7 @@ const SESSION_ROWS = [
     alt: "Recording session",
     imageFirst: false,
     to: docPath("recording-and-editing"),
+    stage: { id: "arrangement" as StageId, variant: "recording" },
   },
   {
     number: "02",
@@ -247,6 +264,7 @@ const SESSION_ROWS = [
     alt: "Piano roll",
     imageFirst: true,
     to: docPath("midi-and-piano-roll"),
+    stage: { id: "piano-roll" as StageId },
   },
   {
     number: "03",
@@ -257,6 +275,7 @@ const SESSION_ROWS = [
     alt: "Mixer",
     imageFirst: false,
     to: docPath("mixing-and-routing"),
+    stage: { id: "mixer" as StageId },
   },
   {
     number: "04",
@@ -267,6 +286,7 @@ const SESSION_ROWS = [
     alt: "Render dialog",
     imageFirst: true,
     to: docPath("rendering-and-export"),
+    stage: { id: "render-dialog" as StageId },
   },
 ];
 
@@ -468,7 +488,9 @@ const V2HomePage = () => {
               </div>
             );
             const imageBlock = (
-              <Frame key="image" alt={row.alt} reveal={row.imageFirst ? "media-left" : "media-right"} src={row.shot} />
+              <Frame key="image" reveal={row.imageFirst ? "media-left" : "media-right"}>
+                <LiveStage alt={row.alt} id={row.stage.id} poster={row.shot} variant={row.stage.variant} />
+              </Frame>
             );
 
             return (

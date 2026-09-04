@@ -2112,3 +2112,70 @@
     scrollbar-color: rgba(80, 0, 255, 0.25) transparent;
   }
 }
+
+/* ---------- live stages ----------
+ * A screenshot that becomes a live DAW stage (src/v2/daw/stage/LiveStage.tsx).
+ * The wrapper reserves the stage's design aspect so the swap never shifts
+ * layout; the poster stays on top until the stage has mounted.
+ */
+.sp-live-stage {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #121212;
+  border-radius: inherit;
+}
+
+.sp-live-stage__poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top left;
+  display: block;
+  transition: opacity 360ms var(--sp-ease);
+}
+
+.sp-live-stage[data-live="true"] .sp-live-stage__poster {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sp-live-stage > .daw-session {
+  position: absolute;
+  inset: 0;
+}
+
+/* inside a Frame the stage takes the image's slot and radius */
+.sp-frame__live .sp-live-stage {
+  border-radius: 8px;
+}
+
+.sp-frame--hero .sp-frame__live .sp-live-stage {
+  border-radius: 12px 12px 0 0;
+}
+
+/* showcase: the stage enters like the image it replaced */
+.sp-showcase__media .sp-live-stage {
+  animation: sp-showcase-in 520ms var(--sp-ease) both;
+}
+
+/* features cards: the media tile keeps its 16:9 crop and top radius */
+.sp-feature-card__media {
+  border-radius: 10px 10px 0 0;
+}
+
+.sp-feature-card__media .sp-live-stage__poster {
+  border-radius: 10px 10px 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-showcase__media .sp-live-stage {
+    animation: none;
+  }
+
+  .sp-live-stage__poster {
+    transition: none;
+  }
+}

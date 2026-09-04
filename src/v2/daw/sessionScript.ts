@@ -1,5 +1,6 @@
+import type { StageTimelineSpec } from "./stage/useStageTimeline";
 import type { BuiltInParamDescriptor } from "./vendor/stubs/nativeBridgeTypes";
-import type { SessionState, TrackState } from "./types";
+import type { SessionState, TrackState, Transport } from "./types";
 
 /* ---------------------------------------------------------------------------
  * Static session data: what the hero "project" contains.
@@ -121,12 +122,12 @@ export const staticState = (): SessionState => {
  * noise.
  * ------------------------------------------------------------------------- */
 
-const fract = (value: number) => value - Math.floor(value);
+export const fract = (value: number) => value - Math.floor(value);
 const hash = (value: number) => fract(Math.sin(value * 12.9898 + 78.233) * 43758.5453);
 const smooth = (t: number) => t * t * (3 - 2 * t);
 
 /** Smooth value noise in 0..1, `rate` samples per second, `seed` per track. */
-const noise = (time: number, rate: number, seed: number) => {
+export const noise = (time: number, rate: number, seed: number) => {
   const x = time * rate + seed * 17.31;
   const i = Math.floor(x);
   const a = hash(i);
@@ -134,14 +135,14 @@ const noise = (time: number, rate: number, seed: number) => {
   return a + (b - a) * smooth(x - i);
 };
 
-const beatPhase = (time: number) => fract(time * (TEMPO / 60));
-const beatIndex = (time: number) => Math.floor(time * (TEMPO / 60));
-const hit = (phase: number, decay: number) => Math.pow(1 - phase, decay);
+export const beatPhase = (time: number, tempo = TEMPO) => fract(time * (tempo / 60));
+export const beatIndex = (time: number, tempo = TEMPO) => Math.floor(time * (tempo / 60));
+export const hit = (phase: number, decay: number) => Math.pow(1 - phase, decay);
 
 const clipActive = (index: number, time: number) =>
   TRACKS[index].clips.some((clip) => time >= clip.start && time < clip.start + clip.duration);
 
-const dbToLinear = (db: number) => Math.pow(10, db / 20);
+export const dbToLinear = (db: number) => Math.pow(10, db / 20);
 
 export const trackLevel = (index: number, time: number, transport: SessionState["transport"]): number => {
   if (transport === "stopped" || !clipActive(index, time)) return 0;
@@ -172,4 +173,100 @@ export const masterLevel = (time: number, transport: SessionState["transport"]):
   if (transport === "stopped") return 0;
   const sum = TRACKS.reduce((total, _, index) => total + trackLevel(index, time, transport) ** 2, 0);
   return Math.min(1.35, Math.sqrt(sum) * 0.62);
+};
+
+/* ---------------------------------------------------------------------------
+ * The hero choreography, expressed for `useStageTimeline`.
+ * ------------------------------------------------------------------------- */
+
+/** Total length of one pass of the choreography, in seconds. */
+export const SCRIPT_LENGTH = 16;
+
+export const SESSION_SPEC: StageTimelineSpec<SessionState> = {
+  length: SCRIPT_LENGTH,
+  initial: initialState,
+  static: staticState,
+  build: (tl, t0) => {
+    const rest = initialState();
+    const proxy = {
+      time: 0,
+      namFader: rest.tracks[2].volumeDb,
+      guitarPan: rest.tracks[1].pan,
+      drive: RACK_PARAMS[1].value,
+      tone: RACK_PARAMS[2].value,
+      gain: RACK_PARAMS[0].value,
+    };
+    const flags = { transport: "stopped" as Transport, loop: false, vocalSolo: false };
+    const stopAt = t0 + SESSION_LENGTH;
+
+    tl.call(() => {
+      flags.transport = "playing";
+    }, [], t0)
+      .to(proxy, { time: SESSION_LENGTH, duration: SESSION_LENGTH, ease: "none" }, t0)
+      // Ride the NAM Guitar fader up for the chorus.
+      .to(proxy, { namFader: 1.8, duration: 2.2 }, t0 + 1.8)
+      // Dial in the rig.
+      .to(proxy, { drive: 6.8, duration: 1.8 }, t0 + 3.4)
+      .to(proxy, { tone: 6.4, duration: 1.2 }, t0 + 4.8)
+      // Solo the vocal to check the take, then release.
+      .call(() => {
+        flags.vocalSolo = true;
+      }, [], t0 + 6.1)
+      .call(() => {
+        flags.vocalSolo = false;
+      }, [], t0 + 7.9)
+      // Pan the DI a little wider.
+      .to(proxy, { guitarPan: -0.45, duration: 1.4 }, t0 + 8.4)
+      // Loop the chorus.
+      .call(() => {
+        flags.loop = true;
+      }, [], t0 + 9.3)
+      // Stop.
+      .call(() => {
+        flags.transport = "stopped";
+      }, [], stopAt)
+      // Return to top and reset the session for the next pass.
+      .call(() => {
+        flags.loop = false;
+      }, [], stopAt + 0.8)
+      .to(
+        proxy,
+        {
+          time: 0,
+          namFader: rest.tracks[2].volumeDb,
+          guitarPan: rest.tracks[1].pan,
+          drive: RACK_PARAMS[1].value,
+          tone: RACK_PARAMS[2].value,
+          duration: 0.9,
+          ease: "power3.inOut",
+        },
+        stopAt + 0.8,
+      );
+
+    return () => {
+      const { transport } = flags;
+      const time = proxy.time;
+      const tracks = rest.tracks.map((track, index) => {
+        const soloed = index === 0 && flags.vocalSolo;
+        const silenced = flags.vocalSolo && index !== 0;
+        return {
+          ...track,
+          volumeDb: index === 2 ? proxy.namFader : track.volumeDb,
+          pan: index === 1 ? proxy.guitarPan : track.pan,
+          soloed,
+          level: silenced ? 0 : trackLevel(index, time, transport),
+        };
+      });
+      const master = flags.vocalSolo ? tracks[0].level * 0.7 : masterLevel(time, transport);
+      return {
+        ...rest,
+        time,
+        transport,
+        loop: flags.loop,
+        tracks,
+        master: { volumeDb: 0, level: master, clipping: false },
+        knobs: { ...rest.knobs, inputGain: proxy.gain, drive: proxy.drive, tone: proxy.tone },
+      };
+    };
+  },
 };

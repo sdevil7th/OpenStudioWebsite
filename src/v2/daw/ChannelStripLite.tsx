@@ -130,7 +130,7 @@ export const ChannelStripLite = memo(function ChannelStripLite({
     >
       {/* Track Name Header */}
       <div
-        className={cn("text-[8px] font-bold text-center truncate px-1 py-1 shrink-0", {
+        className={cn("text-[9px] font-bold text-center truncate px-1 py-1 shrink-0", {
           "bg-green-600 text-white": isMaster,
           "bg-neutral-700 text-neutral-200 border-b-2": !isMaster,
         })}
@@ -146,7 +146,7 @@ export const ChannelStripLite = memo(function ChannelStripLite({
               type="button"
               title="Sends, receives & hardware output routing"
               className={cn(
-                "w-full h-4 rounded text-[6.5px] font-bold cursor-pointer transition-colors border",
+                "w-full h-4 rounded text-[7px] font-bold cursor-pointer transition-colors border",
                 sendCount > 0
                   ? "border-cyan-600/60 text-cyan-400 bg-neutral-900 hover:bg-neutral-800"
                   : "border-neutral-700 text-neutral-500 bg-neutral-900/60 hover:border-cyan-500 hover:text-cyan-400",
@@ -159,7 +159,7 @@ export const ChannelStripLite = memo(function ChannelStripLite({
 
         {!isMaster && (
           <div className="px-1 py-1 shrink-0">
-            <div className="bg-emerald-700 text-[7.5px] text-white text-center py-0.5 rounded truncate cursor-pointer hover:bg-emerald-600 transition-colors">
+            <div className="bg-emerald-700 text-[8px] text-white text-center py-0.5 rounded truncate cursor-pointer hover:bg-emerald-600 transition-colors">
               {input}
             </div>
           </div>
@@ -167,7 +167,7 @@ export const ChannelStripLite = memo(function ChannelStripLite({
 
         {isMaster && (
           <div className="flex gap-0.5 p-1 shrink-0">
-            <DawButton variant="default" size="xs" active={muted} title="Mute" aria-label="Mute master" className="flex-1 px-0.5 text-[8px]">
+            <DawButton variant="default" size="xs" active={muted} title="Mute" aria-label="Mute master" className="flex-1 px-0.5">
               M
             </DawButton>
             <DawButton
@@ -176,7 +176,7 @@ export const ChannelStripLite = memo(function ChannelStripLite({
               active={mono}
               title={mono ? "Disable Mono" : "Enable Mono"}
               aria-label="Mono monitoring"
-              className={cn("flex-1 px-0.5 text-[8px]", mono ? "bg-yellow-600 text-white border-yellow-500" : "hover:border-yellow-500 hover:text-yellow-300")}
+              className={cn("flex-1 px-0.5", mono ? "bg-yellow-600 text-white border-yellow-500" : "hover:border-yellow-500 hover:text-yellow-300")}
             >
               MONO
             </DawButton>
@@ -189,7 +189,7 @@ export const ChannelStripLite = memo(function ChannelStripLite({
               type="button"
               aria-label={`Open FX chain for ${name}`}
               className={cn(
-                "h-4 w-4 rounded rounded-r-none text-[6.5px] flex items-center justify-center cursor-pointer transition-colors p-0",
+                "h-4 w-4 rounded rounded-r-none text-[7px] flex items-center justify-center cursor-pointer transition-colors p-0",
                 hasFx
                   ? fxBypassed
                     ? "bg-neutral-800 border border-red-500 text-red-400 shadow-[0_0_6px_rgba(239,68,68,0.4)]"
@@ -218,7 +218,7 @@ export const ChannelStripLite = memo(function ChannelStripLite({
               type="button"
               title="Channel Strip EQ"
               aria-label={`Open EQ for ${name}`}
-              className="h-4 px-1.5 shrink-0 rounded flex items-center justify-center text-[6.5px] font-bold transition-colors border border-neutral-600 text-neutral-500 bg-neutral-800 hover:border-daw-accent hover:text-daw-accent cursor-pointer"
+              className="h-4 px-1.5 shrink-0 rounded flex items-center justify-center text-[7px] font-bold transition-colors border border-neutral-600 text-neutral-500 bg-neutral-800 hover:border-daw-accent hover:text-daw-accent cursor-pointer"
             >
               EQ
             </button>
@@ -230,7 +230,7 @@ export const ChannelStripLite = memo(function ChannelStripLite({
                 title={automationRead ? "Disable master automation read" : "Enable master automation read"}
                 aria-label="Master automation read"
                 className={cn(
-                  "h-4 w-4 rounded flex items-center justify-center text-[6.5px] font-bold transition-colors border bg-neutral-800",
+                  "h-4 w-4 rounded flex items-center justify-center text-[7px] font-bold transition-colors border bg-neutral-800",
                   automationRead ? "border-teal-500 text-teal-300" : "border-neutral-600 text-neutral-500 hover:border-teal-500 hover:text-teal-300 cursor-pointer",
                 )}
               >
@@ -242,7 +242,7 @@ export const ChannelStripLite = memo(function ChannelStripLite({
                   title={automationWrite ? "Disable master automation write" : "Enable master automation write"}
                   aria-label="Master automation write"
                   className={cn(
-                    "h-4 w-4 rounded rounded-r-none flex items-center justify-center text-[6.5px] font-bold transition-colors border border-r-0 bg-neutral-800 cursor-pointer",
+                    "h-4 w-4 rounded rounded-r-none flex items-center justify-center text-[7px] font-bold transition-colors border border-r-0 bg-neutral-800 cursor-pointer",
                     automationWrite ? "border-red-500 text-red-300" : "border-neutral-600 text-neutral-500 hover:border-red-500 hover:text-red-300",
                   )}
                 >
@@ -266,7 +266,7 @@ export const ChannelStripLite = memo(function ChannelStripLite({
       <div className={cn("px-1 shrink-0", isMaster ? "pb-1" : "pb-0.5")}>
         <div className="flex flex-col items-center gap-0.5">
           <PanSlider label={`Pan for ${name}: ${panDisplay}`} value={pan * 100} />
-          <span className="text-[7px] text-neutral-500 font-mono">{panDisplay}</span>
+          <span className="text-[8px] text-neutral-500 font-mono">{panDisplay}</span>
         </div>
       </div>
 
@@ -325,7 +325,7 @@ export const ChannelStripLite = memo(function ChannelStripLite({
 
       {/* Volume Display */}
       <div
-        className={cn("text-[8px] font-mono text-center py-0.5 shrink-0 tabular-nums", {
+        className={cn("text-[9px] font-mono text-center py-0.5 shrink-0 tabular-nums", {
           "bg-slate-900 text-blue-400 mt-0.5": isMaster,
           "bg-neutral-900 text-neutral-400": !isMaster,
         })}
@@ -336,10 +336,10 @@ export const ChannelStripLite = memo(function ChannelStripLite({
       {/* M/S/R Buttons for tracks */}
       {!isMaster && (
         <div className="flex gap-0.5 p-1 shrink-0">
-          <DawButton variant="default" size="xs" active={muted} title="Mute" aria-label={`Mute track ${name}`} className="flex-1 px-0.5 text-[8px]">
+          <DawButton variant="default" size="xs" active={muted} title="Mute" aria-label={`Mute track ${name}`} className="flex-1 px-0.5">
             M
           </DawButton>
-          <DawButton variant="warning" size="xs" active={soloed} title="Solo" aria-label={`Solo track ${name}`} className="flex-1 px-0.5 text-[8px]">
+          <DawButton variant="warning" size="xs" active={soloed} title="Solo" aria-label={`Solo track ${name}`} className="flex-1 px-0.5">
             S
           </DawButton>
           <DawButton
@@ -349,7 +349,7 @@ export const ChannelStripLite = memo(function ChannelStripLite({
             activeStyle={armed ? "glow" : "solid"}
             title="Record Arm"
             aria-label={`Arm track ${name} for recording`}
-            className="flex-1 px-0.5 text-[8px]"
+            className="flex-1 px-0.5"
           >
             R
           </DawButton>
@@ -358,7 +358,7 @@ export const ChannelStripLite = memo(function ChannelStripLite({
 
       {/* Track Number / OUT */}
       <div
-        className={cn("text-[9px] font-bold text-center py-1 shrink-0", {
+        className={cn("text-[10px] font-bold text-center py-1 shrink-0", {
           "bg-green-600 text-white": isMaster,
           "bg-neutral-800/50 text-neutral-500": !isMaster,
         })}

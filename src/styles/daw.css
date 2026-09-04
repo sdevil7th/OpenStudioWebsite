@@ -28,7 +28,10 @@
   box-sizing: border-box;
 }
 
-.daw-session button {
+/* Zero-specificity, as Tailwind's preflight does it, so a button's own
+   `text-[10px]` still wins — a plain `.daw-session button` outranks it and
+   every chip inherits the stage font instead. */
+:where(.daw-session button) {
   font: inherit;
   cursor: default;
 }

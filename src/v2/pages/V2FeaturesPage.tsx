@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import PageSeo from "@/components/PageSeo";
 import { REPO, SHOTS, V2_PATHS, docPath } from "../content";
+import { LiveStage, type StageId } from "../daw/stage/LiveStage";
 import { ArrowLink, Cta, DownloadCta, Eyebrow, GradIcon } from "../primitives";
 import { useSpReveal } from "../useSpReveal";
 
@@ -21,6 +22,7 @@ import { useSpReveal } from "../useSpReveal";
 const FEATURE_CARDS = [
   {
     id: "recording",
+    stage: { id: "arrangement" as StageId, variant: "recording" },
     icon: Mic,
     title: "Recording & timeline editing",
     copy: "Arm tracks, monitor inputs, punch in, comp takes, and edit clips on the timeline with markers, regions, ripple, razor, and fades.",
@@ -30,6 +32,7 @@ const FEATURE_CARDS = [
   },
   {
     id: "midi",
+    stage: { id: "piano-roll" as StageId },
     icon: Music,
     title: "MIDI, piano roll & instruments",
     copy: "A docked or detached piano roll, hardware MIDI input, an on-screen keyboard, step input, quantize and transforms, and audio-to-MIDI.",
@@ -39,6 +42,7 @@ const FEATURE_CARDS = [
   },
   {
     id: "mixing",
+    stage: { id: "mixer" as StageId },
     icon: SlidersHorizontal,
     title: "Mixer, routing & automation",
     copy: "Channel strips, sends, buses, a routing matrix, metering, channel EQ, mixer snapshots, and automation lanes with read, write, touch, and latch.",
@@ -75,6 +79,7 @@ const FEATURE_CARDS = [
   },
   {
     id: "export",
+    stage: { id: "render-dialog" as StageId },
     icon: File,
     title: "Render, formats & project files",
     copy: "Master and stem renders, region and razor bounds, WAV, AIFF, FLAC, MP3, and OGG, a render queue, DDP export, and an inspectable project file on disk.",
@@ -130,19 +135,23 @@ const V2FeaturesPage = () => {
           {FEATURE_CARDS.map((card) => (
             <div key={card.id} className="sp-card" id={card.id} style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
               <div style={{ background: "var(--sp-frame)", padding: "10px 10px 0" }}>
-                <img
-                  alt={card.alt}
-                  loading="lazy"
-                  src={card.shot}
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    aspectRatio: "16 / 9",
-                    objectFit: "cover",
-                    objectPosition: "top left",
-                    borderRadius: "10px 10px 0 0",
-                  }}
-                />
+                {"stage" in card && card.stage ? (
+                  <LiveStage alt={card.alt} className="sp-feature-card__media" id={card.stage.id} poster={card.shot} variant={card.stage.variant} />
+                ) : (
+                  <img
+                    alt={card.alt}
+                    loading="lazy"
+                    src={card.shot}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      aspectRatio: "16 / 9",
+                      objectFit: "cover",
+                      objectPosition: "top left",
+                      borderRadius: "10px 10px 0 0",
+                    }}
+                  />
+                )}
               </div>
               <div style={{ padding: "20px 22px 22px", display: "flex", flexDirection: "column", gap: 9, flex: 1 }}>
                 <div
