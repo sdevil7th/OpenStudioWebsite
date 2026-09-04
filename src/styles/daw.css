@@ -1,0 +1,410 @@
+/*
+ * Styles for the vendored OpenStudio UI in src/v2/daw/. Everything here is
+ * either copied from OpenStudio (source noted per block) or scoped under
+ * .daw-session so it cannot leak into the Studio Paper pages around it.
+ */
+
+.daw-session {
+  color-scheme: dark;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  line-height: 1.4;
+  font-weight: 400;
+  color: #e0e0e0;
+  background-color: #121212;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+.daw-session *,
+.daw-session *::before,
+.daw-session *::after {
+  box-sizing: border-box;
+}
+
+.daw-session button {
+  font: inherit;
+  cursor: default;
+}
+
+/* The showcase is watched, not operated. Pointer events stay off so nothing
+   ever half-works; the wrapper still gets a hover tilt from the frame. */
+.daw-session--showcase .daw-session__stage {
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Source: OpenStudio frontend/src/index.css @ d2056151222fefcede123ef614ec38c6893cbfd5
+ * ------------------------------------------------------------------------- */
+
+@keyframes recording-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.daw-session .recording-dot {
+  animation: recording-pulse 1s ease-in-out infinite;
+}
+
+.daw-session .vertical-fader {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.daw-session .vertical-fader::-webkit-slider-runnable-track {
+  width: 6px;
+  height: 100%;
+  background: linear-gradient(to top, #1a1a1a, #252525);
+  border: 1px solid #333;
+  border-radius: 3px;
+}
+
+.daw-session .vertical-fader::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 10px;
+  background: linear-gradient(to bottom, #555, #333);
+  border: 1px solid #666;
+  border-radius: 2px;
+  cursor: grab;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  margin-left: -6px;
+}
+
+.daw-session .vertical-fader::-webkit-slider-thumb:hover {
+  background: linear-gradient(to bottom, #666, #444);
+}
+
+.daw-session .vertical-fader::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  background: linear-gradient(to bottom, #777, #555);
+}
+
+.daw-session .vertical-fader::-moz-range-track {
+  width: 6px;
+  background: linear-gradient(to top, #1a1a1a, #252525);
+  border: 1px solid #333;
+  border-radius: 3px;
+}
+
+.daw-session .vertical-fader::-moz-range-thumb {
+  width: 18px;
+  height: 10px;
+  background: linear-gradient(to bottom, #555, #333);
+  border: 1px solid #666;
+  border-radius: 2px;
+  cursor: grab;
+}
+
+/* ---------------------------------------------------------------------------
+ * Source: OpenStudio frontend/src/components/FXChainPanel.css
+ *         @ d2056151222fefcede123ef614ec38c6893cbfd5 (base NAM rack knob rules;
+ *         upstream keeps them in the FX chain panel stylesheet)
+ * ------------------------------------------------------------------------- */
+
+.nam-rack-control {
+  min-width: 0;
+}
+
+.nam-rack-control-knob {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  color: #f8fafc;
+  font-size: 11px;
+}
+
+.nam-rack-control-knob input[type="range"] {
+  width: 100%;
+  height: 4px;
+  accent-color: #f5c86a;
+}
+
+.nam-rack-knob-cap {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, #181818 0 46%, transparent 48%),
+    conic-gradient(#f5c86a var(--nam-knob-pct), #2c2c2c 0);
+  box-shadow:
+    inset 0 0 0 3px #080808,
+    0 5px 12px rgba(0, 0, 0, 0.34);
+}
+
+.nam-rack-control-knob[data-size="large"] .nam-rack-knob-cap {
+  width: 58px;
+  height: 58px;
+}
+
+.nam-rack-knob-cap > span {
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  transform: rotate(var(--nam-knob-rotation));
+}
+
+.nam-rack-knob-cap > span::before {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 50%;
+  width: 3px;
+  height: 11px;
+  border-radius: 999px;
+  background: #f8fafc;
+  transform: translateX(-50%);
+}
+
+.nam-rack-knob-label,
+.nam-rack-control strong {
+  max-width: 100%;
+  overflow: hidden;
+  color: rgba(248, 250, 252, 0.88);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nam-rack-control strong {
+  color: rgba(226, 232, 240, 0.58);
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.nam-rack-control-select,
+.nam-rack-control-switch {
+  display: grid;
+  gap: 6px;
+  color: rgba(248, 250, 252, 0.84);
+  font-size: 11px;
+}
+
+.nam-rack-control-switch {
+  min-height: 64px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.nam-rack-control-switch[data-active="true"] {
+  border-color: rgba(69, 179, 107, 0.5);
+  color: #8ef5c2;
+}
+
+.nam-rack-control-knob {
+  position: relative;
+  touch-action: none;
+  user-select: none;
+  cursor: ns-resize;
+}
+
+.nam-rack-control-knob:focus-within .nam-rack-knob-cap {
+  outline: 2px solid rgba(142, 245, 194, 0.54);
+  outline-offset: 3px;
+}
+
+.nam-rack-control-knob .nam-rack-knob-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.nam-rack-knob-cap {
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.26), transparent 17%),
+    radial-gradient(circle at 50% 54%, #1a1a1a 0 43%, #070707 44% 58%, transparent 60%),
+    conic-gradient(
+      from -135deg,
+      rgba(255, 217, 120, 0.1) 0 var(--nam-knob-fill-start),
+      #ffd978 var(--nam-knob-fill-start) var(--nam-knob-fill-end),
+      rgba(65, 65, 65, 0.92) var(--nam-knob-fill-end) 75%,
+      transparent 75% 100%
+    );
+}
+
+/* Source: OpenStudio frontend/src/components/NAMRackPanel.css (tooltip keyframe) */
+@keyframes nam-rack-tooltip-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Raster knob cap. Upstream only enables the sprite-atlas renderer inside
+ * `.nam-product[data-view="rack"|"mixer"]` (NAMRackKnob.css). The website's
+ * rack module opts in with the same rules, scoped to .daw-rack-module.
+ * ------------------------------------------------------------------------- */
+
+.daw-rack-module .nam-rack-knob-cap-raster {
+  display: block;
+  width: 52px;
+  height: auto;
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  filter:
+    drop-shadow(0 7px 8px rgba(0, 0, 0, 0.58))
+    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.08));
+  overflow: visible;
+  pointer-events: none;
+}
+
+.daw-rack-module .nam-rack-control-knob[data-size="large"] .nam-rack-knob-cap-raster {
+  width: 62px;
+}
+
+.daw-rack-module .nam-rack-knob-cap-raster > span {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  background-repeat: no-repeat;
+  box-shadow: none;
+  transform: none;
+}
+
+.daw-rack-module .nam-rack-knob-cap-raster > span::before,
+.daw-rack-module .nam-rack-knob-cap-raster > span::after {
+  content: none;
+  display: none;
+}
+
+/* Rack module chrome — a compact take on NAMRackChainModule.css's card, kept
+   local so the 16 KB upstream sheet does not ship for four knobs. */
+.daw-rack-module {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 10px 10px 8px;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e5e8ea;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.06), transparent 46%),
+    linear-gradient(180deg, #1b1d1a, #0b0c0b);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 -14px 24px rgba(0, 0, 0, 0.38);
+}
+
+.daw-rack-module__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.daw-rack-module__title {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.daw-rack-module__title strong {
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f4c77f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.daw-rack-module__title small {
+  font-size: 9px;
+  color: #9da2a7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.daw-rack-module__power {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  color: #6f7680;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.daw-rack-module__power[data-active="true"] {
+  color: #8ef5c2;
+  border-color: rgba(69, 179, 107, 0.5);
+  box-shadow: 0 0 10px rgba(69, 179, 107, 0.35);
+}
+
+.daw-rack-module__knobs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 4px;
+  align-content: start;
+}
+
+.daw-rack-module__knobs .nam-rack-control-knob {
+  padding: 6px 2px 4px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 5px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(0, 0, 0, 0.2));
+}
+
+.daw-rack-module__knobs .nam-rack-knob-label {
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.daw-rack-module__knobs .nam-rack-control strong {
+  font-size: 9.5px;
+  color: #f4c77f;
+}
+
+.daw-rack-module__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #747d86;
+}
+
+.daw-rack-module__led {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #3a3f45;
+  box-shadow: none;
+}
+
+.daw-rack-module__led[data-on="true"] {
+  background: #8ef5c2;
+  box-shadow: 0 0 8px rgba(142, 245, 194, 0.7);
+}

@@ -273,6 +273,19 @@
   border-radius: 12px 12px 0 0;
 }
 
+/* Live content (the animated session) takes the image's slot and radius. */
+.sp-frame__live {
+  display: block;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #121212;
+}
+
+.sp-frame--hero .sp-frame__live {
+  border-radius: 12px 12px 0 0;
+}
+
 .sp-dark-panel {
   background: var(--sp-dark-panel);
   color: #f7f8fa;

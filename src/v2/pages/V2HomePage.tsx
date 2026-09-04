@@ -16,7 +16,7 @@ import {
   Zap,
   type LucideProps,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type ComponentType } from "react";
+import { Suspense, lazy, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import PageSeo from "@/components/PageSeo";
 import { getPrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { useGithubRepoSnapshot } from "@/hooks/useGithubRepoSnapshot";
@@ -27,6 +27,8 @@ import { useFooterLead } from "../shellContext";
 import { orderPlatforms, usePlatform } from "../usePlatform";
 import { useReleaseInfo } from "../useReleaseInfo";
 import { useSpReveal } from "../useSpReveal";
+
+const LiveSession = lazy(() => import("../daw/LiveSession"));
 
 /* ---------- showcase carousel ---------- */
 
@@ -381,7 +383,11 @@ const V2HomePage = () => {
               {heroMeta}
             </div>
           </div>
-          <Frame alt="OpenStudio timeline" hero reveal="media-right" src={SHOTS.heroTimeline} />
+          <Frame hero reveal="media-right">
+            <Suspense fallback={<img alt="OpenStudio timeline" loading="eager" src={SHOTS.heroTimeline} />}>
+              <LiveSession />
+            </Suspense>
+          </Frame>
         </div>
       </div>
 

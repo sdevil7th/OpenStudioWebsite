@@ -164,15 +164,22 @@ export const Frame = ({
   hero = false,
   className = "",
   reveal,
+  children,
 }: {
-  alt: string;
-  src: string;
+  alt?: string;
+  src?: string;
   hero?: boolean;
   className?: string;
   reveal?: SpReveal;
+  /** Live content in place of the screenshot (e.g. the animated DAW session). */
+  children?: ReactNode;
 }) => (
   <div className={`sp-frame${hero ? " sp-frame--hero" : ""} ${className}`.trim()} data-sp-reveal={reveal}>
-    <img alt={alt} loading={hero ? "eager" : "lazy"} src={src} />
+    {children ? (
+      <div className="sp-frame__live">{children}</div>
+    ) : (
+      <img alt={alt ?? ""} loading={hero ? "eager" : "lazy"} src={src} />
+    )}
   </div>
 );
 
