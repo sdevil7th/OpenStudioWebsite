@@ -258,7 +258,9 @@
 
 .daw-rack-module .nam-rack-knob-cap-raster {
   display: block;
-  width: 52px;
+  /* 48px = exactly half the 96px atlas frame, so the sprite maps 1:1 on 2x
+     displays instead of being resampled. */
+  width: 48px;
   height: auto;
   aspect-ratio: 1;
   border: 0;
@@ -273,7 +275,7 @@
 }
 
 .daw-rack-module .nam-rack-control-knob[data-size="large"] .nam-rack-knob-cap-raster {
-  width: 62px;
+  width: 56px;
 }
 
 .daw-rack-module .nam-rack-knob-cap-raster > span {
@@ -287,6 +289,11 @@
   background-repeat: no-repeat;
   box-shadow: none;
   transform: none;
+  /* Each atlas frame carries a faint square plate that upstream hides against
+     its near-black panel; on the module card it (and its drop shadow) read as
+     a box. The tick ring sits inside the inscribed circle, so clipping to it
+     keeps the ring and drops the plate. */
+  clip-path: circle(50% at 50% 50%);
 }
 
 .daw-rack-module .nam-rack-knob-cap-raster > span::before,
@@ -377,7 +384,7 @@
 }
 
 .daw-rack-module__knobs .nam-rack-knob-label {
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 750;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -385,7 +392,7 @@
 }
 
 .daw-rack-module__knobs .nam-rack-control strong {
-  font-size: 9.5px;
+  font-size: 8.5px;
   color: #f4c77f;
 }
 

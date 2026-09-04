@@ -34,66 +34,66 @@ export const TransportLite = ({
   const isRecording = transport === "recording";
   return (
     <div
-      className="relative h-12 overflow-visible bg-neutral-900 border-b border-b-neutral-950 flex items-center px-3 gap-3 shrink-0"
+      className="relative h-10 overflow-visible bg-neutral-900 border-b border-b-neutral-950 flex items-center px-2.5 gap-2 shrink-0"
       role="toolbar"
       aria-label="Main Toolbar"
     >
       <div className="flex items-center gap-1" role="group" aria-label="Transport Controls">
-        <DawButton variant="purple" size="icon-lg" active={loopEnabled} title="Toggle Loop" aria-label="Toggle Loop">
-          <Repeat size={16} />
+        <DawButton variant="purple" size="icon-md" active={loopEnabled} title="Toggle Loop" aria-label="Toggle Loop">
+          <Repeat size={13} />
         </DawButton>
         <DawButton
           variant="danger"
-          size="icon-lg"
+          size="icon-md"
           active={isRecording}
           disabled={!hasArmedTracks && !isRecording}
           title="Record"
           aria-label="Record"
         >
-          <Circle size={16} fill="currentColor" />
+          <Circle size={13} fill="currentColor" />
         </DawButton>
-        <DawButton variant="success" size="icon-lg" active={isPlaying} title="Play (Space)" aria-label="Play">
-          <Play size={16} fill="currentColor" />
+        <DawButton variant="success" size="icon-md" active={isPlaying} title="Play (Space)" aria-label="Play">
+          <Play size={13} fill="currentColor" />
         </DawButton>
-        <DawButton variant="default" size="icon-lg" disabled={!isPlaying} title="Stop (Space)" aria-label="Stop">
-          <Square size={14} fill="currentColor" />
+        <DawButton variant="default" size="icon-md" disabled={!isPlaying} title="Stop (Space)" aria-label="Stop">
+          <Square size={11} fill="currentColor" />
         </DawButton>
       </div>
 
-      <div className="w-px h-6 bg-neutral-700" />
+      <div className="w-px h-5 bg-neutral-700" />
 
       <div className="flex items-center gap-1" role="group" aria-label="Edit Tools">
-        <DawButton variant="default" size="icon-lg" disabled={!canUndo} title="Undo" aria-label="Undo">
-          <Undo2 size={16} />
+        <DawButton variant="default" size="icon-md" disabled={!canUndo} title="Undo" aria-label="Undo">
+          <Undo2 size={13} />
         </DawButton>
-        <DawButton variant="default" size="icon-lg" disabled={!canRedo} title="Redo" aria-label="Redo">
-          <Redo2 size={16} />
+        <DawButton variant="default" size="icon-md" disabled={!canRedo} title="Redo" aria-label="Redo">
+          <Redo2 size={13} />
         </DawButton>
         <DawButton
           variant="default"
-          size="icon-lg"
+          size="icon-md"
           active={snapEnabled}
           title={snapEnabled ? "Snap Enabled" : "Snap Disabled"}
           aria-label="Snap to Grid"
         >
-          <Grid3x3 size={16} />
+          <Grid3x3 size={13} />
         </DawButton>
         <DawButton
           variant="default"
-          size="icon-lg"
+          size="icon-md"
           active={autoCrossfade}
           title={autoCrossfade ? "Auto-Crossfade On" : "Auto-Crossfade Off"}
           aria-label="Auto-Crossfade"
         >
-          <Blend size={16} />
+          <Blend size={13} />
         </DawButton>
       </div>
 
-      <div className="w-px h-6 bg-neutral-700" />
+      <div className="w-px h-5 bg-neutral-700" />
 
       <div className="flex items-center gap-1" role="group" aria-label="View Toggles">
-        <DawButton variant="default" size="icon-lg" active={showMixer} title="Toggle Mixer" aria-label="Toggle Mixer">
-          <SlidersHorizontal size={16} />
+        <DawButton variant="default" size="icon-md" active={showMixer} title="Toggle Mixer" aria-label="Toggle Mixer">
+          <SlidersHorizontal size={13} />
         </DawButton>
       </div>
 

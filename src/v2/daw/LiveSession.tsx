@@ -11,7 +11,7 @@ import { useSessionTimeline } from "./useSessionTimeline";
 
 /** Design size of the stage; it is CSS-scaled to the column it sits in. */
 export const STAGE_WIDTH = 640;
-const TRANSPORT_HEIGHT = 48;
+const TRANSPORT_HEIGHT = 40;
 const HEADER_WIDTH = 112;
 const LANE_HEIGHT = 30;
 const MIXER_HEIGHT = 252;

@@ -76,7 +76,7 @@ export const BigClockLite = ({
         <div
           className={cn(
             "font-mono tracking-wider tabular-nums whitespace-pre",
-            docked ? "text-[15px] leading-tight" : "text-5xl",
+            docked ? "text-[13px] leading-tight" : "text-5xl",
             transport === "recording" ? "text-red-500" : transport === "playing" ? "text-green-400" : "text-neutral-200",
           )}
         >
