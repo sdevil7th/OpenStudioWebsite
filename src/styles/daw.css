@@ -448,3 +448,36 @@
   box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.55);
   border-radius: 6px;
 }
+
+/* ---------------------------------------------------------------------------
+ * NAM Rack stage host. The vendored design port is `position: absolute;
+ * inset: 0` and sizes its artboard with container units, so the host is the
+ * container: a fixed 960×540 that StageFrame scales into the column.
+ * ------------------------------------------------------------------------- */
+.daw-nam-stage {
+  position: relative;
+  width: 960px;
+  height: 540px;
+  overflow: hidden;
+  container-type: inline-size;
+  background: #080a0e;
+}
+
+/* Tiles show the hardware only: collapse the header, section nav, and footer
+   rows of the shell grid and hide everything but the stage. */
+.daw-nam-stage[data-crop="hardware"] .premium-nam-shell {
+  grid-template-rows: 0 0 minmax(0, 1fr) 0;
+}
+
+.daw-nam-stage[data-crop="hardware"] .premium-nam-shell > :not(.hardware-stage) {
+  display: none;
+}
+
+/* …and the capture library drawer beside the stage, so the hardware fills the tile. */
+.daw-nam-stage[data-crop="hardware"] .hardware-stage {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.daw-nam-stage[data-crop="hardware"] .premium-rig-drawer {
+  display: none;
+}

@@ -17,7 +17,7 @@ const vendorDir = new URL("vendor/", dawDir);
 const stagesDir = new URL("stages/", dawDir);
 
 /** Files written by hand next to the vendored ones (stubs, docs). */
-const HAND_WRITTEN = new Set(["README.md", "nativeBridgeTypes.ts", "parameterWheel.ts", "namCaptureType.ts"]);
+const HAND_WRITTEN = new Set(["README.md", "nativeBridgeTypes.ts", "parameterWheel.ts", "namCaptureType.ts", "namRackMixerTypes.ts"]);
 
 test("vendor script pins a full OpenStudio commit", () => {
   assert.ok(shaMatch, "OPENSTUDIO_SHA must be a 40-char commit");
@@ -53,6 +53,28 @@ test("knob atlases are vendored, downscaled, and referenced by public path", () 
     assert.ok(assets.includes(`"/assets/openstudio/nam/controls/knob-${variant}-atlas.webp"`), `${variant} public path`);
   }
   assert.doesNotMatch(assets, /import\.meta\.url/);
+});
+
+test("NAM design artwork is vendored, downscaled, and served from public/", () => {
+  const designDir = new URL("../public/assets/openstudio/nam/design/", import.meta.url);
+  if (!existsSync(designDir)) return;
+  const sizeOf = (name) => statSync(new URL(name, designDir)).size;
+  const bodies = readdirSync(new URL("bodies/", designDir));
+  const controls = readdirSync(new URL("controls/", designDir));
+  assert.ok(bodies.length >= 20 && controls.length >= 20, "expected the design bodies and controls");
+  let total = 0;
+  for (const name of bodies) {
+    const size = sizeOf(`bodies/${name}`);
+    total += size;
+    assert.ok(size < 260_000, `bodies/${name} is ${size} bytes; expected the downscale`);
+  }
+  assert.ok(total < 2_400_000, `bodies total ${total} bytes over budget`);
+  for (const name of controls) assert.ok(sizeOf(`controls/${name}`) < 32_000, `controls/${name} over budget`);
+  const assets = read("src/v2/daw/vendor/NAMDesignAssets.ts");
+  assert.doesNotMatch(assets, /import\.meta/);
+  assert.match(assets, /\/assets\/openstudio\/nam\/design\//);
+  assert.match(read("src/v2/daw/vendor/NAMRackDesignPort.tsx"), /"\/assets\/openstudio\/nam\/rack-studio-backdrop-v2\.webp"/);
+  assert.match(read("vite.config.ts"), /"nam-design-port"/);
 });
 
 test("Tailwind exposes the OpenStudio daw-* and meter-* tokens", () => {

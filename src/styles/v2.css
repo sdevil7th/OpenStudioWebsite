@@ -256,7 +256,8 @@
   padding: 9px;
 }
 
-.sp-frame img {
+/* Direct children only: a live stage inside the frame has its own images. */
+.sp-frame > img {
   display: block;
   width: 100%;
   border-radius: 8px;
@@ -269,7 +270,7 @@
   box-shadow: 0 30px 70px rgba(21, 23, 28, 0.18);
 }
 
-.sp-frame--hero img {
+.sp-frame--hero > img {
   border-radius: 12px 12px 0 0;
 }
 
@@ -595,10 +596,12 @@
   }
 }
 
+/* Three across: each tile is the live rack cropped to one hardware page, and
+   the artwork needs ~360px to read. */
 .sp-chain-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
 }
 
 @media (max-width: 1000px) {
@@ -2178,4 +2181,9 @@
   .sp-live-stage__poster {
     transition: none;
   }
+}
+
+/* NAM page: chain-grid tiles */
+.sp-chain-grid__stage {
+  aspect-ratio: 16 / 9;
 }

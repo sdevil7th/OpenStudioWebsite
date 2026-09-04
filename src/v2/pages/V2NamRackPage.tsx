@@ -2,19 +2,21 @@ import { AudioWaveform, Book, Download, Key, SlidersHorizontal, Speaker, Zap } f
 import PageSeo from "@/components/PageSeo";
 import { blogPosts } from "@/data/blogs";
 import { REPO, SHOTS, TONE3000_URL, V2_PATHS, blogPostPath, docPath } from "../content";
+import { LiveStage } from "../daw/stage/LiveStage";
 import { formatBytes, formatDate } from "../format";
 import { ArrowLink, Cta, DownloadCta, Eyebrow, Frame, GradIcon, HonestCallout, Kicker, renderInline } from "../primitives";
 import { usePlatform } from "../usePlatform";
 import { useReleaseInfo } from "../useReleaseInfo";
 import { useSpReveal } from "../useSpReveal";
 
+// Each tile is the real rack, cropped to its hardware page.
 const CHAIN_STAGES = [
-  { label: "01 Tuner", shot: SHOTS.namRackTuner, alt: "Tuner" },
-  { label: "02 Pre-FX pedalboard", shot: SHOTS.namRackPreFx, alt: "Pre-FX pedalboard" },
-  { label: "03 NAM amp · A1/A2", shot: SHOTS.namRackOverview, alt: "NAM amp · A1/A2" },
-  { label: "04 Cabinet IR", shot: SHOTS.namRackCabinetIr, alt: "Cabinet IR" },
-  { label: "05 Graphic EQ", shot: SHOTS.namRackGraphicEq, alt: "Graphic EQ" },
-  { label: "06 Post-FX", shot: SHOTS.namRackPostFx, alt: "Post-FX" },
+  { label: "01 Tuner", shot: SHOTS.namRackTuner, alt: "Tuner", variant: "amp+tuner" },
+  { label: "02 Pre-FX pedalboard", shot: SHOTS.namRackPreFx, alt: "Pre-FX pedalboard", variant: "pre" },
+  { label: "03 NAM amp · A1/A2", shot: SHOTS.namRackOverview, alt: "NAM amp · A1/A2", variant: "amp" },
+  { label: "04 Cabinet IR", shot: SHOTS.namRackCabinetIr, alt: "Cabinet IR", variant: "cab" },
+  { label: "05 Graphic EQ", shot: SHOTS.namRackGraphicEq, alt: "Graphic EQ", variant: "eq" },
+  { label: "06 Post-FX", shot: SHOTS.namRackPostFx, alt: "Post-FX", variant: "post" },
 ];
 
 // One card for the captures themselves (NAM + TONE3000); the other three are
@@ -82,7 +84,9 @@ const V2NamRackPage = () => {
             </div>
             <div className="sp-mono">{meta}</div>
           </div>
-          <Frame alt="The OpenStudio NAM Rack amp page" hero reveal="media-right" src={SHOTS.namRackOverview} />
+          <Frame hero reveal="media-right">
+            <LiveStage alt="The OpenStudio NAM Rack amp page" eager id="nam-rack" poster={SHOTS.namRackOverview} priority={1} variant="amp+tour" />
+          </Frame>
         </div>
       </div>
 
@@ -110,12 +114,7 @@ const V2NamRackPage = () => {
               >
                 {stage.label}
               </div>
-              <img
-                alt={stage.alt}
-                loading="lazy"
-                src={stage.shot}
-                style={{ display: "block", width: "100%", height: 104, objectFit: "cover" }}
-              />
+              <LiveStage alt={stage.alt} className="sp-chain-grid__stage" id="nam-rack" poster={stage.shot} variant={stage.variant} />
             </div>
           ))}
         </div>

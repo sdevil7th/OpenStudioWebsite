@@ -6,6 +6,7 @@
  *
  *   node scripts/vendor-openstudio-ui.mjs            # sync at OPENSTUDIO_SHA
  *   node scripts/vendor-openstudio-ui.mjs <sha>      # sync at another commit
+ *   node scripts/vendor-openstudio-ui.mjs --files-only  # skip the artwork
  *
  * Every written file gets a "Source:" header naming the upstream path and
  * commit. Hand-written forks live next to vendor/ and are never touched here.
@@ -18,7 +19,8 @@ import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
 export const OPENSTUDIO_SHA = "d2056151222fefcede123ef614ec38c6893cbfd5";
-const sha = process.argv[2] ?? OPENSTUDIO_SHA;
+const args = process.argv.slice(2).filter((arg) => !arg.startsWith("--"));
+const sha = args[0] ?? OPENSTUDIO_SHA;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const RAW = `https://raw.githubusercontent.com/sdevil7th/OpenStudio/${sha}/frontend/src`;
 const VENDOR_DIR = "src/v2/daw/vendor";
@@ -83,6 +85,105 @@ const FILES = [
   { from: "components/ParametricGraph/eqResponseCurve.ts", to: "ParametricGraph/eqResponseCurve.ts" },
   { from: "components/ParametricGraph/EQGraph.tsx", to: "ParametricGraph/EQGraph.tsx" },
   { from: "components/ParametricGraph/CompressorGraph.tsx", to: "ParametricGraph/CompressorGraph.tsx" },
+  // The photoreal NAM Rack (design port) and everything it imports.
+  { from: "components/NAMCabPresentation.ts", to: "NAMCabPresentation.ts" },
+  { from: "components/namRackFaceplateGeometry.ts", to: "namRackFaceplateGeometry.ts" },
+  { from: "utils/namMeterLevel.ts", to: "namMeterLevel.ts" },
+  { from: "utils/namInstrumentProfile.ts", to: "namInstrumentProfile.ts" },
+  { from: "utils/tone3000InfiniteAppend.ts", to: "tone3000InfiniteAppend.ts" },
+  { from: "components/NAMToneCapturePicker.css", to: "NAMToneCapturePicker.css" },
+  {
+    from: "components/NAMToneCapturePicker.tsx",
+    to: "NAMToneCapturePicker.tsx",
+    patches: [['from "../utils/namCaptureType"', 'from "./stubs/namCaptureType"']],
+  },
+  {
+    from: "components/NAMDesignAssets.ts",
+    to: "NAMDesignAssets.ts",
+    patches: [
+      ['/// <reference types="vite/client" />\n', ""],
+      // Upstream resolves the artwork through import.meta.glob; the website
+      // serves the downscaled copies from public/ instead.
+      [
+        `const designBodyHrefs = import.meta.glob([
+  "../assets/nam/design/bodies/*.webp",
+  // Generator intermediates stay available to the asset-preparation tools,
+  // but only the approved faceplates belong in the runtime bundle.
+  "!../assets/nam/design/bodies/amp-head-body-v4.webp",
+  "!../assets/nam/design/bodies/graphic-eq-body-v3.webp",
+], {
+  eager: true,
+  import: "default",
+  query: "?url",
+}) as Record<string, string>;
+
+const designControlHrefs = import.meta.glob("../assets/nam/design/controls/*.webp", {
+  eager: true,
+  import: "default",
+  query: "?url",
+}) as Record<string, string>;
+
+const designAssetHref = (assets: Record<string, string>, directory: "bodies" | "controls", fileName: string) => {
+  const key = \`../assets/nam/design/\${directory}/\${fileName}\`;
+  const href = assets[key];
+  if (!href) throw new Error(\`Missing NAM design asset: \${key}\`);
+  return href;
+};`,
+        `const designBodyHrefs: Record<string, string> = {};
+const designControlHrefs: Record<string, string> = {};
+
+const designAssetHref = (_assets: Record<string, string>, directory: "bodies" | "controls", fileName: string) =>
+  \`/assets/openstudio/nam/design/\${directory}/\${fileName}\`;`,
+      ],
+    ],
+  },
+  { from: "components/NAMRackDesignPort.css", to: "NAMRackDesignPort.css" },
+  {
+    from: "components/NAMRackStage.css",
+    to: "NAMRackStage.css",
+    patches: [
+      ['font-family: Inter, "Segoe UI", Arial, sans-serif;', "font-family: inherit;"],
+      ['font-family: Inter, "Segoe UI Variable", "Segoe UI", Arial, sans-serif;', "font-family: inherit;"],
+    ],
+  },
+  { from: "components/NAMRackHardware.css", to: "NAMRackHardware.css" },
+  { from: "components/NAMRackDesignPortSourceFlow.css", to: "NAMRackDesignPortSourceFlow.css" },
+  { from: "components/NAMRackFooter.css", to: "NAMRackFooter.css" },
+  { from: "components/NAMRackHeader.css", to: "NAMRackHeader.css" },
+  {
+    from: "components/NAMRackDesignPort.tsx",
+    to: "NAMRackDesignPort.tsx",
+    patches: [
+      ['from "../services/NativeBridge"', 'from "./stubs/nativeBridgeTypes"'],
+      ['from "../utils/builtInParamValue"', 'from "./stubs/builtInParamValue"'],
+      ['from "./NAMRackMixer"', 'from "./stubs/namRackMixerTypes"'],
+      ['from "../utils/namMeterLevel"', 'from "./namMeterLevel"'],
+      ['from "../utils/tone3000InfiniteAppend"', 'from "./tone3000InfiniteAppend"'],
+      ['from "../utils/parameterWheel"', 'from "./stubs/parameterWheel"'],
+      ['from "../utils/namInstrumentProfile"', 'from "./namInstrumentProfile"'],
+      // The site scales the port with a CSS transform; getBoundingClientRect
+      // would report the transformed box while layout runs in untransformed
+      // pixels. Measure the layout size instead so both agree.
+      [
+        `      const rect = node.getBoundingClientRect();
+      setSize({
+        width: Math.max(1, rect.width),
+        height: Math.max(1, rect.height),
+      });`,
+        `      setSize({
+        width: Math.max(1, node.offsetWidth),
+        height: Math.max(1, node.offsetHeight),
+      });`,
+      ],
+      [
+        `const STUDIO_BACKDROP_URL = new URL(
+  "../assets/nam/rack-studio-backdrop-v2.webp",
+  import.meta.url,
+).href;`,
+        'const STUDIO_BACKDROP_URL = "/assets/openstudio/nam/rack-studio-backdrop-v2.webp";',
+      ],
+    ],
+  },
   { from: "components/ParametricGraph/index.ts", to: "ParametricGraph/index.ts",
     patches: [
       ['export { GateGraph } from "./GateGraph";\n', ""],
@@ -95,6 +196,33 @@ const FILES = [
 ];
 
 const ATLASES = ["knob-black-atlas.webp", "knob-metal-atlas.webp", "knob-cream-atlas.webp"];
+
+/**
+ * Design-port artwork. The port's artboard is 768 px wide and the site shows
+ * it at ≤ 960 px, so bodies are capped at 1024 px wide and controls (which
+ * render ≤ 60 px) at 256 px. Only the mounted section's images ever load.
+ */
+const DESIGN_DIR = "public/assets/openstudio/nam/design";
+const DESIGN_BODIES = [
+  "amp-head-body", "amp-head-body-wide", "amp-head-body-v5", "cabinet-body", "cab-room-integrated-body",
+  "graphic-eq-body-v6", "ir-shaper-panel-body", "mic-panel-body", "stompbox-body-blue", "stompbox-body-blue-wide",
+  "stompbox-body-dark", "stompbox-body-dark-wide", "stompbox-body-olive", "stompbox-body-red", "stompbox-body-red-wide",
+  "stompbox-body-stone", "stompbox-body-white-wide", "wide-pedal-body-copper", "wide-pedal-body-copper-deep",
+  "wide-pedal-body-copper-tall", "wide-pedal-body-dark", "wide-pedal-body-dark-deep", "wide-pedal-body-dark-tall",
+  "wide-pedal-body-navy", "wide-pedal-body-navy-deep", "wide-pedal-body-navy-tall",
+];
+const DESIGN_CONTROLS = [
+  "button-black-top", "footswitch-chrome-off-top", "footswitch-chrome-on-top", "footswitch-chrome-pressed-top",
+  "knob-black-top", "knob-black-panel-v4", "knob-blue-steel-top", "knob-blue-steel-panel-v4", "knob-cream-top",
+  "knob-metal-top", "led-amber-off-top", "led-amber-off-panel-v4", "led-amber-on-top", "led-amber-on-panel-v4",
+  "mic-dynamic-57", "mic-ribbon-121", "screw-phillips-top", "slider-metal-top", "slider-metal-cap-v4",
+  "toggle-chrome-top", "toggle-chrome-panel-v4", "washer-chrome-top",
+];
+const DESIGN_ASSETS = [
+  ...DESIGN_BODIES.map((name) => ({ from: `assets/nam/design/bodies/${name}.webp`, to: `${DESIGN_DIR}/bodies/${name}.webp`, maxWidth: 1024, quality: 78 })),
+  ...DESIGN_CONTROLS.map((name) => ({ from: `assets/nam/design/controls/${name}.webp`, to: `${DESIGN_DIR}/controls/${name}.webp`, maxWidth: 256, quality: 82 })),
+  { from: "assets/nam/rack-studio-backdrop-v2.webp", to: "public/assets/openstudio/nam/rack-studio-backdrop-v2.webp", maxWidth: 1280, quality: 74 },
+];
 
 const fetchText = async (url) => {
   const response = await fetch(url);
@@ -135,6 +263,21 @@ const syncAtlas = async (name) => {
   console.log(`vendored ${ATLAS_DIR}/${name} (${size}×${size})`);
 };
 
+const syncDesignAsset = async ({ from, to, maxWidth, quality }) => {
+  const source = await fetchBuffer(`${RAW}/${from}`);
+  const target = path.join(root, to);
+  await mkdir(path.dirname(target), { recursive: true });
+  const info = await sharp(source)
+    .resize({ width: maxWidth, withoutEnlargement: true, kernel: "lanczos3" })
+    .webp({ quality, alphaQuality: 95 })
+    .toFile(target);
+  console.log(`vendored ${to} (${info.width}×${info.height}, ${Math.round(info.size / 1024)} KB)`);
+};
+
+const only = process.argv.includes("--files-only");
 for (const file of FILES) await syncFile(file);
-for (const atlas of ATLASES) await syncAtlas(atlas);
+if (!only) {
+  for (const atlas of ATLASES) await syncAtlas(atlas);
+  for (const asset of DESIGN_ASSETS) await syncDesignAsset(asset);
+}
 console.log(`done @ ${sha}`);
