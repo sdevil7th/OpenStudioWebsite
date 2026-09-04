@@ -20,7 +20,7 @@ export interface ParameterWheelStepCountOptions {
 
 export function resolveProfiledParameterWheel(
   event: WheelEvent,
-  _subtarget: "control" | "console_fader" = "control",
+  _subtarget: "control" | "console_fader" | "graph" = "control",
 ): ResolvedWheelGesture {
   const amount = event.deltaMode === 1 ? event.deltaY * 100 : event.deltaY;
   return {

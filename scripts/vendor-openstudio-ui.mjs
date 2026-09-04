@@ -67,6 +67,31 @@ const FILES = [
     to: "stubs/builtInParamValue.ts",
     patches: [['from "../services/NativeBridge"', 'from "./nativeBridgeTypes"']],
   },
+  // NAM signal-chain rail and module tile (pure presentation, no patches).
+  { from: "components/NAMSignalChainTypes.ts", to: "NAMSignalChainTypes.ts" },
+  { from: "components/NAMCompactChain.tsx", to: "NAMCompactChain.tsx" },
+  { from: "components/NAMCompactChain.css", to: "NAMCompactChain.css" },
+  { from: "components/NAMRackChainModule.tsx", to: "NAMRackChainModule.tsx" },
+  { from: "components/NAMRackChainModule.css", to: "NAMRackChainModule.css" },
+  // Built-in effect graphs (EQ, compressor, …): SVG/DOM only.
+  {
+    from: "components/ParametricGraph/ParametricGraph.tsx",
+    to: "ParametricGraph/ParametricGraph.tsx",
+    patches: [['from "../../utils/parameterWheel"', 'from "../stubs/parameterWheel"']],
+  },
+  { from: "components/ParametricGraph/ParametricGraph.types.ts", to: "ParametricGraph/ParametricGraph.types.ts" },
+  { from: "components/ParametricGraph/eqResponseCurve.ts", to: "ParametricGraph/eqResponseCurve.ts" },
+  { from: "components/ParametricGraph/EQGraph.tsx", to: "ParametricGraph/EQGraph.tsx" },
+  { from: "components/ParametricGraph/CompressorGraph.tsx", to: "ParametricGraph/CompressorGraph.tsx" },
+  { from: "components/ParametricGraph/index.ts", to: "ParametricGraph/index.ts",
+    patches: [
+      ['export { GateGraph } from "./GateGraph";\n', ""],
+      ['export { DelayGraph } from "./DelayGraph";\n', ""],
+      ['export { ReverbGraph } from "./ReverbGraph";\n', ""],
+      ['export { SaturationGraph } from "./SaturationGraph";\n', ""],
+      ['export { ChorusGraph } from "./ChorusGraph";\n', ""],
+    ],
+  },
 ];
 
 const ATLASES = ["knob-black-atlas.webp", "knob-metal-atlas.webp", "knob-cream-atlas.webp"];

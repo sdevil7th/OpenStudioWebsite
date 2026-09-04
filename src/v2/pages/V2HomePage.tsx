@@ -76,6 +76,7 @@ const SLIDES: Slide[] = [
     alt: "NAM Rack signal chain",
     linkLabel: "Explore the NAM Rack",
     to: V2_PATHS.namRack,
+    stage: { id: "nam-chain" },
   },
   {
     id: "pitch",
@@ -102,6 +103,7 @@ const SLIDES: Slide[] = [
     alt: "Plugin hosting inside OpenStudio",
     linkLabel: "Every feature",
     to: `${V2_PATHS.features}#plugins`,
+    stage: { id: "plugin-window" },
   },
 ];
 

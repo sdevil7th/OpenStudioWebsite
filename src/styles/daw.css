@@ -423,3 +423,28 @@
   background: #8ef5c2;
   box-shadow: 0 0 8px rgba(142, 245, 194, 0.7);
 }
+
+/* ---------------------------------------------------------------------------
+ * NAM chain stage: the compact chain is a popover in the app (absolute, with
+ * a rise animation). Inside the stage it is the whole picture.
+ * ------------------------------------------------------------------------- */
+.daw-nam-chain-stage .nam-compact-chain {
+  animation: none;
+  right: 16px;
+  bottom: 16px;
+  left: 16px;
+  height: calc(100% - 32px);
+  min-height: 0;
+}
+
+.daw-nam-chain-stage .nam-compact-chain-titlebar small {
+  display: none;
+}
+
+.daw-nam-chain-stage[data-focus="lock"] .nam-compact-chain-group-tools button:first-child,
+.daw-nam-chain-stage[data-focus="reset"] .nam-compact-chain-group-tools button:last-child,
+.daw-nam-chain-stage[data-focus="pedal"] [data-qa="nam-compact-chain-node-pedal"] .nam-compact-chain-power,
+.daw-nam-chain-stage[data-focus="delay"] [data-qa="nam-compact-chain-node-delay"] .nam-compact-chain-order button:first-child {
+  box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.55);
+  border-radius: 6px;
+}

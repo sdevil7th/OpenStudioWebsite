@@ -52,6 +52,7 @@ const FEATURE_CARDS = [
   },
   {
     id: "plugins",
+    stage: { id: "plugin-window" as StageId },
     icon: Plug,
     title: "Plugins: VST3 / CLAP / LV2 / ARA2",
     copy: "Native plugin windows, input / track / master FX chains, presets and A/B, sidechain routing, optional ARA2 hosting, and built-in processors.",
