@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:openstudio="https://openstudio.org.in/xmlns/appcast">
+  <channel>
+    <title>OpenStudio Linux Stable</title>
+    <link>https://github.com/sdevil7th/OpenStudio/releases/tag/v0.1.01</link>
+    <description>Stable OpenStudio releases for Linux.</description>
+    <item>
+      <title>OpenStudio 0.1.01</title>
+      <pubDate>Mon, 31 Aug 2026 05:04:07 GMT</pubDate>
+      <description><![CDATA[# OpenStudio {{version}}
+
+## Highlights
+- Summarize the biggest user-facing improvements here.
+
+## Fixes
+- List the important bug fixes here.
+
+## Known Issues
+- macOS v1 ships as an unsigned DMG. Users may need to right-click `OpenStudio.app` and choose **Open**, then allow it in **System Settings > Privacy & Security**.
+- The optional AI Tools runtime for stem separation is not bundled in the base app. OpenStudio downloads its managed AI runtime on first use, so the first install can take time and depends on network availability.
+- AI Tools currently publish a managed macOS runtime for Apple Silicon only. Intel Macs can run the base app, but AI Tools remain unavailable there for now.
+- Document any other launch-day limitations here.
+
+## Upgrade Notes
+- Project files now save as `.osproj` while legacy `.s13` sessions continue to load.
+- Call out any additional migration details, changed file formats, or compatibility notes here.
+]]></description>
+      <enclosure url="https://github.com/sdevil7th/OpenStudio/releases/download/v0.1.01/OpenStudio-0.1.01-linux-x86_64.AppImage"
+                 sparkle:version="0.1.01"
+                 sparkle:shortVersionString="0.1.01"
+                 openstudio:channel="stable"
+                 openstudio:sha256="4a21e76e3e7d3b9e4dcd5c86403e100bd1278024c707cd20519f47ac65bbcc44"
+                 openstudio:fileName="OpenStudio-0.1.01-linux-x86_64.AppImage"
+                 length="66492920"
+                 type="application/x-iso9660-appimage" />
+      <sparkle:releaseNotesLink>https://github.com/sdevil7th/OpenStudio/releases/tag/v0.1.01</sparkle:releaseNotesLink>
+    </item>
+  </channel>
+</rss>

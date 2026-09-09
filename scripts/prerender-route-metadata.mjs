@@ -1745,6 +1745,11 @@ const createRoutes = (runtime) => {
             items: downloadData.systemRequirements,
           },
           {
+            title: "AI downloads and setup",
+            description: `${downloadData.aiSetupIntro} ${downloadData.aiSetupNetworkNote}`,
+            items: downloadData.aiSetupDownloads,
+          },
+          {
             title: "Release and install notes",
             items: [
               ...downloadData.releaseNotes,
@@ -1764,6 +1769,11 @@ const createRoutes = (runtime) => {
           {
             title: "Optional AI production tools",
             items: aiData.aiPillars,
+          },
+          {
+            title: "AI downloads and setup",
+            description: `${downloadData.aiSetupIntro} ${downloadData.aiSetupNetworkNote}`,
+            items: downloadData.aiSetupDownloads,
           },
           {
             title: "How the local workflow is framed",

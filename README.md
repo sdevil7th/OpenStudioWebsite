@@ -88,7 +88,7 @@ A machine-readable result can be saved under the existing artifact area with `--
 
 ## Deploy Inputs
 
-The desktop release pipeline is expected to generate these files and publish them as GitHub Release assets. The website workflow or a local operator stages them into `release-input/` before the build runs.
+The desktop release pipeline generates these files and publishes them as GitHub Release assets. The release dispatch workflow stages the selected tag. Ordinary production Netlify builds fetch and validate the latest published stable desktop release before staging, so a website-only deployment preserves update feeds and runtime downloads. See [release order and verification](RELEASE_SYNC.md). Locally, run `npm run fetch-release-publish-inputs` before building to exercise the same path.
 
 Expected staged deploy-input files:
 
@@ -138,7 +138,7 @@ Validation rules:
 - AI runtime JSON must include `schemaVersion`, `channel`, `appVersion`, `runtimeVersion`, `publishedAt`, `platforms.windows`, and `platforms.macos`; `platforms.linux` is optional
 - AI runtime Windows metadata may be published as a legacy flat `platforms.windows` entry, an old nested backend-asset shape under `platforms.windows.backends`, the new `platforms.windows.base` plus `platforms.windows.backends.<backend>.installPlan` shape, or a mixed transition manifest that contains both legacy and new fields
 - AI runtime macOS metadata may be published either as the legacy flat `platforms.macos` entry or as the current nested `platforms.macos.arm64` and `platforms.macos.x64` entries
-- AI runtime Linux metadata may be published either as a legacy flat `platforms.linux` entry or as nested `platforms.linux.x64` and `platforms.linux.arm64` entries
+- AI runtime Linux metadata may be published either as a legacy flat `platforms.linux` entry or as nested `platforms.linux.x64` and `platforms.linux.arm64` entries. Optional `platforms.linux.backends.cuda` and `.rocm` install plans are validated and preserved.
 - downloadable manifest asset entries must include `url`, `sha256`, `size`, and `fileName`
 - Windows backend install-plan entries must expose an `installPlan` object and are published verbatim
 - Windows and macOS stable appcasts must be present, valid XML, and align with the stable app manifest enclosure data; the Linux appcast is required when Linux app metadata is published

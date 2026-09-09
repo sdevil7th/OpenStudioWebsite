@@ -184,6 +184,19 @@ const validateLinuxPlatforms = (platforms, label) => {
     throw new Error(`${label} is missing.`);
   }
 
+  if (platforms.backends != null) {
+    if (!isNonArrayObject(platforms.backends)) {
+      throw new Error(`${label}.backends must be an object.`);
+    }
+    const backends = ["cuda", "rocm"].filter((backend) => platforms.backends[backend] != null);
+    if (backends.length === 0) {
+      throw new Error(`${label}.backends must include at least one supported backend entry.`);
+    }
+    for (const backend of backends) {
+      validateWindowsBackendEntry(platforms.backends[backend], `${label}.backends.${backend}`);
+    }
+  }
+
   const hasNestedArchitectures =
     (platforms.x64 && typeof platforms.x64 === "object") ||
     (platforms.arm64 && typeof platforms.arm64 === "object");

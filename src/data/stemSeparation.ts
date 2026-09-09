@@ -6,7 +6,7 @@ export const stemSeparationSeo: SeoMeta = {
   description:
     "Use local AI tools inside OpenStudio for six-stem separation with BS Roformer, ACE-Step text-to-music, and optional Stable Audio 3 text-to-audio workflows.",
   path: "/ai",
-  lastModified: "2026-07-28",
+  lastModified: "2026-09-09",
 };
 
 export const stemHero = {
@@ -49,7 +49,7 @@ export const aiPillars = [
     eyebrow: "Text to music",
     title: "ACE-Step prompt and lyrics generation",
     description:
-      "Type a prompt, drop in lyrics, choose a seed and duration. The packaged ACE graph runs end-to-end and writes a clean WAV straight onto the timeline — no graph apps, no glue scripts, no detours.",
+      "Type a prompt, add lyrics, and choose a seed and duration. ACE-Step runs through the managed Diffusers runtime and writes a WAV for your session.",
     details: ["ACE-Step 1.5 XL Turbo", "Prompt + lyrics conditioning", "Offline after setup"],
   },
   {
@@ -63,7 +63,7 @@ export const aiPillars = [
 ];
 
 export const aiGenerationFacts = [
-  "OpenStudio builds a known ACE graph internally instead of depending on a separate graph app.",
+  "OpenStudio runs ACE-Step through a managed Diffusers pipeline inside its local generation worker.",
   "The packaged OpenStudio ACE runtime validates local model files before generation starts.",
   "Full VAE decode is treated as the quality path, with clear failure instead of silent lower-quality fallback.",
   "Generated audio is written as WAV output and can be brought back into the DAW workflow.",
@@ -71,7 +71,7 @@ export const aiGenerationFacts = [
 
 export const aiHeroStats = [
   { label: "Stem lanes", value: "6", detail: "vocals, drums, bass, guitar, piano, other" },
-  { label: "ACE profile", value: "1.5 XL", detail: "Turbo graph path with Qwen conditioning" },
+  { label: "ACE profile", value: "1.5 XL", detail: "Local Diffusers pipeline" },
   { label: "Output", value: "WAV", detail: "generated audio ready for the session" },
   { label: "Runtime", value: "Local", detail: "offline after optional setup and model validation" },
 ];
@@ -155,7 +155,7 @@ export const aiNeuralStudioPhases: AiNeuralStudioPhase[] = [
     ],
     hudLines: ["ace-step: prompt lyrics seed", "motion: waveform transform", "output: generated WAV signal"],
     metrics: [
-      { label: "ACE profile", value: "1.5 XL", detail: "Turbo graph path with Qwen conditioning" },
+      { label: "ACE profile", value: "1.5 XL", detail: "Local Diffusers pipeline" },
       { label: "Creates", value: "WAV", detail: "new generated audio from prompt and lyrics" },
     ],
     runtimeEvents: [
@@ -197,7 +197,7 @@ export const musicGenerationExplainer = {
   eyebrow: "Prompt workflows",
   title: "Choose the generation path that matches the job.",
   paragraphs: [
-    "OpenStudio's ACE-Step path is designed for text-to-music: prompt and lyric conditioning, duration and seed control, graph execution, full VAE decode, and WAV output without asking the user to wire a separate graph app.",
+    "OpenStudio's ACE-Step path combines prompt and lyric conditioning, duration and seed control, local Diffusers inference, VAE decode and WAV output.",
     "Stable Audio 3 Medium is a separate text-to-audio and source-conditioned path. It stays optional because the model is license-gated and imported from a local Hugging Face snapshot before OpenStudio prepares its own Stable Audio runtime.",
   ],
 };
@@ -222,10 +222,10 @@ export const musicGenerationControls = [
     note: "Duration, seed, sampler settings",
   },
   {
-    title: "Graph execution owned by OpenStudio",
+    title: "Managed local generation",
     description:
-      "The ACE graph is built and run inside OpenStudio's executor. No separate graph app. No node soup. A fixed runtime boundary that behaves the same way every time you press render.",
-    note: "Known graph, fixed runtime boundary",
+      "OpenStudio prepares the ACE-Step Diffusers runtime, validates the downloaded assets, and runs generation in a local worker. Setup and generation progress stay in the app.",
+    note: "Managed runtime and local model files",
   },
   {
     title: "Full decode as the quality line",
@@ -265,12 +265,12 @@ export const musicGenerationWorkflowSteps: StoryStep[] = [
   {
     id: "execute-graph",
     eyebrow: "Execute",
-    title: "Run the known ACE graph through the packaged executor.",
+    title: "Generate through the local ACE-Step pipeline.",
     description:
-      "OpenStudio owns the graph path: text encoding, latent creation, sampling, decode, cache conventions, and output extraction are treated as runtime contract, not loose glue code.",
+      "The managed Diffusers pipeline performs text conditioning, sampling and audio decoding, then returns a WAV to OpenStudio.",
     bullets: [
       "ACE-Step 1.5 XL Turbo uses the OpenStudio packaged runtime profile.",
-      "Qwen text encoders, ACE diffusion, and ACE VAE are loaded through known nodes.",
+      "The pipeline loads the installed text encoders, diffusion model and VAE locally.",
       "Executor output is validated before the final audio object is accepted.",
     ],
     screenshot: screenshots.pluginHostingPitchAra,
@@ -324,9 +324,9 @@ export const aiArchitectureNodes = [
   {
     id: "ace",
     label: "ACE-Step 1.5 XL Turbo",
-    role: "Text-to-music graph",
+    role: "Text-to-music pipeline",
     accent: "lavender" as AccentTone,
-    description: "Diffusion graph that turns prompt, lyrics, and seed into latent audio — owned end to end.",
+    description: "A local Diffusers pipeline that turns prompt, lyrics and seed into generated audio.",
   },
   {
     id: "stable-audio",
@@ -361,7 +361,7 @@ export const aiArchitectureNodes = [
     label: "Local runtime",
     role: "Owned execution",
     accent: "emerald" as AccentTone,
-    description: "A managed Python environment provisioned in-app — validated, sandboxed, and offline after setup.",
+    description: "A managed Python environment provisioned in-app, with local model validation and offline generation after setup.",
   },
 ];
 

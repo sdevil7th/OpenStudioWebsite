@@ -1,12 +1,13 @@
 import { DOWNLOAD_PATHS, SITE_NAME } from "@/constants/site";
 import type { SeoMeta } from "@/data/marketing";
+export { aiSetupIntro, aiSetupDownloads, aiSetupNetworkNote } from "@/data/aiSetup";
 
 export const downloadSeo: SeoMeta = {
   title: `Download ${SITE_NAME} | Free DAW for Windows, macOS & Linux`,
   description:
     "Download OpenStudio free for Windows, macOS, or Linux. Get the open-source DAW with multitrack recording, MIDI, plugin hosting, mixing, and the built-in NAM Rack.",
   path: "/download",
-  lastModified: "2026-08-28",
+  lastModified: "2026-09-09",
 };
 
 export interface PlatformDownload {
@@ -127,8 +128,8 @@ export const releaseNotes = [
 
 export const autoUpdateNotes = [
   "OpenStudio checks release metadata from openstudio.org.in to discover newer builds.",
-  "That metadata-driven flow helps point users to updates without implying fully signed, one-click background patching on every platform.",
-  "macOS especially should be presented honestly: it is an unsigned DMG release with manual Gatekeeper override guidance.",
+  "Use the app's update controls to check for a newer build. Available download and installation actions depend on the installed version and distribution.",
+  "Downloading an update does not remove operating-system trust requirements for unsigned releases. Save your session before installing and restarting.",
 ];
 
 export const knownLimitations = [

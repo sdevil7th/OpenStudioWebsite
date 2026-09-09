@@ -25,6 +25,7 @@ import {
   useState,
 } from "react";
 import PageSeo from "@/components/PageSeo";
+import AiSetupGuide from "@/components/AiSetupGuide";
 import DeferredClientStage from "@/components/DeferredClientStage";
 import BrandLogoConstructScene from "@/components/brand/BrandLogoConstructScene";
 import SectionReveal from "@/components/motion/SectionReveal";
@@ -866,6 +867,7 @@ const DownloadPage = () => {
               <span>ACE-Step does not install Stable Audio 3</span>
               <span>Release notes stay visible</span>
             </div>
+            <AiSetupGuide />
           </div>
         </SectionReveal>
       </div>

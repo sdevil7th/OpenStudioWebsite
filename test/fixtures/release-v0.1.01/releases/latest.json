@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "channel": "stable",
+  "version": "0.1.01",
+  "notes": "# OpenStudio {{version}}\n\n## Highlights\n- Summarize the biggest user-facing improvements here.\n\n## Fixes\n- List the important bug fixes here.\n\n## Known Issues\n- macOS v1 ships as an unsigned DMG. Users may need to right-click `OpenStudio.app` and choose **Open**, then allow it in **System Settings > Privacy & Security**.\n- The optional AI Tools runtime for stem separation is not bundled in the base app. OpenStudio downloads its managed AI runtime on first use, so the first install can take time and depends on network availability.\n- AI Tools currently publish a managed macOS runtime for Apple Silicon only. Intel Macs can run the base app, but AI Tools remain unavailable there for now.\n- Document any other launch-day limitations here.\n\n## Upgrade Notes\n- Project files now save as `.osproj` while legacy `.s13` sessions continue to load.\n- Call out any additional migration details, changed file formats, or compatibility notes here.\n",
+  "publishedAt": "2026-08-31T05:04:07Z",
+  "releasePageUrl": "https://github.com/sdevil7th/OpenStudio/releases/tag/v0.1.01",
+  "platforms": {
+    "windows": {
+      "url": "https://github.com/sdevil7th/OpenStudio/releases/download/v0.1.01/OpenStudio-Setup-x64.exe",
+      "sha256": "9689f5b1c2eefcae163415102c55e31d08e7ddff96148679ecc4e3c88d445de2",
+      "size": 307195220,
+      "fileName": "OpenStudio-Setup-x64.exe",
+      "installerArguments": "/SP- /NOICONS"
+    },
+    "macos": {
+      "url": "https://github.com/sdevil7th/OpenStudio/releases/download/v0.1.01/OpenStudio-macOS.dmg",
+      "sha256": "f5b8cda12e84645bfa5bfcc8f98280f22d5ce8d979592f793e241d31cd99aef0",
+      "size": 36374947,
+      "fileName": "OpenStudio-macOS.dmg",
+      "minimumSystemVersion": "12.0"
+    },
+    "linux": {
+      "url": "https://github.com/sdevil7th/OpenStudio/releases/download/v0.1.01/OpenStudio-0.1.01-linux-x86_64.AppImage",
+      "sha256": "4a21e76e3e7d3b9e4dcd5c86403e100bd1278024c707cd20519f47ac65bbcc44",
+      "size": 66492920,
+      "fileName": "OpenStudio-0.1.01-linux-x86_64.AppImage"
+    }
+  },
+  "fullReleaseNotesUrl": "https://github.com/sdevil7th/OpenStudio/releases/tag/v0.1.01"
+}

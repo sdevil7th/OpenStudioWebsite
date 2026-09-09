@@ -32,63 +32,102 @@ export const privacyDocument: LegalDocument = {
   eyebrow: "Privacy",
   title: "Privacy Policy",
   summary:
-    "OpenStudio is a local desktop application and public website. This policy describes what limited information the site and app may encounter and how it is handled.",
+    "This policy explains how the OpenStudio desktop app and openstudio.org.in handle local files, optional online services, website analytics and support information.",
   seo: {
     title: "OpenStudio Privacy Policy | Website and App",
     description:
-      "Read the OpenStudio privacy policy covering the public website, the desktop app, release metadata checks, and optional local AI tools.",
+      "How OpenStudio handles local audio and projects, TONE3000 login, optional AI downloads, website analytics, privacy choices and deletion requests.",
     path: "/privacy",
   },
   facts: [
-    { label: "Last updated", value: "May 14, 2026" },
-    { label: "Analytics", value: "Google Analytics 4 and Microsoft Clarity" },
-    { label: "Software license", value: "GNU AGPLv3" },
-    { label: "AI tools", value: "Optional, user-installed only" },
+    { label: "Last updated", value: "September 9, 2026" },
+    { label: "Maintainer", value: "Sourav Das" },
+    { label: "Desktop analytics", value: "No Google Analytics or Microsoft Clarity integration" },
+    { label: "Privacy contact", value: projectEmails.support },
   ],
   sections: [
     {
-      title: "Scope of this policy",
+      title: "Who is responsible and what this policy covers",
       paragraphs: [
-        "This policy covers openstudio.org.in and the OpenStudio desktop application. The website exists primarily to explain the product, publish release information, and let users download the app itself.",
-        "This policy does not cover third-party services, plugins, or tools that you choose to connect to independently outside the base OpenStudio website and desktop workflow.",
+        `OpenStudio is maintained by Sourav Das. This policy covers the OpenStudio desktop application, including its Microsoft Store distribution, and openstudio.org.in. Contact ${projectEmails.support} about privacy or information handled by the project.`,
+        "The desktop application processes your music on your device. Accessing information to record or edit it is different from collecting it on the maintainer's servers. Optional online integrations and the public website have the separate data flows described below. Third-party providers are responsible for their own services under their privacy policies.",
       ],
     },
     {
-      title: "Information the website may collect",
+      title: "Audio, MIDI, projects and device information",
       paragraphs: [
-        "The website may generate standard server or hosting logs such as IP address, browser type, referrer, pages visited, and timestamps. That information is retained only as needed for infrastructure operation, security, and availability.",
-        "The website uses Google Analytics 4 and Microsoft Clarity to understand aggregate traffic, page views, referrers, approximate location, device type, browser, operating system, engagement with public pages, download flow interactions, outbound links, contact and repository link clicks, and interaction patterns such as clicks, scrolling, heatmaps, and session replays. OpenStudio does not use advertising pixels or remarketing on the public site.",
+        "To record, play, edit and export, the app accesses audio inputs, MIDI devices, files you open, and available audio devices and plugins. Recordings can include identifiable voices; project names, file paths, metadata and device names can also contain personal information. Microphone access is subject to your operating system's permission settings.",
+        "The built-in recording, editing, mixing and export workflows store audio, projects, presets, exports and recovery data locally. They do not upload your recordings or project contents to OpenStudio servers. Files placed in a cloud-synced folder may be transferred by your chosen sync service independently of OpenStudio. Third-party plugins or scripts you run may have their own network behavior.",
       ],
     },
     {
-      title: "Information the desktop app may encounter",
+      title: "Optional TONE3000 login and NAM Rack",
       paragraphs: [
-        "Project files, audio, presets, and exports stay on your device as part of the normal desktop workflow. OpenStudio is a desktop product first, and the website is only the delivery and documentation surface around it.",
-        "The app may request openstudio.org.in to check release or update metadata. Those requests are intended to retrieve version information and download metadata, not to send personal identity information.",
+        "Core recording and editing do not require an OpenStudio account. If you connect NAM Rack to TONE3000, authentication takes place through TONE3000's browser sign-in flow. OpenStudio receives authorization results and access/refresh tokens so it can make requests associated with your TONE3000 account. OpenStudio does not receive the password you enter on TONE3000's login page.",
+        "The app keeps authentication tokens locally to maintain the connection across restarts and sends them to TONE3000 for authorized requests and token refresh. Browsing and downloading captures sends search terms, filters and requested tone/model identifiers to the service. TONE3000 and its delivery providers also receive ordinary network information, such as your IP address. These library requests do not upload your recorded audio to TONE3000.",
+        "Use NAM Rack's sign-out control to remove the app's saved connection credentials. Signing out of OpenStudio's connection does not delete your TONE3000 account or necessarily sign you out in your browser. Manage that account and its data with TONE3000 directly. Downloaded captures and locally saved projects are separate from your login credentials.",
       ],
     },
     {
-      title: "Optional AI tools",
+      title: "Optional AI tools and downloads",
       paragraphs: [
-        "Stem separation and similar features are provided through a separate optional install. Those tools are not required to use the base application.",
-        "When installed, the intended base workflow is local: audio is processed on your machine rather than uploaded to external servers as part of the standard OpenStudio experience.",
+        "Optional stem separation and music-generation workflows install or import runtime components and model files. The built-in local workflows process audio, text prompts, lyrics and generated results on your computer; they do not send that content to a hosted inference service as part of the normal workflow.",
+        "Setup and model downloads can connect to OpenStudio's release site, GitHub, Hugging Face, Python package indexes, PyTorch distribution servers and model publishers. Those services receive the requested resource and normal network information. A model provider may require its own account or license acceptance. Independently installed plugins, scripts, modified builds or services can behave differently and are subject to their own policies.",
       ],
     },
     {
-      title: "Third-party services",
+      title: "App updates, website hosting and network requests",
       paragraphs: [
-        "Release artifacts are hosted through GitHub at github.com/sdevil7th/OpenStudio, so GitHub's own privacy policy applies when you access release assets there.",
-        "Google Analytics and Microsoft Clarity may process website analytics events for openstudio.org.in. OpenStudio does not integrate advertising, remarketing, or marketing automation vendors into the current website or desktop product flow.",
+        "Update checks and downloads contact the relevant distribution provider, such as openstudio.org.in, GitHub or Microsoft Store. These services receive IP addresses, requested URLs and other normal HTTP connection information. The purpose is to deliver version information and software, not to upload your audio or project contents. Update controls depend on the installed distribution and your operating system settings.",
+        "The website is hosted using Netlify and links to GitHub release assets. Hosting and download providers may keep request logs, including IP addresses, browser/user-agent information, referrers, requested pages and timestamps, to deliver content, diagnose failures and protect infrastructure. Those essential requests occur even when website analytics are rejected.",
       ],
     },
     {
-      title: "Contact",
+      title: "Website analytics and privacy choices",
       paragraphs: [
-        `If you have privacy questions about the OpenStudio website or desktop application, contact ${projectEmails.support}.`,
+        "The website uses Google Analytics 4 for traffic and engagement measurement and Microsoft Clarity for interaction analysis, heatmaps and session replays. These integrations run on the website, not inside the OpenStudio desktop app. They can process page visits, referrers, approximate location, browser/device information, identifiers, download/outbound-link interactions, clicks and scrolling. A replay represents website interactions, not a recording of your desktop or DAW session.",
+        "Optional website analytics load only after you choose Accept analytics. Choose Reject analytics to use the site and downloads without loading either provider. You can reopen Privacy choices in the footer to change your decision. Your choice is stored in this browser for up to 180 days; if browser storage is unavailable, it applies to the current page session. Changing your choice takes effect without reloading the page. When a saved choice expires or is cleared, optional analytics stop and the site asks you to choose again.",
+        "The site does not enable advertising consent or Google advertising personalization. Analytics providers may use cookies and similar identifiers when analytics are accepted. Rejecting later stops future website tracking through these integrations and clears accessible first-party analytics cookies; it does not automatically erase information already processed by Google or Microsoft or cookies belonging to other domains. Their privacy policies and privacy controls also apply.",
+      ],
+    },
+    {
+      title: "Local diagnostics and information you send us",
+      paragraphs: [
+        "The app can write local startup logs, error reports, recovery records and crash diagnostics. These may contain application and operating-system versions, device/plugin names, file paths, error details and, in crash dumps, portions of process memory. The inspected built-in crash-reporting workflow writes reports locally rather than automatically uploading them to the maintainer. Review diagnostic files before choosing to share them.",
+        `If you email ${projectEmails.support}, contact the maintainer or post a GitHub issue, we receive the details you choose to provide, such as your email address, message and attachments, and use them to respond and investigate. GitHub issues are public: do not include private recordings, passwords, tokens or other confidential data.`,
+      ],
+    },
+    {
+      title: "Storage, protection and retention",
+      paragraphs: [
+        "Local projects, recordings, exports, downloaded models and captures remain in your selected folders or the app's data/cache folders until removed by you or the relevant cleanup process. Recovery copies, logs, browser data and credentials may be stored separately from the main project. Deleting one project or uninstalling an app does not necessarily remove every copy, backup or external file.",
+        "Online authentication and download requests use HTTPS. Saved authentication uses the app's platform-specific credential handling; access to local files also depends on your operating-system account, device security and backup configuration. Project and audio files are not automatically encrypted by OpenStudio. No system can guarantee absolute security.",
+        "Hosting logs and analytics are retained under the providers' applicable service policies and account retention settings; periods differ by provider and data type. Support correspondence is kept as needed to answer requests, resolve issues and meet applicable obligations. Contact us for information about records held by the maintainer or the current provider settings. We cannot remotely delete files that remain solely on your device.",
+      ],
+    },
+    {
+      title: "Your controls and privacy requests",
+      paragraphs: [
+        "You can revoke microphone access through your operating system, decline optional online features, sign out of TONE3000 in NAM Rack, and change website analytics consent using Privacy choices. You can delete your own projects, exports and app data using your device's file-management tools. Back up anything you want to keep before clearing app data, and check any separate cloud backups or synced copies.",
+        `Depending on applicable law, you may have rights to access, correct, delete or obtain a copy of personal information, restrict or object to processing, or withdraw consent. Send requests concerning the maintainer's records to ${projectEmails.support}. We may need proportionate information to verify your request; do not send passwords or authentication tokens. Withdrawing consent does not undo processing that already occurred. You may also raise concerns with your local data-protection authority.`,
+        "For accounts or information held independently by TONE3000, Microsoft, Google, GitHub, Netlify or another provider, use that provider's privacy-request process. Providers may process data in countries other than your own under their applicable policies and safeguards. We will explain any limitation that prevents us from fulfilling a request directed to us.",
+      ],
+    },
+    {
+      title: "Children and changes to this policy",
+      paragraphs: [
+        `The public website and its analytics are not designed to collect personal information from children. If you believe a child has provided personal information to the maintainer, contact ${projectEmails.support} so we can review and address it. Third-party account services have their own age requirements.`,
+        "We update this policy when the application's data flows, website services or privacy controls change. The Last updated date identifies the current revision. Material changes will be described on this page and, where appropriate, in release communications or a renewed consent request.",
       ],
     },
   ],
   links: [
+    { label: "TONE3000 privacy", href: "https://www.tone3000.com/privacy", external: true },
+    { label: "Google privacy", href: "https://policies.google.com/privacy", external: true },
+    { label: "Microsoft privacy (Clarity and Store)", href: "https://privacy.microsoft.com/privacystatement", external: true },
+    { label: "GitHub privacy", href: "https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement", external: true },
+    { label: "Netlify privacy", href: "https://www.netlify.com/privacy/", external: true },
+    { label: "Hugging Face privacy", href: "https://huggingface.co/privacy", external: true },
     {
       label: "Documentation",
       href: externalLinks.documentation ?? "/github",
@@ -208,7 +247,7 @@ export const termsDocument: LegalDocument = {
       title: "What OpenStudio is",
       paragraphs: [
         "OpenStudio is a desktop digital audio workstation distributed as open-source software. The website is not the product itself; it exists to provide product information, documentation, release notes, and download access to the application.",
-        "OpenStudio is not a subscription service and does not require an account to use the current website or desktop app.",
+        "OpenStudio is not a subscription service. Core desktop recording and editing do not require an OpenStudio account. Optional integrations, such as authenticated TONE3000 library access, may require an account with that provider and acceptance of its terms.",
       ],
     },
     {

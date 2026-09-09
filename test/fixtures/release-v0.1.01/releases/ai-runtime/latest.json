@@ -1,0 +1,275 @@
+{
+  "schemaVersion": 4,
+  "channel": "stable",
+  "appVersion": "0.1.01",
+  "runtimeVersion": "0.0.13",
+  "publishedAt": "2026-08-31T05:04:07Z",
+  "platforms": {
+    "windows": {
+      "base": {
+        "url": "https://github.com/sdevil7th/OpenStudio/releases/download/ai-runtime-v0.0.13/OpenStudio-AI-Runtime-windows-base-x64.zip",
+        "sha256": "8af3e2847c9cd71f71977eb9f48b96d44cdd57c8023aa89af642f2c8b0d97799",
+        "size": 38152919,
+        "fileName": "OpenStudio-AI-Runtime-windows-base-x64.zip"
+      },
+      "backends": {
+        "directml": {
+          "backend": "directml",
+          "installPlan": {
+            "schemaVersion": 1,
+            "id": "windows-directml-v2",
+            "backend": "directml",
+            "platform": "windows",
+            "architecture": "x64",
+            "pythonFamily": "3.11",
+            "packageSource": "repo-pinned-ace-diffusers",
+            "steps": [
+              {
+                "type": "pip_install",
+                "description": "Installing DirectML stem separation packages",
+                "stepLabel": "Installing DirectML stem separation packages",
+                "features": [
+                  "stemSeparation"
+                ],
+                "downloadHint": "OpenStudio is downloading the DirectML backend packages for Windows.",
+                "isLargeDownload": true,
+                "packages": [
+                  "audio-separator[dml]==0.41.1"
+                ]
+              },
+              {
+                "type": "pip_install",
+                "description": "Installing ACE-Step Diffusers runtime dependencies",
+                "stepLabel": "Installing ACE-Step Diffusers runtime dependencies",
+                "features": [
+                  "audioGeneration"
+                ],
+                "packages": [
+                  "diffusers==0.39.0",
+                  "transformers==4.57.6",
+                  "accelerate==1.12.0",
+                  "soundfile",
+                  "numpy",
+                  "huggingface_hub>=0.34,<1.0"
+                ],
+                "errorCode": "music_generation_runtime_install_failed",
+                "nonFatalForStemSeparation": true
+              }
+            ]
+          }
+        },
+        "cuda": {
+          "backend": "cuda",
+          "installPlan": {
+            "schemaVersion": 1,
+            "id": "windows-cuda-cu128-v2",
+            "backend": "cuda",
+            "platform": "windows",
+            "architecture": "x64",
+            "pythonFamily": "3.11",
+            "packageSource": "repo-pinned-windows-acceleration-manifest",
+            "steps": [
+              {
+                "type": "pip_install",
+                "description": "Installing GPU stem separation packages",
+                "stepLabel": "Installing GPU stem separation packages",
+                "features": [
+                  "stemSeparation",
+                  "audioGeneration"
+                ],
+                "packages": [
+                  "audio-separator[gpu]==0.41.1"
+                ]
+              },
+              {
+                "type": "pip_uninstall",
+                "description": "Removing default PyTorch wheels before applying the CUDA overlay",
+                "stepLabel": "Removing default PyTorch wheels",
+                "features": [
+                  "audioGeneration"
+                ],
+                "packages": [
+                  "torch",
+                  "torchvision",
+                  "torchaudio"
+                ]
+              },
+              {
+                "type": "pip_install",
+                "description": "Installing CUDA-capable PyTorch wheels from the official PyTorch index",
+                "stepLabel": "Downloading CUDA PyTorch wheels",
+                "features": [
+                  "audioGeneration"
+                ],
+                "downloadHint": "This is the largest Windows AI download and can take several minutes depending on your connection.",
+                "isLargeDownload": true,
+                "indexUrl": "https://download.pytorch.org/whl/cu128",
+                "packages": [
+                  "torch==2.11.0+cu128",
+                  "torchaudio==2.11.0+cu128"
+                ]
+              },
+              {
+                "type": "pip_install",
+                "description": "Installing ACE-Step Diffusers runtime dependencies",
+                "stepLabel": "Installing ACE-Step Diffusers runtime dependencies",
+                "features": [
+                  "audioGeneration"
+                ],
+                "packages": [
+                  "diffusers==0.39.0",
+                  "transformers==4.57.6",
+                  "accelerate==1.12.0",
+                  "soundfile",
+                  "numpy",
+                  "huggingface_hub>=0.34,<1.0"
+                ],
+                "errorCode": "music_generation_runtime_install_failed",
+                "nonFatalForStemSeparation": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    "macos": {
+      "arm64": {
+        "url": "https://github.com/sdevil7th/OpenStudio/releases/download/ai-runtime-v0.0.13/OpenStudio-AI-Runtime-macos-arm64.zip",
+        "sha256": "bd8c45329a0d71eae7152be98aa698844812ea4e09b2e186e5a9ae420731fdef",
+        "size": 335171834,
+        "fileName": "OpenStudio-AI-Runtime-macos-arm64.zip"
+      }
+    },
+    "linux": {
+      "x64": {
+        "url": "https://github.com/sdevil7th/OpenStudio/releases/download/ai-runtime-v0.0.13/OpenStudio-AI-Runtime-linux-cpu-x64.zip",
+        "sha256": "0ee9ab6b12691f98909e11acc185df1f6558d5682fb709d64f6dc979af501f86",
+        "size": 553408441,
+        "fileName": "OpenStudio-AI-Runtime-linux-cpu-x64.zip"
+      },
+      "backends": {
+        "cuda": {
+          "backend": "cuda",
+          "installPlan": {
+            "steps": [
+              {
+                "type": "pip_install",
+                "description": "Installing GPU stem separation packages",
+                "stepLabel": "Installing GPU stem separation packages",
+                "features": [
+                  "stemSeparation",
+                  "audioGeneration"
+                ],
+                "packages": [
+                  "audio-separator[gpu]==0.41.1"
+                ]
+              },
+              {
+                "type": "pip_uninstall",
+                "features": [
+                  "audioGeneration"
+                ],
+                "packages": [
+                  "torch",
+                  "torchvision",
+                  "torchaudio"
+                ]
+              },
+              {
+                "type": "pip_install",
+                "description": "Installing CUDA-capable PyTorch wheels",
+                "stepLabel": "Installing CUDA PyTorch wheels",
+                "features": [
+                  "audioGeneration"
+                ],
+                "indexUrl": "https://download.pytorch.org/whl/cu128",
+                "packages": [
+                  "torch==2.11.0+cu128",
+                  "torchaudio==2.11.0+cu128"
+                ]
+              },
+              {
+                "type": "pip_install",
+                "description": "Installing ACE-Step Diffusers runtime dependencies",
+                "stepLabel": "Installing ACE-Step Diffusers runtime dependencies",
+                "features": [
+                  "audioGeneration"
+                ],
+                "packages": [
+                  "diffusers==0.39.0",
+                  "transformers==4.57.6",
+                  "accelerate==1.12.0",
+                  "soundfile",
+                  "numpy",
+                  "huggingface_hub>=0.34,<1.0"
+                ],
+                "errorCode": "music_generation_runtime_install_failed",
+                "nonFatalForStemSeparation": true
+              }
+            ]
+          }
+        },
+        "rocm": {
+          "backend": "rocm",
+          "installPlan": {
+            "steps": [
+              {
+                "type": "pip_install",
+                "description": "Installing CPU stem separation packages",
+                "stepLabel": "Installing CPU stem separation packages",
+                "features": [
+                  "stemSeparation"
+                ],
+                "packages": [
+                  "audio-separator[cpu]==0.41.1"
+                ]
+              },
+              {
+                "type": "pip_uninstall",
+                "features": [
+                  "audioGeneration"
+                ],
+                "packages": [
+                  "torch",
+                  "torchvision",
+                  "torchaudio"
+                ]
+              },
+              {
+                "type": "pip_install",
+                "description": "Installing ROCm-capable PyTorch wheels",
+                "stepLabel": "Installing ROCm PyTorch wheels",
+                "features": [
+                  "audioGeneration"
+                ],
+                "indexUrl": "https://download.pytorch.org/whl/rocm6.2",
+                "packages": [
+                  "torch==2.5.1",
+                  "torchaudio==2.5.1"
+                ]
+              },
+              {
+                "type": "pip_install",
+                "description": "Installing ACE-Step Diffusers runtime dependencies",
+                "stepLabel": "Installing ACE-Step Diffusers runtime dependencies",
+                "features": [
+                  "audioGeneration"
+                ],
+                "packages": [
+                  "diffusers==0.39.0",
+                  "transformers==4.57.6",
+                  "accelerate==1.12.0",
+                  "soundfile",
+                  "numpy",
+                  "huggingface_hub>=0.34,<1.0"
+                ],
+                "errorCode": "music_generation_runtime_install_failed",
+                "nonFatalForStemSeparation": true
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -11,6 +11,7 @@
     "predev": "npm run sync-blog-images && npm run generate-image-assets && npm run generate-blog-content",
     "dev": "vite",
     "stage-release-publish-inputs": "node scripts/stage-release-publish-inputs.mjs",
+    "fetch-release-publish-inputs": "node scripts/fetch-release-publish-inputs.mjs",
     "validate-release-publish-inputs": "node scripts/validate-release-publish-inputs.mjs",
     "stage-ai-runtime-metadata": "node scripts/stage-ai-runtime-metadata.mjs",
     "validate-ai-runtime-metadata": "node scripts/validate-ai-runtime-metadata.mjs",
