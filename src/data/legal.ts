@@ -38,9 +38,10 @@ export const privacyDocument: LegalDocument = {
     description:
       "How OpenStudio handles local audio and projects, TONE3000 login, optional AI downloads, website analytics, privacy choices and deletion requests.",
     path: "/privacy",
+    lastModified: "2026-09-10",
   },
   facts: [
-    { label: "Last updated", value: "September 9, 2026" },
+    { label: "Last updated", value: "September 10, 2026" },
     { label: "Maintainer", value: "Sourav Das" },
     { label: "Desktop analytics", value: "No Google Analytics or Microsoft Clarity integration" },
     { label: "Privacy contact", value: projectEmails.support },
@@ -93,7 +94,7 @@ export const privacyDocument: LegalDocument = {
     {
       title: "Local diagnostics and information you send us",
       paragraphs: [
-        "The app can write local startup logs, error reports, recovery records and crash diagnostics. These may contain application and operating-system versions, device/plugin names, file paths, error details and, in crash dumps, portions of process memory. The inspected built-in crash-reporting workflow writes reports locally rather than automatically uploading them to the maintainer. Review diagnostic files before choosing to share them.",
+        "The app can write local startup logs, error reports, recovery records and crash diagnostics. These may contain application and operating-system versions, device/plugin names, file paths, error details and, in crash dumps, portions of process memory. The built-in crash-reporting workflow saves these reports on your device and does not automatically upload them to the maintainer. Review diagnostic files before choosing to share them.",
         `If you email ${projectEmails.support}, contact the maintainer or post a GitHub issue, we receive the details you choose to provide, such as your email address, message and attachments, and use them to respond and investigate. GitHub issues are public: do not include private recordings, passwords, tokens or other confidential data.`,
       ],
     },
@@ -101,13 +102,15 @@ export const privacyDocument: LegalDocument = {
       title: "Storage, protection and retention",
       paragraphs: [
         "Local projects, recordings, exports, downloaded models and captures remain in your selected folders or the app's data/cache folders until removed by you or the relevant cleanup process. Recovery copies, logs, browser data and credentials may be stored separately from the main project. Deleting one project or uninstalling an app does not necessarily remove every copy, backup or external file.",
-        "Online authentication and download requests use HTTPS. Saved authentication uses the app's platform-specific credential handling; access to local files also depends on your operating-system account, device security and backup configuration. Project and audio files are not automatically encrypted by OpenStudio. No system can guarantee absolute security.",
+        "Connections to online authentication and download services use HTTPS. The TONE3000 browser sign-in flow can return an authorization result to a temporary HTTP callback on 127.0.0.1, the loopback address of your own computer. That callback is local to your device.",
+        "On Windows, saved TONE3000 authentication tokens are encrypted using Windows Data Protection (DPAPI) under your Windows user account. Other platforms use the app's platform-specific credential handling. Access to local files also depends on your operating-system account, device security and backup configuration. Project and audio files are not automatically encrypted by OpenStudio. No system can guarantee absolute security.",
         "Hosting logs and analytics are retained under the providers' applicable service policies and account retention settings; periods differ by provider and data type. Support correspondence is kept as needed to answer requests, resolve issues and meet applicable obligations. Contact us for information about records held by the maintainer or the current provider settings. We cannot remotely delete files that remain solely on your device.",
       ],
     },
     {
       title: "Your controls and privacy requests",
       paragraphs: [
+        "You can access your recordings and projects by opening them in OpenStudio or their saved folders, and export audio using the app's export controls. Locally stored files are under your control; you do not need to send them to the maintainer to access or copy them. Contact us if you need help locating app data or diagnostic files for your installation.",
         "You can revoke microphone access through your operating system, decline optional online features, sign out of TONE3000 in NAM Rack, and change website analytics consent using Privacy choices. You can delete your own projects, exports and app data using your device's file-management tools. Back up anything you want to keep before clearing app data, and check any separate cloud backups or synced copies.",
         `Depending on applicable law, you may have rights to access, correct, delete or obtain a copy of personal information, restrict or object to processing, or withdraw consent. Send requests concerning the maintainer's records to ${projectEmails.support}. We may need proportionate information to verify your request; do not send passwords or authentication tokens. Withdrawing consent does not undo processing that already occurred. You may also raise concerns with your local data-protection authority.`,
         "For accounts or information held independently by TONE3000, Microsoft, Google, GitHub, Netlify or another provider, use that provider's privacy-request process. Providers may process data in countries other than your own under their applicable policies and safeguards. We will explain any limitation that prevents us from fulfilling a request directed to us.",
@@ -122,6 +125,7 @@ export const privacyDocument: LegalDocument = {
     },
   ],
   links: [
+    { label: "Email privacy contact", href: `mailto:${projectEmails.support}` },
     { label: "TONE3000 privacy", href: "https://www.tone3000.com/privacy", external: true },
     { label: "Google privacy", href: "https://policies.google.com/privacy", external: true },
     { label: "Microsoft privacy (Clarity and Store)", href: "https://privacy.microsoft.com/privacystatement", external: true },
