@@ -44,7 +44,7 @@ runtime metadata layouts remain supported so deploying this repository first is 
 The GitHub desktop release is `v0.1.01`, referencing AI runtime `0.0.13` with a
 Windows x64 base ZIP, macOS arm64 ZIP and Linux x64 CPU ZIP. No macOS x64 runtime
 archive is advertised by that manifest even though the DAW itself is universal.
-The app's new Stable Audio Diffusers conversion and MiniMax model import are
+The app's new in-app Hugging Face downloads, Stable Audio conversion and optional local model imports are
 documented as awaiting the next desktop release; uploading the website does not
 make those features available in an older installed app.
 

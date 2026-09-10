@@ -45,9 +45,9 @@ test("ai page covers the grounded product AI paths", () => {
   assert.match(aiDataSource, /ACE-Step prompt and lyrics generation/);
   assert.match(aiDataSource, /ACE-Step 1\.5 XL Turbo/);
   assert.match(aiDataSource, /id: "stable-audio"/);
-  assert.match(aiDataSource, /Stable Audio 3 Medium import path/);
+  assert.match(aiDataSource, /Stable Audio 3 Medium setup/);
   assert.match(aiDataSource, /BS Roformer and ACE-Step setup do not install Stable Audio 3/);
-  assert.match(aiDataSource, /manual Hugging Face snapshot import/);
+  assert.match(aiDataSource, /in-app Hugging Face setup/);
   assert.match(aiDataSource, /Full VAE decode/);
   assert.match(aiDataSource, /AiNeuralStudioPhase/);
   assert.match(aiDataSource, /aiNeuralStudioPhases/);

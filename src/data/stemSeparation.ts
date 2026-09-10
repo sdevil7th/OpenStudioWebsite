@@ -55,10 +55,10 @@ export const aiPillars = [
   {
     id: "stable-audio",
     eyebrow: "Text to audio",
-    title: "Stable Audio 3 Medium import path",
+    title: "Stable Audio 3 Medium setup",
     description:
-      "Stable Audio 3 is a separate optional setup for prompt-based audio, source variation, inpaint, and continuation. It is not downloaded by the BS Roformer or ACE-Step installer path; you import the accepted Hugging Face snapshot deliberately.",
-    details: ["Manual Hugging Face snapshot import", "Separate Stable Audio runtime", "License acknowledgement required"],
+      "Stable Audio 3 is a separate optional setup for prompt-based audio, source variation, inpaint, and continuation. The next desktop release downloads and converts it from Hugging Face through AI Tools after model access and license acceptance. Installing BS Roformer or ACE-Step does not download Stable Audio.",
+    details: ["In-app Hugging Face download (next release)", "Separate Stable Audio runtime", "License acknowledgement required"],
   },
 ];
 
@@ -544,7 +544,7 @@ export const stemInstallFacts = [
   "Stem separation is optional and provisioned through an in-app AI tools install.",
   "The setup builds a managed local runtime for you — no separate Python environment to wire up.",
   "ACE-Step installs through the Audio Generation path; BS Roformer and ACE-Step setup do not install Stable Audio 3.",
-  "Stable Audio 3 uses a separate manual Hugging Face snapshot import, license acknowledgement, and Stable Audio runtime.",
+  "The next desktop release adds separate in-app Hugging Face setup for Stable Audio 3, with automatic conversion, license acknowledgement and optional local import.",
   "Once installed, the selected assets run locally and offline after the required model files are validated.",
   "The base download stays small because the AI runtime is never bundled by default.",
 ];
