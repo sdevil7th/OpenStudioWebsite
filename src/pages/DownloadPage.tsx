@@ -42,6 +42,7 @@ import {
   downloadHero,
   downloadHeroSignals,
   downloadSeo,
+  downloadUpgradeNote,
   platformDownloads,
   systemRequirementMatrix,
 } from "@/data/downloads";
@@ -713,6 +714,9 @@ const DownloadPage = () => {
                 <p className="mt-2 max-w-xl text-sm leading-7 text-white/64">
                   Stable buttons resolve through download endpoints while the
                   public repository and release status stay visible.
+                </p>
+                <p className="mt-3 max-w-xl text-sm leading-7 text-white/80">
+                  {downloadUpgradeNote}
                 </p>
               </div>
             </div>

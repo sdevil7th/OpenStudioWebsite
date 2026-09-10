@@ -328,7 +328,7 @@ export const featureCategories: FeatureCategory[] = [
       },
       {
         title: "Project persistence",
-        description: "Save current projects as .osproj while continuing to open legacy .s13 sessions.",
+        description: "Save projects as .osproj. Back up earlier sessions before upgrading; retired file formats are not supported by the upcoming release.",
       },
       {
         title: "Presets, themes, and peak caches",

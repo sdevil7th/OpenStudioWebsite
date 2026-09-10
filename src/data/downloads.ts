@@ -132,6 +132,9 @@ export const autoUpdateNotes = [
   "Downloading an update does not remove operating-system trust requirements for unsigned releases. Save your session before installing and restarting.",
 ];
 
+export const downloadUpgradeNote =
+  "Before upgrading to the upcoming 0.1.02 release, back up projects, presets, NAM models, and cabinet IRs. Retired project and preset formats require conversion; renaming a file does not convert it, and automatic migration is not included. Keep the older app for unconverted sessions.";
+
 export const knownLimitations = [
   "Linux AppImage is unsigned - most distros run it without additional trust steps.",
   "Unsigned builds can trigger SmartScreen on Windows or Gatekeeper on macOS during first launch.",
