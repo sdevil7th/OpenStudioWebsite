@@ -37,6 +37,13 @@ Windows credential protection, the loopback sign-in callback, local access/copy
 controls and diagnostic wording, adds a direct privacy email link, and updates
 the policy's revision date.
 
+Privacy, Security and Terms pages omit the animated loader from their generated
+HTML. Their complete static documents are visible immediately, including while
+application scripts are stalled or unavailable. React replaces the static view
+only after its route is ready. Legal documents also omit entrance and
+scroll-reveal animations. This behavior applies to all visitors without
+user-agent detection.
+
 ## Evidence and limits
 
 - On September 10, the production `https://openstudio.org.in/privacy` returned
@@ -84,11 +91,14 @@ Microsoft makes the certification decision.
 ## Verification
 
 Run `npm run build`, `npm run lint` and `npm test`.
-All three passed for this review; the full test suite passed all 147 tests.
+The loader-bypass follow-up passed all three, including all 150 tests.
 `test/privacy-page-browser.test.mjs` checks the built policy on desktop and
 mobile, without JavaScript, with all app bundles blocked and with the privacy
 route chunk blocked. It verifies readable content, privacy contact, horizontal
-layout and absence of analytics requests before consent. It models the checked
+layout and absence of analytics requests before consent. Additional checks hold
+JavaScript requests open for each legal route and verify readable content before
+the scripts arrive, no loader markup, and a single visible document after React
+takes over. It models the checked
 Netlify rewrite because plain Vite preview serves the home document at
 `/privacy`; `/privacy/` resolves to the generated document directly.
 
