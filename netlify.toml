@@ -2,6 +2,12 @@
   command = "npm run build"
   publish = "dist"
 
+# Git-triggered production deploys need the release files too. Fetch the last
+# published desktop release; never erase update feeds on a website-only push.
+[context.production.environment]
+  OPENSTUDIO_FETCH_RELEASE_METADATA = "true"
+  OPENSTUDIO_REQUIRE_RELEASE_METADATA = "true"
+
 [functions]
   included_files = ["public/assets/openstudio/generated/image-manifest.json"]
 

@@ -1,7 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import PageSeo from "@/components/PageSeo";
-import SectionReveal from "@/components/motion/SectionReveal";
 import type { LegalDocument } from "@/data/legal";
 
 interface LegalDocumentPageProps {
@@ -10,7 +9,7 @@ interface LegalDocumentPageProps {
 
 const LegalDocumentPage = ({ document }: LegalDocumentPageProps) => (
   <main
-    className="design-page-main route-appear"
+    className="design-page-main"
     id="main-content"
   >
     <PageSeo {...document.seo} />
@@ -24,8 +23,8 @@ const LegalDocumentPage = ({ document }: LegalDocumentPageProps) => (
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-6">
-          {document.sections.map((section, index) => (
-            <SectionReveal className="design-glass-panel rounded-[2rem] p-8 md:p-10" delay={index * 0.04} key={section.title}>
+          {document.sections.map((section) => (
+            <section className="design-glass-panel rounded-[2rem] p-8 md:p-10" key={section.title}>
               <h2 className="font-headline text-2xl font-bold text-white">{section.title}</h2>
               <div className="mt-5 space-y-4">
                 {section.paragraphs.map((paragraph) => (
@@ -44,12 +43,12 @@ const LegalDocumentPage = ({ document }: LegalDocumentPageProps) => (
                   ))}
                 </div>
               ) : null}
-            </SectionReveal>
+            </section>
           ))}
         </div>
 
         <div className="space-y-6">
-          <SectionReveal className="design-panel rounded-[2rem] p-8 lg:sticky lg:top-28">
+          <div className="design-panel rounded-[2rem] p-8 lg:sticky lg:top-28">
             <div className="font-mono text-[0.62rem] uppercase tracking-[0.24em] text-secondary">Current facts</div>
             <div className="mt-6 space-y-4">
               {document.facts.map((fact) => (
@@ -59,10 +58,10 @@ const LegalDocumentPage = ({ document }: LegalDocumentPageProps) => (
                 </div>
               ))}
             </div>
-          </SectionReveal>
+          </div>
 
           {document.links?.length ? (
-            <SectionReveal className="design-panel rounded-[2rem] p-8" delay={0.08}>
+            <div className="design-panel rounded-[2rem] p-8">
               <div className="font-mono text-[0.62rem] uppercase tracking-[0.24em] text-secondary">Related links</div>
               <div className="mt-6 flex flex-col gap-3">
                 {document.links.map((item) =>
@@ -94,7 +93,7 @@ const LegalDocumentPage = ({ document }: LegalDocumentPageProps) => (
                   ),
                 )}
               </div>
-            </SectionReveal>
+            </div>
           ) : null}
         </div>
       </div>

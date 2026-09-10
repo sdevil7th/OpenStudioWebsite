@@ -247,7 +247,7 @@ const ReleasesPage = () => {
               <h2 className="font-headline text-4xl font-bold text-white md:text-5xl">Current state, update awareness, and next release focus.</h2>
             </div>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-white/62">
-              These cards should feel like a premium changelog wall, not a sparse timeline floating in empty space.
+              See what the current downloads include and what is being prepared for the next release. Candidate changes become available only after their desktop release is published.
             </p>
           </div>
 

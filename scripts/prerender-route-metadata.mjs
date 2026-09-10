@@ -64,6 +64,13 @@ const staticRouteStyles = `
         contain: strict;
         pointer-events: none;
       }
+      [data-openstudio-immediate-content] :is(#root, #openstudio-static-route-fallback) > [data-static-route-content] {
+        position: static;
+        visibility: visible;
+        content-visibility: visible;
+        contain: none;
+        pointer-events: auto;
+      }
       :is(#root, #openstudio-static-route-fallback) > [data-static-route-content] {
         box-sizing: border-box;
         width: min(100% - 2rem, 80rem);
@@ -1504,6 +1511,13 @@ export const buildRouteHtml = (
       url,
     });
   let html = clearGeneratedArtifacts(template);
+  html = html.replace(/\sdata-openstudio-immediate-content(?:="[^"]*")?/g, "");
+  if (route.immediateContent) {
+    html = html.replace(/<html\b/, "<html data-openstudio-immediate-content");
+    // Remove the loading UI from the response itself, including for crawlers
+    // which only read HTML and never run the application's scripts.
+    html = html.replace(/<!-- openstudio-loader:start -->[\s\S]*?<!-- openstudio-loader:end -->/, "");
+  }
 
   html = setTitle(html, route.title);
   html = setMeta(html, ["name", "description"], route.description);
@@ -1745,6 +1759,11 @@ const createRoutes = (runtime) => {
             items: downloadData.systemRequirements,
           },
           {
+            title: "AI downloads and setup",
+            description: `${downloadData.aiSetupIntro} ${downloadData.aiSetupNetworkNote}`,
+            items: downloadData.aiSetupDownloads,
+          },
+          {
             title: "Release and install notes",
             items: [
               ...downloadData.releaseNotes,
@@ -1764,6 +1783,11 @@ const createRoutes = (runtime) => {
           {
             title: "Optional AI production tools",
             items: aiData.aiPillars,
+          },
+          {
+            title: "AI downloads and setup",
+            description: `${downloadData.aiSetupIntro} ${downloadData.aiSetupNetworkNote}`,
+            items: downloadData.aiSetupDownloads,
           },
           {
             title: "How the local workflow is framed",
@@ -1844,13 +1868,15 @@ const createRoutes = (runtime) => {
       legalData.termsDocument,
     ].map((document) => ({
       seo: document.seo,
+      immediateContent: true,
       staticContent: renderLegalStaticContent({
         document,
         siteName,
       }),
     })),
-  ].map(({ seo, staticContent }) => ({
+  ].map(({ seo, staticContent, immediateContent }) => ({
     ...seo,
+    immediateContent,
     lastmod: getSeoLastModified(seo),
     staticContent,
   }));

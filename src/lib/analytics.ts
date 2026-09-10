@@ -1,4 +1,5 @@
 import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
+import { readAnalyticsConsent, subscribeToAnalyticsConsent } from "@/lib/analyticsConsent";
 
 const GOOGLE_ANALYTICS_SCRIPT_ID = "openstudio-google-analytics";
 const MICROSOFT_CLARITY_SCRIPT_ID = "openstudio-microsoft-clarity";
@@ -54,6 +55,8 @@ let lifecycleTrackingInstalled = false;
 let activePageSession: PageSession | null = null;
 let analyticsInitializationScheduled = false;
 let analyticsProvidersInitialized = false;
+let analyticsProvidersStopped = false;
+let cancelAnalyticsInitialization: (() => void) | null = null;
 let initializedDestinations: AnalyticsDestinations = {
   googleAnalytics: false,
   microsoftClarity: false,
@@ -63,6 +66,38 @@ const pendingAnalyticsCommands: PendingAnalyticsCommand[] = [];
 const getGoogleAnalyticsId = () => import.meta.env.VITE_GA_MEASUREMENT_ID?.trim() ?? "";
 
 const getMicrosoftClarityId = () => import.meta.env.VITE_CLARITY_PROJECT_ID?.trim() ?? "";
+
+const googleConsent = (accepted: boolean) => ({
+  analytics_storage: accepted ? "granted" : "denied",
+  ad_storage: "denied",
+  ad_user_data: "denied",
+  ad_personalization: "denied",
+});
+
+const clarityConsent = (accepted: boolean) => ({
+  analytics_Storage: accepted ? "granted" : "denied",
+  ad_Storage: "denied",
+});
+
+const setGoogleAnalyticsDisabled = (disabled: boolean) => {
+  (window as unknown as Record<string, unknown>)[`ga-disable-${getGoogleAnalyticsId()}`] = disabled;
+};
+
+const clearAnalyticsCookies = () => {
+  try {
+    const domains = new Set(["", window.location.hostname, `.${window.location.hostname}`, ".openstudio.org.in"]);
+    for (const item of document.cookie.split(";")) {
+      const name = item.split("=", 1)[0].trim();
+      if (!/^(_ga(?:_|$)|_gid$|_gat|_clck$|_clsk$)/.test(name)) continue;
+
+      for (const domain of domains) {
+        document.cookie = `${name}=; Max-Age=0; Path=/;${domain ? ` Domain=${domain};` : ""} SameSite=Lax`;
+      }
+    }
+  } catch {
+    // Browsers that block cookie access must still allow a session-only decision.
+  }
+};
 
 const isAnalyticsEnabled = () => {
   if (typeof window === "undefined") {
@@ -83,7 +118,7 @@ const isAnalyticsEnabled = () => {
 };
 
 const getConfiguredDestinations = (): AnalyticsDestinations => {
-  if (!isAnalyticsEnabled()) {
+  if (!isAnalyticsEnabled() || readAnalyticsConsent() !== "accepted") {
     return {
       googleAnalytics: false,
       microsoftClarity: false,
@@ -101,8 +136,7 @@ const hasAnalyticsDestination = ({
   microsoftClarity,
 }: AnalyticsDestinations) => googleAnalytics || microsoftClarity;
 
-const getCurrentPagePath = () =>
-  `${window.location.pathname}${window.location.search}`;
+const getCurrentPagePath = () => window.location.pathname;
 
 const getScrollDepth = () => {
   const scrollableHeight = Math.max(
@@ -305,7 +339,7 @@ const installLifecycleTracking = () => {
       return;
     }
 
-    if (!activePageSession) {
+    if (!activePageSession && readAnalyticsConsent() === "accepted") {
       startPageSession(getCurrentPagePath());
     }
   });
@@ -318,6 +352,7 @@ const initializeGoogleAnalytics = () => {
     return false;
   }
 
+  setGoogleAnalyticsDisabled(false);
   window.dataLayer = window.dataLayer ?? [];
   window.gtag =
     window.gtag ??
@@ -337,7 +372,12 @@ const initializeGoogleAnalytics = () => {
     document.head.appendChild(script);
 
     window.gtag("js", new Date());
-    window.gtag("config", measurementId, { send_page_view: false });
+    window.gtag("consent", "default", googleConsent(true));
+    window.gtag("config", measurementId, {
+      send_page_view: false,
+      allow_google_signals: false,
+      allow_ad_personalization_signals: false,
+    });
   }
 
   return true;
@@ -359,6 +399,7 @@ const initializeMicrosoftClarity = () => {
     clarity.q = [];
     window.clarity = clarity;
   }
+  window.clarity("consentv2", clarityConsent(true));
 
   if (!document.getElementById(MICROSOFT_CLARITY_SCRIPT_ID)) {
     const script = document.createElement("script");
@@ -375,6 +416,7 @@ const dispatchAnalyticsCommand = (
   command: PendingAnalyticsCommand,
   destinations: AnalyticsDestinations,
 ) => {
+  if (readAnalyticsConsent() !== "accepted") return;
   if (command.type === "event") {
     if (destinations.googleAnalytics) {
       window.gtag?.("event", command.eventName, {
@@ -401,11 +443,16 @@ const dispatchAnalyticsCommand = (
 };
 
 const initializeAnalyticsProviders = () => {
+  cancelAnalyticsInitialization = null;
+  analyticsInitializationScheduled = false;
+
+  if (readAnalyticsConsent() !== "accepted") {
+    pendingAnalyticsCommands.splice(0);
+    return { googleAnalytics: false, microsoftClarity: false };
+  }
   if (analyticsProvidersInitialized) {
     return initializedDestinations;
   }
-
-  analyticsInitializationScheduled = false;
 
   const configuredDestinations = getConfiguredDestinations();
 
@@ -431,7 +478,7 @@ const scheduleAnalyticsInitialization = () => {
   }
 
   analyticsInitializationScheduled = true;
-  scheduleAfterInitialLoad(
+  cancelAnalyticsInitialization = scheduleAfterInitialLoad(
     initializeAnalyticsProviders,
     {
       delay: ANALYTICS_IDLE_DELAY_MS,
@@ -477,6 +524,7 @@ export const trackEvent = (eventName: string, params: AnalyticsParams = {}) => {
 };
 
 export const trackPageView = (path: string) => {
+  path = path.split(/[?#]/, 1)[0];
   if (path.startsWith("/og-card")) {
     return;
   }
@@ -491,7 +539,7 @@ export const trackPageView = (path: string) => {
   startPageSession(path);
 
   const command: PendingAnalyticsCommand = {
-    location: window.location.href,
+    location: `${window.location.origin}${path}`,
     path,
     title: document.title,
     type: "page_view",
@@ -503,3 +551,51 @@ export const trackPageView = (path: string) => {
     pendingAnalyticsCommands.push(command);
   }
 };
+
+// Both analytics and the banner observe local decisions, other tabs and expiry.
+// Stop/restart the existing providers without reloading or losing the user's place.
+if (typeof window !== "undefined") {
+  const consentChanged = () => {
+    if (readAnalyticsConsent() === "accepted") {
+      if (analyticsProvidersStopped) {
+        if (initializedDestinations.googleAnalytics) {
+          setGoogleAnalyticsDisabled(false);
+          window.gtag?.("consent", "update", googleConsent(true));
+        }
+        if (initializedDestinations.microsoftClarity) {
+          window.clarity?.("consentv2", clarityConsent(true));
+          // Clarity queues commands after stop; start resumes with its existing config.
+          window.clarity?.("start");
+        }
+        analyticsProvidersStopped = false;
+      }
+      trackPageView(window.location.pathname);
+      return;
+    }
+
+    cancelAnalyticsInitialization?.();
+    cancelAnalyticsInitialization = null;
+    analyticsInitializationScheduled = false;
+    pendingAnalyticsCommands.splice(0);
+    activePageSession = null;
+    if (analyticsProvidersInitialized && !analyticsProvidersStopped) {
+      if (initializedDestinations.googleAnalytics) {
+        setGoogleAnalyticsDisabled(true);
+        window.gtag?.("consent", "update", googleConsent(false));
+      }
+      if (initializedDestinations.microsoftClarity) {
+        window.clarity?.("consentv2", clarityConsent(false));
+        window.clarity?.("stop");
+      }
+      analyticsProvidersStopped = true;
+    }
+    clearAnalyticsCookies();
+  };
+
+  if (readAnalyticsConsent() !== "accepted") clearAnalyticsCookies();
+  const unsubscribe = subscribeToAnalyticsConsent(consentChanged);
+  import.meta.hot?.dispose(() => {
+    unsubscribe();
+    cancelAnalyticsInitialization?.();
+  });
+}

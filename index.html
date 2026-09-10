@@ -3,7 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script>document.documentElement.classList.add("js");</script>
+    <script>
+      document.documentElement.classList.add("js");
+      // Production legal documents already carry this attribute; also bypass
+      // the intro for direct visits through the development server.
+      if (/^\/(?:privacy|security|terms)\/?$/.test(location.pathname)) {
+        document.documentElement.setAttribute("data-openstudio-immediate-content", "");
+      }
+    </script>
     <style id="openstudio-instant-loader-style">
       html,
       body {
@@ -12,6 +19,10 @@
         overflow-x: clip;
         background: #04050a;
         color: #f8fbff;
+      }
+
+      html[data-openstudio-immediate-content] #openstudio-instant-loader {
+        display: none;
       }
 
       #openstudio-instant-loader {
@@ -335,6 +346,7 @@
         JavaScript is disabled. You can still read the page below, but interactive controls are unavailable.
       </p>
     </noscript>
+    <!-- openstudio-loader:start -->
     <div id="openstudio-instant-loader" data-openstudio-loader data-openstudio-loader-state="loading" role="status" aria-live="polite">
       <div class="os-instant-loader__panel os-instant-loader__panel--top" aria-hidden="true"></div>
       <div class="os-instant-loader__panel os-instant-loader__panel--bottom" aria-hidden="true"></div>
@@ -382,10 +394,17 @@
       </div>
       <div class="os-instant-loader__progress" aria-hidden="true"><span></span></div>
     </div>
+    <!-- openstudio-loader:end -->
     <div id="root"></div>
     <script>
       (() => {
         const loader = document.getElementById("openstudio-instant-loader");
+        if (document.documentElement.hasAttribute("data-openstudio-immediate-content")) {
+          loader?.remove();
+          window.__openstudioLoaderReady = true;
+          window.__openstudioIntroHidden = true;
+          return;
+        }
         if (!loader) return;
 
         const markPerformance = (name) => {
@@ -742,7 +761,11 @@
 
         const fallback = document.createElement("div");
         fallback.id = "openstudio-static-route-fallback";
-        fallback.hidden = true;
+        const immediateContent = document.documentElement.hasAttribute("data-openstudio-immediate-content");
+        fallback.hidden = !immediateContent;
+        // Keep the complete legal document readable while React and its lazy
+        // route load, including requests which stall without raising an error.
+        if (immediateContent) root.hidden = true;
         fallback.append(staticContent);
         root.after(fallback);
 

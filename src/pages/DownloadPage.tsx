@@ -25,6 +25,7 @@ import {
   useState,
 } from "react";
 import PageSeo from "@/components/PageSeo";
+import AiSetupGuide from "@/components/AiSetupGuide";
 import DeferredClientStage from "@/components/DeferredClientStage";
 import BrandLogoConstructScene from "@/components/brand/BrandLogoConstructScene";
 import SectionReveal from "@/components/motion/SectionReveal";
@@ -41,6 +42,7 @@ import {
   downloadHero,
   downloadHeroSignals,
   downloadSeo,
+  downloadUpgradeNote,
   platformDownloads,
   systemRequirementMatrix,
 } from "@/data/downloads";
@@ -713,6 +715,9 @@ const DownloadPage = () => {
                   Stable buttons resolve through download endpoints while the
                   public repository and release status stay visible.
                 </p>
+                <p className="mt-3 max-w-xl text-sm leading-7 text-white/80">
+                  {downloadUpgradeNote}
+                </p>
               </div>
             </div>
             <div className="download-source-strip__meta">
@@ -866,6 +871,7 @@ const DownloadPage = () => {
               <span>ACE-Step does not install Stable Audio 3</span>
               <span>Release notes stay visible</span>
             </div>
+            <AiSetupGuide />
           </div>
         </SectionReveal>
       </div>
