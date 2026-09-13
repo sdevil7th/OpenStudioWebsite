@@ -26,6 +26,20 @@ const readFixtureText = async (name) => {
   return fs.readFile(fixturePath, "utf8");
 };
 
+test("Linux acceleration install plans are preserved and malformed plans rejected", async () => {
+  const source = JSON.parse(await fs.readFile(new URL("./fixtures/release-v0.1.01/releases/ai-runtime/latest.json", import.meta.url), "utf8"));
+  const parsed = parseAiRuntimeManifest(source);
+  for (const backend of ["cuda", "rocm"]) {
+    assert.deepEqual(parsed.platforms.linux.backends[backend].installPlan, source.platforms.linux.backends[backend].installPlan);
+  }
+  for (const backends of [[], {}, { cuda: { installPlan: [] } }, { rocm: { url: "not-a-url" } }]) {
+    const invalid = structuredClone(source);
+    invalid.platforms.linux.backends = backends;
+    assert.throws(() => parseAiRuntimeManifest(invalid));
+    assert.throws(() => validateAiRuntimeMetadata(invalid, "invalid"));
+  }
+});
+
 test("accepts a legacy flat Windows runtime manifest", async () => {
   const manifest = await readFixture("legacy-flat-windows");
 

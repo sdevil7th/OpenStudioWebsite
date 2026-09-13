@@ -38,6 +38,10 @@ export interface AiRuntimeLinuxPlatforms {
   x64: AiRuntimePlatformEntry | null;
   arm64: AiRuntimePlatformEntry | null;
   legacy: AiRuntimePlatformEntry | null;
+  backends: {
+    cuda: AiRuntimeWindowsBackendEntry | null;
+    rocm: AiRuntimeWindowsBackendEntry | null;
+  };
 }
 
 export interface AiRuntimeManifest {
@@ -239,6 +243,20 @@ const parseLinuxPlatforms = (value: unknown, label: string): AiRuntimeLinuxPlatf
   }
 
   const linuxValue = value as Record<string, unknown>;
+  const backends: AiRuntimeLinuxPlatforms["backends"] = { cuda: null, rocm: null };
+  if (linuxValue.backends != null) {
+    if (!isNonArrayObject(linuxValue.backends)) {
+      throw new Error(`${label}.backends must be an object.`);
+    }
+    for (const backend of ["cuda", "rocm"] as const) {
+      if (linuxValue.backends[backend] != null) {
+        backends[backend] = parseWindowsBackendEntry(linuxValue.backends[backend], `${label}.backends.${backend}`);
+      }
+    }
+    if (!backends.cuda && !backends.rocm) {
+      throw new Error(`${label}.backends must include at least one supported backend entry.`);
+    }
+  }
   const hasNestedShape = linuxValue.x64 != null || linuxValue.arm64 != null;
 
   if (!hasNestedShape) {
@@ -246,6 +264,7 @@ const parseLinuxPlatforms = (value: unknown, label: string): AiRuntimeLinuxPlatf
       x64: null,
       arm64: null,
       legacy: parsePlatformEntry(value, label),
+      backends,
     };
   }
 
@@ -256,7 +275,7 @@ const parseLinuxPlatforms = (value: unknown, label: string): AiRuntimeLinuxPlatf
     throw new Error(`${label} must include at least one Linux architecture entry.`);
   }
 
-  return { x64, arm64, legacy: null };
+  return { x64, arm64, legacy: null, backends };
 };
 
 export const resolveAiRuntimeDownloadUrl = (
