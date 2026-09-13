@@ -14,6 +14,7 @@ import {
   useState,
 } from "react";
 import { Link } from "react-router-dom";
+import AiSetupGuide from "@/components/AiSetupGuide";
 import DeferredClientStage from "@/components/DeferredClientStage";
 import PageSeo from "@/components/PageSeo";
 import "@/lib/generatedImageRoutes/ai";
@@ -1004,6 +1005,7 @@ const StemSeparationPage = () => {
                   </li>
                 ))}
               </ul>
+              <AiSetupGuide />
             </div>
             <div className="ai-arch-trust__column">
               <header>

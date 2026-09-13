@@ -3,6 +3,7 @@ import { SITE_NAME, SITE_URL } from "@/constants/site";
 import { footerNavigation } from "@/data/navigation";
 import { contactProfile, footerUtilityLinks } from "@/data/siteLinks";
 import { trackEvent } from "@/lib/analytics";
+import { openPrivacyChoices } from "@/lib/analyticsConsent";
 
 const SiteFooter = () => {
   return (
@@ -11,12 +12,19 @@ const SiteFooter = () => {
         <div className="font-mono text-[0.62rem] uppercase tracking-[0.24em] text-white/52">
           {`Copyright 2026 ${SITE_NAME}. ${SITE_URL.replace("https://", "")}.`}
         </div>
-        <div className="flex flex-wrap gap-6 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white/54">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white/54">
           {footerNavigation.map((item) => (
             <Link className="transition hover:text-primary" key={item.to} to={item.to}>
               {item.label}
             </Link>
           ))}
+          <button
+            type="button"
+            onClick={openPrivacyChoices}
+            className="min-h-11 text-left uppercase transition hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+          >
+            Privacy choices
+          </button>
           {footerUtilityLinks.map((item) =>
             item.href && item.href.startsWith("/") ? (
               <Link className="transition hover:text-primary" key={item.label} to={item.href}>
