@@ -113,7 +113,7 @@ test("homepage logo animation is viewport-driven and replayable", () => {
   assert.doesNotMatch(logoSource, /Math\.random/);
 });
 
-test("html-first loader appears before react and owns the split reveal", () => {
+test("html-first loader appears before react and owns the reveal", () => {
   assert.match(
     indexHtml,
     /<link[^>]*rel="stylesheet"[^>]*href="\/assets\/openstudio\/fonts\/google-fonts-20260815\.css"[^>]*data-openstudio-fonts/s,
@@ -137,18 +137,12 @@ test("html-first loader appears before react and owns the split reveal", () => {
   assert.match(indexHtml, /intro-hidden/);
   assert.match(indexHtml, /__openstudioAppCssReady/);
   assert.match(indexHtml, /os-instant-loader__svg/);
-  assert.match(indexHtml, /data-os-loader-piece="sky-ribbon-main"/);
-  assert.match(indexHtml, /width: clamp\(10rem, 26vw, 16\.4rem\)/);
-  assert.match(indexHtml, /\.os-instant-loader__content\s*\{[^}]*inset: 0/);
-  assert.match(indexHtml, /\.os-instant-loader__mark\s*\{[^}]*bottom: calc\(50% \+ max\(clamp\(1\.75rem, 4svh, 3rem\), 6rem\)\)/);
-  assert.match(indexHtml, /\.os-instant-loader__wordmark\s*\{[^}]*top: calc\(50% \+ clamp\(2rem, 4\.8svh, 3\.35rem\)\)/);
-  assert.match(indexHtml, /getBBox\(\)/);
-  assert.match(indexHtml, /anchorCenter/);
-  assert.match(indexHtml, /orbitableCount/);
-  assert.match(indexHtml, /slotAngle/);
-  assert.match(indexHtml, /260 \+ \(slot % 3\) \* 58/);
-  assert.match(indexHtml, /setAttribute\(\s*"transform"/);
-  assert.match(indexHtml, /<g class="os-instant-loader__piece[^>]+data-os-loader-piece="sky-ribbon-main"/);
+  assert.match(indexHtml, /data-os-loader-piece="top-right"/);
+  assert.match(indexHtml, /data-os-loader-piece="bottom-left"/);
+  assert.match(indexHtml, /viewBox="0 0 108 108"/);
+  assert.match(indexHtml, /fill="#3445DC"/);
+  assert.match(indexHtml, /os_loader_join 800ms/);
+  assert.match(indexHtml, /os_loader_rotate 3s linear 800ms infinite/);
   assert.match(indexHtml, /requestAnimationFrame/);
   assert.doesNotMatch(indexHtml, /icon\.svg/);
   assert.doesNotMatch(indexHtml, /os-instant-loader__mark"[^]*?<span><\/span>\s*<span><\/span>\s*<span><\/span>/);
@@ -158,70 +152,15 @@ test("html-first loader appears before react and owns the split reveal", () => {
   assert.match(viteConfigSource, /data-openstudio-app-css/);
 });
 
-test("mobile intro keeps the branded sequence while revealing within 400ms of readiness", () => {
-  const mobileAssembleMs = inlineTiming("mobileAssembleMs");
-  const mobileRevealMs = inlineTiming("mobileRevealMs");
-
-  assert.match(indexHtml, /const mobileIntro = window\.matchMedia\("\(max-width: 767px\)"\)\.matches/);
-  assert.match(indexHtml, /const minimumVisibleMs = 0/);
-  assert.equal(mobileAssembleMs, 160);
-  assert.equal(mobileRevealMs, 220);
-  assert.equal(mobileAssembleMs + mobileRevealMs, 380);
-  assert.ok(mobileAssembleMs + mobileRevealMs <= 400);
-  assert.match(
-    indexHtml,
-    /@media \(max-width: 767px\)\s*\{[\s\S]*?#openstudio-instant-loader\s*\{[\s\S]*?--os-loader-panel-exit-duration: 200ms;/,
-  );
-  assert.ok(200 < mobileRevealMs, "the split-panel transition must finish before removal");
-  assert.match(
-    indexHtml,
-    /const revealMs = reduceMotion\s*\? mobileIntro\s*\? 120\s*: 160\s*: mobileIntro\s*\? mobileRevealMs\s*: desktopRevealMs/,
-  );
-  assert.match(
-    indexHtml,
-    /const assembleMs = reduceMotion \? 0 : mobileIntro \? mobileAssembleMs : desktopAssembleMs/,
-  );
+test("loader completes its entrance before revealing and respects reduced motion", () => {
+  assert.match(indexHtml, /const entranceMs = reduceMotion \? 0 : 800/);
+  assert.match(indexHtml, /elapsed < entranceMs/);
+  assert.equal(inlineTiming("mobileRevealMs"), 220);
+  assert.equal(inlineTiming("desktopRevealMs"), 250);
+  assert.match(indexHtml, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?os-instant-loader__svg,[\s\S]*?animation: none/);
+  assert.doesNotMatch(indexHtml, /pieceFilterFrame|getBBox\(\)/);
 });
 
-test("desktop intro exits fast with no enforced minimum, and reduced-motion stays instant", () => {
-  const desktopAssembleMs = inlineTiming("desktopAssembleMs");
-  const desktopRevealMs = inlineTiming("desktopRevealMs");
-
-  assert.equal(desktopAssembleMs, 160);
-  assert.equal(desktopRevealMs, 250);
-  assert.ok(
-    desktopAssembleMs + desktopRevealMs <= 420,
-    "the desktop exit must stay within the capped budget",
-  );
-  assert.match(
-    indexHtml,
-    /--os-loader-panel-exit-duration: 200ms;/,
-  );
-  assert.ok(200 < desktopRevealMs, "the split-panel transition must finish before removal");
-  assert.match(
-    indexHtml,
-    /@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\.os-instant-loader__panel,[\s\S]*?transition-duration: 120ms;/,
-  );
-});
-
-test("mobile loader halves SVG filter writes without changing motion or final state", () => {
-  assert.match(indexHtml, /let pieceFilterFrame = 0/);
-  assert.match(
-    indexHtml,
-    /const updatePieceFilter = !mobileIntro \|\| pieceFilterFrame % 2 === 0/,
-  );
-  assert.match(indexHtml, /pieceFilterFrame \+= 1/);
-  assert.match(indexHtml, /const applyPiece = \(plan, state, updateFilter = true\) =>/);
-  assert.match(indexHtml, /if \(updateFilter\) \{\s*plan\.element\.style\.filter =/);
-  assert.match(
-    indexHtml,
-    /piecePlans\.forEach\(\(plan\) => applyPiece\(plan, finalPieceState, true\)\)/,
-  );
-  assert.match(
-    indexHtml,
-    /applyPiece\(plan, pieceStateAt\(plan, now\), updatePieceFilter\)/,
-  );
-});
 
 test("homepage atmosphere is full-bleed and first input does not force heavy scroll libraries", () => {
   assert.match(indexCssSource, /\.home-logo-atmosphere\s*\{[^}]*inset: -18svh -14vw/);
