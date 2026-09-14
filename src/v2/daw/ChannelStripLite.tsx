@@ -356,15 +356,8 @@ export const ChannelStripLite = memo(function ChannelStripLite({
         </div>
       )}
 
-      {/* Track Number / OUT */}
-      <div
-        className={cn("text-[10px] font-bold text-center py-1 shrink-0", {
-          "bg-green-600 text-white": isMaster,
-          "bg-neutral-800/50 text-neutral-500": !isMaster,
-        })}
-      >
-        {isMaster ? "OUT" : trackIndex + 1}
-      </div>
+      {/* Track Number (upstream renders nothing here for the master) */}
+      {!isMaster && <div className="text-[10px] font-bold text-center py-1 shrink-0 bg-neutral-800/50 text-neutral-500">{trackIndex + 1}</div>}
     </div>
   );
 });

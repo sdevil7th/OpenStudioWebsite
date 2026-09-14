@@ -1,4 +1,4 @@
-// Choreography for the mixer stage: seven strips plus master, one mix pass.
+// Choreography for the mixer stage: six strips plus master, one mix pass.
 import { beatIndex, beatPhase, dbToLinear, hit, noise } from "../sessionScript";
 import type { StageTimelineSpec } from "../stage/useStageTimeline";
 import type { TrackState, Transport } from "../types";
@@ -21,18 +21,19 @@ export interface MixerState {
   snapshot: string;
 }
 
+// Six strips: with the master strip and the Monitor FX slot that is what a
+// 640 px mixer shows before it scrolls.
 export const MIXER_TRACKS: readonly MixerTrackDef[] = [
-  { name: "Vocal", color: "#f472b6", input: "In 1", hasFx: true, seed: 1, sendCount: 2 },
-  { name: "Guitar DI", color: "#fbbf24", input: "In 2", hasFx: false, seed: 2 },
-  { name: "NAM Gtr", color: "#f59e0b", input: "In 2", hasFx: true, seed: 3, sendCount: 1 },
-  { name: "Bass", color: "#34d399", input: "In 3", hasFx: true, seed: 4 },
-  { name: "Keys", color: "#a78bfa", input: "MIDI", hasFx: true, seed: 6, sendCount: 1 },
-  { name: "Drums", color: "#60a5fa", input: "1-2", hasFx: true, seed: 5 },
-  { name: "Reverb", color: "#22d3ee", input: "Bus", hasFx: true, seed: 7 },
+  { name: "Vocal", color: "#f472b6", input: "1-2", hasFx: true, seed: 1, sendCount: 2 },
+  { name: "Guitar DI", color: "#fbbf24", input: "3-4", hasFx: false, seed: 2 },
+  { name: "NAM Gtr", color: "#f59e0b", input: "3-4", hasFx: true, seed: 3, sendCount: 1 },
+  { name: "Bass", color: "#34d399", input: "5-6", hasFx: true, seed: 4 },
+  { name: "Keys", color: "#a78bfa", input: "In 1", hasFx: true, seed: 6, sendCount: 1 },
+  { name: "Drums", color: "#60a5fa", input: "In 1", hasFx: true, seed: 5 },
 ];
 
-const REST_VOLUMES = [-2.4, -9.0, -6.0, -3.5, -7.5, -1.2, -12.0];
-const REST_PANS = [0, -0.2, 0.25, 0, 0.15, 0, 0];
+const REST_VOLUMES = [-2.4, -9.0, -6.0, -3.5, -7.5, -1.2];
+const REST_PANS = [0, -0.2, 0.25, 0, 0.15, 0];
 
 const TEMPO = 120;
 

@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { ArrangementLanes, arrangementHeight } from "./ArrangementLanes";
 import { BigClockLite } from "./BigClockLite";
-import { ChannelStripLite } from "./ChannelStripLite";
+import { MixerPanelLite } from "./MixerPanelLite";
 import { RackModuleLite } from "./RackModuleLite";
 import { LOOP_RANGE, SESSION_LENGTH, TEMPO, TIME_SIGNATURE, TRACKS } from "./sessionScript";
 import { MIN_ANIMATED_SCALE, StageFrame, useStageScale } from "./stage/StageFrame";
@@ -11,10 +11,10 @@ import { useSessionTimeline } from "./useSessionTimeline";
 /** Design size of the stage; it is CSS-scaled to the column it sits in. */
 export const STAGE_WIDTH = 640;
 const TRANSPORT_HEIGHT = 40;
-const LANE_HEIGHT = 30;
-const MIXER_HEIGHT = 252;
-const ARRANGEMENT_HEIGHT = arrangementHeight(TRACKS.length, LANE_HEIGHT);
-export const STAGE_HEIGHT = TRANSPORT_HEIGHT + ARRANGEMENT_HEIGHT + 1 + MIXER_HEIGHT;
+const LANE_HEIGHT = 48;
+const MIXER_HEIGHT = 290;
+const ARRANGEMENT_HEIGHT = arrangementHeight(TRACKS.length, LANE_HEIGHT, true);
+export const STAGE_HEIGHT = TRANSPORT_HEIGHT + ARRANGEMENT_HEIGHT + MIXER_HEIGHT;
 
 interface LiveSessionProps {
   className?: string;
@@ -30,7 +30,12 @@ const LiveSession = ({ className, paused = false }: LiveSessionProps) => {
   const lanes = TRACKS.map((track, index) => ({
     name: track.name,
     color: track.color,
+    type: track.type,
+    input: track.input,
+    hasFx: track.hasFx,
     clips: track.clips,
+    volumeDb: state.tracks[index].volumeDb,
+    pan: state.tracks[index].pan,
     soloed: state.tracks[index].soloed,
     armed: state.tracks[index].armed,
     level: state.tracks[index].level,
@@ -66,6 +71,7 @@ const LiveSession = ({ className, paused = false }: LiveSessionProps) => {
         laneHeight={LANE_HEIGHT}
         loop={state.loop}
         loopRange={LOOP_RANGE}
+        master={{ volumeDb: state.master.volumeDb }}
         selectedTrack={state.selectedTrack}
         sessionLength={SESSION_LENGTH}
         tempo={TEMPO}
@@ -75,47 +81,35 @@ const LiveSession = ({ className, paused = false }: LiveSessionProps) => {
         width={STAGE_WIDTH}
       />
 
-      <div className="h-px shrink-0 bg-neutral-950" />
-
-      {/* Mixer */}
-      <div className="flex shrink-0 bg-neutral-900" style={{ height: MIXER_HEIGHT }}>
-        <div className="flex h-full">
-          {TRACKS.map((track, index) => {
-            const live = state.tracks[index];
-            return (
-              <ChannelStripLite
-                key={track.name}
-                armed={live.armed}
-                color={track.color}
-                hasFx={track.hasFx}
-                input={track.input}
-                isSelected={index === state.selectedTrack}
-                level={live.level}
-                muted={live.muted}
-                name={track.name}
-                pan={live.pan}
-                sendCount={index === 0 ? 1 : 0}
-                soloed={live.soloed}
-                trackIndex={index}
-                volumeDb={live.volumeDb}
-              />
-            );
-          })}
-          <ChannelStripLite
-            clipping={state.master.clipping}
-            hasFx
-            isMaster
-            level={state.master.level}
-            name="Master"
-            pan={0}
-            trackIndex={TRACKS.length}
-            volumeDb={state.master.volumeDb}
-          />
-        </div>
-        <div className="flex-1 min-w-0 h-full">
-          <RackModuleLite power={state.rackPower} values={state.knobs} />
-        </div>
-      </div>
+      <MixerPanelLite
+        aside={
+          <div className="flex-1 min-w-0 h-full">
+            <RackModuleLite power={state.rackPower} values={state.knobs} />
+          </div>
+        }
+        height={MIXER_HEIGHT}
+        master={{ volumeDb: state.master.volumeDb, level: state.master.level, clipping: state.master.clipping }}
+        snapshots={["Mix A"]}
+        activeSnapshot="Mix A"
+        strips={TRACKS.map((track, index) => {
+          const live = state.tracks[index];
+          return {
+            armed: live.armed,
+            color: track.color,
+            hasFx: track.hasFx,
+            input: track.stripInput,
+            isSelected: index === state.selectedTrack,
+            level: live.level,
+            muted: live.muted,
+            name: track.name,
+            pan: live.pan,
+            sendCount: index === 0 ? 1 : 0,
+            soloed: live.soloed,
+            trackIndex: index,
+            volumeDb: live.volumeDb,
+          };
+        })}
+      />
     </StageFrame>
   );
 };

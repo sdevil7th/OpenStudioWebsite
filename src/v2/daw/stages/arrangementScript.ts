@@ -4,6 +4,7 @@
 import type { LaneClip, LaneDef } from "../ArrangementLanes";
 import { beatIndex, beatPhase, dbToLinear, hit, noise } from "../sessionScript";
 import type { StageTimelineSpec } from "../stage/useStageTimeline";
+import type { TrackType } from "../TrackHeaderLite";
 import type { Transport } from "../types";
 
 export type ArrangementVariant = "default" | "recording" | "stems";
@@ -33,27 +34,77 @@ const bar = (n: number) => (n - 1) * 2; // seconds at 120 bpm, 4/4
 interface TrackSeed {
   name: string;
   color: string;
+  type: TrackType;
+  input?: string;
+  hasFx?: boolean;
+  volumeDb?: number;
+  pan?: number;
   clips: LaneClip[];
   seed: number;
 }
 
 const DEFAULT_TRACKS: TrackSeed[] = [
-  { name: "Vocal", color: "#f472b6", seed: 1, clips: [{ start: bar(2), duration: 4.4, label: "Verse", kind: "audio" }, { start: bar(4) + 0.6, duration: 5.2, label: "Chorus", kind: "audio" }] },
-  { name: "Guitar", color: "#f59e0b", seed: 3, clips: [{ start: 0, duration: 12.5, label: "JVM · 4×12", kind: "audio" }] },
-  { name: "Bass", color: "#34d399", seed: 4, clips: [{ start: 0, duration: 12.5, label: "Bass DI", kind: "audio" }] },
-  { name: "Keys", color: "#a78bfa", seed: 6, clips: [{ start: bar(1), duration: 6, label: "Rhodes", kind: "midi" }, { start: bar(4), duration: 6.5, label: "Rhodes (out)", kind: "midi" }] },
-  { name: "Drums", color: "#60a5fa", seed: 5, clips: [{ start: 0, duration: 6, label: "Kit A", kind: "midi" }, { start: 6, duration: 6.5, label: "Kit A (fill)", kind: "midi" }] },
-  { name: "FX", color: "#22d3ee", seed: 7, clips: [{ start: bar(5), duration: 2.2, label: "Riser", kind: "audio" }] },
+  {
+    name: "Vocal",
+    color: "#f472b6",
+    type: "audio",
+    input: "In 1-2",
+    hasFx: true,
+    volumeDb: -2.4,
+    seed: 1,
+    clips: [
+      { start: bar(2), duration: 4.4, label: "Verse", kind: "audio", profile: "vocal", seed: 1 },
+      { start: bar(4) + 0.6, duration: 5.2, label: "Chorus", kind: "audio", profile: "vocal", seed: 2 },
+    ],
+  },
+  { name: "Guitar", color: "#f59e0b", type: "audio", input: "In 3-4", hasFx: true, volumeDb: -6, pan: 0.25, seed: 3, clips: [{ start: 0, duration: 12.5, label: "JVM · 4×12", kind: "audio", profile: "guitar", seed: 3 }] },
+  { name: "Bass", color: "#34d399", type: "audio", input: "In 5-6", hasFx: true, volumeDb: -3.5, seed: 4, clips: [{ start: 0, duration: 12.5, label: "Bass DI", kind: "audio", profile: "bass", seed: 4 }] },
+  {
+    name: "Keys",
+    color: "#a78bfa",
+    type: "instrument",
+    hasFx: true,
+    volumeDb: -7.5,
+    pan: -0.15,
+    seed: 6,
+    clips: [
+      { start: bar(1), duration: 6, label: "Rhodes", kind: "midi", profile: "keys", seed: 6 },
+      { start: bar(4), duration: 6.5, label: "Rhodes (out)", kind: "midi", profile: "keys", seed: 9 },
+    ],
+  },
+  {
+    name: "Drums",
+    color: "#60a5fa",
+    type: "instrument",
+    hasFx: true,
+    volumeDb: -1.2,
+    seed: 5,
+    clips: [
+      { start: 0, duration: 6, label: "Kit A", kind: "midi", profile: "drums", seed: 5 },
+      { start: 6, duration: 6.5, label: "Kit A (fill)", kind: "midi", profile: "drums", seed: 8 },
+    ],
+  },
+  { name: "FX", color: "#22d3ee", type: "audio", input: "In 7-8", volumeDb: -12, seed: 7, clips: [{ start: bar(5), duration: 2.2, label: "Riser", kind: "audio", profile: "fx", seed: 7 }] },
 ];
 
-const STEM_TRACKS: TrackSeed[] = [
-  { name: "Vocals", color: "#f472b6", seed: 1, clips: [] },
-  { name: "Drums", color: "#60a5fa", seed: 5, clips: [] },
-  { name: "Bass", color: "#34d399", seed: 4, clips: [] },
-  { name: "Guitar", color: "#f59e0b", seed: 3, clips: [] },
-  { name: "Piano", color: "#a78bfa", seed: 6, clips: [] },
-  { name: "Other", color: "#22d3ee", seed: 7, clips: [] },
-].map((track) => ({ ...track, clips: [{ start: 0, duration: 12.5, label: `${track.name}.wav`, kind: "audio" }] }));
+const STEM_SEEDS: Array<Pick<TrackSeed, "name" | "color" | "seed"> & { profile: LaneClip["profile"] }> = [
+  { name: "Vocals", color: "#ec4899", seed: 1, profile: "vocal" },
+  { name: "Drums", color: "#f97316", seed: 5, profile: "drums" },
+  { name: "Bass", color: "#3b82f6", seed: 4, profile: "bass" },
+  { name: "Guitar", color: "#8b5cf6", seed: 3, profile: "guitar" },
+  { name: "Piano", color: "#06b6d4", seed: 6, profile: "keys" },
+  { name: "Other", color: "#22c55e", seed: 7, profile: "other" },
+];
+
+const STEM_TRACKS: TrackSeed[] = STEM_SEEDS.map((stem, index) => ({
+  name: stem.name,
+  color: stem.color,
+  type: "audio",
+  input: "In 1-2",
+  hasFx: false,
+  seed: stem.seed,
+  clips: [{ start: 0, duration: 12.5, label: `${stem.name}.wav`, kind: "audio", profile: stem.profile, seed: 20 + index }],
+}));
 
 const clipActive = (clips: readonly LaneClip[], time: number) =>
   clips.some((clip) => time >= clip.start && time < clip.start + clip.duration);
@@ -83,6 +134,11 @@ const lanesFrom = (tracks: readonly TrackSeed[], time: number, transport: Transp
   tracks.map((track, index) => ({
     name: track.name,
     color: track.color,
+    type: track.type,
+    input: track.input,
+    hasFx: track.hasFx,
+    volumeDb: track.volumeDb ?? 0,
+    pan: track.pan ?? 0,
     clips: track.clips,
     level: laneLevel(track.seed, track.clips, time, transport),
     ...overrides[index],
@@ -149,11 +205,12 @@ export const DEFAULT_SPEC: StageTimelineSpec<ArrangementState> = {
       if (flags.split) {
         const [first, ...rest] = DEFAULT_TRACKS[KEYS].clips;
         const shift = proxy.drag * 1; // half a bar
+        const cut = splitAt - first.start;
         lanes[KEYS] = {
           ...lanes[KEYS],
           clips: [
-            { ...first, duration: splitAt - first.start },
-            { start: splitAt + shift, duration: first.start + first.duration - splitAt, label: "Rhodes (2)", kind: "midi" },
+            { ...first, duration: cut },
+            { ...first, start: splitAt + shift, duration: first.duration - cut, offset: cut, label: "Rhodes (2)", selected: proxy.drag > 0 },
             ...rest,
           ],
         };
@@ -175,10 +232,11 @@ export const DEFAULT_SPEC: StageTimelineSpec<ArrangementState> = {
 /* ---------------- recording: punch in a take ---------------- */
 
 const RECORDING_TRACKS: TrackSeed[] = DEFAULT_TRACKS.map((track, index) =>
-  index === 0 ? { ...track, name: "Vocal", clips: [{ start: bar(4) + 0.6, duration: 5.2, label: "Take 2", kind: "audio" }] } : track,
+  index === 0 ? { ...track, name: "Vocal", clips: [{ start: bar(4) + 0.6, duration: 5.2, label: "Take 2", kind: "audio", profile: "vocal", seed: 2 }] } : track,
 );
 const PUNCH_IN = bar(2);
 const PUNCH_OUT = bar(4);
+const takeClip = (end: number, recording: boolean): LaneClip => ({ start: PUNCH_IN, duration: end - PUNCH_IN, label: "Take 3", kind: "audio", profile: "vocal", seed: 11, recording });
 
 export const RECORDING_SPEC: StageTimelineSpec<ArrangementState> = {
   length: 13,
@@ -193,9 +251,7 @@ export const RECORDING_SPEC: StageTimelineSpec<ArrangementState> = {
     time: 5.4,
     transport: "recording",
     loop: false,
-    lanes: lanesFrom(RECORDING_TRACKS, 5.4, "recording", [
-      { armed: true, clips: [{ start: PUNCH_IN, duration: 5.4 - PUNCH_IN, label: "Take 3", kind: "audio", recording: true }, ...RECORDING_TRACKS[0].clips] },
-    ]),
+    lanes: lanesFrom(RECORDING_TRACKS, 5.4, "recording", [{ armed: true, clips: [takeClip(5.4, true), ...RECORDING_TRACKS[0].clips] }]),
     selectedTrack: 0,
   }),
   build: (tl, t0) => {
@@ -223,8 +279,7 @@ export const RECORDING_SPEC: StageTimelineSpec<ArrangementState> = {
       const { time } = proxy;
       const recording = flags.transport === "recording" && time >= PUNCH_IN;
       const takeEnd = flags.done ? PUNCH_OUT : Math.max(PUNCH_IN, time);
-      const take: LaneClip[] =
-        recording || flags.done ? [{ start: PUNCH_IN, duration: takeEnd - PUNCH_IN, label: "Take 3", kind: "audio", recording }] : [];
+      const take: LaneClip[] = recording || flags.done ? [takeClip(takeEnd, recording)] : [];
       const lanes = lanesFrom(RECORDING_TRACKS, time, flags.transport, [{ armed: true, clips: [...take, ...RECORDING_TRACKS[0].clips] }]);
       lanes[0].level = flags.transport === "stopped" ? 0 : laneLevel(1, [{ start: 0, duration: SESSION_LENGTH, label: "", kind: "audio" }], time, flags.transport);
       return {
@@ -233,7 +288,7 @@ export const RECORDING_SPEC: StageTimelineSpec<ArrangementState> = {
         loop: false,
         lanes,
         selectedTrack: 0,
-        status: recording ? `Recording · Vocal · In 1` : flags.done ? "Take 3 · 4 bars" : undefined,
+        status: recording ? `Recording · Vocal · In 1-2` : flags.done ? "Take 3 · 4 bars" : undefined,
       };
     };
   },
@@ -241,7 +296,7 @@ export const RECORDING_SPEC: StageTimelineSpec<ArrangementState> = {
 
 /* ---------------- stems: BS Roformer separates a mix ---------------- */
 
-const MIX_TRACK: TrackSeed = { name: "Full mix", color: "#e2e8f0", seed: 2, clips: [{ start: 0, duration: 12.5, label: "Full mix.wav", kind: "audio" }] };
+const MIX_TRACK: TrackSeed = { name: "Full mix", color: "#ef4444", type: "audio", input: "In 1-2", hasFx: false, seed: 2, clips: [{ start: 0, duration: 12.5, label: "Full mix.wav", kind: "audio", profile: "mix", seed: 2 }] };
 const STEM_GAP = 0.45;
 
 export const STEMS_SPEC: StageTimelineSpec<ArrangementState> = {

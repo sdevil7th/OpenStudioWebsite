@@ -1,16 +1,18 @@
 import { useRef } from "react";
-import { ArrangementLanes, arrangementHeight, clipPattern } from "../ArrangementLanes";
+import { ArrangementLanes, arrangementHeight } from "../ArrangementLanes";
 import { BigClockLite } from "../BigClockLite";
+import { rowMetrics } from "../clipArt";
 import { MIN_ANIMATED_SCALE, StageFrame, useStageScale } from "../stage/StageFrame";
 import type { StageProps } from "../stage/LiveStage";
 import { useStageTimeline } from "../stage/useStageTimeline";
+import { TRACK_HEADER_WIDTH } from "../TrackHeaderLite";
 import { TransportLite } from "../TransportLite";
 import { LOOP_RANGE, SESSION_LENGTH, SPECS, TEMPO, TIME_SIGNATURE, laneCapacity, type ArrangementVariant } from "./arrangementScript";
 
 export const STAGE_WIDTH = 640;
 export const STAGE_HEIGHT = 360;
 const TRANSPORT_HEIGHT = 40;
-const HEADER_WIDTH = 112;
+const HEADER_WIDTH = TRACK_HEADER_WIDTH;
 
 const LABELS: Record<ArrangementVariant, string> = {
   default: "OpenStudio arrangement: a clip is split with the razor, dragged to the grid, and the section is looped.",
@@ -32,6 +34,7 @@ const ArrangementStage = ({ variant = "default", priority, className }: StagePro
   const lanesWidth = STAGE_WIDTH - HEADER_WIDTH;
   const pixelsPerSecond = lanesWidth / SESSION_LENGTH;
   const height = arrangementHeight(capacity, laneHeight);
+  const ghostMetrics = rowMetrics("midi", laneHeight);
 
   return (
     <StageFrame
@@ -69,10 +72,9 @@ const ArrangementStage = ({ variant = "default", priority, className }: StagePro
                 style={{
                   left: state.dragGhost.start * pixelsPerSecond,
                   width: state.dragGhost.duration * pixelsPerSecond,
-                  top: 30 + state.dragGhost.lane * laneHeight + 3,
-                  height: laneHeight - 6,
-                  backgroundImage: clipPattern("midi", "#a78bfa"),
-                  opacity: 0.5,
+                  top: 30 + state.dragGhost.lane * laneHeight + ghostMetrics.clipInsetY,
+                  height: ghostMetrics.clipHeight,
+                  background: "rgba(167, 139, 250, 0.18)",
                 }}
               />
             ) : null}
@@ -92,7 +94,7 @@ const ArrangementStage = ({ variant = "default", priority, className }: StagePro
         transport={state.transport}
         width={STAGE_WIDTH}
       />
-      <div className="flex-1 bg-neutral-900" style={{ minHeight: STAGE_HEIGHT - TRANSPORT_HEIGHT - height }} />
+      <div className="flex-1 bg-daw-dark" style={{ minHeight: STAGE_HEIGHT - TRANSPORT_HEIGHT - height }} />
     </StageFrame>
   );
 };

@@ -34,10 +34,13 @@ Upstream is React 19 + Tailwind 4; the website is React 18 + Tailwind 3. The Tai
 the base `.nam-rack-control-knob` / `.vertical-fader` rules (which upstream keeps in
 `FXChainPanel.css` and `index.css`) live in `src/styles/daw.css`.
 
-The store-bound components (`ChannelStrip`, `MainToolbar`, `BigClock`, `TimelineRuler`,
-`Playhead`) are **not** vendored — they are re-implemented as props-only forks one level up
-in `src/v2/daw/*Lite.tsx`. The piano roll and pitch editor (Konva/store-bound upstream) are
-rebuilt as small SVG stages in `src/v2/daw/stages/`.
+The store-bound components (`ChannelStrip`, `MixerPanel` + `SortableTrack`, `TrackHeader` +
+`MasterTrackHeader`, `MainToolbar`, `BigClock`, `TimelineRuler`, `Playhead`, `ui/Knob`,
+`ui/Select`) are **not** vendored — they are re-implemented as props-only forks one level up
+in `src/v2/daw/*Lite.tsx`. The Konva clip renderers in `Timeline.tsx` (audio waveform, MIDI
+thumbnail, recording clip) are redrawn as SVG in `ClipLite.tsx`, with deterministic peaks and
+notes from `clipArt.ts` standing in for the engine's waveform cache. The piano roll and pitch
+editor (Konva/store-bound upstream) are rebuilt as small SVG stages in `src/v2/daw/stages/`.
 
 The NAM Rack design port and its six stylesheets are chunked separately (`nam-design-port`
 in `vite.config.ts`) so only the NAM page loads them; everything else shared by the stages

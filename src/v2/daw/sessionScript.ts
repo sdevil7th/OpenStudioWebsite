@@ -1,3 +1,4 @@
+import type { LaneClip } from "./ArrangementLanes";
 import type { StageTimelineSpec } from "./stage/useStageTimeline";
 import type { BuiltInParamDescriptor } from "./vendor/stubs/nativeBridgeTypes";
 import type { SessionState, TrackState, Transport } from "./types";
@@ -15,51 +16,65 @@ export const LOOP_RANGE: readonly [number, number] = [4, 8];
 export interface TrackDef {
   name: string;
   color: string;
+  type: "audio" | "midi" | "instrument";
+  /** Header input select ("In 1-2"). */
   input: string;
+  /** Channel strip input routing ("1-2"). */
+  stripInput: string;
   hasFx: boolean;
-  clips: Array<{ start: number; duration: number; label: string; kind: "audio" | "midi" }>;
+  clips: readonly LaneClip[];
 }
 
 export const TRACKS: readonly TrackDef[] = [
   {
     name: "Vocal",
     color: "#f472b6",
-    input: "In 1",
+    type: "audio",
+    input: "In 1-2",
+    stripInput: "1-2",
     hasFx: true,
     clips: [
-      { start: 2.0, duration: 4.4, label: "Verse", kind: "audio" },
-      { start: 7.0, duration: 5.2, label: "Chorus", kind: "audio" },
+      { start: 2.0, duration: 4.4, label: "Verse", kind: "audio", profile: "vocal", seed: 1 },
+      { start: 7.0, duration: 5.2, label: "Chorus", kind: "audio", profile: "vocal", seed: 2 },
     ],
   },
   {
     name: "Guitar DI",
     color: "#fbbf24",
-    input: "In 2",
+    type: "audio",
+    input: "In 3-4",
+    stripInput: "3-4",
     hasFx: false,
-    clips: [{ start: 0, duration: 12.5, label: "DI take 3", kind: "audio" }],
+    clips: [{ start: 0, duration: 12.5, label: "DI take 3", kind: "audio", profile: "guitar", seed: 3 }],
   },
   {
     name: "NAM Guitar",
     color: "#f59e0b",
-    input: "In 2",
+    type: "audio",
+    input: "In 3-4",
+    stripInput: "3-4",
     hasFx: true,
-    clips: [{ start: 0, duration: 12.5, label: "JVM · 4×12", kind: "audio" }],
+    clips: [{ start: 0, duration: 12.5, label: "JVM · 4×12", kind: "audio", profile: "guitar", seed: 4 }],
   },
   {
     name: "Bass",
     color: "#34d399",
-    input: "In 3",
+    type: "audio",
+    input: "In 5-6",
+    stripInput: "5-6",
     hasFx: true,
-    clips: [{ start: 0, duration: 12.5, label: "Bass", kind: "audio" }],
+    clips: [{ start: 0, duration: 12.5, label: "Bass", kind: "audio", profile: "bass", seed: 5 }],
   },
   {
     name: "Drums",
     color: "#60a5fa",
-    input: "1-2",
+    type: "instrument",
+    input: "MIDI",
+    stripInput: "In 1",
     hasFx: true,
     clips: [
-      { start: 0, duration: 6, label: "Kit A", kind: "midi" },
-      { start: 6, duration: 6.5, label: "Kit A (fill)", kind: "midi" },
+      { start: 0, duration: 6, label: "Kit A", kind: "midi", profile: "drums", seed: 6 },
+      { start: 6, duration: 6.5, label: "Kit A (fill)", kind: "midi", profile: "drums", seed: 7 },
     ],
   },
 ];
