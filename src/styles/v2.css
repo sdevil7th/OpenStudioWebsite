@@ -288,7 +288,8 @@
 
 .sp-hero-stack .sp-h1--hero {
   margin-inline: auto;
-  margin-bottom: 36px;
+  /* the eyebrow sits between the title and the live session, so the title gap is tighter */
+  margin-bottom: 22px;
   /* each sentence is its own line; the first only wraps when the viewport forces it */
   text-wrap: pretty;
 }
@@ -304,8 +305,9 @@
   margin-top: 44px;
 }
 
-.sp-hero-stack__copy .sp-eyebrow {
+.sp-hero-stack .sp-eyebrow {
   justify-content: center;
+  margin-bottom: 30px;
 }
 
 @media (max-width: 640px) {
@@ -314,7 +316,7 @@
   }
 
   .sp-hero-stack .sp-h1--hero {
-    margin-bottom: 26px;
+    margin-bottom: 18px;
   }
 
   .sp-hero-stack__copy {

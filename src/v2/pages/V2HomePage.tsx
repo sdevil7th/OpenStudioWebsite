@@ -393,6 +393,7 @@ const V2HomePage = () => {
               <span className="sp-hero-stack__line">Record, edit, mix, and generate.</span>{" "}
               <span className="sp-hero-stack__line">One free DAW.</span>
             </h1>
+            <Eyebrow icon={ShieldCheck}>Free · Open source · AGPLv3</Eyebrow>
           </div>
           <Frame hero reveal="rise">
             <Suspense fallback={<img alt="OpenStudio timeline" loading="eager" src={SHOTS.heroTimeline} />}>
@@ -414,7 +415,6 @@ const V2HomePage = () => {
               generation and stem separation, and a Neural Amp Modeler guitar rig. All of it is in the base app,
               on Windows, macOS, and Linux.
             </p>
-            <Eyebrow icon={ShieldCheck}>Free · Open source · AGPLv3</Eyebrow>
           </div>
         </div>
       </div>

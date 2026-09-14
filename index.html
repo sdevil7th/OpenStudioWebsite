@@ -40,11 +40,11 @@
         color: #f8fbff;
       }
 
-      html[data-openstudio-immediate-content] #openstudio-instant-loader {
+      html[data-openstudio-immediate-content] .openstudio-loader {
         display: none;
       }
 
-      #openstudio-instant-loader {
+      .openstudio-loader {
         --os-loader-backdrop-exit-duration: 220ms;
         --os-loader-panel-exit-duration: 200ms;
         --os-loader-content-opacity-exit-duration: 280ms;
@@ -63,7 +63,7 @@
         pointer-events: auto;
       }
 
-      #openstudio-instant-loader::before {
+      .openstudio-loader::before {
         content: "";
         position: absolute;
         inset: 0;
@@ -220,29 +220,29 @@
         animation: os_loader_progress 8200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
 
-      #openstudio-instant-loader[data-openstudio-loader-state="leaving"] .os-instant-loader__panel--top {
+      .openstudio-loader[data-openstudio-loader-state="leaving"] .os-instant-loader__panel--top {
         opacity: 0;
       }
 
-      #openstudio-instant-loader[data-openstudio-loader-state="leaving"]::before {
+      .openstudio-loader[data-openstudio-loader-state="leaving"]::before {
         opacity: 0;
       }
 
-      #openstudio-instant-loader[data-openstudio-loader-state="leaving"] {
+      .openstudio-loader[data-openstudio-loader-state="leaving"] {
         pointer-events: none;
       }
 
-      #openstudio-instant-loader[data-openstudio-loader-state="leaving"] .os-instant-loader__content {
+      .openstudio-loader[data-openstudio-loader-state="leaving"] .os-instant-loader__content {
         opacity: 0;
         filter: blur(10px);
       }
 
-      #openstudio-instant-loader[data-openstudio-loader-state="leaving"] .os-instant-loader__progress {
+      .openstudio-loader[data-openstudio-loader-state="leaving"] .os-instant-loader__progress {
         opacity: 0;
         transform: translateY(-50%) scaleY(0);
       }
 
-      #openstudio-instant-loader[data-openstudio-loader-state="leaving"] .os-instant-loader__progress span {
+      .openstudio-loader[data-openstudio-loader-state="leaving"] .os-instant-loader__progress span {
         animation: none;
         transform: scaleX(1);
       }
@@ -262,7 +262,7 @@
       }
 
       @media (max-width: 767px) {
-        #openstudio-instant-loader {
+        .openstudio-loader {
           --os-loader-backdrop-exit-duration: 200ms;
           --os-loader-panel-exit-duration: 200ms;
           --os-loader-content-opacity-exit-duration: 140ms;
@@ -368,7 +368,7 @@
       </p>
     </noscript>
     <!-- openstudio-loader:start -->
-    <div id="openstudio-instant-loader" data-openstudio-loader data-openstudio-loader-state="loading" role="status" aria-live="polite">
+    <div id="openstudio-instant-loader" class="openstudio-loader" data-openstudio-loader data-openstudio-loader-state="loading" role="status" aria-live="polite">
       <div class="os-instant-loader__panel os-instant-loader__panel--top" aria-hidden="true"></div>
       <div class="os-instant-loader__content">
         <div class="os-instant-loader__mark" aria-hidden="true">
@@ -396,6 +396,14 @@
           return;
         }
         if (!loader) return;
+
+        // Preserve one source of markup for initial and client-side route loading.
+        const loaderTemplate = document.createElement("template");
+        loaderTemplate.id = "openstudio-loader-template";
+        const reusableLoader = loader.cloneNode(true);
+        reusableLoader.removeAttribute("id");
+        loaderTemplate.content.appendChild(reusableLoader);
+        document.body.appendChild(loaderTemplate);
 
         const markPerformance = (name) => {
           try {

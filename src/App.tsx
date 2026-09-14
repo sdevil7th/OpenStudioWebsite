@@ -10,6 +10,7 @@ import {
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import SiteShell from "@/components/SiteShell";
+import BrandLoader from "@/components/BrandLoader";
 import { trackPageView } from "@/lib/analytics";
 import { preloadModuleOnce } from "@/lib/runtimePreloadRegistry";
 
@@ -125,17 +126,7 @@ const RouteFallback = () => {
     );
   }
 
-  return (
-    <div className="route-transition-surface" role="status" aria-live="polite">
-      <span className="sr-only">Preparing OpenStudio</span>
-      <div className="route-transition-surface__grid" aria-hidden="true">
-        <span className="route-transition-surface__beam route-transition-surface__beam--one" />
-        <span className="route-transition-surface__beam route-transition-surface__beam--two" />
-        <span className="route-transition-surface__beam route-transition-surface__beam--three" />
-        <span className="route-transition-surface__line" />
-      </div>
-    </div>
-  );
+  return <BrandLoader />;
 };
 
 const RouteReadySignal = ({ children }: { children: ReactNode }) => {

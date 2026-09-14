@@ -208,8 +208,8 @@ test("initial routes are lazy-loaded behind the html-first loader", () => {
   assert.match(shellSource, /data-route-pending=\{routePending \? "true" : "false"\}/);
   assert.match(shellSource, /\{!routePending \? <SiteFooter \/> : null\}/);
   assert.match(appSource, /<Suspense fallback=\{<RouteFallback \/>\}>/);
-  assert.match(appSource, /route-transition-surface/);
-  assert.match(indexCssSource, /\.route-transition-surface \{[\s\S]*min-height: 100svh/);
+  assert.match(appSource, /return <BrandLoader \/>/);
+  assert.match(indexHtml, /loaderTemplate.content.appendChild\(reusableLoader\)/);
   assert.match(appSource, /__openstudioFirstRouteReveal/);
   assert.doesNotMatch(appSource, /const PageLoader = \(\) =>/);
   assert.doesNotMatch(appSource, /Suspense fallback=\{null\}/);

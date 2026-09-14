@@ -79,33 +79,6 @@
   }
 }
 
-@keyframes route_transition_beam {
-  0%,
-  100% {
-    opacity: 0.24;
-    transform: translate3d(-8%, 0, 0) skewX(-14deg);
-  }
-
-  50% {
-    opacity: 0.58;
-    transform: translate3d(8%, 0, 0) skewX(-14deg);
-  }
-}
-
-@keyframes route_transition_line {
-  0% {
-    transform: translateX(-56%) scaleX(0.42);
-  }
-
-  50% {
-    transform: translateX(0%) scaleX(0.86);
-  }
-
-  100% {
-    transform: translateX(56%) scaleX(0.42);
-  }
-}
-
 @keyframes page_route_reveal {
   from {
     opacity: 0;
@@ -262,66 +235,6 @@ html.lenis body {
 @layer utilities {
   .route-appear {
     animation: page_route_reveal 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-
-  .route-transition-surface {
-    position: relative;
-    min-height: 100svh;
-    overflow: hidden;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    background:
-      radial-gradient(circle at 18% 10%, rgba(199, 180, 255, 0.16), transparent 24%),
-      radial-gradient(circle at 82% 20%, rgba(116, 241, 169, 0.1), transparent 26%),
-      linear-gradient(180deg, rgba(7, 9, 17, 0.98), rgba(3, 5, 10, 1));
-  }
-
-  .route-transition-surface__grid {
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
-    background-size: 72px 72px;
-    mask-image: linear-gradient(180deg, transparent, black 16%, black 78%, transparent);
-  }
-
-  .route-transition-surface__beam {
-    position: absolute;
-    inset-block: 10%;
-    width: 18vw;
-    min-width: 12rem;
-    border-radius: 999px;
-    filter: blur(34px);
-    transform: skewX(-14deg);
-    animation: route_transition_beam 4.8s ease-in-out infinite;
-  }
-
-  .route-transition-surface__beam--one {
-    left: 12%;
-    background: rgba(199, 180, 255, 0.22);
-  }
-
-  .route-transition-surface__beam--two {
-    left: 44%;
-    background: rgba(116, 241, 169, 0.16);
-    animation-delay: -1.6s;
-  }
-
-  .route-transition-surface__beam--three {
-    right: 10%;
-    background: rgba(185, 231, 255, 0.14);
-    animation-delay: -3.1s;
-  }
-
-  .route-transition-surface__line {
-    position: absolute;
-    left: 50%;
-    top: 48%;
-    height: 1px;
-    width: min(32rem, 62vw);
-    transform-origin: center;
-    background: linear-gradient(90deg, transparent, rgba(199, 180, 255, 0.72), rgba(116, 241, 169, 0.56), transparent);
-    animation: route_transition_line 2.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
   }
 
   .screenshot-frame__image {
@@ -1950,9 +1863,7 @@ html.lenis body {
     .site-nav-link,
 .site-nav-link::before,
 .site-nav-link::after,
-.route-appear,
-.route-transition-surface__beam,
-.route-transition-surface__line {
+.route-appear {
       transition: none !important;
       animation: none !important;
     }
