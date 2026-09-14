@@ -29,7 +29,11 @@ const expectedFaces = new Map([
 test("the font stylesheet is local, versioned, and keeps the Google face descriptors", () => {
   assert.match(
     indexHtml,
-    /fontStylesheet\.href =\s*"\/assets\/openstudio\/fonts\/google-fonts-20260815\.css"/,
+    /<link[^>]*rel="stylesheet"[^>]*href="\/assets\/openstudio\/fonts\/google-fonts-20260815\.css"[^>]*data-openstudio-fonts/s,
+  );
+  assert.match(
+    indexHtml,
+    /<link[^>]*rel="preload"[^>]*as="font"[^>]*type="font\/woff2"[^>]*crossorigin/s,
   );
   assert.doesNotMatch(indexHtml, /fonts\.(?:googleapis|gstatic)\.com/i);
   assert.doesNotMatch(fontCss, /https?:\/\//i);

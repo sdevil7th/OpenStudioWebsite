@@ -117,6 +117,7 @@ export interface GithubReleaseSummary {
   isPrerelease: boolean;
   assetCount: number;
   assets: GithubReleaseAssetSummary[];
+  body?: string;
 }
 
 export interface GithubRepoSnapshot {
@@ -138,6 +139,8 @@ export interface GithubRepoSnapshot {
   contributors: GithubContributorSummary[];
   latestRelease: GithubReleaseSummary | null;
   hasPublishedReleases: boolean;
+  releases?: GithubReleaseSummary[];
+  releaseCount?: number;
   stats: GithubRepoStats;
 }
 

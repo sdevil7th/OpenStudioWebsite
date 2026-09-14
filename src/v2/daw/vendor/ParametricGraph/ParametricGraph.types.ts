@@ -1,0 +1,57 @@
+// Source: OpenStudio frontend/src/components/ParametricGraph/ParametricGraph.types.ts @ d2056151222fefcede123ef614ec38c6893cbfd5
+// Vendored by scripts/vendor-openstudio-ui.mjs — do not edit by hand, re-run the script.
+export interface GraphAxis {
+  label: string;
+  min: number;
+  max: number;
+  scale: "linear" | "log";
+  unit?: string;
+  gridLines?: number[];
+}
+
+export interface GraphNode {
+  id: string;
+  x: number; // value in axis units (e.g., Hz for freq)
+  y: number; // value in axis units (e.g., dB for gain)
+  z?: number; // third parameter (e.g., Q), scroll-wheel controlled
+  enabled: boolean;
+  color?: string;
+  label?: string;
+  nodeType?: number; // enum value for per-node type (e.g., filter type)
+}
+
+export interface GraphNodeConfig {
+  maxNodes: number;
+  zAxis?: {
+    label: string;
+    min: number;
+    max: number;
+    default: number;
+    sensitivity: number; // scroll delta per value unit
+  };
+  nodeTypes?: { value: number; label: string }[];
+}
+
+export interface ParametricGraphProps {
+  width: number;
+  height: number;
+  xAxis: GraphAxis;
+  yAxis: GraphAxis;
+  nodes: GraphNode[];
+  nodeConfig: GraphNodeConfig;
+  responseCurve?: { x: number; y: number }[];
+  backgroundCurves?: Array<{
+    id: string;
+    points: { x: number; y: number }[];
+    color?: string;
+    opacity?: number;
+    strokeWidth?: number;
+  }>;
+  perNodeCurves?: { nodeId: string; points: { x: number; y: number }[] }[];
+  onNodeAdd?: (x: number, y: number) => void;
+  onNodeChange?: (id: string, changes: Partial<GraphNode>) => void;
+  onNodeRemove?: (id: string) => void;
+  onNodeDragStart?: (id: string) => void;
+  onNodeDragEnd?: (id: string) => void;
+  className?: string;
+}
