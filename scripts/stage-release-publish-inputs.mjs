@@ -1,4 +1,5 @@
 import path from "node:path";
+import { fetchReleasePublishInputs } from "./fetch-release-publish-inputs.mjs";
 import { fileURLToPath } from "node:url";
 import {
   getReleaseMetadataInputDir,
@@ -11,6 +12,10 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
 
 try {
+  if (process.env.OPENSTUDIO_FETCH_RELEASE_METADATA === "true") {
+    const fetched = await fetchReleasePublishInputs({ repoRoot });
+    console.log(`[release-publish] fetched and validated ${fetched.tag}.`);
+  }
   const result = await stageReleasePublishInputs({ repoRoot });
 
   if (result.staged) {

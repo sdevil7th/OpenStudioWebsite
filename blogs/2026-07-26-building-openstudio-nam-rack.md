@@ -131,7 +131,7 @@ A user preset can store the complete creative signal chain, including amp and op
 
 *Factory entries are capture-agnostic starting points; user presets are complete saved racks.*
 
-Factory templates such as Current Capture · Clean Polish, Wide Chorus, Edge & Echo, Mid Push, Tight High Gain, and Shimmer Bloom shape the currently loaded capture. They deliberately do not bundle a third-party NAM model or cabinet IR. User presets can be exported as `.s13nampreset` files, but sharing a preset does not grant permission to redistribute the model or IR it refers to.
+Factory templates such as Current Capture · Clean Polish, Wide Chorus, Edge & Echo, Mid Push, Tight High Gain, and Shimmer Bloom shape the currently loaded capture. They deliberately do not bundle a third-party NAM model or cabinet IR. The upcoming desktop release exports user presets as `.ospreset` files; older builds retain their original preset format. Sharing a preset does not grant permission to redistribute the model or IR it refers to. Back up existing presets before upgrading: retired serialized identifiers are unsupported, and renaming an extension does not convert a preset. Automatic migration from retired preset formats is not included in the upcoming release.
 
 ## The less visible work that makes it a DAW rack
 
@@ -141,7 +141,7 @@ Factory templates such as Current Capture · Clean Polish, Wide Chorus, Edge & E
 - Capture, cabinet, bypass, and supported routing transitions use aligned paths and click-safe changes.
 - Delay and reverb tails are reported to the render path, and offline export uses the same processor graph as playback.
 - Project state stores model and IR identity, parameter state, effect order, and bypass state. Missing assets offer supported Locate, Replace, Bypass, and Re-download recovery actions.
-- Preset migration removes retired Tape Echo state and upgrades older rack state to the current effects schema.
+- Within a supported preset format, DSP migration removes retired Tape Echo state and upgrades the effects schema. This does not imply support for retired project or preset formats.
 
 Those details are what turn NAM support from a file picker into a dependable part of a recording session.
 

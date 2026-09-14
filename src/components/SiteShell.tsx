@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import ScrollProgress from "@/components/ScrollProgress";
 import SiteFooter from "@/components/SiteFooter";
+import PrivacyChoices from "@/components/PrivacyChoices";
 import SiteNavbar from "@/components/SiteNavbar";
 import SmoothScrollProvider, { useSmoothScroll } from "@/components/SmoothScrollProvider";
 
@@ -209,6 +210,7 @@ const ShellContent = () => {
           <Outlet />
         </div>
         {!routePending ? <SiteFooter /> : null}
+        {!routePending ? <PrivacyChoices /> : null}
       </div>
     </div>
   );
