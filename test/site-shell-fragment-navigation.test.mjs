@@ -78,7 +78,9 @@ test(
       );
 
       await featureModuleRequested;
-      await page.waitForSelector(".site-shell-route-frame");
+      // The route frame is empty while the lazy route is held: the Suspense fallback
+      // mounts BrandLoader on the body, so the frame has no box until the page lands.
+      await page.waitForSelector(".site-shell-route-frame", { state: "attached" });
       assert.equal(
         await page.locator(".site-shell-content").getAttribute("data-route-pending"),
         "true",
