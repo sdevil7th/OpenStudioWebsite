@@ -33,7 +33,7 @@ const HORIZONS = [
   {
     icon: Sparkles,
     kicker: "Exploring",
-    title: "Not promised, being looked at",
+    title: "Under consideration",
     items: [
       "An optional local DAW assistant that selects a model appropriate for the user's hardware, keeps project context local and bounded, previews every mutating action, and uses OpenStudio's normal undo-aware commands.",
       "Wider hybrid-precision processing where it produces measurable value without compromising plug-in compatibility or the default float32 workflow.",
@@ -64,7 +64,7 @@ const V2RoadmapPage = () => {
       />
 
       <div className="sp-container" data-sp-reveal="hero" style={{ paddingTop: 64 }}>
-        <Eyebrow icon={Map}>Direction, not dates</Eyebrow>
+        <Eyebrow icon={Map}>Where the project is heading</Eyebrow>
         <h1 className="sp-h1">Roadmap.</h1>
         <p className="sp-lede" style={{ maxWidth: 680 }}>
           This describes product direction, not fixed delivery dates or a promise that every exploratory item will
@@ -115,9 +115,9 @@ const V2RoadmapPage = () => {
 
       <div className="sp-container" data-sp-reveal="rise" style={{ paddingTop: 34, paddingBottom: 62 }}>
         <HonestCallout>
-          Want something on here? Open an issue with the use case, not just the feature name — the reasoning behind
-          priorities is public and a concrete workflow is what moves an item from &ldquo;exploring&rdquo; to
-          &ldquo;next&rdquo;.{" "}
+          Want something on here? Open an issue that describes the use case rather than only naming the feature.
+          The reasoning behind priorities is public, and a concrete workflow is what moves an item from
+          &ldquo;exploring&rdquo; to &ldquo;next&rdquo;.{" "}
           <ArrowLink href={REPO.newIssue}>Open an issue</ArrowLink>{" "}
           <ArrowLink to={docPath("faq")}>What is explicitly not planned</ArrowLink>
         </HonestCallout>

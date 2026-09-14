@@ -311,12 +311,13 @@ export const STEMS_SPEC: StageTimelineSpec<ArrangementState> = {
   }),
   build: (tl, t0) => {
     const proxy = { time: 0, progress: 0, arrived: 0 };
-    const flags = { transport: "stopped" as Transport, separating: false, solo: false, muteMix: false };
+    const flags = { transport: "stopped" as Transport, separating: false, solo: false, muteMix: false, resetting: false };
     const playAt = t0 + 3.2 + STEM_TRACKS.length * STEM_GAP;
     const stopAt = playAt + 5.2;
 
     tl.call(() => {
       flags.separating = true;
+      flags.resetting = false;
     }, [], t0)
       .to(proxy, { progress: 100, duration: 2.6, ease: "power1.inOut" }, t0 + 0.2)
       .call(() => {
@@ -340,6 +341,10 @@ export const STEMS_SPEC: StageTimelineSpec<ArrangementState> = {
       .call(() => {
         flags.muteMix = false;
       }, [], stopAt + 0.9)
+      // Rewind for the next pass; the import chip stays hidden while `arrived` unwinds.
+      .call(() => {
+        flags.resetting = true;
+      }, [], stopAt + 0.7)
       .to(proxy, { time: 0, arrived: 0, progress: 0, duration: 0.6, ease: "power3.inOut" }, stopAt + 0.7);
 
     return () => {
@@ -354,7 +359,9 @@ export const STEMS_SPEC: StageTimelineSpec<ArrangementState> = {
         ...stems.map((stem, index) => ({
           entering: stem.entering,
           soloed: flags.solo && index === 0,
-          level: stem.entering || (flags.solo && index !== 0) ? 0 : undefined,
+          // Only override the computed level when the stem is silent; an
+          // explicit `level: undefined` would spread over it and mute the meter.
+          ...(stem.entering || (flags.solo && index !== 0) ? { level: 0 } : {}),
         })),
       ]);
       return {
@@ -363,7 +370,11 @@ export const STEMS_SPEC: StageTimelineSpec<ArrangementState> = {
         loop: false,
         lanes,
         selectedTrack: arrived > 0 ? 1 : 0,
-        status: flags.separating ? `BS Roformer · separating ${Math.round(proxy.progress)} %` : arrived > 0 && arrived < STEM_TRACKS.length ? `Importing stem ${arrived} of ${STEM_TRACKS.length}` : undefined,
+        status: flags.separating
+          ? `BS Roformer · separating ${Math.round(proxy.progress)} %`
+          : !flags.resetting && arrived > 0 && arrived < STEM_TRACKS.length
+            ? `Importing stem ${arrived} of ${STEM_TRACKS.length}`
+            : undefined,
       };
     };
   },

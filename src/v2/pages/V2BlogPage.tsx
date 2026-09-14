@@ -35,7 +35,8 @@ const V2BlogPage = () => {
         <Eyebrow icon={Book}>Development notes from the maintainer</Eyebrow>
         <h1 className="sp-h1">Blog.</h1>
         <p className="sp-lede" style={{ maxWidth: 600 }}>
-          What broke, what got faster, and why a decision went the way it did. Dev-log content, not marketing.
+          What broke, what got faster, and why a decision went the way it did. These are development notes, written
+          as the work happened.
         </p>
       </div>
 

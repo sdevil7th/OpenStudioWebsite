@@ -19,9 +19,6 @@ export interface SessionState {
   loop: boolean;
   tracks: TrackState[];
   master: { volumeDb: number; level: number; clipping: boolean };
-  /** NAM Rack knob values keyed by param id (see RACK_PARAMS). */
-  knobs: Record<string, number>;
-  rackPower: boolean;
   selectedTrack: number;
   snap: boolean;
 }

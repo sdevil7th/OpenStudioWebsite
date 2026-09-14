@@ -1,6 +1,5 @@
 import type { LaneClip } from "./ArrangementLanes";
 import type { StageTimelineSpec } from "./stage/useStageTimeline";
-import type { BuiltInParamDescriptor } from "./vendor/stubs/nativeBridgeTypes";
 import type { SessionState, TrackState, Transport } from "./types";
 
 /* ---------------------------------------------------------------------------
@@ -79,14 +78,6 @@ export const TRACKS: readonly TrackDef[] = [
   },
 ];
 
-/** NAM Rack knob descriptors, same shape the app's native bridge reports. */
-export const RACK_PARAMS: readonly BuiltInParamDescriptor[] = [
-  { id: "inputGain", label: "Gain", type: "continuous", value: 5, min: 0, max: 10, defaultValue: 5 },
-  { id: "drive", label: "Drive", type: "continuous", value: 3.4, min: 0, max: 10, defaultValue: 5 },
-  { id: "tone", label: "Tone", type: "continuous", value: 5.2, min: 0, max: 10, defaultValue: 5 },
-  { id: "outputLevel", label: "Level", type: "continuous", value: 0, min: -20, max: 20, defaultValue: 0, unit: "dB" },
-];
-
 /* ---------------------------------------------------------------------------
  * State factories.
  * ------------------------------------------------------------------------- */
@@ -110,8 +101,6 @@ export const initialState = (): SessionState => ({
   loop: false,
   tracks: TRACKS.map((_, index) => track(index)),
   master: { volumeDb: 0, level: 0, clipping: false },
-  knobs: Object.fromEntries(RACK_PARAMS.map((param) => [param.id, param.value])),
-  rackPower: true,
   selectedTrack: 2,
   snap: true,
 });
@@ -127,7 +116,6 @@ export const staticState = (): SessionState => {
     loop: true,
     tracks: state.tracks.map((entry, index) => ({ ...entry, level: trackLevel(index, time, "playing") })),
     master: { ...state.master, level: masterLevel(time, "playing") },
-    knobs: { ...state.knobs, drive: 6.8, tone: 6.4 },
   };
 };
 
@@ -207,9 +195,6 @@ export const SESSION_SPEC: StageTimelineSpec<SessionState> = {
       time: 0,
       namFader: rest.tracks[2].volumeDb,
       guitarPan: rest.tracks[1].pan,
-      drive: RACK_PARAMS[1].value,
-      tone: RACK_PARAMS[2].value,
-      gain: RACK_PARAMS[0].value,
     };
     const flags = { transport: "stopped" as Transport, loop: false, vocalSolo: false };
     const stopAt = t0 + SESSION_LENGTH;
@@ -220,9 +205,6 @@ export const SESSION_SPEC: StageTimelineSpec<SessionState> = {
       .to(proxy, { time: SESSION_LENGTH, duration: SESSION_LENGTH, ease: "none" }, t0)
       // Ride the NAM Guitar fader up for the chorus.
       .to(proxy, { namFader: 1.8, duration: 2.2 }, t0 + 1.8)
-      // Dial in the rig.
-      .to(proxy, { drive: 6.8, duration: 1.8 }, t0 + 3.4)
-      .to(proxy, { tone: 6.4, duration: 1.2 }, t0 + 4.8)
       // Solo the vocal to check the take, then release.
       .call(() => {
         flags.vocalSolo = true;
@@ -250,8 +232,6 @@ export const SESSION_SPEC: StageTimelineSpec<SessionState> = {
           time: 0,
           namFader: rest.tracks[2].volumeDb,
           guitarPan: rest.tracks[1].pan,
-          drive: RACK_PARAMS[1].value,
-          tone: RACK_PARAMS[2].value,
           duration: 0.9,
           ease: "power3.inOut",
         },
@@ -280,7 +260,6 @@ export const SESSION_SPEC: StageTimelineSpec<SessionState> = {
         loop: flags.loop,
         tracks,
         master: { volumeDb: 0, level: master, clipping: false },
-        knobs: { ...rest.knobs, inputGain: proxy.gain, drive: proxy.drive, tone: proxy.tone },
       };
     };
   },

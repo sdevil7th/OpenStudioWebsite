@@ -83,8 +83,8 @@ const SLIDES: Slide[] = [
     icon: AudioWaveform,
     tab: "Pitch editing",
     eyebrow: "Graphical · On the take · In the arrangement",
-    title: "Fix the take where it sits, not in a separate app.",
-    copy: "A graphical pitch editor with note blobs and a contour, scale and chromatic snapping, a correct-pitch macro, and an offline render path — plus a real-time pitch corrector effect when you would rather work live.",
+    title: "Fix the take right where it sits in the arrangement.",
+    copy: "A graphical pitch editor with note blobs and a contour, scale and chromatic snapping, a correct-pitch macro, and an offline render path. There is also a real-time pitch corrector effect for when you would rather work live.",
     chips: ["Note editor", "Scale snap", "Drift · Vibrato · Transition", "Correct-pitch macro", "Real-time corrector"],
     shot: SHOTS.pitchEditor,
     alt: "The graphical pitch editor",
@@ -98,7 +98,7 @@ const SLIDES: Slide[] = [
     tab: "Plugin hosting",
     eyebrow: "VST3 · CLAP · LV2 · ARA2",
     title: "Your plugins, hosted natively.",
-    copy: "Native editor windows, input, track, and master FX chains, presets and A/B, sidechain routing, and a set of built-in processors — EQ, compressor, gate, delay, reverb, saturator, chorus — that cover the rest.",
+    copy: "Native editor windows, input, track, and master FX chains, presets and A/B, sidechain routing, and a set of built-in processors (EQ, compressor, gate, delay, reverb, saturator, chorus) that cover the rest.",
     chips: ["Native editors", "Input / track / master FX", "Presets & A/B", "Sidechain", "Built-in FX", "Safe mode"],
     shot: SHOTS.pluginHosting,
     alt: "Plugin hosting inside OpenStudio",
@@ -382,68 +382,41 @@ const V2HomePage = () => {
         description="A free, open-source DAW for Windows, macOS, and Linux: multitrack recording, MIDI, plugin hosting, graphical pitch editing, local AI generation and stem separation, and a built-in Neural Amp Modeler guitar rig. AGPLv3."
         path={V2_PATHS.home}
         robots="noindex"
-        title="OpenStudio — Free Open-Source DAW for Windows, macOS & Linux"
+        title="OpenStudio: Free Open-Source DAW for Windows, macOS & Linux"
       />
 
       {/* Hero */}
       <div className="sp-container">
-        <div className="sp-split" style={{ gridTemplateColumns: "1.05fr .95fr", paddingTop: 72 }}>
+        <div className="sp-hero-stack">
           <div data-sp-reveal="hero">
-            <Eyebrow icon={ShieldCheck}>Free · Open source · AGPLv3</Eyebrow>
-            <h1 className="sp-h1 sp-h1--hero">Record, edit, mix, and generate. One free DAW.</h1>
-            <p className="sp-lede" style={{ fontSize: 17, lineHeight: 1.6, maxWidth: 540, marginBottom: 28 }}>
-              Multitrack recording, MIDI, a full mixer, VST3/CLAP/LV2 hosting, graphical pitch editing, local AI
-              generation and stem separation, and a Neural Amp Modeler guitar rig — all in the base app, on
-              Windows, macOS, and Linux.
-            </p>
-            <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", marginBottom: 10 }}>
+            <h1 className="sp-h1 sp-h1--hero">
+              <span className="sp-hero-stack__line">Record, edit, mix, and generate.</span>{" "}
+              <span className="sp-hero-stack__line">One free DAW.</span>
+            </h1>
+          </div>
+          <Frame hero reveal="rise">
+            <Suspense fallback={<img alt="OpenStudio timeline" loading="eager" src={SHOTS.heroTimeline} />}>
+              <LiveSession />
+            </Suspense>
+          </Frame>
+          <div className="sp-hero-stack__copy" data-sp-reveal="hero">
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, flexWrap: "wrap", marginBottom: 12 }}>
               <DownloadCta />
               <ArrowLink to={V2_PATHS.features} tone="plain">
                 See all features
               </ArrowLink>
             </div>
-            <div className="sp-mono" style={{ lineHeight: 1.5 }}>
+            <div className="sp-mono" style={{ lineHeight: 1.5, marginBottom: 22 }}>
               {heroMeta}
             </div>
+            <p className="sp-lede" style={{ fontSize: 17, lineHeight: 1.6, maxWidth: 640, marginBottom: 16 }}>
+              Multitrack recording, MIDI, a full mixer, VST3/CLAP/LV2 hosting, graphical pitch editing, local AI
+              generation and stem separation, and a Neural Amp Modeler guitar rig. All of it is in the base app,
+              on Windows, macOS, and Linux.
+            </p>
+            <Eyebrow icon={ShieldCheck}>Free · Open source · AGPLv3</Eyebrow>
           </div>
-          <Frame hero reveal="media-right">
-            <Suspense fallback={<img alt="OpenStudio timeline" loading="eager" src={SHOTS.heroTimeline} />}>
-              <LiveSession />
-            </Suspense>
-          </Frame>
         </div>
-      </div>
-
-      {/* Proof strip */}
-      <div
-        className="sp-grid-4 sp-proof-strip"
-        data-sp-reveal="stagger"
-        style={{
-          gap: 0,
-          borderTop: "1px solid var(--sp-hairline)",
-          borderBottom: "1px solid var(--sp-hairline)",
-          marginTop: 52,
-        }}
-      >
-        {[
-          { icon: Mic, label: "Multitrack recording", accent: false },
-          { icon: Plug, label: "VST3 / CLAP / LV2 / ARA2", accent: false },
-          { icon: Cpu, label: "Local AI generation & stems", accent: true },
-          { icon: Zap, label: "Built-in NAM Rack", accent: false },
-        ].map((item) => (
-          <div
-            key={item.label}
-            className="sp-proof-strip__item"
-            style={{ color: item.accent ? "var(--sp-accent)" : undefined }}
-          >
-            {item.accent ? (
-              <item.icon aria-hidden="true" size={17} strokeWidth={1.7} />
-            ) : (
-              <GradIcon icon={item.icon} size={17} />
-            )}
-            {item.label}
-          </div>
-        ))}
       </div>
 
       {/* Showcase (dark) */}
@@ -460,8 +433,8 @@ const V2HomePage = () => {
             One project, from first take to final render.
           </h2>
           <p className="sp-lede" style={{ fontSize: 16, maxWidth: 560, marginBottom: 40 }}>
-            Recording, MIDI, editing, pitch work, mixing, and export live in the same window. No round trips, no
-            exporting a clip to a separate tool and importing it back.
+            Recording, MIDI, editing, pitch work, mixing, and export live in the same window, so you never have to
+            export a clip to another tool and bring it back.
           </p>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 34, paddingBottom: 78 }}>
@@ -534,7 +507,7 @@ const V2HomePage = () => {
           <div className="sp-split-cols__b">
             <Eyebrow icon={Cpu}>Optional · Local · Offline after setup</Eyebrow>
             <h2 className="sp-h2" style={{ lineHeight: 1.12 }}>
-              Generate, separate, and vary — on your machine.
+              Generate, separate, and vary, all on your machine.
             </h2>
             <p className="sp-body" style={{ marginBottom: 14 }}>
               Install the AI Tools runtime once from inside the app. ACE-Step and Stable Audio 3 generate, extend,
@@ -560,8 +533,8 @@ const V2HomePage = () => {
               Free under AGPLv3. All of it.
             </h2>
             <p className="sp-body" style={{ fontSize: 15.5, marginBottom: 22 }}>
-              No trial, no tiers, no account. The full source is public — read it, build it, fork it, ship patches
-              back.
+              There is no trial, no paid tier, and no account. The full source is public, so you can read it, build
+              it, fork it, and send patches back.
             </p>
             <div style={{ display: "flex", gap: 22, flexWrap: "wrap" }}>
               <ArrowLink href={REPO.url}>Browse the source</ArrowLink>

@@ -35,7 +35,7 @@ const MODELS: { model: string; family: string; does: string; status: string; ton
   { model: "BS Roformer", family: "Stem separation", does: "Six-stem split of a mixed track into new project tracks", status: "Installed by the guided setup", tone: "good" },
   { model: "ACE-Step", family: "Generation", does: "Text to music, lyrics + style, variation, continuation, inpaint", status: "Installed by the guided setup", tone: "good" },
   { model: "Stable Audio 3 Medium", family: "Generation", does: "Text to audio", status: "Separate gated snapshot import and license acknowledgement", tone: "warn" },
-  { model: "MiniMax", family: "Generation", does: "Generation, variation, continuation", status: "Planned — not in the current build", tone: "plain" },
+  { model: "MiniMax", family: "Generation", does: "Generation, variation, continuation", status: "Planned, not in the current build", tone: "plain" },
   { model: "Basic Pitch", family: "Analysis", does: "Audio to MIDI", status: "Bundled; inference in ONNX-enabled Windows and Linux builds", tone: "good" },
 ];
 
@@ -47,9 +47,9 @@ const WORKFLOWS = [
 ];
 
 const PRINCIPLES = [
-  { number: "01", title: "Optional by design", copy: "The base app stays lean. If you do not install the runtime, none of this is there." },
+  { number: "01", title: "Optional", copy: "The base app stays lean. If you do not install the runtime, none of this is there." },
   { number: "02", title: "Offline after setup", copy: "Once the model files are on disk, generation and separation run without a connection." },
-  { number: "03", title: "Quality over a quiet fallback", copy: "Full decode. If a model cannot run on your hardware, it says so instead of silently degrading." },
+  { number: "03", title: "No silent fallbacks", copy: "Everything is decoded in full. If a model cannot run on your hardware, the app tells you rather than quietly producing something worse." },
 ];
 
 const STATUS_COLOR = { good: "var(--sp-good)", warn: "var(--sp-warn)", plain: "var(--sp-mono-muted)" } as const;
@@ -63,19 +63,19 @@ const V2AiPage = () => {
         description="Optional, local AI in OpenStudio: BS Roformer six-stem separation, and ACE-Step and Stable Audio 3 generation, variation, and continuation. Runs on your machine after a guided setup. Never bundled, never sent to a server."
         path={V2_PATHS.ai}
         robots="noindex"
-        title="AI Tools — Local Stem Separation, Generation & Variation | OpenStudio"
+        title="AI Tools: Local Stem Separation, Generation & Variation | OpenStudio"
       />
 
       {/* Hero */}
       <div className="sp-container" data-sp-reveal="hero" style={{ paddingTop: 64 }}>
         <Eyebrow icon={Cpu}>Optional download · Local · Offline after setup</Eyebrow>
         <h1 className="sp-h1" style={{ fontSize: "clamp(38px, 4.4vw, 54px)" }}>
-          AI that runs on your machine, or not at all.
+          AI that runs on your own machine, and only if you install it.
         </h1>
         <p className="sp-lede" style={{ maxWidth: 680 }}>
-          Two families of tools, one optional runtime. Pull a mix apart into stems, or generate, vary, and continue
-          audio from a prompt — inside the project, with your files staying on your disk. None of it ships in the
-          base installer.
+          Two families of tools that share one optional runtime. Pull a mix apart into stems, or generate, vary, and
+          continue audio from a prompt, all inside the project and with your files staying on your disk. None of it
+          ships in the base installer.
         </p>
         <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
           <Cta icon={Book} to={docPath("ai-runtime-setup")}>
@@ -144,7 +144,7 @@ const V2AiPage = () => {
             </h2>
             <p className="sp-body" style={{ maxWidth: 440, marginBottom: 14 }}>
               Hand BS Roformer a stereo mix and choose which stems you want. Vocals, drums, bass, guitar, piano,
-              and other land in the arrangement as ordinary tracks — editable, mixable, and rendered with the
+              and other land in the arrangement as ordinary tracks that you can edit, mix, and render with the
               project. Use it for remixes, practice tracks, cleanup, or replacing a part.
             </p>
             <ArrowLink to={`${docPath("ai-runtime-setup")}#workflows`}>Start a separation</ArrowLink>
@@ -158,7 +158,7 @@ const V2AiPage = () => {
           <div data-sp-reveal="rise">
             <Kicker>Generation · ACE-Step · Stable Audio 3</Kicker>
             <h2 className="sp-h2" style={{ fontSize: 30 }}>
-              Generate, vary, and continue — from the timeline.
+              Generate, vary, and continue from the timeline.
             </h2>
             <p className="sp-body" style={{ maxWidth: 440, marginBottom: 14 }}>
               An AI track takes a prompt and optional lyrics and writes a fully decoded WAV into the session. Any
@@ -219,8 +219,8 @@ const V2AiPage = () => {
       {/* Honest block */}
       <div className="sp-container" data-sp-reveal="rise" style={{ paddingTop: 46 }}>
         <HonestCallout>
-          The guided setup installs BS Roformer and ACE-Step. Stable Audio 3 Medium is not included — it needs a
-          separate gated snapshot import and a license acknowledgement. The managed macOS runtime is Apple silicon
+          The guided setup installs BS Roformer and ACE-Step. Stable Audio 3 Medium is not included, because it
+          needs a separate gated snapshot import and a license acknowledgement. The managed macOS runtime is Apple silicon
           only for now: Intel Macs run the base app, but AI Tools stay unavailable there. Local hardware, RAM, and
           VRAM decide what runs and how fast.
         </HonestCallout>

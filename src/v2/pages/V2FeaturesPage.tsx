@@ -96,7 +96,7 @@ const SPOTLIGHTS = [
     icon: Cpu,
     eyebrow: "Optional · Local",
     title: "AI Tools",
-    copy: "Six-stem separation, and generation, variation, and continuation from a prompt — running on your machine after a guided setup, or never installed at all.",
+    copy: "Six-stem separation, plus generation, variation, and continuation from a prompt. It runs on your machine after a guided setup, or you simply never install it.",
     linkLabel: "How the AI tools work",
     to: V2_PATHS.ai,
   },
@@ -104,7 +104,7 @@ const SPOTLIGHTS = [
     icon: Zap,
     eyebrow: "Built in · No paid tier",
     title: "NAM Rack",
-    copy: "A full Neural Amp Modeler rig — captures, a native pedalboard, cabinet IRs, EQ, effects, tuner, presets — in the base app. No add-on, no paid tier.",
+    copy: "A full Neural Amp Modeler rig in the base app: captures, a native pedalboard, cabinet IRs, EQ, effects, a tuner, and presets. There is no add-on and no paid tier.",
     linkLabel: "Explore the NAM Rack",
     to: V2_PATHS.namRack,
   },
@@ -119,7 +119,7 @@ const V2FeaturesPage = () => {
         description="Every feature in OpenStudio: multitrack recording, piano roll and instruments, a full mixer, VST3/CLAP/LV2 hosting, pitch editing, Lua scripting, export, local AI tools, and the NAM Rack."
         path={V2_PATHS.features}
         robots="noindex"
-        title="Features — Recording, MIDI, Mixing & Plugins | OpenStudio"
+        title="Features: Recording, MIDI, Mixing & Plugins | OpenStudio"
       />
 
       <div className="sp-container" data-sp-reveal="hero" style={{ paddingTop: 64 }}>
@@ -127,7 +127,7 @@ const V2FeaturesPage = () => {
         <h1 className="sp-h1">Every feature in OpenStudio.</h1>
         <p className="sp-lede" style={{ maxWidth: 680 }}>
           The map of what you get for free on Windows, macOS, and Linux. Each area links to the guide that walks
-          through it, and the full inventory — including what is still partial — is public in the repository.
+          through it, and the full inventory, including what is still partial, is public in the repository.
         </p>
         <ArrowLink href={REPO.implementedFeatures}>The complete feature inventory on GitHub</ArrowLink>
       </div>

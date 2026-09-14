@@ -264,14 +264,62 @@
 }
 
 .sp-frame--hero {
-  border-radius: 18px 18px 0 0;
+  width: 100%;
+  max-width: 1120px;
+  border-radius: 18px;
   overflow: hidden;
-  padding: 10px 10px 0;
+  padding: 10px;
   box-shadow: 0 30px 70px rgba(21, 23, 28, 0.18);
 }
 
 .sp-frame--hero > img {
-  border-radius: 12px 12px 0 0;
+  border-radius: 12px;
+}
+
+/* home: the hero is one centred column — title, live session, then the copy */
+.sp-hero-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-top: 72px;
+  padding-bottom: 64px;
+}
+
+.sp-hero-stack .sp-h1--hero {
+  margin-inline: auto;
+  margin-bottom: 36px;
+  /* each sentence is its own line; the first only wraps when the viewport forces it */
+  text-wrap: pretty;
+}
+
+.sp-hero-stack__line {
+  display: block;
+}
+
+.sp-hero-stack__copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 44px;
+}
+
+.sp-hero-stack__copy .sp-eyebrow {
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .sp-hero-stack {
+    padding-top: 48px;
+  }
+
+  .sp-hero-stack .sp-h1--hero {
+    margin-bottom: 26px;
+  }
+
+  .sp-hero-stack__copy {
+    margin-top: 32px;
+  }
 }
 
 /* Live content (the animated session) takes the image's slot and radius. */
@@ -284,7 +332,7 @@
 }
 
 .sp-frame--hero .sp-frame__live {
-  border-radius: 12px 12px 0 0;
+  border-radius: 12px;
 }
 
 .sp-dark-panel {
@@ -1197,42 +1245,6 @@
  * Pieces that used to be inline styles on the pages, moved here so the
  * 640 / 900 / 1000 ladder above can actually reach them.
  */
-
-/* home: proof strip dividers follow the 4 → 2 → 1 column collapse */
-.sp-proof-strip__item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 20px 34px;
-  font: 500 13px/1 "Space Grotesk", sans-serif;
-  border-right: 1px solid var(--sp-hairline);
-}
-
-.sp-proof-strip__item:last-child {
-  border-right: 0;
-}
-
-@media (max-width: 1000px) {
-  .sp-proof-strip__item:nth-child(2n) {
-    border-right: 0;
-  }
-
-  .sp-proof-strip__item:nth-child(-n + 2) {
-    border-bottom: 1px solid var(--sp-hairline);
-  }
-}
-
-@media (max-width: 640px) {
-  .sp-proof-strip__item {
-    border-right: 0;
-    border-bottom: 1px solid var(--sp-hairline);
-    padding: 16px 20px;
-  }
-
-  .sp-proof-strip__item:last-child {
-    border-bottom: 0;
-  }
-}
 
 /* home: plugins / AI split keeps its rule only while it is two columns */
 .sp-split-cols__a {
@@ -2156,7 +2168,7 @@
 }
 
 .sp-frame--hero .sp-frame__live .sp-live-stage {
-  border-radius: 12px 12px 0 0;
+  border-radius: 12px;
 }
 
 /* showcase: the stage enters like the image it replaced */

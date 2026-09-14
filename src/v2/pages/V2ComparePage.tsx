@@ -106,7 +106,7 @@ const V2ComparePage = () => {
   return (
     <>
       <PageSeo
-        description="How OpenStudio compares with Cubase, Pro Tools, REAPER, Suno, and Udio on recording, MIDI, pitch editing, AI generation, guitar rig, and plugin hosting — and what it costs."
+        description="How OpenStudio compares with Cubase, Pro Tools, REAPER, Suno, and Udio on recording, MIDI, pitch editing, AI generation, guitar rig, and plugin hosting, and what each one costs."
         path={V2_PATHS.compare}
         robots="noindex"
         title="OpenStudio vs Cubase, Pro Tools, REAPER, Suno & Udio"
@@ -160,8 +160,8 @@ const V2ComparePage = () => {
             </div>
             <p className="sp-body" style={{ fontSize: 13.5, color: "var(--sp-dark-body)" }}>
               Multitrack recording, MIDI and graphical pitch editing, VST3 / CLAP / LV2 / ARA2 hosting, local AI
-              generation, variation, and stem separation, and a NAM guitar rig with pedals, cab, EQ, and effects —
-              in the same project, with no paid edition.
+              generation, variation, and stem separation, and a NAM guitar rig with pedals, cab, EQ, and effects, all
+              in the same project with no paid edition.
             </p>
           </div>
         </div>

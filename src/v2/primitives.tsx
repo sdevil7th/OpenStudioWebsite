@@ -199,7 +199,7 @@ export const HonestCallout = ({ children }: { children: ReactNode }) => (
   <div className="sp-callout-honest">
     <div className="sp-callout-label" style={{ color: "var(--sp-mono-muted)" }}>
       <ShieldCheck aria-hidden="true" size={13} strokeWidth={1.8} />
-      Plainly, so you can decide
+      Worth knowing
     </div>
     <p className="sp-body" style={{ fontSize: 13.5, lineHeight: 1.7 }}>
       {children}

@@ -42,7 +42,7 @@ const V2CommunityPage = () => {
     {
       icon: Map,
       title: "Roadmap",
-      copy: "What is next, what is being explored, and what is explicitly not planned. Direction, not dates — the reasoning is public.",
+      copy: "What is next, what is being explored, and what is explicitly not planned. It describes direction rather than dates, and the reasoning is out in the open.",
       meta: "Product direction, not a delivery schedule",
       to: V2_PATHS.roadmap,
     },
@@ -163,8 +163,8 @@ const V2CommunityPage = () => {
               Free under AGPLv3. All of it.
             </h2>
             <p className="sp-body" style={{ color: "var(--sp-dark-body)", maxWidth: 470, marginBottom: 20 }}>
-              No trial, no tiers, no account. The full source is public — read it, build it, fork it, ship patches
-              back.
+              There is no trial, no paid tier, and no account. The full source is public, so you can read it, build
+              it, fork it, and send patches back.
             </p>
             <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
               <ArrowLink href={REPO.url} tone="teal">

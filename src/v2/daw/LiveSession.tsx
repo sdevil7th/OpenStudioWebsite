@@ -2,14 +2,16 @@ import { useRef } from "react";
 import { ArrangementLanes, arrangementHeight } from "./ArrangementLanes";
 import { BigClockLite } from "./BigClockLite";
 import { MixerPanelLite } from "./MixerPanelLite";
-import { RackModuleLite } from "./RackModuleLite";
 import { LOOP_RANGE, SESSION_LENGTH, TEMPO, TIME_SIGNATURE, TRACKS } from "./sessionScript";
-import { MIN_ANIMATED_SCALE, StageFrame, useStageScale } from "./stage/StageFrame";
+import { MIN_ANIMATED_SCALE, StageFrame, useStageFit } from "./stage/StageFrame";
 import { TransportLite } from "./TransportLite";
 import { useSessionTimeline } from "./useSessionTimeline";
 
-/** Design size of the stage; it is CSS-scaled to the column it sits in. */
-export const STAGE_WIDTH = 640;
+/**
+ * Narrowest layout of the stage. Wider columns widen the timeline and mixer
+ * at 1:1 instead of scaling everything up; narrower ones scale this down.
+ */
+export const MIN_STAGE_WIDTH = 640;
 const TRANSPORT_HEIGHT = 40;
 const LANE_HEIGHT = 48;
 const MIXER_HEIGHT = 290;
@@ -24,7 +26,7 @@ interface LiveSessionProps {
 
 const LiveSession = ({ className, paused = false }: LiveSessionProps) => {
   const outerRef = useRef<HTMLDivElement>(null);
-  const scale = useStageScale(outerRef, STAGE_WIDTH);
+  const { width: stageWidth, scale } = useStageFit(outerRef, MIN_STAGE_WIDTH);
   const state = useSessionTimeline({ scope: outerRef, enabled: !paused && scale >= MIN_ANIMATED_SCALE });
 
   const lanes = TRACKS.map((track, index) => ({
@@ -46,10 +48,10 @@ const LiveSession = ({ className, paused = false }: LiveSessionProps) => {
       className={className}
       data={{ transport: state.transport }}
       height={STAGE_HEIGHT}
-      label="OpenStudio session: the transport is playing, meters move in the mixer, and the NAM Rack knobs are being dialled in."
+      label="OpenStudio session: the transport is playing, a fader is ridden and the vocal is soloed while meters move in the mixer."
       outerRef={outerRef}
       scale={scale}
-      width={STAGE_WIDTH}
+      width={stageWidth}
     >
       <TransportLite
         transport={state.transport}
@@ -78,15 +80,10 @@ const LiveSession = ({ className, paused = false }: LiveSessionProps) => {
         time={state.time}
         timeSignature={TIME_SIGNATURE}
         transport={state.transport}
-        width={STAGE_WIDTH}
+        width={stageWidth}
       />
 
       <MixerPanelLite
-        aside={
-          <div className="flex-1 min-w-0 h-full">
-            <RackModuleLite power={state.rackPower} values={state.knobs} />
-          </div>
-        }
         height={MIXER_HEIGHT}
         master={{ volumeDb: state.master.volumeDb, level: state.master.level, clipping: state.master.clipping }}
         snapshots={["Mix A"]}

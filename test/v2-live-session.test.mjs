@@ -88,7 +88,7 @@ test("the Studio Paper hero lazy-loads the live session behind the screenshot po
   const home = read("src/v2/pages/V2HomePage.tsx");
   assert.match(home, /lazy\(\(\) => import\("\.\.\/daw\/LiveSession"\)\)/);
   assert.match(home, /<Suspense fallback=\{<img[^>]*src=\{SHOTS\.heroTimeline\}/);
-  assert.match(home, /<Frame hero reveal="media-right">/);
+  assert.match(home, /<Frame hero reveal="rise">/);
   const primitives = read("src/v2/primitives.tsx");
   assert.match(primitives, /sp-frame__live/);
 });

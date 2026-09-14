@@ -55,7 +55,7 @@ const V2DocsPage = () => {
               </h2>
               <p className="sp-body" style={{ fontSize: 14, color: "var(--sp-dark-body)", marginBottom: 16 }}>
                 Long-form write-ups on how the NAM Rack, the MIDI editor, ARA2 hosting, and the AI runtime were
-                built — and how to get the most out of them.
+                built, and how to get the most out of them.
               </p>
               <ArrowLink to={V2_PATHS.blog} tone="teal">
                 All posts

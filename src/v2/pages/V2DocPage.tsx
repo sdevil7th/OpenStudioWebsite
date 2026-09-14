@@ -162,7 +162,7 @@ const V2DocPage = () => {
         description={doc.summary}
         path={docPath(doc.slug)}
         robots="noindex"
-        title={`${doc.title} — OpenStudio Docs`}
+        title={`${doc.title} | OpenStudio Docs`}
       />
       {/* Keyed so a slug change remounts the article and re-runs the reveal observer. */}
       <DocArticle key={doc.slug} doc={doc} />

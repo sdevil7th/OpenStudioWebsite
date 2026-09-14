@@ -73,7 +73,7 @@ const V2DownloadPage = () => {
         description="Download the current OpenStudio build free for Windows, macOS, or Linux. Installers, checksums, system requirements, and honest notes on unsigned builds."
         path={V2_PATHS.download}
         robots="noindex"
-        title="Download OpenStudio — Free DAW for Windows, macOS & Linux"
+        title="Download OpenStudio: Free DAW for Windows, macOS & Linux"
       />
 
       {/* Hero */}
@@ -197,7 +197,7 @@ const V2DownloadPage = () => {
           Builds are unsigned. On Windows, SmartScreen may warn on first run. On macOS, right-click OpenStudio and
           choose <strong>Open</strong>, then allow it in System Settings → Privacy &amp; Security if prompted. The
           Linux AppImage needs <code className="sp-code">chmod +x</code>. Code signing costs money the project
-          currently spends elsewhere — verify the checksum above if you want certainty.
+          currently spends elsewhere. If you want certainty, verify the checksum above.
         </WarnCallout>
       </div>
 
@@ -261,7 +261,7 @@ const V2DownloadPage = () => {
           </div>
         </div>
         <p className="sp-mono" style={{ margin: "12px 0 0", lineHeight: 1.6 }}>
-          The optional AI Tools have their own hardware notes —{" "}
+          The optional AI Tools have their own hardware notes:{" "}
           <ArrowLink to={`${docPath("ai-runtime-setup")}#hardware`}>what the runtime needs</ArrowLink>
         </p>
       </div>
@@ -287,8 +287,8 @@ const V2DownloadPage = () => {
             </h2>
             <p className="sp-body" style={{ maxWidth: 420, marginBottom: 14 }}>
               The app reads public release metadata to tell you a newer build exists, and you can check manually from
-              Help → Check for Updates. That is metadata-driven update discovery — not signed, silent background
-              patching.
+              Help → Check for Updates. It only reads metadata to discover new versions. It does not sign, download,
+              or apply patches silently in the background.
             </p>
             <ArrowLink to={`${V2_PATHS.releases}#endpoints`}>Release endpoints</ArrowLink>
           </div>

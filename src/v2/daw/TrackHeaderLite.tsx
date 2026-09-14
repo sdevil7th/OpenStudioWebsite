@@ -186,10 +186,12 @@ export const TrackHeaderLite = memo(function TrackHeaderLite({
           )}
         </div>
 
-        {/* Right side: vertical activity meter */}
+        {/* Right side: vertical activity meter. Upstream pulses this while an
+            armed track has signal and eases it over 75 ms; the stage feeds it
+            every frame, so both read as flicker and are left out. */}
         <div className="w-2 pt-1 bg-neutral-900 flex flex-col-reverse border-l border-neutral-800 shrink-0 mr-1" data-meter-source={type === "audio" ? "audio_output" : "midi_input"}>
           <div
-            className={cn("w-full transition-all duration-75", armed && dbNorm > 0.01 && "animate-pulse")}
+            className="w-full"
             style={{
               height: `${Math.min(100, dbNorm * 100)}%`,
               background: type === "audio" ? meterColor(dbNorm) : "linear-gradient(to top, #22d3ee, #a5f3fc)",

@@ -182,7 +182,7 @@ const V2Footer = ({ lead }: { lead: ReactNode | null }) => {
               <span style={{ font: "700 14px/1 'Space Grotesk', sans-serif", color: "#f7f8fa" }}>{SITE_NAME}</span>
             </div>
             <p style={{ font: "400 12.5px/1.6 'Space Grotesk', sans-serif", color: "var(--sp-dark-muted)", margin: 0 }}>
-              The free, open-source DAW. Record, edit, mix, and generate — with local AI and a guitar rig built in.
+              A free, open-source DAW for recording, editing, mixing, and generating, with local AI and a guitar rig built in.
             </p>
             <SponsorButton style={{ marginTop: 16 }} />
           </div>

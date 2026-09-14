@@ -25,7 +25,7 @@ const RACK_BLOCKS = [
   {
     icon: Download,
     title: "Download captures",
-    copy: `Browse TONE3000 tone packs inside the rack, audition a capture through your live input, then **Use** it. Any local \`.nam\` file loads too — NAM A1 and A2 pedal, amp, and full-rig captures. A [TONE3000](${TONE3000_URL}) account is optional and only needed for its catalog.`,
+    copy: `Browse TONE3000 tone packs inside the rack, audition a capture through your live input, then **Use** it. Any local \`.nam\` file loads too, including NAM A1 and A2 pedal, amp, and full-rig captures. A [TONE3000](${TONE3000_URL}) account is optional and only needed for its catalog.`,
   },
   {
     icon: SlidersHorizontal,
@@ -61,10 +61,10 @@ const V2NamRackPage = () => {
   return (
     <>
       <PageSeo
-        description="OpenStudio ships a full Neural Amp Modeler rack — NAM A1/A2 captures, TONE3000 browsing, a native pedalboard, cabinet IRs, graphic EQ, effects, tuner, presets, and offline render. Free, built in, no add-on runtime."
+        description="OpenStudio ships a full Neural Amp Modeler rack: NAM A1/A2 captures, TONE3000 browsing, a native pedalboard, cabinet IRs, graphic EQ, effects, tuner, presets, and offline render. Free, built in, no add-on runtime."
         path={V2_PATHS.namRack}
         robots="noindex"
-        title="NAM Rack — Free Neural Amp Modeler Guitar Rig Inside a DAW | OpenStudio"
+        title="NAM Rack: Free Neural Amp Modeler Guitar Rig Inside a DAW | OpenStudio"
       />
 
       {/* Hero */}
@@ -95,7 +95,7 @@ const V2NamRackPage = () => {
         <Kicker>Signal chain · left to right</Kicker>
         <h2 className="sp-h2">Tuner → Pre-FX → NAM amp → Cabinet IR → EQ → Post-FX</h2>
         <p className="sp-body" style={{ maxWidth: 700, marginBottom: 14 }}>
-          Every stage is native. Nothing here is a hosted third-party plugin.
+          Every stage is native. None of it relies on a hosted third-party plugin.
         </p>
       </div>
       <div className="sp-container" style={{ paddingTop: 26 }}>
@@ -149,8 +149,8 @@ const V2NamRackPage = () => {
               Your tones, recalled with the project.
             </h2>
             <p className="sp-body" style={{ maxWidth: 420, marginBottom: 14 }}>
-              Save a whole chain — capture, pedals, cab, EQ, post-FX — and pull it back on the next session. Two
-              chains can sit side by side for an instant A/B. Presets reference your capture and IR files rather
+              Save a whole chain, from the capture and pedals through the cab, EQ, and post-FX, and pull it back in
+              the next session. Two chains can sit side by side for an instant A/B. Presets reference your capture and IR files rather
               than embedding them, so a library stays small.
             </p>
             <ArrowLink to={`${docPath("nam-rack-setup")}#presets`}>Presets, A/B, and recall</ArrowLink>
@@ -182,7 +182,7 @@ const V2NamRackPage = () => {
         <HonestCallout>
           There is no paid NAM Rack tier and no separate runtime to install. Third-party captures and IRs are
           distributed by their creators and keep their own licenses; OpenStudio bundles none. Public availability
-          of the connected TONE3000 catalog depends on partner approval for each release — local captures always
+          of the connected TONE3000 catalog depends on partner approval for each release. Local captures always
           work. Full engineering detail is in the{" "}
           <a className="sp-text-link" href={REPO.namRackDoc} rel="noreferrer" target="_blank">
             NAM Rack guide on GitHub
