@@ -102,7 +102,7 @@
         position: absolute;
         left: 50%;
         top: 50%;
-        width: clamp(6.75rem, 12vw, 10rem);
+        width: min(80svh, 90vw);
         aspect-ratio: 1;
         transform: translate(-50%, -50%);
         filter: drop-shadow(0 5px 4px rgba(35, 43, 105, 0.18));
@@ -153,7 +153,7 @@
 
       .os-instant-loader__wordmark {
         position: absolute;
-        top: calc(50% + clamp(5rem, 8vw, 7rem));
+        bottom: max(3.5rem, calc(env(safe-area-inset-bottom) + 2rem));
         left: 50%;
         display: grid;
         gap: 0.4rem;
