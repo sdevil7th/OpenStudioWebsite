@@ -7,6 +7,7 @@ import { useGithubRepoSnapshot } from "@/hooks/useGithubRepoSnapshot";
 import { CONTACT_EMAIL, REPO, SUPPORT_EMAIL, V2_PATHS, docPath } from "../content";
 import { formatCount, formatDate } from "../format";
 import { ArrowLink, Cta, Eyebrow, GradIcon } from "../primitives";
+import { SponsorButton } from "../SponsorButton";
 import { useSpReveal } from "../useSpReveal";
 
 interface CommunityCard {
@@ -91,6 +92,10 @@ const V2CommunityPage = () => {
         <p className="sp-lede" style={{ maxWidth: 640 }}>
           OpenStudio is AGPLv3 and developed in the open on GitHub. Bug reports are as useful as pull requests.
         </p>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", marginTop: 22 }}>
+          <SponsorButton />
+          <span className="sp-mono">Sponsoring the maintainer funds development time and CI.</span>
+        </div>
       </div>
 
       <div className="sp-container" style={{ paddingTop: 40 }}>

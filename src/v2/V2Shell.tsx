@@ -8,6 +8,7 @@ import { CONTACT_EMAIL, REPO, V2_PATHS, VISMAY_MARK, docPath } from "./content";
 import { formatBytes, formatDate } from "./format";
 import { IconGradientDefs } from "./primitives";
 import { FooterLeadContext } from "./shellContext";
+import { SponsorButton } from "./SponsorButton";
 import { PLATFORMS, usePlatform } from "./usePlatform";
 import { useReleaseInfo } from "./useReleaseInfo";
 
@@ -183,6 +184,7 @@ const V2Footer = ({ lead }: { lead: ReactNode | null }) => {
             <p style={{ font: "400 12.5px/1.6 'Space Grotesk', sans-serif", color: "var(--sp-dark-muted)", margin: 0 }}>
               The free, open-source DAW. Record, edit, mix, and generate — with local AI and a guitar rig built in.
             </p>
+            <SponsorButton style={{ marginTop: 16 }} />
           </div>
           {FOOTER_COLUMNS.map((column) => (
             <div key={column.heading}>
