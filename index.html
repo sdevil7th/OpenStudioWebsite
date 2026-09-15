@@ -27,7 +27,7 @@
     />
     <link
       rel="stylesheet"
-      href="/assets/openstudio/fonts/google-fonts-20260815.css"
+      href="/assets/openstudio/fonts/google-fonts-20260915.css"
       data-openstudio-fonts="true"
     />
     <style id="openstudio-instant-loader-style">
@@ -125,27 +125,6 @@
         height: 100%;
         overflow: visible;
         animation: os_loader_rotate 3s linear 800ms infinite;
-      }
-
-      .os-instant-loader__piece {
-        will-change: transform;
-        animation: os_loader_join 800ms cubic-bezier(0.22, 1, 0.36, 1) both;
-      }
-
-      .os-instant-loader__piece--top-right {
-        --os-piece-x: 50vw;
-        --os-piece-y: -50vh;
-      }
-
-      .os-instant-loader__piece--bottom-left {
-        --os-piece-x: -50vw;
-        --os-piece-y: 50vh;
-      }
-
-      @keyframes os_loader_join {
-        from { transform: translate(var(--os-piece-x), var(--os-piece-y)); opacity: 0; }
-        15% { opacity: 1; }
-        to { transform: translate(0, 0); opacity: 1; }
       }
 
       @keyframes os_loader_rotate {
@@ -273,7 +252,6 @@
 
       @media (prefers-reduced-motion: reduce) {
         .os-instant-loader__svg,
-        .os-instant-loader__piece,
         .os-instant-loader__panel::before,
         .os-instant-loader__panel::after,
         .os-instant-loader__progress span {
@@ -295,7 +273,7 @@
     <noscript>
       <style>
         #openstudio-instant-loader {
-          display: none !important;
+          display: none;
         }
 
         .openstudio-noscript-notice {
@@ -309,10 +287,10 @@
         }
       </style>
     </noscript>
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/openstudio/branding/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/openstudio/branding/favicon-16x16.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/openstudio/branding/apple-touch-icon.png" />
-    <link rel="manifest" href="/assets/openstudio/branding/site.webmanifest" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/openstudio/branding/favicon-32x32.png?v=20260915" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/openstudio/branding/favicon-16x16.png?v=20260915" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/openstudio/branding/apple-touch-icon.png?v=20260915" />
+    <link rel="manifest" href="/assets/openstudio/branding/site.webmanifest?v=20260915" />
     <title>OpenStudio | Free Open-Source DAW for Music Production</title>
     <meta
       name="description"
@@ -329,10 +307,10 @@
     />
     <meta property="og:url" content="https://openstudio.org.in/" />
     <meta property="og:site_name" content="OpenStudio" />
-    <meta property="og:image" content="https://openstudio.org.in/assets/blogs/building-openstudio-nam-rack.webp?v=1ab18641912af0" />
-    <meta property="og:image:alt" content="OpenStudio NAM Rack redesigned amp view with an A2 capture, input and output meters, cabinet navigation, and preset controls." />
-    <meta property="og:image:width" content="3360" />
-    <meta property="og:image:height" content="1764" />
+    <meta property="og:image" content="https://openstudio.org.in/assets/openstudio/branding/og-image.png?v=3" />
+    <meta property="og:image:alt" content="OpenStudio share image" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta property="og:locale" content="en_US" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="OpenStudio | Free Open-Source DAW for Music Production" />
@@ -340,26 +318,9 @@
       name="twitter:description"
       content="Free, open-source DAW for multitrack recording, MIDI, plug-in hosting, pitch editing, mixing, and rendering, with a built-in Neural Amp Modeler guitar rig."
     />
-    <meta name="twitter:image" content="https://openstudio.org.in/assets/blogs/building-openstudio-nam-rack.webp?v=1ab18641912af0" />
-    <meta name="twitter:image:alt" content="OpenStudio NAM Rack redesigned amp view with an A2 capture, input and output meters, cabinet navigation, and preset controls." />
-    <script type="application/ld+json">
-      [
-        {
-          "@context": "https://schema.org",
-          "@type": "WebSite",
-          "name": "OpenStudio",
-          "url": "https://openstudio.org.in"
-        },
-        {
-          "@context": "https://schema.org",
-          "@type": "Organization",
-          "name": "OpenStudio",
-          "url": "https://openstudio.org.in",
-          "logo": "https://openstudio.org.in/assets/openstudio/branding/android-chrome-512x512.png",
-          "sameAs": ["https://github.com/sdevil7th/openstudio"]
-        }
-      ]
-    </script>
+    <meta name="twitter:image" content="https://openstudio.org.in/assets/openstudio/branding/og-image.png?v=3" />
+    <meta name="twitter:image:alt" content="OpenStudio share image" />
+    <!-- Page-owned JSON-LD is emitted by prerendering and kept in sync by PageSeo. -->
   </head>
   <body class="dark">
     <noscript>
@@ -372,10 +333,7 @@
       <div class="os-instant-loader__panel os-instant-loader__panel--top" aria-hidden="true"></div>
       <div class="os-instant-loader__content">
         <div class="os-instant-loader__mark" aria-hidden="true">
-          <svg class="os-instant-loader__svg" viewBox="0 0 108 108" fill="none">
-            <g class="os-instant-loader__piece os-instant-loader__piece--top-right" data-os-loader-piece="top-right"><path d="M76.5317 29.4591C80.2082 29.4592 83.4256 30.5468 86.183 32.7228C88.9076 34.8989 91.0415 37.8506 92.5844 41.5763C94.0944 45.302 94.849 49.5059 94.8491 54.1877C94.849 58.21 94.2583 61.9692 93.0766 65.464C91.862 68.9259 90.023 71.7945 87.561 74.0695C85.0661 76.3114 81.9148 77.5982 78.1069 77.9279L78.1059 87.0675C73.3245 90.5225 67.721 92.9984 61.5346 94.1418C50.5148 96.178 39.712 93.6077 31.103 87.798C37.4139 87.569 42.5604 85.2689 46.5424 80.8947C49.9139 77.1909 52.6609 72.4252 54.7856 66.5988C58.614 66.3885 62.3073 64.4726 64.6489 61.0695C68.5727 55.3667 67.2475 47.6096 61.7319 43.5187C62.207 42.205 62.7075 40.931 63.2358 39.6974C64.5489 36.6311 66.256 34.1569 68.3569 32.2775C70.4579 30.3982 73.1833 29.4591 76.5317 29.4591Z" fill="#3445DC"/></g>
-            <g class="os-instant-loader__piece os-instant-loader__piece--bottom-left" data-os-loader-piece="bottom-left"><path d="M46.6088 13.3742C56.2759 11.5879 65.777 13.3472 73.7758 17.7277C70.3171 18.0565 67.3117 18.98 64.7621 20.506C61.5124 22.4512 58.8537 24.9248 56.7856 27.925C54.6846 30.8924 53.0266 34.0094 51.812 37.2736C51.2498 38.769 50.745 40.2012 50.2953 41.5695C47.641 42.3911 45.2329 44.0753 43.5356 46.5421C40.1566 51.453 40.669 57.8878 44.3989 62.1925C44.3582 62.3097 44.3183 62.4279 44.2768 62.5461C43.4562 64.7878 42.4225 66.9308 41.1752 68.9748C39.8949 71.019 38.3029 72.7018 36.3989 74.0207C34.462 75.3065 32.1473 75.9494 29.4555 75.9494C26.2385 75.9494 23.366 75.0261 20.8383 73.1798C18.3105 71.3004 16.3238 68.6946 14.8793 65.3644C14.6261 64.7746 14.3958 64.1674 14.1869 63.5431C14.0002 62.7789 13.8327 62.0052 13.6879 61.2218C12.5116 54.8563 12.8735 48.5621 14.5073 42.7218C15.1273 41.0578 15.9075 39.5047 16.8491 38.0636C19.6066 33.8433 23.4813 31.4374 28.4711 30.8439L28.4702 21.6398C33.5772 17.5616 39.733 14.6449 46.6088 13.3742Z" fill="#3445DC"/></g>
-          </svg>
+          <img class="os-instant-loader__svg" src="/assets/openstudio/branding/openstudio-mark-512.webp" srcset="/assets/openstudio/branding/openstudio-mark-512.webp 512w, /assets/openstudio/branding/openstudio-mark-1024.webp 1024w" sizes="(max-aspect-ratio: 8/9) 90vw, 80vh" width="512" height="512" alt="" />
         </div>
         <div class="os-instant-loader__wordmark">
           <strong>OpenStudio</strong>
@@ -529,7 +487,7 @@
         fallback.hidden = !immediateContent;
         // Keep the complete legal document readable while React and its lazy
         // route load, including requests which stall without raising an error.
-        if (immediateContent) root.hidden = true;
+        root.hidden = true;
         fallback.append(staticContent);
         root.after(fallback);
 

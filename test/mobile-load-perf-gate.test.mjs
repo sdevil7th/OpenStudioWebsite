@@ -111,7 +111,7 @@ test("matrix covers every core route on mobile and desktop in stable sequence", 
     ],
   );
   assert.equal(cases.find(({ profile }) => profile === "desktop").options.lcpMs, 3_900);
-  assert.match(cases.find(({ route }) => route === "/download").options.heroSelector, /data-brand-logo-construct/);
+  assert.equal(cases.find(({ route }) => route === "/download").options.heroSelector, "h1");
 });
 
 test("an explicit profile narrows matrix runs and keeps explicit budget overrides", () => {

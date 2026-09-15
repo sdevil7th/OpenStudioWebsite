@@ -1,5 +1,5 @@
 /*
- * Styles for the vendored OpenStudio UI in src/v2/daw/. Everything here is
+ * Styles for the vendored OpenStudio UI in src/features/daw-preview/. Everything here is
  * either copied from OpenStudio (source noted per block) or scoped under
  * .daw-session so it cannot leak into the Studio Paper pages around it.
  */

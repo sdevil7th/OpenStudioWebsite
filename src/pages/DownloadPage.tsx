@@ -1,980 +1,257 @@
-import * as Dialog from "@radix-ui/react-dialog";
-import {
-  ArrowRight,
-  Check,
-  CheckCircle2,
-  Code2,
-  Copy,
-  Download,
-  HardDrive,
-  Monitor,
-  ShieldCheck,
-  Sparkles,
-  Terminal,
-  X,
-  type LucideIcon,
-} from "lucide-react";
-import {
-  lazy,
-  Suspense,
-  type CSSProperties,
-  type ReactNode,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { Book, Clock, Cpu, Download, Rocket, type LucideProps } from "lucide-react";
+import { Fragment, type ComponentType, type ReactNode } from "react";
 import PageSeo from "@/components/PageSeo";
-import AiSetupGuide from "@/components/AiSetupGuide";
-import DeferredClientStage from "@/components/DeferredClientStage";
-import BrandLogoConstructScene from "@/components/brand/BrandLogoConstructScene";
-import SectionReveal from "@/components/motion/SectionReveal";
-import { Button } from "@/components/ui/button";
-import "@/styles/download.css";
-import { designMedia } from "@/data/designMedia";
-import {
-  downloadCinematicPlates,
-  downloadCinematicScenes,
-  downloadCinematicScreenshot,
-  downloadCinematicSourceLabels,
-} from "@/data/downloadCinematic";
-import {
-  downloadHero,
-  downloadHeroSignals,
-  downloadSeo,
-  downloadUpgradeNote,
-  platformDownloads,
-  systemRequirementMatrix,
-} from "@/data/downloads";
-import { externalLinks } from "@/data/siteLinks";
-import { useGithubRepoSnapshot } from "@/hooks/useGithubRepoSnapshot";
-import { getResponsiveImageAttributes } from "@/lib/assetLoading";
-import "@/lib/generatedImageRoutes/download";
-import { trackEvent } from "@/lib/analytics";
-import { useScrollScene } from "@/lib/gsap";
-import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
-import { warmScheduledImages } from "@/lib/imageScheduler";
-import { formatGithubDate } from "@/lib/github";
-import { cn } from "@/lib/utils";
+import { systemRequirementMatrix } from "@/data/downloads";
+import { REPO } from "@/data/siteContent";
+import { SITE_PATHS, docPath } from "@/constants/routes";
+import { abbreviateDigest, formatBytes, formatLongDate } from "@/lib/format";
+import { ArrowLink, Cta, DownloadCta, Eyebrow, GradIcon, WarnCallout } from "@/components/ui/primitives";
+import { orderPlatforms, usePlatform, type PlatformId } from "@/hooks/usePlatform";
+import { useReleaseInfo, type PlatformArtifact } from "@/hooks/useReleaseInfo";
+import { useSpReveal } from "@/hooks/useSpReveal";
 
-const DESKTOP_MOTION_MEDIA_QUERY =
-  "(min-width: 1024px) and (prefers-reduced-motion: no-preference)";
-
-type BrowserPlatform = "windows" | "macos" | "linux" | "other";
-type DownloadPlatform = "windows" | "macos" | "linux";
-type DownloadIntentSource = "cinematic_story" | "platform_card";
-type CopyState = "idle" | "copied" | "error";
-
-interface PlatformStudioCopy {
-  architecture: string;
-  driver: string;
-  highlights: string[];
-  icon: LucideIcon;
-  surface: string;
-  trust: string;
+interface PlatformCopy {
+  icon: ComponentType<LucideProps>;
+  requires: string;
+  steps: ReactNode[];
 }
 
-const platformStudioCopy: Record<DownloadPlatform, PlatformStudioCopy> = {
-  windows: {
-    architecture: "x64 installer",
-    driver: "ASIO / WASAPI / DirectSound",
-    highlights: ["Stable redirect", "Desktop installer", "SmartScreen note"],
-    icon: Monitor,
-    surface:
-      "Best for everyday desktop sessions, plugin hosting, and low-latency recording on Windows machines.",
-    trust: "Unsigned installer may show SmartScreen on first launch.",
-  },
+const PLATFORM_COPY: Record<PlatformId, Omit<PlatformCopy, "icon">> = {
   macos: {
-    architecture: "Universal DMG",
-    driver: "Apple Silicon / Intel",
-    highlights: ["Universal build", "DMG install", "Gatekeeper guidance"],
-    icon: HardDrive,
-    surface:
-      "A single macOS build for Apple Silicon and Intel setups, with first-open trust guidance kept visible.",
-    trust: "Unsigned DMG can require manual Gatekeeper approval.",
+    requires: "macOS 12 or later · Apple silicon & Intel",
+    steps: [
+      "Open the .dmg and drag OpenStudio to Applications.",
+      <>
+        Right-click the app and choose <strong>Open</strong> (builds are unsigned).
+      </>,
+      "Allow it in System Settings → Privacy & Security if prompted.",
+    ],
+  },
+  windows: {
+    requires: "Windows 10 and 11 · x64",
+    steps: [
+      "Run the installer. It sets up the WebView2 and VC++ prerequisites.",
+      <>
+        If SmartScreen warns, choose <strong>More info</strong> → <strong>Run anyway</strong>.
+      </>,
+      "Launch OpenStudio and pick your audio device.",
+    ],
   },
   linux: {
-    architecture: "AppImage",
-    driver: "Ubuntu 22.04+ tested",
-    highlights: [
-      "Self-contained",
-      "Executable AppImage",
-      "Desktop integration optional",
+    requires: "AppImage · x86-64 · tested on Ubuntu 22.04+",
+    steps: [
+      "Download the AppImage.",
+      <>
+        Run <code className="sp-code text-[12px]">chmod +x OpenStudio-*.AppImage</code>.
+      </>,
+      "Launch it, and select JACK or ALSA in audio settings.",
     ],
-    icon: Terminal,
-    surface:
-      "A portable Linux build for direct launch, useful for studio machines that avoid package manager lock-in.",
-    trust: "Most distros run the AppImage after chmod.",
   },
 };
 
-const platformOrder: DownloadPlatform[] = ["windows", "macos", "linux"];
-const DOWNLOAD_CINEMATIC_SCROLL_VH = 620;
-const DownloadCinematicStory = lazy(
-  () => import("@/components/scene/DownloadCinematicStory"),
+const Spec = ({ label, children }: { label: string; children: ReactNode }) => (
+  <div className="sp-mono flex justify-between gap-[12px]">
+    <span>{label}</span>
+    <span className="text-[var(--sp-ink)] text-right [overflow-wrap:anywhere]">{children}</span>
+  </div>
 );
 
-const DownloadCinematicStaticSurface = () => {
-  const openingScene = downloadCinematicScenes[0]!;
-  const studioPlate = downloadCinematicPlates.studioWide;
-
-  return (
-    <section
-      className="download-cinematic download-cinematic--static-surface"
-      data-download-cinema
-      data-download-cinematic-story
-      style={
-        {
-          "--download-cinema-scroll-vh": `${DOWNLOAD_CINEMATIC_SCROLL_VH}vh`,
-        } as CSSProperties
-      }
-    >
-      <div
-        className="download-cinematic__stage download-cinematic__stage--static-surface"
-        aria-hidden="true"
-      >
-        <div className="download-cinematic__film">
-          <figure
-            className="download-cinematic__plate download-cinematic__plate--wide"
-            data-download-cinematic-asset={studioPlate.id}
-          >
-            <img
-              {...getResponsiveImageAttributes(
-                studioPlate.src,
-                "story-active",
-                {
-                  maxWidth: 1440,
-                  sizes: "100vw",
-                },
-              )}
-              alt={studioPlate.alt}
-              height={studioPlate.height}
-              width={studioPlate.width}
-            />
-          </figure>
-        </div>
-        <div className="download-cinematic__blackout" />
-        <div className="download-cinematic__grain" />
-        <div className="download-cinematic__practical-light" />
-        <div className="download-cinematic__source-callouts">
-          {downloadCinematicSourceLabels.map((label, index) => (
-            <span
-              className="download-cinematic__source-callout"
-              data-source-index={index + 1}
-              key={`download-cinematic-static-source-${label}`}
-            >
-              <i />
-              {label}
-            </span>
-          ))}
-        </div>
-        <div className="download-cinematic__chapter-rail">
-          {downloadCinematicScenes.map((scene, index) => (
-            <span
-              className={index === 0 ? "is-active" : undefined}
-              data-download-cinematic-chip
-              key={`download-cinematic-static-${scene.id}`}
-            >
-              <i>{String(index + 1).padStart(2, "0")}</i>
-              {scene.id}
-            </span>
-          ))}
-        </div>
-        <div
-          className="download-cinematic__scene-copy"
-          data-download-cinematic-copy
-          data-scene={openingScene.id}
-        >
-          <span>{openingScene.eyebrow}</span>
-          <h2>{openingScene.headline}</h2>
-          <p>{openingScene.description}</p>
-          <strong>{openingScene.metric}</strong>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const detectBrowserPlatform = (): BrowserPlatform => {
-  if (typeof navigator === "undefined") {
-    return "other";
-  }
-
-  const navigatorWithUserAgentData = navigator as Navigator & {
-    userAgentData?: {
-      platform?: string;
-    };
-  };
-  const platformSignal = [
-    navigatorWithUserAgentData.userAgentData?.platform ?? "",
-    navigator.platform ?? "",
-    navigator.userAgent ?? "",
-  ]
-    .join(" ")
-    .toLowerCase();
-
-  if (platformSignal.includes("mac")) {
-    return "macos";
-  }
-
-  if (platformSignal.includes("win")) {
-    return "windows";
-  }
-
-  if (platformSignal.includes("linux") || platformSignal.includes("x11")) {
-    return "linux";
-  }
-
-  return "other";
-};
-
-const browserToDownloadPlatform = (
-  platform: BrowserPlatform,
-): DownloadPlatform =>
-  platform === "macos" || platform === "linux" ? platform : "windows";
-
-const copyText = async (value: string) => {
-  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(value);
-    return;
-  }
-
-  if (typeof document === "undefined") {
-    throw new Error("Clipboard unavailable");
-  }
-
-  const input = document.createElement("textarea");
-  input.value = value;
-  input.setAttribute("readonly", "");
-  input.style.position = "absolute";
-  input.style.left = "-9999px";
-  document.body.appendChild(input);
-  input.select();
-  document.execCommand("copy");
-  document.body.removeChild(input);
-};
-
 const DownloadPage = () => {
-  const pageRef = useRef<HTMLElement | null>(null);
-  const downloadHeroRef = useRef<HTMLElement | null>(null);
-  const downloadsById = useMemo(
-    () =>
-      Object.fromEntries(
-        platformDownloads.map((item) => [item.id, item]),
-      ) as Record<DownloadPlatform, (typeof platformDownloads)[number]>,
-    [],
-  );
-  const { snapshot } = useGithubRepoSnapshot();
-  const [browserPlatform, setBrowserPlatform] = useState<BrowserPlatform>(() =>
-    detectBrowserPlatform(),
-  );
-  const [activePlatform, setActivePlatform] = useState<DownloadPlatform>(() =>
-    browserToDownloadPlatform(detectBrowserPlatform()),
-  );
-  const [pendingDownload, setPendingDownload] =
-    useState<DownloadPlatform | null>(null);
-  const [pendingDownloadSource, setPendingDownloadSource] =
-    useState<DownloadIntentSource | null>(null);
-  const [copyState, setCopyState] = useState<CopyState>("idle");
-  const downloadCloseTrackedRef = useRef(false);
-  const recommendedPlatform = browserToDownloadPlatform(browserPlatform);
-  const activeDownloadItem = downloadsById[activePlatform];
+  const detected = usePlatform();
+  const release = useReleaseInfo();
 
-  useScrollScene(
-    pageRef,
-    ({ prefersReducedMotion, gsap }) => {
-      if (prefersReducedMotion) {
-        return;
-      }
+  useSpReveal();
 
-      const cleanups: Array<() => void> = [];
-
-      const cardIntro = gsap.from("[data-download-hero-card]", {
-        y: 34,
-        opacity: 0,
-        duration: 0.78,
-        stagger: 0.08,
-        ease: "power3.out",
-      });
-
-      cleanups.push(() => {
-        cardIntro.kill();
-      });
-
-      return () => cleanups.forEach((cleanup) => cleanup());
-    },
-    { delay: 420, runOnInput: false, timeout: 1400 },
-  );
-
-  const downloadInstructions: Record<
-    DownloadPlatform,
-    {
-      href: string;
-      title: string;
-      eyebrow: string;
-      summary: ReactNode;
-      confirmLabel: string;
-      steps: ReactNode[];
-      command?: string;
-      commandLabel?: string;
-    }
-  > = {
-    windows: {
-      href: downloadsById.windows.href!,
-      title: "Windows trust step required",
-      eyebrow: "Before you open the installer",
-      summary: (
-        <>
-          When Windows warns that OpenStudio is from an untrusted publisher,
-          click{" "}
-          <span className="rounded-md border border-amber-300/40 bg-amber-300/18 px-2 py-0.5 font-mono text-[0.72rem] font-bold uppercase tracking-[0.14em] text-amber-100">
-            More info
-          </span>{" "}
-          and then{" "}
-          <span className="rounded-md border border-rose-300/40 bg-rose-300/18 px-2 py-0.5 font-mono text-[0.72rem] font-bold uppercase tracking-[0.14em] text-rose-100">
-            Run anyway
-          </span>{" "}
-          to continue.
-        </>
-      ),
-      confirmLabel: "I understand, download for Windows",
-      steps: [
-        "Download the latest Windows installer.",
-        "Run the .exe after the download completes.",
-        <>
-          If SmartScreen appears, click{" "}
-          <span className="rounded-md border border-amber-300/40 bg-amber-300/18 px-2 py-0.5 font-mono text-[0.72rem] font-bold uppercase tracking-[0.14em] text-amber-100">
-            More info
-          </span>
-          .
-        </>,
-        <>
-          Click{" "}
-          <span className="rounded-md border border-rose-300/40 bg-rose-300/18 px-2 py-0.5 font-mono text-[0.72rem] font-bold uppercase tracking-[0.14em] text-rose-100">
-            Run anyway
-          </span>{" "}
-          to continue with the install.
-        </>,
-      ],
-    },
-    macos: {
-      href: downloadsById.macos.href!,
-      title: "macOS trust step required",
-      eyebrow: "Before you open the app",
-      summary: (
-        <>
-          If macOS marks OpenStudio as{" "}
-          <span className="rounded-md border border-orange-300/40 bg-orange-300/18 px-2 py-0.5 font-mono text-[0.72rem] font-bold uppercase tracking-[0.14em] text-orange-100">
-            damaged
-          </span>{" "}
-          or{" "}
-          <span className="rounded-md border border-orange-300/40 bg-orange-300/18 px-2 py-0.5 font-mono text-[0.72rem] font-bold uppercase tracking-[0.14em] text-orange-100">
-            broken
-          </span>
-          , remove the quarantine flag with the command below and then launch
-          the app again.
-        </>
-      ),
-      confirmLabel: "I understand, download for macOS",
-      steps: [
-        "Download the latest macOS DMG.",
-        "Move OpenStudio.app into /Applications.",
-        "Open Terminal and run the quarantine-removal command below.",
-        "Launch OpenStudio again from Applications.",
-      ],
-      command: "xattr -dr com.apple.quarantine /Applications/OpenStudio.app",
-      commandLabel: "Run in Terminal",
-    },
-    linux: {
-      href: downloadsById.linux.href!,
-      title: "Linux AppImage download",
-      eyebrow: "Before you launch the app",
-      summary: (
-        <>
-          Linux downloads ship as a self-contained AppImage tested on Ubuntu
-          22.04+. Make the file executable, run it directly, and use the
-          optional install flag if you want desktop integration.
-        </>
-      ),
-      confirmLabel: "Download AppImage",
-      steps: [
-        "Download the Linux AppImage.",
-        "Make it executable: chmod +x OpenStudio-*.AppImage",
-        "Run it directly: ./OpenStudio-*.AppImage",
-        "Optional: ./OpenStudio-*.AppImage --install for desktop integration.",
-      ],
-      command: "chmod +x OpenStudio-*.AppImage",
-      commandLabel: "Run in Terminal first",
-    },
-  };
-
-  const activeInstruction = pendingDownload
-    ? downloadInstructions[pendingDownload]
-    : null;
-
-  useEffect(() => {
-    const detected = detectBrowserPlatform();
-    setBrowserPlatform(detected);
-    setActivePlatform(browserToDownloadPlatform(detected));
-  }, []);
-
-  useEffect(() => {
-    if (pendingDownload == null) {
-      setCopyState("idle");
-    }
-  }, [pendingDownload]);
-
-  useEffect(() => {
-    if (copyState !== "copied") {
-      return;
-    }
-
-    const timeout = window.setTimeout(() => setCopyState("idle"), 2000);
-    return () => window.clearTimeout(timeout);
-  }, [copyState]);
-
-  useEffect(
-    () =>
-      scheduleAfterInitialLoad(
-        () => {
-          warmScheduledImages([downloadCinematicPlates.studioWide.src], {
-            group: "cinematicFirstFrame",
-            maxWidth: 1280,
-            priority: "active",
-            route: "/download",
-            slot: "cinematic",
-            tier: "story-active",
-          });
-          warmScheduledImages(
-            [
-              downloadCinematicPlates.signalCloseup.src,
-              downloadCinematicPlates.screenReveal.src,
-              downloadCinematicScreenshot.webpSrc,
-            ],
-            {
-              group: "nearby",
-              maxWidth: 960,
-              priority: "next",
-              route: "/download",
-              slot: "cinematic",
-              tier: "story-next",
-            },
-          );
-        },
-        { delay: 700, runOnInput: false, timeout: 1800 },
-      ),
-    [],
-  );
-
-  const getDownloadEventParams = (
-    platform: DownloadPlatform,
-    source: DownloadIntentSource | string = pendingDownloadSource ?? "unknown",
-  ) => {
-    const item = downloadsById[platform];
-
-    return {
-      artifact_type: item.artifactType,
-      detected_platform: browserPlatform,
-      download_label: item.label,
-      download_url: item.href,
-      is_recommended_platform: recommendedPlatform === platform,
-      platform,
-      recommended_platform: recommendedPlatform,
-      source,
-    };
-  };
-
-  const openDownloadDialog = (
-    platform: DownloadPlatform,
-    source: DownloadIntentSource,
-  ) => {
-    downloadCloseTrackedRef.current = false;
-    setPendingDownloadSource(source);
-    setPendingDownload(platform);
-    trackEvent("download_modal_opened", getDownloadEventParams(platform, source));
-  };
-
-  const closeDownloadDialog = (closeReason: string) => {
-    if (pendingDownload && !downloadCloseTrackedRef.current) {
-      downloadCloseTrackedRef.current = true;
-      trackEvent("download_cancelled", {
-        ...getDownloadEventParams(pendingDownload),
-        close_reason: closeReason,
-      });
-    }
-
-    setPendingDownload(null);
-    setPendingDownloadSource(null);
-  };
-
-  const handleSelectPlatform = (platform: DownloadPlatform) => {
-    trackEvent("download_platform_selected", {
-      ...getDownloadEventParams(platform, "focus_button"),
-      previous_platform: activePlatform,
-    });
-    setActivePlatform(platform);
-  };
-
-  const handleConfirmDownload = () => {
-    if (!activeInstruction || !pendingDownload || typeof window === "undefined") {
-      return;
-    }
-
-    downloadCloseTrackedRef.current = true;
-    trackEvent("download_confirmed", getDownloadEventParams(pendingDownload));
-    setPendingDownload(null);
-    setPendingDownloadSource(null);
-    window.location.assign(activeInstruction.href);
-  };
-
-  const handleCopyCommand = async () => {
-    if (!activeInstruction?.command) {
-      return;
-    }
-
-    try {
-      await copyText(activeInstruction.command);
-      setCopyState("copied");
-      trackEvent("download_install_command_copied", {
-        platform: pendingDownload ?? "unknown",
-      });
-    } catch {
-      setCopyState("error");
-      trackEvent("download_install_command_copy_failed", {
-        platform: pendingDownload ?? "unknown",
-      });
-    }
-  };
+  const platforms = orderPlatforms(detected);
+  const [primary, ...others] = platforms;
+  const released = formatLongDate(release?.publishedAt);
+  const artifactFor = (id: PlatformId): PlatformArtifact | undefined => release?.platforms[id];
+  const checksumsUrl = release?.notesUrl ?? REPO.releases;
 
   return (
-    <main
-      ref={pageRef}
-      className="design-page-main download-page route-appear"
-      id="main-content"
-    >
-      <PageSeo {...downloadSeo} />
+    <>
+      <PageSeo
+        description="Download the current OpenStudio build free for Windows, macOS, or Linux. Installers, checksums, system requirements, and honest notes on unsigned builds."
+        path={SITE_PATHS.download}
+        title="Download OpenStudio: Free DAW for Windows, macOS & Linux"
+      />
 
-      <div className="download-page__backdrop" aria-hidden="true" />
-
-      <div className="mx-auto max-w-7xl px-5 pb-24 md:px-10">
-        <section
-          className="download-studio-hero"
-          data-download-studio-hero
-          ref={downloadHeroRef}
-        >
-          <div
-            className="download-home-logo-stage"
-            data-download-logo-pin-stage
-          >
-            <div data-download-logo-stage>
-              <BrandLogoConstructScene
-                criticalAssetRootRef={downloadHeroRef}
-                label="OpenStudio logo construction for download preview"
-                playback="viewport"
-                playbackMediaQuery="(min-width: 1024px)"
-                showWordmark
-                size="intro"
-              />
-            </div>
-          </div>
-
-          <div
-            className="download-studio-hero__panel-stack"
-            data-download-panel-stack
-          >
-            <div className="download-studio-hero__copy">
-              <div className="design-badge download-studio-hero__badge w-fit">
-                <CheckCircle2 className="h-3.5 w-3.5 text-secondary" />
-                <span>{downloadHero.eyebrow}</span>
-              </div>
-
-              <div>
-                <p className="download-studio-hero__kicker">
-                  {downloadHero.title}
-                </p>
-                <h1>Download OpenStudio. Start the session clean.</h1>
-                <p className="download-studio-hero__lede">
-                  {downloadHero.description}
-                </p>
-              </div>
-
-              <div
-                className="download-studio-signals"
-                aria-label="Download release signals"
-              >
-                {downloadHeroSignals.map((signal) => (
-                  <span key={signal}>
-                    <ShieldCheck className="h-3.5 w-3.5" />
-                    {signal}
-                  </span>
-                ))}
-              </div>
-
-              <div
-                className="download-hero-platform-grid"
-                data-download-platforms
-              >
-                {platformOrder.map((platform, index) => {
-                  const item = downloadsById[platform];
-                  const copy = platformStudioCopy[platform];
-                  const Icon = copy.icon;
-                  const isActive = activePlatform === platform;
-                  const isRecommended = recommendedPlatform === platform;
-                  const isLastItem = index === platformOrder.length - 1;
-
-                  return (
-                    <article
-                      className={cn(
-                        "download-platform-card download-platform-card--hero",
-                        isActive && "download-platform-card--active",
-                        isLastItem && "mb-8",
-                      )}
-                      data-download-hero-card
-                      data-platform={platform}
-                      key={platform}
-                    >
-                      <div className="download-platform-card__top">
-                        <div className="download-platform-card__icon">
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <span>{copy.architecture}</span>
-                          <h2>{item.label}</h2>
-                        </div>
-                        {isRecommended ? (
-                          <strong>
-                            {browserPlatform === platform
-                              ? "This device"
-                              : "Recommended"}
-                          </strong>
-                        ) : null}
-                      </div>
-                      <p>{copy.surface}</p>
-                      <div className="download-platform-card__chips">
-                        {copy.highlights.map((highlight) => (
-                          <span key={highlight}>{highlight}</span>
-                        ))}
-                      </div>
-                      {item.notes ? (
-                        <ul className="download-platform-card__notes">
-                          {item.notes.slice(0, 2).map((note) => (
-                            <li key={note}>{note}</li>
-                          ))}
-                        </ul>
-                      ) : null}
-                      <div className="download-platform-card__actions">
-                        <Button
-                          className="h-auto flex-1 px-6 py-4 font-bold"
-                          onClick={() => openDownloadDialog(platform, "platform_card")}
-                          type="button"
-                          variant={isActive ? "default" : "outline"}
-                        >
-                          {platform === "linux" ? (
-                            <Terminal className="h-4 w-4" />
-                          ) : (
-                            <Download className="h-4 w-4" />
-                          )}
-                          {platform === "linux"
-                            ? "Download AppImage"
-                            : `Download ${item.label}`}
-                        </Button>
-                        <Button
-                          aria-label={`Focus ${item.label} release path`}
-                          className="h-12 w-12 rounded-2xl p-0"
-                          onClick={() => handleSelectPlatform(platform)}
-                          size="icon"
-                          type="button"
-                          variant="ghost"
-                        >
-                          <ArrowRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <SectionReveal
-          className="download-source-strip download-source-strip--studio"
-          data-download-trust-dock
-          delay={0.12}
-        >
-          <div className="download-source-strip__main">
-            <div className="download-source-strip__identity">
-              <div className="download-source-strip__icon">
-                <Code2 className="h-8 w-8" />
-              </div>
-              <div>
-                <h2 className="font-headline text-xl font-bold text-white">
-                  Open source release path
-                </h2>
-                <p className="mt-2 max-w-xl text-sm leading-7 text-white/64">
-                  Stable buttons resolve through download endpoints while the
-                  public repository and release status stay visible.
-                </p>
-                <p className="mt-3 max-w-xl text-sm leading-7 text-white/80">
-                  {downloadUpgradeNote}
-                </p>
-              </div>
-            </div>
-            <div className="download-source-strip__meta">
-              <div>
-                <span>License</span>
-                <strong>{snapshot.license}</strong>
-              </div>
-              <div>
-                <span>Latest release</span>
-                <strong>
-                  {snapshot.latestRelease
-                    ? snapshot.latestRelease.tagName
-                    : "Pending"}
-                </strong>
-              </div>
-              <div>
-                <span>Redirects</span>
-                <strong>Windows / macOS / Linux</strong>
-              </div>
-            </div>
-            <div className="download-source-strip__action">
-              {externalLinks.repository ? (
-                <Button
-                  asChild
-                  className="h-auto flex-1 px-8 py-4 font-bold md:flex-none"
-                  variant="outline"
-                >
-                  <a
-                    href={externalLinks.repository}
-                    onClick={() =>
-                      trackEvent("github_link_clicked", {
-                        link_label: "View GitHub",
-                        link_url: externalLinks.repository,
-                        source: "download_source_strip",
-                      })
-                    }
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    View GitHub
-                  </a>
-                </Button>
-              ) : (
-                <Button
-                  asChild
-                  className="h-auto flex-1 px-8 py-4 font-bold md:flex-none"
-                  variant="outline"
-                >
-                  <a href="/github">View GitHub</a>
-                </Button>
-              )}
-            </div>
-          </div>
-        </SectionReveal>
-
-        <DeferredClientStage
-          fallback={<DownloadCinematicStaticSurface />}
-          idleDelay={520}
-          idleTimeout={1800}
-          mediaQuery={DESKTOP_MOTION_MEDIA_QUERY}
-          rootMargin="1400px 0px"
-        >
-          <Suspense fallback={<DownloadCinematicStaticSurface />}>
-            <DownloadCinematicStory
-              activePlatformLabel={activeDownloadItem.label}
-              onDownload={() => openDownloadDialog(activePlatform, "cinematic_story")}
-            />
-          </Suspense>
-        </DeferredClientStage>
-
-        <section className="download-requirements" data-download-requirements>
-          <div className="download-section-header">
-            <div className="design-badge design-badge-secondary w-fit">
-              System requirements
-            </div>
-            <h2>Built for the session you actually run.</h2>
-            <p>
-              The base app stays lean, but dense sessions, plugin chains, and
-              optional local AI tools benefit from extra CPU, memory, and SSD
-              headroom.
-            </p>
-          </div>
-          <div
-            className="download-requirements__table-wrap"
-            data-download-requirements-table
-          >
-            <div className="download-requirements__table-meta">
-              <span>System Requirements</span>
-              <strong>REV 2026.04 · Desktop</strong>
-            </div>
-            <table className="download-requirements__table">
-              <caption>OpenStudio desktop system requirements</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Component</th>
-                  <th scope="col">Minimum</th>
-                  <th scope="col">Recommended</th>
-                </tr>
-              </thead>
-              <tbody>
-                {systemRequirementMatrix.map((item) => (
-                  <tr key={item.component}>
-                    <th scope="row">{item.component}</th>
-                    <td>
-                      <span className="download-requirements__mobile-label">
-                        Minimum
-                      </span>
-                      {item.minimum}
-                    </td>
-                    <td>
-                      <span className="download-requirements__mobile-label">
-                        Recommended
-                      </span>
-                      <strong>{item.recommended}</strong>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <SectionReveal className="download-ai-callout" data-download-outro>
-          <img
-            {...getResponsiveImageAttributes(
-              designMedia.downloadWorkspace.src,
-              "below-fold",
-              {
-                maxWidth: 1280,
-                sizes: "(min-width: 1024px) 44vw, 100vw",
-              },
-            )}
-            alt={designMedia.downloadWorkspace.alt}
-            className="download-ai-callout__image"
-          />
-          <div className="download-ai-callout__content">
-            <div className="design-badge design-badge-secondary w-fit">
-              <Sparkles className="h-3.5 w-3.5" />
-              Optional AI tooling
-            </div>
-            <h2>
-              Install the DAW first. Add AI only when the project needs it.
-            </h2>
-            <p>
-              {snapshot.latestRelease
-                ? `GitHub release ${snapshot.latestRelease.tagName} was published ${formatGithubDate(snapshot.latestRelease.publishedAt)}. The base installer stays focused on the DAW, while BS Roformer stem separation, ACE-Step music generation, and Stable Audio 3 imports remain explicit AI setup choices.`
-                : "The base installer stays focused on the DAW for Windows, macOS, and Linux. BS Roformer stem separation and ACE-Step setup do not install Stable Audio 3; Stable Audio 3 needs its own gated snapshot import and runtime setup."}
-            </p>
-            <div className="download-ai-callout__signals">
-              <span>Base installer stays lean</span>
-              <span>ACE-Step does not install Stable Audio 3</span>
-              <span>Release notes stay visible</span>
-            </div>
-            <AiSetupGuide />
-          </div>
-        </SectionReveal>
+      {/* Hero */}
+      <div className="sp-container pt-[64px]" data-sp-reveal="hero">
+        <h1 className="sp-h1">Download OpenStudio.</h1>
+        <p className="sp-lede max-w-[640px]">
+          Free, open source, AGPLv3.
+          {release ? (
+            <>
+              {" "}
+              Version <code className="sp-code text-[15px] font-[600] text-[var(--sp-accent)]">{release.version}</code>
+              {released ? `, released ${released}.` : "."}
+            </>
+          ) : null}
+        </p>
+        <div className="flex items-center gap-[16px] flex-wrap mb-[12px]">
+          {detected ? (
+            <DownloadCta direct withSize />
+          ) : (
+            <Cta href={artifactFor(primary.id)?.directUrl ?? primary.href} icon={Download}>
+              Download for {primary.label}
+            </Cta>
+          )}
+          {others.map((entry) => (
+            <Cta
+              key={entry.id}
+              href={artifactFor(entry.id)?.directUrl ?? entry.href}
+              icon={entry.icon}
+              variant="outline"
+            >
+              {entry.label}
+            </Cta>
+          ))}
+        </div>
+        <div className="sp-mono">
+          {detected ? `Detected ${primary.label}. ` : "Pick your platform. "}
+          Every button downloads the release shown above from GitHub · SHA-256 checksums below · release metadata at{" "}
+          <a href="/releases/latest.json">/releases/latest.json</a>
+        </div>
       </div>
 
-      <Dialog.Root
-        onOpenChange={(open) => !open && closeDownloadDialog("dialog_dismiss")}
-        open={pendingDownload !== null}
-      >
-        <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-50 bg-[rgba(3,5,12,0.82)] backdrop-blur-sm" />
-          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[min(92vw,40rem)] -translate-x-1/2 -translate-y-1/2 rounded-[2rem] border border-white/10 bg-[#0b0d14]/95 p-6 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:p-8">
-            <Dialog.Title className="font-headline text-2xl font-bold text-white">
-              {activeInstruction?.title}
-            </Dialog.Title>
-            <Dialog.Description className="mt-3 text-sm leading-7 text-white/64">
-              {activeInstruction?.summary}
-            </Dialog.Description>
+      {/* Platform cards, detected OS first */}
+      <div className="sp-container pt-[40px]">
+        <div className="sp-grid-3" data-sp-reveal="stagger">
+          {platforms.map((entry) => {
+            const copy = PLATFORM_COPY[entry.id];
+            const artifact = artifactFor(entry.id);
+            const isDetected = entry.id === detected;
+            const size = formatBytes(artifact?.size);
+            const digest = abbreviateDigest(artifact?.sha256);
 
-            <button
-              aria-label="Close download instructions"
-              className="absolute right-4 top-4 rounded-full border border-white/10 p-2 text-white/55 transition hover:text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-              onClick={() => closeDownloadDialog("close_button")}
-              type="button"
-            >
-              <X className="h-4 w-4" />
-            </button>
-
-            <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5">
-              <div className="font-mono text-[0.68rem] uppercase tracking-[0.22em] text-secondary">
-                {activeInstruction?.eyebrow}
-              </div>
-              <ol className="mt-4 space-y-3 text-sm leading-7 text-white/78">
-                {activeInstruction?.steps.map((step, index) => (
-                  <li
-                    className="flex gap-3"
-                    key={`${pendingDownload ?? "download"}-step-${index}`}
-                  >
-                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] font-mono text-[0.68rem] text-secondary">
-                      {index + 1}
-                    </span>
-                    <span>{step}</span>
-                  </li>
-                ))}
-              </ol>
-
-              {activeInstruction?.command ? (
-                <div className="mt-5 rounded-[1.25rem] border border-white/10 bg-black/30 p-4">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-primary">
-                      {activeInstruction.commandLabel}
-                    </div>
-                    <Button
-                      className="h-10 rounded-xl px-4 text-xs"
-                      onClick={handleCopyCommand}
-                      size="sm"
-                      type="button"
-                      variant="secondary"
-                    >
-                      {copyState === "copied" ? (
-                        <Check className="h-4 w-4" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                      {copyState === "copied"
-                        ? "Copied"
-                        : copyState === "error"
-                          ? "Copy failed"
-                          : "Copy command"}
-                    </Button>
-                  </div>
-                  <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-all font-mono text-sm leading-6 text-white">
-                    <code>{activeInstruction.command}</code>
-                  </pre>
+            return (
+              <div
+                key={entry.id}
+                className={`p-[24px_24px_26px] ${`sp-card${isDetected ? " sp-platform-card--detected" : ""}`}`}
+                id={entry.id}
+              >
+                <div className="flex items-center gap-[10px] [font:700_20px/1.2_'Space_Grotesk',_sans-serif] tracking-[-0.02em] mb-[16px]">
+                  <GradIcon icon={entry.icon} size={21} />
+                  {entry.label}
+                  {isDetected ? <span className="sp-platform-card__badge">Your OS</span> : null}
                 </div>
-              ) : null}
-            </div>
+                <div className="flex flex-col gap-[7px] pb-[16px] [border-bottom:1px_solid_var(--sp-hairline)] mb-[16px]">
+                  <Spec label="Artifact">{artifact?.fileName ?? entry.artifactType}</Spec>
+                  <Spec label="Size">{size ?? "—"}</Spec>
+                  <Spec label="Requires">{copy.requires}</Spec>
+                  <Spec label="SHA-256">
+                    {digest ? (
+                      <span title={artifact?.sha256 ?? undefined}>{digest}</span>
+                    ) : (
+                      <a className="sp-text-link" href={checksumsUrl} rel="noreferrer" target="_blank">
+                        checksums.txt on the release
+                      </a>
+                    )}
+                  </Spec>
+                </div>
+                <ol className="m-[0_0_18px] pl-[18px] flex flex-col gap-[8px] [font:400_13px/1.55_'Space_Grotesk',_sans-serif] text-[var(--sp-body)]">
+                  {copy.steps.map((step, index) => (
+                    <li key={index}>{step}</li>
+                  ))}
+                </ol>
+                <Cta
+                  href={artifactFor(entry.id)?.directUrl ?? entry.href}
+                  icon={Download}
+                  variant={isDetected ? "primary" : "outline"}
+                >
+                  Download for {entry.label}
+                </Cta>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
-            <p className="mt-5 text-sm leading-7 text-white/58">
-              Confirming means you understand that OpenStudio may require these
-              manual trust steps before it opens normally on your platform.
+      {/* Before you install */}
+      <div className="sp-container pt-[38px]" data-sp-reveal="rise" id="before-you-install">
+        <WarnCallout label="Before you install">
+          Builds are unsigned. On Windows, SmartScreen may warn on first run. On macOS, right-click OpenStudio and
+          choose <strong>Open</strong>, then allow it in System Settings → Privacy &amp; Security if prompted. The Linux
+          AppImage needs <code className="sp-code">chmod +x</code>. Code signing costs money the project currently
+          spends elsewhere. If you want certainty, verify the checksum above.
+        </WarnCallout>
+      </div>
+
+      {/* System requirements */}
+      <div className="sp-container pt-[46px]" data-sp-reveal="rise" id="requirements">
+        <div className="sp-kicker">System requirements</div>
+        <div className="sp-card sp-card--tight sp-scroll-x">
+          <div className="grid [grid-template-columns:1.1fr_1fr_1fr] min-w-[640px]">
+            <div className="sp-matrix__sticky p-[13px_18px] [border-right:1px_solid_var(--sp-hairline)]" />
+            {["Minimum", "Recommended"].map((heading, index) => (
+              <div
+                className="p-[13px_18px] [font:500_10px/1.4_'JetBrains_Mono',_monospace] tracking-[0.14em] uppercase text-[var(--sp-mono-muted)]"
+                key={heading}
+                style={{ borderRight: index === 0 ? "1px solid var(--sp-hairline)" : undefined }}
+              >
+                {heading}
+              </div>
+            ))}
+            {systemRequirementMatrix.map((row) => (
+              <Fragment key={row.component}>
+                <div className="sp-matrix__sticky p-[13px_18px] [border-top:1px_solid_var(--sp-hairline)] [border-right:1px_solid_var(--sp-hairline)] [font:600_13px/1.4_'Space_Grotesk',_sans-serif]">
+                  {row.component}
+                </div>
+                <div className="p-[13px_18px] [border-top:1px_solid_var(--sp-hairline)] [border-right:1px_solid_var(--sp-hairline)] [font:400_13px/1.5_'Space_Grotesk',_sans-serif] text-[var(--sp-body)]">
+                  {row.minimum}
+                </div>
+                <div className="p-[13px_18px] [border-top:1px_solid_var(--sp-hairline)] [font:400_13px/1.5_'Space_Grotesk',_sans-serif] text-[var(--sp-body)]">
+                  {row.recommended}
+                </div>
+              </Fragment>
+            ))}
+          </div>
+        </div>
+        <p className="sp-mono m-[12px_0_0] leading-[1.6]">
+          The optional AI Tools have their own hardware notes:{" "}
+          <ArrowLink to={`${docPath("ai-runtime-setup")}#hardware`}>what the runtime needs</ArrowLink>
+        </p>
+      </div>
+
+      {/* AI Runtime + Updates */}
+      <div className="sp-container pt-[34px]">
+        <div className="sp-grid-2 gap-[18px]" data-sp-reveal="stagger">
+          <div className="sp-card p-[26px_28px]">
+            <Eyebrow icon={Cpu}>Optional · Installed from inside the app</Eyebrow>
+            <h2 className="sp-h2 text-[26px]">AI Tools</h2>
+            <p className="sp-body max-w-[420px] mb-[14px]">
+              Stem separation and generation need the AI Tools runtime, installed once from the AI Tools button inside
+              OpenStudio. It is never bundled into the base installer.
             </p>
+            <ArrowLink to={docPath("ai-runtime-setup")}>AI Tools setup</ArrowLink>
+          </div>
+          <div className="sp-card p-[26px_28px]">
+            <Eyebrow icon={Clock}>Updates</Eyebrow>
+            <h2 className="sp-h2 text-[26px]">How update checks work</h2>
+            <p className="sp-body max-w-[420px] mb-[14px]">
+              The app reads public release metadata to tell you a newer build exists, and you can check manually from
+              Help → Check for Updates. It only reads metadata to discover new versions. It does not sign, download, or
+              apply patches silently in the background.
+            </p>
+            <ArrowLink to={`${SITE_PATHS.releases}#endpoints`}>Release endpoints</ArrowLink>
+          </div>
+        </div>
+      </div>
 
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
-              <Button
-                onClick={() => closeDownloadDialog("cancel_button")}
-                type="button"
-                variant="ghost"
-              >
-                Cancel
-              </Button>
-              <Button
-                className="h-auto px-6 py-3 text-base"
-                onClick={handleConfirmDownload}
-                type="button"
-              >
-                <Download className="h-4 w-4" />
-                {activeInstruction?.confirmLabel}
-              </Button>
-            </div>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
-    </main>
+      {/* Next step */}
+      <div
+        className="sp-container mt-[52px] pt-[44px] pb-[62px] [border-top:1px_solid_var(--sp-hairline)] flex items-center gap-[16px] flex-wrap"
+        data-sp-reveal="stagger"
+      >
+        <Cta icon={Book} to={docPath("getting-started")}>
+          Getting started guide
+        </Cta>
+        <Cta icon={Rocket} to={docPath("first-session")} variant="outline">
+          Your first session
+        </Cta>
+      </div>
+    </>
   );
 };
 

@@ -1,355 +1,301 @@
-import { ArrowRight, Clock3, Download, FileText, GitBranch, Megaphone, ShieldCheck, Sparkles } from "lucide-react";
-import { useRef } from "react";
-import { Link } from "react-router-dom";
+import { selectReleaseAsset } from "../../shared/release-assets";
+import { Clock, Download, ExternalLink, Tag } from "lucide-react";
+import { Fragment, type ReactNode } from "react";
 import PageSeo from "@/components/PageSeo";
-import SectionReveal from "@/components/motion/SectionReveal";
-import { Button } from "@/components/ui/button";
-import { designMedia } from "@/data/designMedia";
-import { releaseChannels, releasePrinciples, releaseSyncPanel, releaseTimeline, releasesHero, releasesSeo } from "@/data/releases";
+import { DOWNLOAD_PATHS } from "@/constants/site";
+import type { GithubReleaseSummary } from "@/data/marketing";
 import { useGithubRepoSnapshot } from "@/hooks/useGithubRepoSnapshot";
-import { trackEvent } from "@/lib/analytics";
-import { formatGithubDate } from "@/lib/github";
-import { useScrollScene } from "@/lib/gsap";
+import { REPO } from "@/data/siteContent";
+import { SITE_PATHS } from "@/constants/routes";
+import { formatBytes, formatCount, formatDate, stripVersionPrefix } from "@/lib/format";
+import { Cta, DownloadCta, Eyebrow, WarnCallout, renderInline } from "@/components/ui/primitives";
+import { PLATFORMS, PLATFORM_ORDER } from "@/hooks/usePlatform";
+import { useSpReveal } from "@/hooks/useSpReveal";
 
-const ReleasesPage = () => {
-  const pageRef = useRef<HTMLElement | null>(null);
-  const { snapshot, status } = useGithubRepoSnapshot();
+const isDesktopRelease = (release: GithubReleaseSummary) => /^v\d/.test(release.tagName);
 
-  useScrollScene(pageRef, ({ prefersReducedMotion, gsap, ScrollTrigger }) => {
-    gsap.fromTo(
-      "[data-releases-hero] > *",
-      { y: 24, autoAlpha: 0 },
-      {
-        y: 0,
-        autoAlpha: 1,
-        clearProps: "transform,opacity,visibility",
-        duration: 0.7,
-        stagger: 0.08,
-        ease: "power3.out",
-      },
-    );
+// The release template ships with prompts the maintainer fills in; a release
+// that still carries them should not show them to visitors.
+const TEMPLATE_LINES = [
+  /^summarize the biggest/i,
+  /^list the important/i,
+  /^document any other/i,
+  /^call out any additional/i,
+  /\{\{\s*version\s*\}\}/,
+];
 
-    gsap.fromTo(
-      "[data-release-stage]",
-      { y: 34, autoAlpha: 0 },
-      {
-        y: 0,
-        autoAlpha: 1,
-        clearProps: "transform,opacity,visibility",
-        duration: 0.9,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: "[data-release-stage]",
-          start: "top 76%",
-          once: true,
-        },
-      },
-    );
+interface NotesSection {
+  heading: string | null;
+  items: string[];
+  paragraphs: string[];
+}
 
-    gsap.fromTo(
-      "[data-release-timeline-card]",
-      { y: 36, autoAlpha: 0 },
-      {
-        y: 0,
-        autoAlpha: 1,
-        clearProps: "transform,opacity,visibility",
-        duration: 0.8,
-        stagger: 0.08,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: "[data-release-timeline]",
-          start: "top 78%",
-          once: true,
-        },
-      },
-    );
+/** GitHub release bodies are simple markdown: `## Heading`, `- bullet`, paragraphs. */
+const parseNotes = (body: string | undefined): NotesSection[] => {
+  if (!body) {
+    return [];
+  }
 
-    gsap.fromTo(
-      "[data-release-principle]",
-      { y: 26, autoAlpha: 0 },
-      {
-        y: 0,
-        autoAlpha: 1,
-        clearProps: "transform,opacity,visibility",
-        duration: 0.75,
-        stagger: 0.07,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: "[data-release-principles]",
-          start: "top 78%",
-          once: true,
-        },
-      },
-    );
+  const sections: NotesSection[] = [];
+  let current: NotesSection = { heading: null, items: [], paragraphs: [] };
+  const push = () => {
+    if (current.items.length > 0 || current.paragraphs.length > 0) {
+      sections.push(current);
+    }
+  };
 
-    if (!prefersReducedMotion) {
-      gsap.fromTo(
-        "[data-release-hero-image]",
-        { scale: 1.08, yPercent: -4 },
-        {
-          scale: 1,
-          yPercent: 4,
-          ease: "none",
-          scrollTrigger: {
-            trigger: "[data-release-hero-image]",
-            start: "top bottom",
-            end: "bottom top",
-            scrub: 1,
-          },
-        },
-      );
+  for (const raw of body.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (
+      !line ||
+      line.startsWith("# ") ||
+      TEMPLATE_LINES.some((pattern) => pattern.test(line.replace(/^[-*]\s*/, "")))
+    ) {
+      continue;
     }
 
-    const refreshId = window.setTimeout(() => ScrollTrigger.refresh(), 160);
-    return () => window.clearTimeout(refreshId);
-  });
+    if (/^#{2,4}\s/.test(line)) {
+      push();
+      current = { heading: line.replace(/^#+\s*/, ""), items: [], paragraphs: [] };
+      continue;
+    }
+
+    if (/^[-*]\s+/.test(line)) {
+      current.items.push(line.replace(/^[-*]\s+/, ""));
+      continue;
+    }
+
+    current.paragraphs.push(line);
+  }
+
+  push();
+  return sections;
+};
+
+const ReleaseNotes = ({ body }: { body: string | undefined }) => {
+  const sections = parseNotes(body);
+
+  if (sections.length === 0) {
+    return <p className="sp-body text-[13.5px]">No release notes were published for this build.</p>;
+  }
 
   return (
-    <main
-      ref={pageRef}
-      className="design-page-main audio-scan-grid route-appear"
-      id="main-content"
-    >
-      <PageSeo {...releasesSeo} />
-
-      <div className="page-frame-wide pb-24">
-        <section className="pb-14" data-releases-hero>
-          <div className="hero-shell overflow-hidden rounded-[2.9rem] px-6 py-8 md:px-10 md:py-10 2xl:px-12">
-            <div className="grid gap-8 2xl:grid-cols-[minmax(0,0.86fr)_minmax(20rem,1.14fr)] 2xl:items-start">
-              <div className="max-w-4xl pt-2">
-                <div className="design-badge design-badge-secondary mb-6 w-fit">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-secondary opacity-75" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-secondary" />
-                  </span>
-                  {snapshot.latestRelease ? "GitHub release detected" : status === "error" ? "Using release fallback snapshot" : "GitHub releases currently pending"}
-                </div>
-                <h1 className="font-headline text-5xl font-bold tracking-[-0.06em] text-white md:text-7xl 2xl:text-[6rem]">{releasesHero.title}</h1>
-                <p className="mt-6 max-w-4xl text-lg leading-8 text-white/64 2xl:text-[1.3rem]">{releasesHero.description}</p>
-
-                <div className="mt-8 grid gap-4 xl:grid-cols-2">
-                  <div className="hover-card rounded-[1.6rem] border border-white/10 bg-white/[0.03] px-5 py-5">
-                    <div className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-primary">Current release state</div>
-                    <h2 className="mt-4 font-headline text-2xl font-semibold text-white">
-                      {snapshot.latestRelease ? snapshot.latestRelease.name : "No GitHub release published yet"}
-                    </h2>
-                    <p className="mt-3 text-sm leading-7 text-white/64">
-                      {snapshot.latestRelease
-                        ? `Published ${formatGithubDate(snapshot.latestRelease.publishedAt)} with ${snapshot.latestRelease.assetCount} release asset${snapshot.latestRelease.assetCount === 1 ? "" : "s"}.`
-                        : `As of ${formatGithubDate(snapshot.fetchedAt)}, the public download path is live while GitHub Releases is still catching up.`}
-                    </p>
-                  </div>
-                  <div className="hover-card hover-card--emerald rounded-[1.6rem] border border-white/10 bg-white/[0.03] px-5 py-5">
-                    <div className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-secondary">Release philosophy</div>
-                    <p className="mt-4 text-sm leading-7 text-white/66">
-                      This page should feel like a premium editorial surface for shipping truth: what exists now, what the current trust story is, and what gets cleaner next.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-8 flex flex-wrap gap-3">
-                  {releaseChannels.map((channel) => (
-                    <span className="design-badge bg-black/25 text-white/68" key={channel.title}>
-                      {channel.title}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid gap-4 xl:grid-cols-[minmax(0,1.18fr)_minmax(17rem,0.82fr)]">
-                <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-black/30">
-                  <img
-                    alt={designMedia.releasesRoadmapNetwork.alt}
-                    className="h-[22rem] w-full object-cover md:h-[28rem] 2xl:h-[32rem]"
-                    data-release-hero-image
-                    decoding="async"
-                    loading="eager"
-                    src={designMedia.releasesRoadmapNetwork.src}
-                  />
-                  <div className="border-t border-white/10 bg-black/35 px-5 py-4">
-                    <div className="font-headline text-lg font-semibold text-white">Release surface</div>
-                    <p className="mt-2 text-sm leading-7 text-white/66">
-                      The release story should feel current and premium without hiding the present state of packaging, redirects, and installer trust.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid gap-4">
-                  <div className="hover-card rounded-[1.8rem] border border-white/10 bg-black/30 p-5">
-                    <div className="flex items-center gap-3 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-primary">
-                      <Download className="h-4 w-4" />
-                      Distribution
-                    </div>
-                    <p className="mt-4 text-sm leading-7 text-white/66">Stable redirect endpoints keep the website in control of current builds.</p>
-                  </div>
-                  <div className="hover-card hover-card--emerald rounded-[1.8rem] border border-white/10 bg-black/30 p-5">
-                    <div className="flex items-center gap-3 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-secondary">
-                      <ShieldCheck className="h-4 w-4" />
-                      Trust cues
-                    </div>
-                    <p className="mt-4 text-sm leading-7 text-white/66">Unsigned install guidance stays explicit until the installer trust story gets stronger.</p>
-                  </div>
-                  <div className="hover-card hover-card--amber rounded-[1.8rem] border border-white/10 bg-black/30 p-5">
-                    <div className="flex items-center gap-3 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-accent">
-                      <Clock3 className="h-4 w-4" />
-                      Version rhythm
-                    </div>
-                    <p className="mt-4 text-sm leading-7 text-white/66">The site, notes, and GitHub releases should all tell the same version story.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="mb-16" data-release-stage>
-          <div className="scroll-spotlight overflow-hidden rounded-[2.6rem] border border-white/10 p-6 md:p-8 2xl:p-10">
-            <div className="grid gap-8 2xl:grid-cols-[minmax(0,0.88fr)_minmax(20rem,1.12fr)] 2xl:items-center">
-              <div className="space-y-5">
-                <div className="design-badge design-badge-primary w-fit">{releasesHero.eyebrow}</div>
-                <h2 className="font-headline text-4xl font-bold tracking-tight text-white 2xl:text-[3.5rem]">A premium release page should make the shipping truth obvious fast.</h2>
-                <p className="max-w-2xl text-base leading-8 text-white/64 2xl:text-lg">
-                  The current public build story needs to be understandable in the first viewport: what ships now, how updates are discovered, and what parts of the install path still depend on visible trust notes.
-                </p>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="hover-card rounded-[1.5rem] border border-white/10 bg-black/25 p-5">
-                    <div className="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-primary">What exists now</div>
-                    <p className="mt-3 text-sm leading-7 text-white/66">
-                      Browser-first downloads, platform notes, and a release surface that refuses to fake more automation than exists.
-                    </p>
-                  </div>
-                  <div className="hover-card hover-card--emerald rounded-[1.5rem] border border-white/10 bg-black/25 p-5">
-                    <div className="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-secondary">What gets better next</div>
-                    <p className="mt-3 text-sm leading-7 text-white/66">
-                      Cleaner packaging, stronger trust cues, and a more polished changelog rhythm around public builds.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-black/30">
-                <img alt={designMedia.releasesStableSpotlight.alt} className="h-[24rem] w-full object-cover md:h-[30rem]" decoding="async" loading="lazy" src={designMedia.releasesStableSpotlight.src} />
-                <div className="border-t border-white/10 bg-black/40 px-5 py-4">
-                  <div className="font-headline text-lg font-semibold text-white">Shipping spotlight</div>
-                  <p className="mt-2 text-sm leading-7 text-white/66">
-                    OpenStudio is in the stage where careful release communication matters as much as the feature list. This page should sell confidence through clarity, not atmosphere alone.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="mb-16" data-release-timeline>
-          <div className="mb-8 max-w-5xl">
-            <div>
-              <div className="design-badge design-badge-secondary mb-4 w-fit">Release arc</div>
-              <h2 className="font-headline text-4xl font-bold text-white md:text-5xl">Current state, update awareness, and next release focus.</h2>
-            </div>
-            <p className="mt-4 max-w-3xl text-sm leading-7 text-white/62">
-              See what the current downloads include and what is being prepared for the next release. Candidate changes become available only after their desktop release is published.
+    <div className="sp-release-notes">
+      {sections.map((section, index) => (
+        <div key={index}>
+          {section.heading ? <h3>{section.heading}</h3> : null}
+          {section.paragraphs.map((paragraph, paragraphIndex) => (
+            <p key={paragraphIndex} className="sp-body text-[13.5px] mb-[8px]">
+              {renderInline(paragraph)}
             </p>
-          </div>
+          ))}
+          {section.items.length > 0 ? (
+            <ul className="sp-doc-list mb-[6px]">
+              {section.items.map((item, itemIndex) => (
+                <li key={itemIndex}>{renderInline(item)}</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ))}
+    </div>
+  );
+};
 
-          <div className="grid gap-6 2xl:grid-cols-3">
-            {releaseTimeline.map((entry) => (
-              <SectionReveal
-                className="hover-card hover-card--emerald scroll-spotlight flex min-h-[32rem] flex-col rounded-[2.2rem] border border-white/10 p-6 md:p-7"
-                data-release-timeline-card
-                key={entry.id}
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <div className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-secondary">{entry.label}</div>
-                  <div className="font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white/38">{entry.status}</div>
-                </div>
-                <div className="mt-5 flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04]">
-                    {entry.id === "first-public-release" ? (
-                      <Download className="h-5 w-5 text-primary" />
-                    ) : entry.id === "metadata-awareness" ? (
-                      <GitBranch className="h-5 w-5 text-secondary" />
-                    ) : (
-                      <Sparkles className="h-5 w-5 text-accent" />
-                    )}
-                  </div>
-                  <div className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white/36">{entry.version}</div>
-                </div>
-                <h3 className="mt-5 font-headline text-2xl font-bold text-white">{entry.title}</h3>
-                <p className="mt-4 text-sm leading-7 text-white/62">{entry.summary}</p>
-                <div className="mt-6 grid flex-1 gap-3">
-                  {entry.bullets.map((bullet) => (
-                    <div className="hover-card rounded-[1.25rem] border border-white/10 bg-black/25 px-4 py-3 text-sm leading-7 text-white/66" key={bullet}>
-                      {bullet}
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-6 border-t border-white/10 pt-4 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white/34">
-                  {entry.dateLabel}
-                </div>
-              </SectionReveal>
-            ))}
-          </div>
-        </section>
+const CurrentBadge = ({ children = "current" }: { children?: ReactNode }) => (
+  <span className="[font:500_9px/1_'JetBrains_Mono',_monospace] tracking-[0.12em] uppercase text-[#fff] [background:var(--sp-cta)] p-[6px_8px] rounded-[4px] [white-space:nowrap]">
+    {children}
+  </span>
+);
 
-        <section className="mb-16" data-release-principles>
-          <div className="mb-8">
-            <div className="design-badge design-badge-secondary mb-4 w-fit">Release principles</div>
-            <h2 className="font-headline text-4xl font-bold text-white">Keep the shipping story legible.</h2>
-          </div>
-          <div className="release-principle-rail">
-            {releasePrinciples.map((principle) => (
-              <div className="release-principle-line" data-release-principle key={principle}>
-                <Megaphone className="h-5 w-5 text-primary" />
-                <p>{principle}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+const pickAsset = (release: GithubReleaseSummary, platform: (typeof PLATFORM_ORDER)[number]) =>
+  selectReleaseAsset(release.assets, platform);
 
-        <section className="py-4">
-          <SectionReveal className="scroll-spotlight rounded-[2.4rem] border border-primary/20 p-8 md:p-10">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-              <div className="max-w-3xl">
-                <div className="design-badge design-badge-secondary mb-5 w-fit">{releaseSyncPanel.eyebrow}</div>
-                <h2 className="font-headline text-3xl font-bold text-white md:text-4xl">{releaseSyncPanel.title}</h2>
-                <p className="mt-4 text-sm leading-7 text-white/64">{releaseSyncPanel.description}</p>
-              </div>
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Button asChild className="rounded-2xl px-8 py-4">
-                  <Link
-                    onClick={() =>
-                      trackEvent("primary_cta_clicked", {
-                        cta_name: "download_openstudio",
-                        destination_path: "/download",
-                        source: "releases_page_cta",
-                      })
-                    }
-                    to="/download"
-                  >
-                    Download OpenStudio
-                  </Link>
-                </Button>
-                <Button asChild className="rounded-2xl px-8 py-4" variant="outline">
-                  <Link
-                    onClick={() =>
-                      trackEvent("internal_link_clicked", {
-                        destination_path: "/github",
-                        link_label: "Explore GitHub",
-                        source: "releases_page_cta",
-                      })
-                    }
-                    to="/github"
-                  >
-                    Explore GitHub
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </SectionReveal>
-        </section>
+const ENDPOINTS: [string, string][] = [
+  [DOWNLOAD_PATHS.releaseMetadataLatest, "Current version, size, and per-platform artifact URLs"],
+  ["/download/{os}/latest", "Stable redirect to the newest artifact for an OS (windows, macos, linux)"],
+  [DOWNLOAD_PATHS.macosStableAppcast, "Sparkle-style appcast consumed by shipped macOS builds"],
+  [DOWNLOAD_PATHS.windowsStableAppcast, "Appcast consumed by shipped Windows builds"],
+  [DOWNLOAD_PATHS.linuxStableAppcast, "Appcast for Linux builds, when the stable manifest includes Linux"],
+  [DOWNLOAD_PATHS.aiRuntimeMetadataLatest, "AI Tools runtime manifest the app reads for optional installs"],
+];
+
+const ReleasesPage = () => {
+  const { snapshot, status } = useGithubRepoSnapshot();
+
+  useSpReveal();
+
+  const all = snapshot.releases ?? (snapshot.latestRelease ? [snapshot.latestRelease] : []);
+  const desktop = all.filter(isDesktopRelease);
+  const runtimes = all.filter((release) => !isDesktopRelease(release));
+  const current = desktop.find((release) => !release.isPrerelease);
+
+  return (
+    <>
+      <PageSeo
+        description="Every OpenStudio release with its notes and artifacts, plus the public release metadata endpoints the app reads for update checks."
+        path={SITE_PATHS.releases}
+        title="Releases & Changelog | OpenStudio"
+      />
+
+      <div className="sp-container pt-[64px]" data-sp-reveal="hero">
+        <Eyebrow icon={Tag}>Changelog · Release metadata</Eyebrow>
+        <h1 className="sp-h1">Releases.</h1>
+        <p className="sp-lede max-w-[620px]">
+          Every published build, what changed, and the public metadata endpoints the app reads for update checks.
+          {current ? ` Current: ${current.tagName}, ${formatDate(current.publishedAt)}.` : ""}
+        </p>
+        <div className="flex items-center gap-[16px] flex-wrap">
+          <DownloadCta withSize />
+          <Cta href={REPO.releases} icon={ExternalLink} variant="outline">
+            All releases on GitHub
+          </Cta>
+        </div>
+        <p className="sp-mono m-[18px_0_0]">
+          {status === "ready" ? "Live from GitHub" : `Snapshot from ${formatDate(snapshot.fetchedAt)}`} ·{" "}
+          {formatCount(snapshot.releaseCount ?? desktop.length)} desktop releases
+        </p>
       </div>
-    </main>
+
+      <div className="sp-container pt-[26px]">
+        <div className="sp-releases-layout">
+          <aside className="[border-right:1px_solid_var(--sp-hairline)] pr-[22px]" data-sp-reveal="rise">
+            <div className="sp-kicker">Versions</div>
+            <div className="flex flex-col gap-[10px]">
+              {desktop.map((release, index) => (
+                <a
+                  key={release.id}
+                  className="sp-mono flex items-center justify-between gap-[8px] text-[12px]"
+                  href={`#${release.tagName}`}
+                  style={{ color: index === 0 ? "var(--sp-accent)" : undefined }}
+                >
+                  <span>{release.tagName}</span>
+                  {index === 0 ? <CurrentBadge /> : null}
+                </a>
+              ))}
+            </div>
+          </aside>
+          <div className="max-[900px]:pl-0 pl-[30px] flex flex-col gap-[26px]">
+            {desktop.map((release, index) => {
+              const downloads = release.assets.reduce((sum, asset) => sum + asset.downloadCount, 0);
+
+              return (
+                <div key={release.id} className="sp-card p-[26px_28px]" data-sp-reveal="rise" id={release.tagName}>
+                  <div className="flex items-center gap-[12px] flex-wrap mb-[16px] pb-[14px] [border-bottom:1px_solid_var(--sp-hairline)]">
+                    <span className="[font:700_24px/1_'JetBrains_Mono',_monospace] tracking-[-0.02em]">
+                      {stripVersionPrefix(release.tagName)}
+                    </span>
+                    {index === 0 ? <CurrentBadge /> : null}
+                    {release.isPrerelease ? <CurrentBadge>pre-release</CurrentBadge> : null}
+                    <span className="sp-mono ml-[auto]">
+                      {formatDate(release.publishedAt)} · {formatCount(downloads)} downloads
+                    </span>
+                  </div>
+                  <div className="sp-grid-2 gap-[24px] items-start">
+                    <ReleaseNotes body={release.body} />
+                    <div className="flex flex-col gap-[8px]">
+                      {PLATFORM_ORDER.map((platform) => {
+                        const asset = pickAsset(release, platform);
+                        if (!asset) {
+                          return null;
+                        }
+
+                        return (
+                          <a
+                            key={platform}
+                            className="sp-mono flex justify-between gap-[12px] text-[var(--sp-body)]"
+                            href={asset.downloadUrl}
+                            rel="noreferrer"
+                          >
+                            <span className="inline-flex items-center gap-[6px]">
+                              <Download aria-hidden="true" size={11} strokeWidth={1.8} />
+                              {PLATFORMS[platform].label}
+                            </span>
+                            <span>{formatBytes(asset.size) ?? "—"}</span>
+                          </a>
+                        );
+                      })}
+                      <a
+                        className="sp-mono text-[var(--sp-accent)] inline-flex items-center gap-[6px] mt-[6px]"
+                        href={release.htmlUrl}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        <ExternalLink aria-hidden="true" size={11} strokeWidth={1.8} />
+                        Checksums and all assets on GitHub
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {desktop.length === 0 ? (
+              <p className="sp-body">No desktop releases could be loaded. The full list is on GitHub.</p>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
+      {/* Runtimes */}
+      {runtimes.length > 0 ? (
+        <div className="sp-container pt-[44px]" data-sp-reveal="rise">
+          <div className="sp-kicker">Optional runtimes</div>
+          <div className="sp-card sp-card--tight">
+            {runtimes.map((release, index) => (
+              <div
+                key={release.id}
+                className="sp-endpoint-row p-[14px_18px]"
+                style={{ borderTop: index > 0 ? "1px solid var(--sp-hairline)" : undefined }}
+              >
+                <a className="sp-mono text-[var(--sp-accent)]" href={release.htmlUrl} rel="noreferrer" target="_blank">
+                  {release.tagName}
+                </a>
+                <span className="[font:400_13px/1.5_'Space_Grotesk',_sans-serif] text-[var(--sp-body)]">
+                  {release.name} · {formatDate(release.publishedAt)} · installed on demand from inside the app
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {/* Endpoints */}
+      <div className="sp-container pt-[44px]" data-sp-reveal="rise" id="endpoints">
+        <div className="sp-kicker">Release metadata endpoints</div>
+        <div className="sp-card sp-card--tight">
+          {ENDPOINTS.map(([endpoint, description], index) => (
+            <Fragment key={endpoint}>
+              <div
+                className="sp-endpoint-row p-[14px_18px]"
+                style={{ borderTop: index > 0 ? "1px solid var(--sp-hairline)" : undefined }}
+              >
+                <code className="[font:500_12.5px/1.5_'JetBrains_Mono',_monospace] text-[var(--sp-accent)]">
+                  {endpoint.includes("{") ? endpoint : <a href={endpoint}>{endpoint}</a>}
+                </code>
+                <span className="[font:400_13px/1.5_'Space_Grotesk',_sans-serif] text-[var(--sp-body)]">
+                  {description}
+                </span>
+              </div>
+            </Fragment>
+          ))}
+        </div>
+        <div className="mt-[16px]">
+          <Cta href={DOWNLOAD_PATHS.macosStableAppcast} icon={Clock} variant="outline">
+            macOS appcast
+          </Cta>{" "}
+          <Cta href={DOWNLOAD_PATHS.windowsStableAppcast} icon={Clock} variant="outline">
+            Windows appcast
+          </Cta>
+        </div>
+      </div>
+
+      <div className="sp-container pt-[26px] pb-[62px]" data-sp-reveal="rise">
+        <WarnCallout label="A public contract">
+          These endpoints and redirects are consumed by shipped app builds for update checks. Nothing in the redesign
+          changes them.
+        </WarnCallout>
+      </div>
+    </>
   );
 };
 

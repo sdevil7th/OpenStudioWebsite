@@ -1,3 +1,4 @@
+import { selectReleaseAsset } from "./release-assets";
 export type GithubPlatform = "windows" | "macos" | "linux";
 
 export interface GithubRepoStats {
@@ -238,51 +239,8 @@ const normalizeReleases = (releases: GithubReleaseResponse[]): GithubReleaseSumm
     .filter((release): release is GithubReleaseSummary => release !== null)
     .sort((left, right) => right.publishedAt.localeCompare(left.publishedAt));
 
-const scoreReleaseAsset = (assetName: string, platform: GithubPlatform) => {
-  const name = assetName.toLowerCase();
-  let score = 0;
-
-  if (platform === "windows") {
-    if (name.endsWith(".exe")) score += 8;
-    if (name.endsWith(".msi")) score += 6;
-    if (name.includes("setup")) score += 4;
-    if (name.includes("windows") || name.includes("win")) score += 4;
-    if (score > 0 && (name.includes("x64") || name.includes("amd64"))) score += 2;
-  }
-
-  if (platform === "macos") {
-    if (name.endsWith(".dmg")) score += 8;
-    if (name.endsWith(".pkg")) score += 6;
-    if (name.includes("macos") || name.includes("mac") || name.includes("osx")) score += 4;
-    if (score > 0 && (name.includes("universal") || name.includes("arm64") || name.includes("apple"))) score += 2;
-  }
-
-  if (platform === "linux") {
-    if (name.endsWith(".appimage")) score += 8;
-    if (name.endsWith(".deb")) score += 6;
-    if (name.endsWith(".rpm")) score += 5;
-    if (name.includes("linux")) score += 4;
-    if (score > 0 && (name.includes("x86_64") || name.includes("x64") || name.includes("amd64"))) score += 2;
-  }
-
-  return score;
-};
-
-export const resolveLatestReleaseAssetUrl = (release: GithubReleaseSummary | null, platform: GithubPlatform) => {
-  if (!release) {
-    return null;
-  }
-
-  const candidates = release.assets
-    .map((asset) => ({
-      asset,
-      score: scoreReleaseAsset(asset.name, platform),
-    }))
-    .filter((entry) => entry.score > 0)
-    .sort((left, right) => right.score - left.score);
-
-  return candidates[0]?.asset.downloadUrl ?? null;
-};
+export const resolveLatestReleaseAssetUrl = (release: GithubReleaseSummary | null, platform: GithubPlatform) =>
+  release ? selectReleaseAsset(release.assets, platform)?.downloadUrl ?? null : null;
 
 export const fetchLatestGithubRelease = async (token?: string): Promise<GithubReleaseSummary | null> => {
   const response = await fetch(`${GITHUB_API_BASE}/releases/latest`, {
@@ -297,7 +255,10 @@ export const fetchLatestGithubRelease = async (token?: string): Promise<GithubRe
     throw new Error(`GitHub latest release request failed with status ${response.status}`);
   }
 
-  return normalizeRelease((await response.json()) as GithubReleaseResponse);
+  const release = normalizeRelease((await response.json()) as GithubReleaseResponse);
+  if (release && isDesktopAppRelease(release) && !release.isPrerelease) return release;
+  const published = await fetchGithubJson<GithubReleaseResponse[]>(`${GITHUB_API_BASE}/releases?per_page=100`, token);
+  return normalizeReleases(published.data).find(entry => isDesktopAppRelease(entry) && !entry.isPrerelease) ?? null;
 };
 
 export const fetchGithubRepoSnapshot = async (token?: string): Promise<GithubRepoSnapshot> => {
@@ -310,7 +271,7 @@ export const fetchGithubRepoSnapshot = async (token?: string): Promise<GithubRep
   ]);
 
   const releases = normalizeReleases(releasesResult.data);
-  const latestRelease = releases.find(isDesktopAppRelease) ?? releases[0] ?? null;
+  const latestRelease = releases.find((release) => isDesktopAppRelease(release) && !release.isPrerelease) ?? null;
   const contributors = contributorsResult.data.map((contributor) => ({
     login: contributor.login,
     avatarUrl: contributor.avatar_url,

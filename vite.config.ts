@@ -1,3 +1,4 @@
+import { previewRoutes } from "./shared/preview-routes";
 import fs from "node:fs/promises";
 import path from "path";
 import { defineConfig } from "vite";
@@ -8,19 +9,10 @@ import {
   type AiRuntimePlatform,
   resolveAiRuntimeDownloadUrl,
 } from "./shared/ai-runtime-manifest";
-import { buildAssetPlan, type AssetPlanRequest, type ImageManifest } from "./shared/asset-image-plan";
-import { GITHUB_RELEASES_URL, fetchGithubRepoSnapshot, resolveLatestReleaseAssetUrl } from "./shared/github-api";
+import { GITHUB_RELEASES_URL, resolveLatestReleaseAssetUrl } from "./shared/github-api";
 
 const AI_RUNTIME_MANIFEST_PATH = path.resolve(__dirname, "public", "releases", "ai-runtime", "latest.json");
 const AI_RUNTIME_DEPLOY_INPUT_PATH = path.resolve(__dirname, "release-input", "releases", "ai-runtime", "latest.json");
-const OPENSTUDIO_IMAGE_MANIFEST_PATH = path.resolve(
-  __dirname,
-  "public",
-  "assets",
-  "openstudio",
-  "generated",
-  "image-manifest.json",
-);
 
 const parseMacosArchitecture = (value: string | null): AiRuntimeMacosArchitecture | null => {
   if (!value) {
@@ -95,43 +87,23 @@ const githubDevBridge = () => ({
       const url = new URL(requestUrl, "http://localhost");
       const pathname = url.pathname;
 
-      if (pathname === "/.netlify/functions/assets-graphql") {
+      if (pathname === "/.netlify/functions/github-release") {
         try {
-          const chunks: Uint8Array[] = [];
-          for await (const chunk of req) {
-            chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
-          }
-          const body = Buffer.concat(chunks).toString("utf8");
-          const payload = body
-            ? (JSON.parse(body) as { variables?: { input?: AssetPlanRequest; request?: AssetPlanRequest } & AssetPlanRequest })
-            : {};
-          const manifest = JSON.parse(await fs.readFile(OPENSTUDIO_IMAGE_MANIFEST_PATH, "utf8")) as ImageManifest;
-          const hostHeader = req.headers?.host;
-          const host = Array.isArray(hostHeader) ? hostHeader[0] : hostHeader;
-          const plan = buildAssetPlan(payload.variables?.input ?? payload.variables?.request ?? payload.variables ?? {}, manifest, {
-            host: host ?? "localhost",
-          });
-
-          res.statusCode = 200;
-          res.setHeader("Cache-Control", "no-store");
+          const payload = await fs.readFile(path.resolve(__dirname, "public/github/latest-release.json"), "utf8");
           res.setHeader("Content-Type", "application/json; charset=utf-8");
-          res.end(JSON.stringify({ data: { imagePlan: plan } }));
-          return;
-        } catch (error) {
-          res.statusCode = 400;
-          res.setHeader("Content-Type", "application/json; charset=utf-8");
-          res.end(
-            JSON.stringify({
-              errors: [{ message: error instanceof Error ? error.message : "Unable to create image plan." }],
-            }),
-          );
-          return;
+          res.end(payload);
+        } catch {
+          res.statusCode = 503;
+          res.end("Run npm run sync-github-data to fetch release metadata.");
         }
+        return;
       }
 
       if (pathname === "/.netlify/functions/github-repo") {
         try {
-          const snapshot = await fetchGithubRepoSnapshot(process.env.GITHUB_TOKEN);
+          const snapshot = JSON.parse(
+            await fs.readFile(path.resolve(__dirname, "public/github/repository.json"), "utf8"),
+          );
 
           res.statusCode = 200;
           res.setHeader("Cache-Control", "no-store");
@@ -194,7 +166,7 @@ const githubDevBridge = () => ({
                   trailingSegment === "linux" ||
                   url.searchParams.get("platform") === "linux"
                 ? "linux"
-              : null;
+                : null;
 
         if (!platform) {
           res.statusCode = 400;
@@ -210,7 +182,7 @@ const githubDevBridge = () => ({
             const architecture =
               platform === "macos"
                 ? pathname.includes("/macos/arm64/") ||
-                    pathname === "/.netlify/functions/download-latest-ai-runtime-macos-arm64"
+                  pathname === "/.netlify/functions/download-latest-ai-runtime-macos-arm64"
                   ? "arm64"
                   : pathname.includes("/macos/x64/") ||
                       pathname === "/.netlify/functions/download-latest-ai-runtime-macos-x64"
@@ -218,7 +190,7 @@ const githubDevBridge = () => ({
                     : inferMacosArchitectureFromRequest(url, userAgent)
                 : undefined;
             const redirectTarget =
-              (await resolveDevAiRuntimeRedirectTarget(platform, architecture)) ?? GITHUB_RELEASES_URL;
+              (await resolveDevAiRuntimeRedirectTarget(platform, architecture ?? undefined)) ?? GITHUB_RELEASES_URL;
 
             res.statusCode = 302;
             res.setHeader("Location", redirectTarget);
@@ -226,7 +198,9 @@ const githubDevBridge = () => ({
             return;
           }
 
-          const snapshot = await fetchGithubRepoSnapshot(process.env.GITHUB_TOKEN);
+          const snapshot = JSON.parse(
+            await fs.readFile(path.resolve(__dirname, "public/github/repository.json"), "utf8"),
+          );
           const assetUrl = resolveLatestReleaseAssetUrl(snapshot.latestRelease, platform);
           const redirectTarget = assetUrl ?? snapshot.latestRelease?.htmlUrl ?? "/releases";
 
@@ -247,27 +221,12 @@ const githubDevBridge = () => ({
   },
 });
 
-const nonBlockingAppCss = () => ({
-  name: "openstudio-nonblocking-app-css",
-  enforce: "post" as const,
-  transformIndexHtml(html: string) {
-    return html.replace(
-      /<link\s+rel="stylesheet"([^>]*?)href="([^"]*\/assets\/index-[^"]+\.css)"([^>]*)>/g,
-      (_match, beforeHref: string, href: string, afterHref: string) =>
-        [
-          `<link rel="preload" as="style"${beforeHref}href="${href}"${afterHref} data-openstudio-app-css onload="this.onload=null;this.rel='stylesheet';this.dataset.openstudioAppCssReady='true';window.__openstudioMarkAppCssReady&&window.__openstudioMarkAppCssReady()" onerror="this.dataset.openstudioAppCssReady='true';window.__openstudioMarkAppCssReady&&window.__openstudioMarkAppCssReady()">`,
-          `<noscript><link rel="stylesheet"${beforeHref}href="${href}"${afterHref}></noscript>`,
-        ].join("\n    "),
-    );
-  },
-});
-
 export default defineConfig({
   server: {
     host: "::",
     port: 8080,
   },
-  plugins: [react(), githubDevBridge(), nonBlockingAppCss()],
+  plugins: [react(), githubDevBridge(), previewRoutes()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -280,73 +239,20 @@ export default defineConfig({
         manualChunks(id) {
           const normalizedId = id.replace(/\\/g, "/");
 
+          // Share the small SVG icon library instead of dozens of tiny network requests.
+          if (normalizedId.includes("/node_modules/lucide-react/")) return "icons";
+
           if (
             normalizedId.includes("/node_modules/react/") ||
             normalizedId.includes("/node_modules/react-dom/") ||
             normalizedId.includes("/node_modules/react-router-dom/") ||
+            normalizedId.includes("/node_modules/react-router/") ||
             normalizedId.includes("/node_modules/@remix-run/router/")
           ) {
             return "react-vendor";
           }
 
-          if (normalizedId.includes("/node_modules/three/")) {
-            return "webgl-vendor";
-          }
-
-          if (normalizedId.includes("/node_modules/gsap/")) {
-            return "gsap-vendor";
-          }
-
-          // The photoreal NAM Rack is ~7.6k lines plus six stylesheets; keep it
-          // out of daw-core so only the NAM page pays for it.
-          if (
-            normalizedId.includes("/src/v2/daw/vendor/NAMRackDesignPort") ||
-            normalizedId.includes("/src/v2/daw/vendor/NAMRackStage.css") ||
-            normalizedId.includes("/src/v2/daw/vendor/NAMRackHardware.css") ||
-            normalizedId.includes("/src/v2/daw/vendor/NAMRackHeader.css") ||
-            normalizedId.includes("/src/v2/daw/vendor/NAMRackFooter.css") ||
-            normalizedId.includes("/src/v2/daw/vendor/NAMDesignAssets") ||
-            normalizedId.includes("/src/v2/daw/vendor/namRackFaceplateGeometry") ||
-            normalizedId.includes("/src/v2/daw/vendor/NAMToneCapturePicker")
-          ) {
-            return "nam-design-port";
-          }
-
-          // Studio Paper live stages: the vendored OpenStudio UI, the Lite
-          // forks, and daw.css load once and are shared by every stage chunk.
-          if (
-            normalizedId.includes("/src/v2/daw/vendor/") ||
-            normalizedId.includes("/src/v2/daw/stage/") ||
-            normalizedId.includes("/src/styles/daw.css") ||
-            /\/src\/v2\/daw\/[^/]+Lite\.tsx$/.test(normalizedId) ||
-            normalizedId.includes("/src/v2/daw/ArrangementLanes.tsx") ||
-            normalizedId.includes("/src/v2/daw/DawButton.tsx")
-          ) {
-            return "daw-core";
-          }
-
-          if (normalizedId.includes("/node_modules/lenis/")) {
-            return "lenis-vendor";
-          }
-
-          if (
-            normalizedId.includes("/node_modules/@radix-ui/react-slot/") ||
-            normalizedId.includes("/node_modules/@radix-ui/react-compose-refs/")
-          ) {
-            return "radix-slot";
-          }
-
-          if (normalizedId.includes("/node_modules/@radix-ui/react-dialog/")) {
-            return "radix-dialog";
-          }
-
-          if (normalizedId.includes("/node_modules/@chenglou/pretext/")) {
-            return "pretext-engine";
-          }
-
-          if (normalizedId.includes("/node_modules/framer-motion/")) {
-            return "framer-motion";
-          }
+          // Let Rollup follow dynamic imports: shared helpers must not pull optional artwork into the entry.
         },
       },
     },

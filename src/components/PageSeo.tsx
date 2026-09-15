@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
+import { StaticRenderContext } from "@/lib/staticRender";
 import { SITE_NAME, SITE_OG_IMAGE, SITE_URL } from "@/constants/site";
 import { generatedImageSeoIndex } from "@/lib/generatedImageSeoIndex";
 import {
@@ -6,7 +7,7 @@ import {
   withVersionQuery,
 } from "../../shared/asset-image-plan";
 
-interface PageSeoProps {
+export interface PageSeoProps {
   title: string;
   description: string;
   path: string;
@@ -144,11 +145,14 @@ const PageSeo = ({
   authorProfileUrl,
   articleSection = "OpenStudio Blog",
 }: PageSeoProps) => {
+  const staticRender = useContext(StaticRenderContext);
+  const imageMetadata = getSocialImageMetadata(image);
+  const imageUrl = new URL(imageMetadata.src, SITE_URL).toString();
+  if (staticRender) staticRender.seo = { title, description, path, image: imageUrl, imageAlt, jsonLd, ogType, robots, publishedTime, modifiedTime, authorProfileUrl, articleSection };
   useEffect(() => {
     const url = new URL(path, SITE_URL).toString();
-    const imageMetadata = getSocialImageMetadata(image);
-    const imageUrl = new URL(imageMetadata.src, SITE_URL).toString();
     const isArticle = ogType === "article";
+    const indexable = !robots.toLowerCase().includes("noindex");
 
     document.head.querySelector('script[type="application/ld+json"][data-static-route]')?.remove();
     document.title = title;
@@ -176,7 +180,8 @@ const PageSeo = ({
     ensureMeta("name", "twitter:description").setAttribute("content", description);
     ensureMeta("name", "twitter:image").setAttribute("content", imageUrl);
     ensureMeta("name", "twitter:image:alt").setAttribute("content", imageAlt);
-    ensureCanonical().setAttribute("href", url);
+    if (indexable) ensureCanonical().setAttribute("href", url);
+    else document.head.querySelector('link[rel="canonical"]')?.remove();
     syncOptionalMeta(
       "property",
       "article:published_time",
@@ -198,9 +203,11 @@ const PageSeo = ({
       isArticle ? articleSection : undefined,
     );
 
-    if (jsonLd) {
+    if (!indexable) {
+      removePageJsonLd();
+    } else if (jsonLd) {
       ensurePageJsonLd(jsonLd);
-    } else if (!robots.toLowerCase().includes("noindex")) {
+    } else {
       ensurePageJsonLd(
         getDefaultPageJsonLd({
           description,
@@ -209,14 +216,14 @@ const PageSeo = ({
           url,
         }),
       );
-    } else {
-      removePageJsonLd();
     }
   }, [
     authorProfileUrl,
     articleSection,
     description,
-    image,
+    imageMetadata.height,
+    imageMetadata.width,
+    imageUrl,
     imageAlt,
     jsonLd,
     modifiedTime,

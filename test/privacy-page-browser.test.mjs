@@ -8,19 +8,16 @@ import { preview } from "vite";
 // mode where a URL resolves but the visitor cannot actually read the policy.
 test("production privacy policy is readable with and without application JavaScript", { timeout: 90_000 }, async t => {
   const html = await readFile(new URL("../dist/privacy/index.html", import.meta.url), "utf8");
-  assert.match(html, /<h1>Privacy Policy<\/h1>/);
+  assert.match(html, /<h1[^>]*>Privacy Policy<\/h1>/);
   assert.match(html, /href="https:\/\/openstudio\.org\.in\/privacy"/);
   const legalRoutes = [
     { path: "privacy", title: "Privacy Policy" },
     { path: "security", title: "Security Policy" },
     { path: "terms", title: "Terms of Use" },
   ];
-  const netlify = await readFile(new URL("../netlify.toml", import.meta.url), "utf8");
   for (const { path } of legalRoutes) {
-    const rewrite = netlify.split("[[redirects]]").find(rule => rule.includes(`from = "/${path}"`));
-    assert.ok(rewrite?.includes(`to = "/${path}/index.html"`));
-    assert.match(rewrite, /status = 200/);
-    assert.match(rewrite, /force = true/);
+    const rewrites = await readFile(new URL("../dist/_redirects", import.meta.url), "utf8");
+    assert.ok(rewrites.includes(`/${path} /${path}/index.html 200!`));
     const document = await readFile(new URL(`../dist/${path}/index.html`, import.meta.url), "utf8");
     assert.match(document, /<html\b[^>]*data-openstudio-immediate-content/);
     assert.doesNotMatch(document, /<div[^>]*data-openstudio-loader/);
@@ -94,7 +91,7 @@ test("production privacy policy is readable with and without application JavaScr
           });
           if (scenario.blockScripts || scenario.blockPrivacyChunk) {
             await context.route("**/*.js", route => {
-              if (scenario.blockScripts || /\/PrivacyPage-[^/]+\.js$/.test(route.request().url())) return route.abort();
+              if (scenario.blockScripts || /\/LegalPage-[^/]+\.js$/.test(route.request().url())) return route.abort();
               return route.continue();
             });
           }

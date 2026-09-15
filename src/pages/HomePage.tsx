@@ -1,692 +1,570 @@
-import { ArrowRight, Download, Guitar, Github, Sparkles } from "lucide-react";
-import { useRef } from "react";
-import { Link } from "react-router-dom";
-import PageSeo from "@/components/PageSeo";
-import BrandLogoConstructScene from "@/components/brand/BrandLogoConstructScene";
-import SectionReveal from "@/components/motion/SectionReveal";
-import DawCockpitScene from "@/components/scene/DawCockpitScene";
-import { Button } from "@/components/ui/button";
-import { BRANDING_ASSETS } from "@/constants/site";
-import { designMedia } from "@/data/designMedia";
+import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
+import { ResponsiveImage } from "@/components/ResponsiveImage";
+import { StaticRenderContext } from "@/lib/staticRender";
 import {
-  homeAlternativePositioning,
-  homeFaqs,
-  homeHero,
-  homeNamRack,
-  homeOriginStory,
-  homePillars,
-  homeProofBarItems,
-  homeSeo,
-  homeWorkflowSteps,
-} from "@/data/home";
-import { externalLinks } from "@/data/siteLinks";
-import { trackEvent } from "@/lib/analytics";
-import { getResponsiveImageAttributes } from "@/lib/assetLoading";
-import "@/lib/generatedImageRoutes/home";
-import { useScrollScene } from "@/lib/gsap";
+  AudioWaveform,
+  Cpu,
+  Mic,
+  Music,
+  Pause,
+  Play,
+  Plug,
+  Scale,
+  ShieldCheck,
+  SlidersHorizontal,
+  Star,
+  Tag,
+  TriangleAlert,
+  Users,
+  Zap,
+  type LucideProps,
+} from "lucide-react";
+import { Suspense, lazy, useContext, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
+import PageSeo from "@/components/PageSeo";
+import { getHomeJsonLd } from "@/lib/structuredData";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { getPrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { useGithubRepoSnapshot } from "@/hooks/useGithubRepoSnapshot";
+import { REPO, SHOTS } from "@/data/siteContent";
+import { SITE_PATHS, docPath } from "@/constants/routes";
+import { formatBytes, formatCount, formatDate } from "@/lib/format";
+import { ArrowLink, Cta, DownloadCta, Eyebrow, Frame, GradIcon, Kicker } from "@/components/ui/primitives";
+import { LiveStage, preloadStage, type StageSelection } from "@/features/daw-preview/stage/LiveStage";
+import { useFooterLead } from "@/components/layout/footerLeadContext";
+import { orderPlatforms, usePlatform } from "@/hooks/usePlatform";
+import { useReleaseInfo } from "@/hooks/useReleaseInfo";
+import { useSpReveal } from "@/hooks/useSpReveal";
 
-const pillarMedia = [
-  designMedia.homeUspStems,
-  designMedia.homeUspMixer,
-  designMedia.homeUspCode,
+const LiveSession = lazy(() => import("@/features/daw-preview/LiveSession"));
+
+/* ---------- showcase carousel ---------- */
+
+interface Slide {
+  id: string;
+  icon: ComponentType<LucideProps>;
+  tab: string;
+  eyebrow: string;
+  title: string;
+  copy: string;
+  chips: string[];
+  shot: string;
+  alt: string;
+  linkLabel: string;
+  to: string;
+  /** Live stage that replaces the screenshot once loaded. */
+  stage?: StageSelection;
+}
+
+const SLIDES: Slide[] = [
+  {
+    id: "ai",
+    icon: Cpu,
+    tab: "Local AI",
+    eyebrow: "Optional · Local · Offline after setup",
+    title: "Generate, separate, and vary audio without leaving the project.",
+    copy: "ACE-Step and Stable Audio 3 turn a prompt into a clip, extend or vary what is already on the timeline, and BS Roformer pulls a mix apart into six stems. MiniMax Music 3 adds lyrics and structured songs in the next desktop release. Processing runs locally after setup.",
+    chips: [
+      "BS Roformer stems",
+      "ACE-Step",
+      "Stable Audio 3",
+      "MiniMax Music 3 · next release",
+      "Continue clip",
+      "Inpaint",
+    ],
+    shot: SHOTS.arrangementOverviewWide,
+    alt: "Separated stems arriving as tracks in the arrangement",
+    linkLabel: "How the AI tools work",
+    to: SITE_PATHS.ai,
+    stage: { id: "arrangement", variant: "stems" },
+  },
+  {
+    id: "nam",
+    icon: Zap,
+    tab: "NAM Rack",
+    eyebrow: "Built in · No add-on · No paid tier",
+    title: "Plug in and the rig is already there.",
+    copy: "Load any Neural Amp Modeler capture, stack native pedals in front of it, drop a cabinet IR behind it, and A/B two chains against each other. Presets recall with the project, and it renders offline with the rest of the mix.",
+    chips: ["NAM A1 / A2", "Pre-FX pedalboard", "Cabinet IR", "Graphic EQ", "Tuner", "TONE3000", "Offline render"],
+    shot: SHOTS.namRackSignalChain,
+    alt: "NAM Rack signal chain",
+    linkLabel: "Explore the NAM Rack",
+    to: SITE_PATHS.namRack,
+    stage: { id: "nam-chain" },
+  },
+  {
+    id: "pitch",
+    icon: AudioWaveform,
+    tab: "Pitch editing",
+    eyebrow: "Graphical · On the take · In the arrangement",
+    title: "Fix the take right where it sits in the arrangement.",
+    copy: "A graphical pitch editor with note blobs and a contour, scale and chromatic snapping, a correct-pitch macro, and an offline render path. There is also a real-time pitch corrector effect for when you would rather work live.",
+    chips: ["Note editor", "Scale snap", "Drift · Vibrato · Transition", "Correct-pitch macro", "Real-time corrector"],
+    shot: SHOTS.pitchEditor,
+    alt: "The graphical pitch editor",
+    linkLabel: "Pitch editing in the docs",
+    to: docPath("pitch-editing"),
+    stage: { id: "pitch-editor" },
+  },
+  {
+    id: "plugins",
+    icon: Plug,
+    tab: "Plugin hosting",
+    eyebrow: "VST3 · CLAP · LV2 · ARA2",
+    title: "Your plugins, hosted natively.",
+    copy: "Native editor windows, input, track, and master FX chains, presets and A/B, sidechain routing, and a set of built-in processors (EQ, compressor, gate, delay, reverb, saturator, chorus) that cover the rest.",
+    chips: ["Native editors", "Input / track / master FX", "Presets & A/B", "Sidechain", "Built-in FX", "Safe mode"],
+    shot: SHOTS.pluginHosting,
+    alt: "Plugin hosting inside OpenStudio",
+    linkLabel: "Every feature",
+    to: `${SITE_PATHS.features}#plugins`,
+    stage: { id: "plugin-window" },
+  },
 ];
 
-const renderOpenSourceText = (text: string) =>
-  text.split(/(OpenSource)/g).map((part, index) =>
-    part === "OpenSource" ? (
-      <span className="open-source-highlight" key={`${part}-${index}`}>
-        {part}
-      </span>
-    ) : (
-      part
-    ),
-  );
+const SLIDE_INTERVAL = 6500;
 
-const HomeLogoAmbientField = () => {
+const Showcase = () => {
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(() => getPrefersReducedMotion());
+  const [hovering, setHovering] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const playing = !paused && !hovering && visible;
+  const slide = SLIDES[index];
+
+  useEffect(() => {
+    if (!playing) {
+      return;
+    }
+
+    const timer = window.setInterval(() => setIndex((value) => (value + 1) % SLIDES.length), SLIDE_INTERVAL);
+    return () => window.clearInterval(timer);
+  }, [playing, index]);
+
+  // Warm the next slide's stage chunk so the auto-advance never shows a poster.
+  useEffect(() => {
+    const next = SLIDES[(index + 1) % SLIDES.length].stage;
+    if (
+      !next ||
+      !visible ||
+      paused ||
+      getPrefersReducedMotion() ||
+      (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData
+    )
+      return;
+    const idle =
+      window.requestIdleCallback?.(() => void preloadStage(next.id).catch(() => undefined)) ??
+      window.setTimeout(() => void preloadStage(next.id), 800);
+    return () => (window.cancelIdleCallback ? window.cancelIdleCallback(idle) : window.clearTimeout(idle));
+  }, [index, visible, paused]);
+
+  // Stop the clock while the band is off screen so a long page never spins it for nothing.
+  useEffect(() => {
+    const node = rootRef.current;
+    if (!node || !("IntersectionObserver" in window)) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: 0.2 });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div
-      className="home-logo-atmosphere"
-      aria-hidden="true"
+      ref={rootRef}
+      className="sp-showcase"
+      data-playing={playing}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setHovering(false);
+        }
+      }}
+      onFocus={() => setHovering(true)}
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
+      style={{ ["--sp-showcase-interval" as string]: `${SLIDE_INTERVAL}ms` }}
     >
-      <span className="home-logo-atmosphere__curtain home-logo-atmosphere__curtain--one" />
-      <span className="home-logo-atmosphere__curtain home-logo-atmosphere__curtain--two" />
-      <span className="home-logo-atmosphere__curtain home-logo-atmosphere__curtain--three" />
-      <span className="home-logo-atmosphere__curtain home-logo-atmosphere__curtain--four" />
-      <span className="home-logo-atmosphere__beam home-logo-atmosphere__beam--one" />
-      <span className="home-logo-atmosphere__beam home-logo-atmosphere__beam--two" />
-      <span className="home-logo-atmosphere__beam home-logo-atmosphere__beam--three" />
-      <span className="home-logo-atmosphere__ring home-logo-atmosphere__ring--one" />
-      <span className="home-logo-atmosphere__ring home-logo-atmosphere__ring--two" />
-      <span className="home-logo-atmosphere__streak home-logo-atmosphere__streak--one" />
-      <span className="home-logo-atmosphere__streak home-logo-atmosphere__streak--two" />
-      <span className="home-logo-atmosphere__shimmer" />
+      <div>
+        <Kicker className="text-[var(--sp-teal-bright)]">What makes it different</Kicker>
+        <ul aria-label="Highlights" className="sp-showcase__tabs" role="tablist">
+          {SLIDES.map((entry, slideIndex) => (
+            <li key={entry.id} role="presentation">
+              <button
+                aria-controls="sp-showcase-panel"
+                tabIndex={slideIndex === index ? 0 : -1}
+                onKeyDown={(event) => {
+                  const next =
+                    event.key === "ArrowRight"
+                      ? (index + 1) % SLIDES.length
+                      : event.key === "ArrowLeft"
+                        ? (index + SLIDES.length - 1) % SLIDES.length
+                        : event.key === "Home"
+                          ? 0
+                          : event.key === "End"
+                            ? SLIDES.length - 1
+                            : null;
+                  if (next === null) return;
+                  event.preventDefault();
+                  setIndex(next);
+                  document.getElementById(`sp-showcase-tab-${SLIDES[next].id}`)?.focus();
+                }}
+                aria-selected={slideIndex === index}
+                className="sp-showcase__tab"
+                id={`sp-showcase-tab-${entry.id}`}
+                onClick={() => setIndex(slideIndex)}
+                role="tab"
+                type="button"
+              >
+                <span className="sp-showcase__tab-index">0{slideIndex + 1}</span>
+                <entry.icon aria-hidden="true" size={15} strokeWidth={1.8} />
+                {entry.tab}
+              </button>
+            </li>
+          ))}
+        </ul>
+        <div
+          key={slide.id}
+          aria-labelledby={`sp-showcase-tab-${slide.id}`}
+          className="sp-showcase__panel sp-showcase__copy"
+          id="sp-showcase-panel"
+          role="tabpanel"
+        >
+          <Eyebrow icon={slide.icon} tone="teal">
+            {slide.eyebrow}
+          </Eyebrow>
+          <h2 className="sp-h2 sp-h2--large leading-[1.08] mb-[14px]">{slide.title}</h2>
+          <p className="sp-body text-[15.5px] text-[var(--sp-dark-body)] mb-[22px]">{slide.copy}</p>
+          <div className="sp-showcase__chips">
+            {slide.chips.map((chip) => (
+              <span key={chip} className="sp-showcase__chip">
+                {chip}
+              </span>
+            ))}
+          </div>
+          <Cta to={slide.to}>{slide.linkLabel}</Cta>
+        </div>
+      </div>
+      <div>
+        <div className="sp-card sp-card--dark sp-showcase__media">
+          {slide.stage ? (
+            <LiveStage key={slide.id} alt={slide.alt} eager {...slide.stage} poster={slide.shot} priority={1} />
+          ) : (
+            <ResponsiveImage key={slide.id} alt={slide.alt} loading="lazy" src={slide.shot} />
+          )}
+        </div>
+        <div className="sp-showcase__controls">
+          {SLIDES.map((entry, slideIndex) => (
+            <button
+              key={entry.id}
+              aria-label={`Show ${entry.tab}`}
+              aria-pressed={slideIndex === index}
+              className="sp-showcase__dot"
+              onClick={() => setIndex(slideIndex)}
+              type="button"
+            />
+          ))}
+          <button
+            aria-label={paused ? "Resume auto-advance" : "Pause auto-advance"}
+            className="sp-showcase__pause"
+            onClick={() => setPaused((value) => !value)}
+            type="button"
+          >
+            {paused ? <Play aria-hidden="true" size={11} /> : <Pause aria-hidden="true" size={11} />}
+            {paused ? "Play" : "Pause"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ---------- the rest of the page ---------- */
+
+const SESSION_ROWS = [
+  {
+    number: "01",
+    icon: Mic,
+    title: "Record & arrange",
+    copy: "Arm tracks, monitor inputs, punch in, and edit clips on the same timeline. Markers, regions, ripple, razor, takes, and fades.",
+    shot: SHOTS.recordingSession,
+    alt: "Recording session",
+    imageFirst: false,
+    to: docPath("recording-and-editing"),
+    stage: { id: "arrangement" as const, variant: "recording" as const },
+  },
+  {
+    number: "02",
+    icon: Music,
+    title: "MIDI & instruments",
+    copy: "A docked or detached piano roll, hardware MIDI input, an on-screen keyboard, quantize and transforms, and audio-to-MIDI when an idea needs it.",
+    shot: SHOTS.pianoRoll,
+    alt: "Piano roll",
+    imageFirst: true,
+    to: docPath("midi-and-piano-roll"),
+    stage: { id: "piano-roll" as const },
+  },
+  {
+    number: "03",
+    icon: SlidersHorizontal,
+    title: "Mix & route",
+    copy: "Channel strips, sends, buses, a routing matrix, metering, channel EQ, and mixer snapshots. Detach the mixer onto a second screen.",
+    shot: SHOTS.mixerMeters,
+    alt: "Mixer",
+    imageFirst: false,
+    to: docPath("mixing-and-routing"),
+    stage: { id: "mixer" as const },
+  },
+  {
+    number: "04",
+    icon: AudioWaveform,
+    title: "Render & deliver",
+    copy: "Master and stem renders, region and razor bounds, WAV, AIFF, FLAC, MP3, and OGG, a render queue, and DDP export for CD mastering.",
+    shot: SHOTS.exportDialog,
+    alt: "Render dialog",
+    imageFirst: true,
+    to: docPath("rendering-and-export"),
+    stage: { id: "render-dialog" as const },
+  },
+];
+
+const GetStartedLead = () => {
+  const platform = usePlatform();
+  const others = orderPlatforms(platform).filter((entry) => entry.id !== platform);
+
+  return (
+    <div className="sp-container">
+      <div className="sp-row min-[901px]:grid-cols-[1fr_1fr] gap-[52px]">
+        <div>
+          <h2 className="sp-h2 sp-h2--medium leading-[1.1] mb-[20px]">Download, then open the first-session guide.</h2>
+          <div className="flex items-center gap-[12px] flex-wrap mb-[14px]">
+            <DownloadCta variant="paper" withSize />
+            {others.map((entry) => (
+              <Cta key={entry.id} icon={entry.icon} to={SITE_PATHS.download} variant="ghost-dark">
+                {entry.label}
+              </Cta>
+            ))}
+          </div>
+          <div className="flex gap-[20px] flex-wrap [font:500_13px/1_'Space_Grotesk',_sans-serif] text-[var(--sp-dark-body)]">
+            <ArrowLink to={docPath("getting-started")} tone="teal">
+              Getting started guide
+            </ArrowLink>
+            <ArrowLink to={`${SITE_PATHS.download}#requirements`} tone="teal">
+              System requirements
+            </ArrowLink>
+          </div>
+        </div>
+        <div className="[border:1px_solid_rgba(253,199,0,.3)] [border-left:2px_solid_#fdc700] rounded-[10px] [background:linear-gradient(100deg,_rgba(253,199,0,.09),_rgba(253,199,0,0)_62%)] p-[20px_22px] [align-self:center]">
+          <div className="sp-callout-label text-[#fdc700]">
+            <TriangleAlert aria-hidden="true" size={13} strokeWidth={1.8} />
+            Before you install
+          </div>
+          <p className="[font:400_13.5px/1.65_'Space_Grotesk',_sans-serif] text-[#d7dfe9] m-[0px]">
+            Builds are currently unsigned, so Windows SmartScreen or macOS Gatekeeper may warn on first launch.{" "}
+            <ArrowLink to={`${SITE_PATHS.download}#before-you-install`} tone="teal">
+              Here&rsquo;s exactly what to expect and why
+            </ArrowLink>
+          </p>
+        </div>
+      </div>
     </div>
   );
 };
 
 const HomePage = () => {
-  const pageRef = useRef<HTMLElement | null>(null);
-  const logoSectionRef = useRef<HTMLElement | null>(null);
+  const staticRender = useContext(StaticRenderContext);
+  const [heroReady, setHeroReady] = useState(false);
+  useEffect(() => scheduleAfterInitialLoad(() => setHeroReady(true), { delay: 400, timeout: 2000 }), []);
+  const platform = usePlatform();
+  const release = useReleaseInfo();
+  const { snapshot } = useGithubRepoSnapshot();
 
-  useScrollScene(pageRef, ({ prefersReducedMotion, gsap }) => {
-    if (prefersReducedMotion) {
-      return undefined;
-    }
+  useSpReveal();
+  useFooterLead(useMemo(() => <GetStartedLead />, []));
 
-    gsap.from("[data-home-card]", {
-      y: 44,
-      opacity: 0,
-      duration: 1,
-      stagger: 0.08,
-      ease: "power3.out",
-      scrollTrigger: {
-        trigger: "[data-home-card-grid]",
-        start: "top 72%",
-      },
-    });
+  const size = platform ? formatBytes(release?.platforms[platform].size) : null;
+  const released = formatDate(release?.publishedAt);
+  const otherPlatforms = orderPlatforms(platform)
+    .filter((entry) => entry.id !== platform)
+    .map((entry) => entry.label);
+  const heroMeta = [
+    release ? `v${release.version}` : null,
+    size,
+    released ? `released ${released}` : null,
+    platform ? `also ${otherPlatforms.join(" and ")}` : "Windows · macOS · Linux",
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
-    gsap.utils
-      .toArray<HTMLElement>("[data-parallax-image]")
-      .forEach((image) => {
-        gsap.fromTo(
-          image,
-          { scale: 1.15, yPercent: -6 },
-          {
-            scale: 1,
-            yPercent: 6,
-            ease: "none",
-            scrollTrigger: {
-              trigger: image,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: 1,
-            },
-          },
-        );
-      });
-
-    return undefined;
-  });
+  const statTiles = [
+    { value: formatCount(snapshot.stats.stars), label: "GitHub stars", icon: Star },
+    { value: formatCount(snapshot.releaseCount ?? null), label: "Releases", icon: Tag },
+    { value: snapshot.license.replace("-3.0", "v3"), label: "License", icon: Scale },
+    { value: formatCount(snapshot.stats.contributorCount), label: "Contributors", icon: Users },
+  ];
 
   return (
-    <main ref={pageRef} className="relative" id="main-content">
-      <PageSeo {...homeSeo} />
+    <>
+      <PageSeo
+        description="A free, open-source DAW for Windows, macOS, and Linux: multitrack recording, MIDI, plugin hosting, graphical pitch editing, local AI generation and stem separation, and a built-in Neural Amp Modeler guitar rig. AGPLv3."
+        path={SITE_PATHS.home}
+        jsonLd={getHomeJsonLd()}
+        title="OpenStudio: Free Open-Source DAW for Windows, macOS & Linux"
+      />
 
-      <section
-        className="home-logo-scroll-section relative min-h-[auto] px-4 pb-12 pt-24 md:px-8 xl:px-12 xl:pb-0"
-        data-home-logo-scroll-section
-        ref={logoSectionRef}
-      >
-        <div className="absolute inset-0 design-mesh-bg" />
-        <HomeLogoAmbientField />
-        <div className="floating-audio-orb left-[5%] top-[10%] h-72 w-72 bg-primary/24" />
-        <div className="floating-audio-orb bottom-[6%] right-[6%] h-[32rem] w-[32rem] bg-secondary/18 [animation-delay:-2s]" />
-        {/* <SoundField accent="lavender" density={1.15} showGrid={false} /> */}
-
-        <div
-          className="home-logo-sticky-stage page-frame-wide relative z-10"
-          data-home-logo-pin-stage
-        >
-          <div className="grid gap-10 xl:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] xl:items-center">
-            <div className="xl:hidden" data-home-logo-stage>
-              <BrandLogoConstructScene progress={0.5} size="compact" />
-            </div>
-            <div className="max-w-4xl pt-4 xl:pt-8">
-              <div
-                className="design-badge design-badge-primary mb-8 w-fit"
-                data-home-hero-eyebrow
+      {/* Hero */}
+      <div className="sp-container">
+        <div className="sp-hero-stack">
+          <div data-sp-reveal="hero">
+            <h1 className="sp-h1 sp-h1--hero">
+              <span className="sp-hero-stack__line">Record, edit, mix, and generate.</span>{" "}
+              <span className="sp-hero-stack__line">One free DAW.</span>
+            </h1>
+            <Eyebrow icon={ShieldCheck}>Free · Open source · AGPLv3</Eyebrow>
+          </div>
+          <Frame hero className="sp-home-session" reveal="rise">
+            <ErrorBoundary
+              fallback={<ResponsiveImage alt="OpenStudio timeline" loading="eager" src={SHOTS.heroTimeline} />}
+            >
+              <Suspense
+                fallback={<ResponsiveImage alt="OpenStudio timeline" loading="eager" src={SHOTS.heroTimeline} />}
               >
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>{homeHero.eyebrow}</span>
-              </div>
-              <h1
-                className="design-display-title max-w-5xl font-headline font-bold text-white [text-wrap:balance]"
-                data-home-hero-title
-              >
-                {homeHero.title}
-              </h1>
-              <p
-                className="home-hero-support mt-5 font-headline text-sm uppercase md:text-base"
-                data-home-hero-support
-              >
-                {homeHero.supportLine}
-              </p>
-              <p
-                className="mt-6 max-w-4xl font-headline text-xl leading-relaxed text-white/76 md:text-2xl 2xl:text-[1.7rem]"
-                data-home-hero-body
-              >
-                {renderOpenSourceText(homeHero.description)}
-              </p>
-
-              <div
-                className="mt-10 flex flex-col gap-4 sm:flex-row"
-                data-home-hero-actions
-              >
-                <span className="home-action-slot" data-home-hero-action>
-                  <Button
-                    asChild
-                    className="h-auto min-w-[min(100%,17rem)] px-10 py-4 text-base font-bold"
-                  >
-                    <Link
-                      onClick={() =>
-                        trackEvent("primary_cta_clicked", {
-                          cta_name: "download_openstudio",
-                          destination_path: homeHero.primaryCta.to,
-                          source: "home_hero",
-                        })
-                      }
-                      to={homeHero.primaryCta.to}
-                    >
-                      <span className="openstudio-button__icon">
-                        <Download className="h-4 w-4" />
-                      </span>
-                      <span className="openstudio-button__label">
-                        {homeHero.primaryCta.label}
-                      </span>
-                    </Link>
-                  </Button>
-                </span>
-                {externalLinks.repository ? (
-                  <span className="home-action-slot" data-home-hero-action>
-                    <Button
-                      asChild
-                      className="h-auto min-w-[min(100%,11rem)] px-10 py-4 text-base font-semibold"
-                      variant="outline"
-                    >
-                      <a
-                        href={externalLinks.repository}
-                        rel="noreferrer"
-                        target="_blank"
-                      >
-                        <span className="openstudio-button__icon">
-                          <Github className="h-4 w-4" />
-                        </span>
-                        <span className="openstudio-button__label">GitHub</span>
-                      </a>
-                    </Button>
-                  </span>
+                {staticRender || !heroReady ? (
+                  <ResponsiveImage alt="OpenStudio timeline" loading="eager" src={SHOTS.heroTimeline} />
                 ) : (
-                  <span className="home-action-slot" data-home-hero-action>
-                    <Button
-                      asChild
-                      className="h-auto min-w-[min(100%,11rem)] px-10 py-4 text-base font-semibold"
-                      variant="outline"
-                    >
-                      <Link to="/github">
-                        <span className="openstudio-button__icon">
-                          <Github className="h-4 w-4" />
-                        </span>
-                        <span className="openstudio-button__label">GitHub</span>
-                      </Link>
-                    </Button>
-                  </span>
+                  <LiveSession />
                 )}
-              </div>
-
-              <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:max-w-3xl">
-                {homeProofBarItems.slice(0, 4).map((item) => (
-                  <div
-                    className="home-proof-card"
-                    data-home-proof-item
-                    key={item}
-                  >
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
+              </Suspense>
+            </ErrorBoundary>
+          </Frame>
+          <div className="sp-hero-stack__copy" data-sp-reveal="hero">
+            <div className="flex items-center justify-center gap-[16px] flex-wrap mb-[12px]">
+              <DownloadCta />
+              <ArrowLink to={SITE_PATHS.features} tone="plain">
+                See all features
+              </ArrowLink>
             </div>
-
-            <div className="hidden xl:block" data-home-logo-stage>
-              <BrandLogoConstructScene
-                criticalAssetRootRef={logoSectionRef}
-                playback="viewport"
-                playbackMediaQuery="(min-width: 1280px)"
-                progressVariableTargetRef={logoSectionRef}
-                showWordmark
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="px-4 py-10 md:px-8 xl:px-12">
-        <div className="page-frame-wide">
-          <div className="grid gap-6">
-            <DawCockpitScene accent="lavender" />
-            <div className="home-session-strip">
-              <div className="flex items-center gap-4">
-                <div className="home-session-strip__mark">
-                  <img
-                    alt="OpenStudio icon"
-                    className="h-full w-full object-contain"
-                    decoding="async"
-                    src={BRANDING_ASSETS.mark}
-                  />
-                </div>
-                <div>
-                  <div className="font-headline text-lg font-bold text-white">
-                    OpenStudio live session
-                  </div>
-                  <div className="font-mono text-[0.62rem] uppercase tracking-[0.24em] text-white/36">
-                    recording, MIDI, pitch, plugins, scripting
-                  </div>
-                </div>
-              </div>
-              <div className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-secondary">
-                {renderOpenSourceText(
-                  "Windows + macOS + Linux | OpenSource / AGPLv3 | optional AI tools separate",
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section
-        aria-labelledby="home-nam-rack-title"
-        className="px-4 py-10 md:px-8 xl:px-12"
-      >
-        <div className="page-frame-wide">
-          <SectionReveal className="scroll-spotlight overflow-hidden rounded-[2.75rem] border border-white/10 p-6 md:p-10 xl:p-12">
-            <div className="grid gap-10 xl:grid-cols-[minmax(0,0.84fr)_minmax(0,1.16fr)] xl:items-center">
-              <div className="max-w-2xl">
-                <div className="design-badge border border-white/15 bg-white/[0.06] text-white/82">
-                  <Guitar className="h-3.5 w-3.5" />
-                  {homeNamRack.eyebrow}
-                </div>
-                <h2
-                  className="section-display mt-6 font-headline font-bold text-white"
-                  id="home-nam-rack-title"
-                >
-                  {homeNamRack.title}
-                </h2>
-                <p className="mt-6 text-lg leading-8 text-white/72">
-                  {homeNamRack.description}
-                </p>
-                <div className="mt-7 flex flex-wrap gap-3">
-                  {homeNamRack.proof.map((item) => (
-                    <span
-                      className="design-badge border border-secondary/20 bg-secondary/[0.07] text-secondary"
-                      key={item}
-                    >
-                      {item}
-                    </span>
-                  ))}
-                </div>
-                <p className="mt-6 border-l border-white/15 pl-4 text-sm leading-7 text-white/52">
-                  {homeNamRack.caveat}
-                </p>
-                <Button asChild className="mt-8 h-auto px-7 py-3.5">
-                  <Link
-                    onClick={() =>
-                      trackEvent("internal_link_clicked", {
-                        destination_path: homeNamRack.cta.to,
-                        link_label: homeNamRack.cta.label,
-                        source: "home_nam_rack",
-                      })
-                    }
-                    to={homeNamRack.cta.to}
-                  >
-                    {homeNamRack.cta.label}
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-
-              <figure className="design-glass-panel overflow-hidden rounded-[2rem] border border-white/10 bg-black/45 p-3">
-                <div className="overflow-hidden rounded-[1.45rem] bg-black">
-                  <img
-                    {...getResponsiveImageAttributes(
-                      homeNamRack.screenshot.src,
-                      "below-fold",
-                      {
-                        maxWidth: 1200,
-                        sizes: "(min-width: 1280px) 52vw, 100vw",
-                      },
-                    )}
-                    alt={homeNamRack.screenshot.alt}
-                    className="aspect-[1200/630] h-auto w-full object-contain"
-                  />
-                </div>
-                <figcaption className="px-3 pb-1 pt-4 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white/42">
-                  {homeNamRack.screenshot.caption}
-                </figcaption>
-              </figure>
-            </div>
-          </SectionReveal>
-        </div>
-      </section>
-
-      <section className="px-4 py-8 md:px-8 xl:px-12">
-        <div className="page-frame-wide">
-          <div className="grid gap-8 border-y border-white/10 py-10 xl:grid-cols-[0.78fr_1.22fr] xl:items-center">
-            <div>
-              <div className="design-badge design-badge-secondary mb-4 w-fit">
-                {homeAlternativePositioning.eyebrow}
-              </div>
-              <h2 className="max-w-3xl font-headline text-3xl font-bold leading-tight text-white md:text-4xl">
-                {homeAlternativePositioning.title}
-              </h2>
-            </div>
-            <div className="space-y-5">
-              <p className="max-w-4xl text-base leading-8 text-white/70 md:text-lg">
-                {homeAlternativePositioning.description}
-              </p>
-              <p className="max-w-4xl text-sm leading-7 text-white/58 md:text-base">
-                {homeAlternativePositioning.supporting}
-              </p>
-              <div className="flex flex-wrap gap-3">
-                {homeAlternativePositioning.links.map((link) => (
-                  <Link
-                    className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/10 px-4 py-2 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-white/58 transition hover:border-primary/35 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
-                    key={link.to}
-                    to={link.to}
-                  >
-                    {link.label}
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="px-4 py-10 md:px-8 xl:px-12">
-        <div className="page-frame-wide">
-          <div className="scroll-spotlight grid gap-12 overflow-hidden rounded-[2.75rem] border border-white/10 p-6 md:p-10 xl:grid-cols-[0.86fr_1.14fr] xl:items-center xl:p-12">
-            <div className="space-y-7" data-home-origin-copy>
-              <div className="design-badge design-badge-secondary w-fit">
-                {homeOriginStory.eyebrow}
-              </div>
-              <h2 className="home-origin-title section-display max-w-xl font-headline font-bold text-white">
-                {renderOpenSourceText(
-                  "OpenSource. Product-led. Built in public.",
-                )}
-              </h2>
-              <p className="max-w-xl text-lg leading-8 text-white/66">
-                {renderOpenSourceText(homeOriginStory.description)}
-              </p>
-              <div className="grid gap-4">
-                {homeOriginStory.points.map((point) => (
-                  <div
-                    className="hover-card hover-card--emerald rounded-[1.45rem] border border-white/10 bg-white/[0.03] px-5 py-4 text-sm leading-7 text-white/70"
-                    key={point}
-                  >
-                    {point}
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center gap-4 pt-2">
-                <div className="h-1 w-24 rounded-full bg-primary" />
-                <span className="font-mono text-xs uppercase tracking-[0.28em] text-primary">
-                  Project active
-                </span>
-              </div>
-            </div>
-
-            <div
-              className="home-origin-media-panel relative min-h-[34rem] overflow-hidden rounded-[2.3rem] border border-white/10 bg-black/20 p-5 md:p-6"
-              data-home-origin-media
-            >
-              <img
-                {...getResponsiveImageAttributes(
-                  designMedia.homeStoryServer.src,
-                  "below-fold",
-                  {
-                    maxWidth: 512,
-                    sizes:
-                      "(min-width: 1280px) 52vw, (min-width: 768px) calc(100vw - 4rem), calc(100vw - 2rem)",
-                  },
-                )}
-                alt={designMedia.homeStoryServer.alt}
-                className="absolute inset-0 h-full w-full object-cover opacity-58 grayscale contrast-125"
-                data-parallax-image
-              />
-              <div className="absolute inset-0 bg-gradient-to-tr from-black/48 via-black/8 to-secondary/8" />
-              <div className="home-origin-license-card hover-card hover-card--emerald">
-                <div className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-secondary">
-                  License
-                </div>
-                <div className="mt-4 font-headline text-2xl font-bold text-white">
-                  GNU AGPLv3
-                </div>
-                <p className="mt-3 text-sm leading-7 text-white/76">
-                  {renderOpenSourceText(
-                    "OpenSource by default, with source access and license terms visible before people download, modify, or contribute.",
-                  )}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="px-4 py-14 md:px-8 xl:px-12">
-        <div className="page-frame-wide">
-          <div className="mb-14 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-            <div>
-              <div className="design-badge design-badge-primary mb-4 w-fit">
-                Connected workflow
-              </div>
-              <h2 className="font-display text-4xl font-bold uppercase tracking-tight text-white md:text-6xl">
-                Scroll Through the Session
-              </h2>
-            </div>
-            <p className="home-workflow-note max-w-2xl text-sm leading-7">
-              Move from a first take to pitch work, stems, plugins, MIDI, and
-              final render without losing the shape of the song. Each card is a
-              production moment, not a disconnected feature bullet.
+            <div className="sp-mono leading-[1.5] mb-[22px]">{heroMeta}</div>
+            <p className="sp-lede text-[17px] leading-[1.6] max-w-[640px] mb-[16px]">
+              Multitrack recording, MIDI, a full mixer, VST3/CLAP/LV2 hosting, graphical pitch editing, local AI
+              generation and stem separation, and a Neural Amp Modeler guitar rig. All of it is in the base app, on
+              Windows, macOS, and Linux.
             </p>
           </div>
+        </div>
+      </div>
 
-          <div className="grid gap-6 2xl:grid-cols-2" data-home-card-grid>
-            {homeWorkflowSteps.slice(0, 4).map((step, index) => (
-              <article
-                className="design-glass-panel group overflow-hidden rounded-[2rem] border border-white/10"
-                data-home-card
-                key={step.id}
-              >
-                <div className="relative aspect-[16/10] overflow-hidden">
-                  <img
-                    {...getResponsiveImageAttributes(
-                      step.screenshot.src,
-                      "below-fold",
-                      {
-                        maxWidth: 1600,
-                        sizes:
-                          "(min-width: 1536px) 48vw, (min-width: 768px) calc(100vw - 4rem), calc(100vw - 2rem)",
-                      },
-                    )}
-                    alt={step.screenshot.alt}
-                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                    data-parallax-image
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/10" />
-                  <div className="absolute left-5 top-5 design-badge bg-black/40 text-white/75">
-                    {step.eyebrow}
-                  </div>
-                  <div className="absolute bottom-5 left-5 right-5">
-                    <div className="font-display text-4xl text-white/18">{`0${index + 1}`}</div>
-                    <h3 className="mt-2 max-w-lg font-headline text-2xl font-bold text-white">
-                      {step.title}
-                    </h3>
-                  </div>
-                </div>
-                <div className="grid gap-4 p-6">
-                  <p className="text-sm leading-7 text-white/66">
-                    {step.description}
-                  </p>
-                  <div className="grid gap-3">
-                    {step.bullets.slice(0, 2).map((bullet) => (
-                      <div
-                        className="rounded-[1.3rem] border border-white/10 bg-black/25 px-4 py-3 text-sm text-white/70"
-                        key={bullet}
-                      >
-                        {bullet}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+      {/* Showcase (dark) */}
+      <section className="sp-dark-panel" data-sp-reveal="band">
+        <div className="sp-container pt-[72px] pb-[72px]">
+          <Showcase />
         </div>
       </section>
 
-      <section className="bg-black/20 px-4 py-14 md:px-8 xl:px-12">
-        <div className="page-frame-wide">
-          <div className="mb-14 text-center">
-            <h2 className="font-display text-3xl font-bold uppercase tracking-tight text-white md:text-5xl">
-              Engineered for Serious Work
-            </h2>
-            <div className="mx-auto mt-4 h-1 w-32 rounded-full bg-secondary" />
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-3">
-            {homePillars.slice(0, 3).map((pillar, index) => (
-              <SectionReveal
-                className="design-glass-panel rounded-[2.4rem] p-7"
-                delay={index * 0.06}
-                key={pillar.title}
-              >
-                <div className="relative h-56 overflow-hidden rounded-[1.75rem]">
-                  <img
-                    {...getResponsiveImageAttributes(
-                      pillarMedia[index]!.src,
-                      "below-fold",
-                      {
-                        maxWidth: 512,
-                        sizes:
-                          "(min-width: 768px) 31vw, calc(100vw - 4rem)",
-                      },
-                    )}
-                    alt={pillarMedia[index]!.alt}
-                    className="h-full w-full object-cover transition duration-700 hover:scale-105"
-                    data-parallax-image
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
-                </div>
-                <h3 className="mt-7 font-headline text-2xl font-bold text-white">
-                  {pillar.title}
-                </h3>
-                <p className="mt-4 text-sm leading-7 text-white/66">
-                  {pillar.description}
-                </p>
-              </SectionReveal>
-            ))}
-          </div>
+      {/* The full session */}
+      <div className="sp-container pt-[78px]">
+        <div data-sp-reveal="hero">
+          <h2 className="sp-h2 sp-h2--display leading-[1.05] max-w-[620px]">
+            One project, from first take to final render.
+          </h2>
+          <p className="sp-lede text-[16px] max-w-[560px] mb-[40px]">
+            Recording, MIDI, editing, pitch work, mixing, and export live in the same window, so you never have to
+            export a clip to another tool and bring it back.
+          </p>
         </div>
-      </section>
+        <div className="flex flex-col gap-[34px] pb-[78px]">
+          {SESSION_ROWS.map((row) => {
+            const copyBlock = (
+              <div key="copy" data-sp-reveal="rise">
+                <div className="sp-mono text-[11px] leading-[1] mb-[12px]">{row.number}</div>
+                <div className="[font:700_24px/1.2_'Space_Grotesk',_sans-serif] tracking-[-0.02em] mb-[10px] flex items-center gap-[10px]">
+                  <GradIcon icon={row.icon} size={21} />
+                  {row.title}
+                </div>
+                <p className="sp-body mb-[14px]">{row.copy}</p>
+                <ArrowLink to={row.to}>In the docs</ArrowLink>
+              </div>
+            );
+            const imageBlock = (
+              <Frame key="image" reveal={row.imageFirst ? "media-left" : "media-right"}>
+                <LiveStage alt={row.alt} {...row.stage} poster={row.shot} />
+              </Frame>
+            );
 
-      <section
-        aria-labelledby="home-faq-title"
-        className="px-4 py-14 md:px-8 xl:px-12"
-      >
-        <div className="page-frame-wide">
-          <div className="mx-auto max-w-4xl text-center">
-            <div className="design-badge design-badge-secondary mx-auto w-fit">
-              OpenStudio FAQ
-            </div>
-            <h2
-              className="mt-6 font-headline text-4xl font-bold leading-tight text-white md:text-5xl"
-              id="home-faq-title"
-            >
-              Start with the practical questions.
-            </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-white/64">
-              The essentials about cost, platforms, plug-ins, and optional AI
-              tools before you download.
+            return (
+              <div
+                key={row.number}
+                className={`sp-row [border-top:1px_solid_var(--sp-hairline)] pt-[34px] ${row.imageFirst ? "min-[901px]:grid-cols-[.58fr_.42fr]" : "min-[901px]:grid-cols-[.42fr_.58fr]"}`}
+              >
+                {row.imageFirst ? [imageBlock, copyBlock] : [copyBlock, imageBlock]}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Plugins / AI split */}
+      <div className="sp-container">
+        <div
+          className="sp-row sp-split-cols min-[901px]:grid-cols-[1fr_1fr] gap-[0px] [border-top:1px_solid_var(--sp-hairline)] pb-[78px] items-start"
+          data-sp-reveal="stagger"
+        >
+          <div className="sp-split-cols__a">
+            <Eyebrow icon={Plug}>VST3 · CLAP · LV2 · ARA2</Eyebrow>
+            <h2 className="sp-h2 leading-[1.12]">Your plugins, hosted natively.</h2>
+            <p className="sp-body mb-[16px]">
+              VST3, CLAP, and LV2 in their own native windows, with input FX, track FX, and master FX chains, plus
+              optional ARA2 hosting. Built-in processors and Lua-scriptable ones cover the rest.
             </p>
+            <ArrowLink to={docPath("plugins-and-scanning")}>Plugins & scanning</ArrowLink>
           </div>
+          <div className="sp-split-cols__b">
+            <Eyebrow icon={Cpu}>Optional · Local · Offline after setup</Eyebrow>
+            <h2 className="sp-h2 leading-[1.12]">Generate, separate, and vary, all on your machine.</h2>
+            <p className="sp-body mb-[14px]">
+              Set up each model from AI Tools inside the app. ACE-Step and Stable Audio 3 generate, extend, and vary
+              audio from a prompt; BS Roformer separates vocals, drums, bass, guitar, piano, and other.
+            </p>
+            <p className="sp-body mb-[16px]">
+              Nothing is bundled into the base installer and nothing is sent to a server.
+            </p>
+            <ArrowLink to={SITE_PATHS.ai}>How the AI tools work</ArrowLink>
+          </div>
+        </div>
+      </div>
 
-          <div className="mx-auto mt-10 grid max-w-6xl gap-5 md:grid-cols-2">
-            {homeFaqs.map(({ answer, question }) => (
-              <article
-                className="rounded-[1.75rem] border border-white/10 bg-white/[0.035] p-6 md:p-7"
-                key={question}
-              >
-                <h3 className="font-headline text-xl font-semibold leading-snug text-white">
-                  {question}
-                </h3>
-                <p className="mt-4 text-sm leading-7 text-white/66">
-                  {answer}
-                </p>
-              </article>
+      {/* Open source */}
+      <div className="sp-container">
+        <div
+          className="sp-row min-[901px]:grid-cols-[1fr_1fr] gap-[52px] [border-top:1px_solid_var(--sp-hairline)] p-[64px_0_78px]"
+          data-sp-reveal="stagger"
+        >
+          <div>
+            <h2 className="sp-h2 sp-h2--large leading-[1.08]">Free under AGPLv3. All of it.</h2>
+            <p className="sp-body text-[15.5px] mb-[22px]">
+              There is no trial, no paid tier, and no account. The full source is public, so you can read it, build it,
+              fork it, and send patches back.
+            </p>
+            <div className="flex gap-[22px] flex-wrap">
+              <ArrowLink href={REPO.url}>Browse the source</ArrowLink>
+              <ArrowLink to={SITE_PATHS.community}>Contribute</ArrowLink>
+              <ArrowLink to={SITE_PATHS.roadmap}>Roadmap</ArrowLink>
+            </div>
+          </div>
+          <div className="grid [grid-template-columns:1fr_1fr] gap-[1px] [background:linear-gradient(135deg,_rgba(80,0,255,.35),_rgba(0,215,182,.3))] [border:1px_solid_transparent] rounded-[10px] overflow-hidden">
+            {statTiles.map((tile) => (
+              <div className="[background:var(--sp-honest)] p-[22px]" key={tile.label}>
+                <div className="[font:700_26px/1_'JetBrains_Mono',_monospace] mb-[6px]">{tile.value}</div>
+                <div className="sp-mono text-[11px] leading-[1] tracking-[0.1em] uppercase flex items-center gap-[6px]">
+                  <tile.icon aria-hidden="true" size={12} strokeWidth={1.7} />
+                  {tile.label}
+                </div>
+              </div>
             ))}
           </div>
         </div>
-      </section>
-
-      <section className="px-4 py-14 md:px-8 xl:px-12">
-        <div className="page-frame-wide">
-          <SectionReveal className="home-aurora-cta" delay={0.02}>
-            <div className="home-aurora-cta__content flex flex-col items-center text-center">
-              <div className="design-badge design-badge-secondary w-fit">
-                Ready when the session is
-              </div>
-              <h2 className="mt-6 font-headline text-4xl font-bold leading-tight text-white md:text-6xl">
-                Download OpenStudio or inspect the project on GitHub.
-              </h2>
-              <p className="mt-5 max-w-3xl text-sm leading-7 text-white/72 md:text-base">
-                {renderOpenSourceText(
-                  "Start with the native DAW, then go deeper into the OpenSource code, AGPLv3 license, releases, and roadmap whenever you want the full picture.",
-                )}
-              </p>
-              <div className="w-full mt-8 flex flex-col gap-3 sm:flex-row items-center justify-center">
-                <Button
-                  asChild
-                  className="h-auto px-8 py-4 text-base font-bold"
-                >
-                  <Link
-                    onClick={() =>
-                      trackEvent("primary_cta_clicked", {
-                        cta_name: "download_openstudio",
-                        destination_path: "/download",
-                        source: "home_release_cta",
-                      })
-                    }
-                    to="/download"
-                  >
-                    <span className="openstudio-button__icon">
-                      <Download className="h-4 w-4" />
-                    </span>
-                    <span className="openstudio-button__label">
-                      Download OpenStudio
-                    </span>
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  className="h-auto px-8 py-4 text-base font-semibold"
-                  variant="outline"
-                >
-                  {externalLinks.repository ? (
-                    <a
-                      href={externalLinks.repository}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      <span className="openstudio-button__icon">
-                        <Github className="h-4 w-4" />
-                      </span>
-                      <span className="openstudio-button__label">GitHub</span>
-                    </a>
-                  ) : (
-                    <Link to="/github">
-                      <span className="openstudio-button__icon">
-                        <Github className="h-4 w-4" />
-                      </span>
-                      <span className="openstudio-button__label">GitHub</span>
-                    </Link>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </SectionReveal>
-        </div>
-      </section>
-    </main>
+      </div>
+    </>
   );
 };
 

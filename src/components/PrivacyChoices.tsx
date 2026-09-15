@@ -45,31 +45,30 @@ const PrivacyChoices = () => {
   return (
     <section
       aria-label="Website privacy choices"
-      data-lenis-prevent
-      className="fixed inset-x-3 bottom-3 z-40 mx-auto max-h-[80dvh] max-w-3xl overflow-y-auto rounded-2xl border border-white/20 bg-[#171717] p-5 text-sm text-white shadow-2xl sm:p-6"
+      className="fixed inset-x-3 bottom-3 z-40 mx-auto max-h-[80dvh] max-w-3xl overflow-y-auto rounded-2xl border border-[#d9dfe8] bg-[#fafbfc] p-5 text-sm text-[#19243b] shadow-2xl sm:p-6"
       onKeyDown={(event) => {
         if (event.key === "Escape" && choice) close();
       }}
     >
-      <h2 ref={heading} tabIndex={-1} className="text-lg font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+      <h2 ref={heading} tabIndex={-1} className="text-lg font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#5364bd]">
         Website analytics
       </h2>
-      <p className="mt-2 leading-6 text-white/80">
+      <p className="mt-2 leading-6 text-[#46536b]">
         With your permission, Google Analytics measures visits and downloads, and Microsoft Clarity records website interactions for heatmaps and session replays. These tools are used on this website, not inside the OpenStudio desktop app. Rejecting them does not affect downloads or app features.
       </p>
-      <p className="mt-2 leading-6 text-white/80">
+      <p className="mt-2 leading-6 text-[#46536b]">
         Change your choice anytime using “Privacy choices” in the footer. <Link to="/privacy" className="underline underline-offset-4">Read the privacy policy</Link>.
       </p>
-      {choice && <p className="mt-2 text-white/70">Current choice: {choice === "accepted" ? "analytics allowed" : "analytics rejected"}.</p>}
+      {choice && <p className="mt-2 text-[#46536b]">Current choice: {choice === "accepted" ? "analytics allowed" : "analytics rejected"}.</p>}
       <div className="mt-4 flex flex-wrap gap-3">
-        <button type="button" onClick={() => choose("rejected")} className="min-h-11 rounded-lg border border-white/40 px-4 py-2 font-medium hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+        <button type="button" onClick={() => choose("rejected")} className="min-h-11 rounded-lg border border-[#98a5ba] px-4 py-2 font-medium hover:bg-[#e9edf4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#5364bd]">
           Reject analytics
         </button>
-        <button type="button" onClick={() => choose("accepted")} className="min-h-11 rounded-lg border border-white/40 px-4 py-2 font-medium hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+        <button type="button" onClick={() => choose("accepted")} className="min-h-11 rounded-lg border border-[#98a5ba] px-4 py-2 font-medium hover:bg-[#e9edf4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#5364bd]">
           Accept analytics
         </button>
         {choice && (
-          <button type="button" onClick={close} className="min-h-11 rounded-lg px-4 py-2 underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+          <button type="button" onClick={close} className="min-h-11 rounded-lg px-4 py-2 underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#5364bd]">
             Keep current choice
           </button>
         )}

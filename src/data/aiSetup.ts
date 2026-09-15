@@ -22,3 +22,20 @@ export const aiSetupDownloads = [
 
 export const aiSetupNetworkNote =
   "Internet access is needed for dependency downloads and to obtain model snapshots. Providers may require an account or license acceptance. Once setup and local model validation finish, generation runs locally without uploading your audio, prompts or lyrics. Available models and acceleration depend on your installed app version and hardware.";
+
+interface AiModelSummary {
+  model: string;
+  family: string;
+  does: string;
+  status: string;
+  tone: "good" | "warn" | "plain";
+}
+
+/** Shared by marketing and documentation; availability must follow desktop releases. */
+export const AI_MODEL_CATALOG = [
+  { model: "BS Roformer", family: "Stem separation", does: "Six-stem separation into new project tracks", status: "Guided setup", tone: "good" },
+  { model: "ACE-Step", family: "Generation", does: "Text to Music, Lyrics + Style, variation, inpaint selection, continuation", status: "Guided setup · Diffusers", tone: "good" },
+  { model: "Stable Audio 3 Medium", family: "Generation", does: "Text to Audio, variation, inpaint selection, continuation", status: "Next desktop release · guided gated download and conversion · Diffusers", tone: "warn" },
+  { model: "MiniMax Music 3", family: "Generation", does: "Lyrics + Style and Song Sections (structured songs)", status: "Next desktop release · guided download · Diffusers", tone: "warn" },
+  { model: "Basic Pitch", family: "Analysis", does: "Audio to MIDI", status: "Bundled model; inference in ONNX-enabled Windows and Linux builds", tone: "good" },
+] satisfies AiModelSummary[];

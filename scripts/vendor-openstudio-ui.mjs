@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Re-syncs the OpenStudio UI sources vendored under src/v2/daw/vendor/ from a
+ * Re-syncs the OpenStudio UI sources vendored under src/features/daw-preview/vendor/ from a
  * pinned commit of sdevil7th/OpenStudio, applying the small deterministic
  * patches that make them build inside this site (import paths, asset URLs).
  *
@@ -23,7 +23,7 @@ const args = process.argv.slice(2).filter((arg) => !arg.startsWith("--"));
 const sha = args[0] ?? OPENSTUDIO_SHA;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const RAW = `https://raw.githubusercontent.com/sdevil7th/OpenStudio/${sha}/frontend/src`;
-const VENDOR_DIR = "src/v2/daw/vendor";
+const VENDOR_DIR = "src/features/daw-preview/vendor";
 const ATLAS_DIR = "public/assets/openstudio/nam/controls";
 const ATLAS_FRAME_PX = 96;
 const ATLAS_COLUMNS = 11;
@@ -154,6 +154,11 @@ const designAssetHref = (_assets: Record<string, string>, directory: "bodies" | 
     from: "components/NAMRackDesignPort.tsx",
     to: "NAMRackDesignPort.tsx",
     patches: [
+      // Website hook dependency fixes.
+      ["}, [config.sessionKey]);","}, [config.sessionKey, config.initialScrollTop]);"],
+      ["      !config.pagination ||\n      config.pagination.mode !== \"live\" ||\n      !config.pagination.canLoadMore ||","      config.pagination?.mode !== \"live\" ||\n      !config.pagination?.canLoadMore ||"],
+      ["      () => emit(\"auto-load-more\"),","      () => onAction({ type: \"nam-source-flow-design-port\", instanceId: \"native-source-flow\", action: \"auto-load-more\", value: \"\", rowId: \"\" }),"],
+      ["    config.pagination?.requestKey,\n  ]);","    config.pagination?.requestKey,\n    onAction,\n  ]);"],
       ['from "../services/NativeBridge"', 'from "./stubs/nativeBridgeTypes"'],
       ['from "../utils/builtInParamValue"', 'from "./stubs/builtInParamValue"'],
       ['from "./NAMRackMixer"', 'from "./stubs/namRackMixerTypes"'],

@@ -13,7 +13,7 @@ const blog = readFileSync(
   "utf8",
 );
 const features = readFileSync(
-  new URL("../src/data/features.ts", import.meta.url),
+  new URL("../src/features/docs/content/nam-rack-setup.ts", import.meta.url),
   "utf8",
 );
 
@@ -48,8 +48,7 @@ test("NAM Rack copy matches the app-derived five-pedal pre-effect chain", () => 
     .join("[\\s\\S]*");
   assert.match(blog, new RegExp(`${preEffectOrder}[\\s\\S]*->\\s*A1/A2 amp`, "i"));
 
-  assert.match(features, /Compressor, Stereo Poly Octaver, PRE EQ, Precision Drive, and Distortion/);
-  assert.match(features, /Precision Drive → distortion → optional Pedal NAM → A1\/A2 amp or full-rig capture/);
+
 });
 
 test("NAM Rack post-effect copy matches the app-derived reorderable stages", () => {

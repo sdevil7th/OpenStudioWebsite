@@ -9,17 +9,15 @@ const sha256 = (value) =>
   crypto.createHash("sha256").update(value).digest("hex");
 const indexHtml = read("index.html").toString("utf8");
 const manifest = JSON.parse(
-  read("public/assets/openstudio/fonts/google-fonts-20260815.json").toString(
+  read("public/assets/openstudio/fonts/google-fonts-20260915.json").toString(
     "utf8",
   ),
 );
 const fontCss = read(
-  "public/assets/openstudio/fonts/google-fonts-20260815.css",
+  "public/assets/openstudio/fonts/google-fonts-20260915.css",
 ).toString("utf8");
 
 const expectedFaces = new Map([
-  ["Fraunces|italic", [300, 400, 500, 600, 700]],
-  ["Fraunces|normal", [300, 400, 500, 600, 700]],
   ["Inter|normal", [300, 400, 500, 600, 700, 800]],
   ["JetBrains Mono|normal", [400, 500, 600, 700]],
   ["Orbitron|normal", [500, 600, 700, 800, 900]],
@@ -29,7 +27,7 @@ const expectedFaces = new Map([
 test("the font stylesheet is local, versioned, and keeps the Google face descriptors", () => {
   assert.match(
     indexHtml,
-    /<link[^>]*rel="stylesheet"[^>]*href="\/assets\/openstudio\/fonts\/google-fonts-20260815\.css"[^>]*data-openstudio-fonts/s,
+    /<link[^>]*rel="stylesheet"[^>]*href="\/assets\/openstudio\/fonts\/google-fonts-20260915\.css"[^>]*data-openstudio-fonts/s,
   );
   assert.match(
     indexHtml,
@@ -37,16 +35,15 @@ test("the font stylesheet is local, versioned, and keeps the Google face descrip
   );
   assert.doesNotMatch(indexHtml, /fonts\.(?:googleapis|gstatic)\.com/i);
   assert.doesNotMatch(fontCss, /https?:\/\//i);
-  assert.equal((fontCss.match(/@font-face/g) ?? []).length, 110);
-  assert.equal((fontCss.match(/font-display:\s*swap/g) ?? []).length, 110);
+  assert.equal((fontCss.match(/@font-face/g) ?? []).length, 80);
+  assert.equal((fontCss.match(/font-display:\s*swap/g) ?? []).length, 80);
   assert.deepEqual(manifest.families, [
-    "Fraunces",
     "Inter",
     "JetBrains Mono",
     "Orbitron",
     "Space Grotesk",
   ]);
-  assert.equal(manifest.fontFaceCount, 110);
+  assert.equal(manifest.fontFaceCount, 80);
 
   const discoveredFaces = new Map();
   for (const [, block] of fontCss.matchAll(/@font-face\s*\{([\s\S]*?)\}/g)) {
@@ -70,9 +67,9 @@ test("the font stylesheet is local, versioned, and keeps the Google face descrip
   );
 });
 
-test("all 23 WOFF2 files match the recorded upstream bytes", () => {
-  assert.equal(manifest.fonts.length, 23);
-  assert.equal(new Set(manifest.fonts.map(({ localUrl }) => localUrl)).size, 23);
+test("all retained WOFF2 files match the recorded upstream bytes", () => {
+  assert.equal(manifest.fonts.length, 17);
+  assert.equal(new Set(manifest.fonts.map(({ localUrl }) => localUrl)).size, 17);
 
   for (const font of manifest.fonts) {
     assert.match(font.sourceUrl, /^https:\/\/fonts\.gstatic\.com\//);
@@ -87,12 +84,12 @@ test("all 23 WOFF2 files match the recorded upstream bytes", () => {
     assert.equal(sha256(bytes), font.sha256, font.localUrl);
   }
 
-  const cssBytes = read("public/assets/openstudio/fonts/google-fonts-20260815.css");
+  const cssBytes = read("public/assets/openstudio/fonts/google-fonts-20260915.css");
   assert.equal(sha256(cssBytes), manifest.css.sha256);
 });
 
 test("every self-hosted family includes its upstream SIL OFL license", () => {
-  assert.equal(manifest.licenses.length, 5);
+  assert.equal(manifest.licenses.length, 4);
 
   for (const license of manifest.licenses) {
     const bytes = read(`public${license.localPath}`);

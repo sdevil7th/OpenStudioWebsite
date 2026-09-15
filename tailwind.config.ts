@@ -1,5 +1,5 @@
 import type { Config } from "tailwindcss";
-import tailwindcssAnimate from "tailwindcss-animate";
+
 
 export default {
   darkMode: ["class"],
@@ -76,7 +76,7 @@ export default {
           frost: "hsl(var(--signal-frost))",
         },
         // OpenStudio app tokens (Tailwind 4 `@theme` in the app → Tailwind 3
-        // config here) for the vendored DAW UI under src/v2/daw/.
+        // config here) for the vendored DAW UI under src/features/daw-preview/.
         daw: {
           dark: "#121212",
           panel: "#1a1a1a",
@@ -152,5 +152,5 @@ export default {
       },
     },
   },
-  plugins: [tailwindcssAnimate],
+
 } satisfies Config;
