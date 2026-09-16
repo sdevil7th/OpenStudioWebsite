@@ -80,6 +80,63 @@ test("every redesigned production route fits mobile, tablet and desktop", { time
           await context.close();
         }
       });
+    for (const width of [320, 360, 390, 430, 639, 640, 768, 900, 901, 1440]) {
+      await t.test(`${width}px system requirements keep every value readable`, async () => {
+        const context = await browser.newContext({ viewport: { width, height: 1000 }, reducedMotion: "reduce" });
+        try {
+          await context.route("https://**/*", (route) => route.abort());
+          const page = await context.newPage();
+          await page.goto(base + "download");
+          await page.waitForFunction(() => window.__openstudioAppReady && window.__openstudioIntroHidden);
+          await page.evaluate(() => document.fonts.ready);
+          const card = page.locator("#requirements .sp-card");
+          const details = card.locator(":scope > dl");
+          const comparison = card.locator(":scope > div");
+          if (width < 640) {
+            assert.equal(await comparison.isVisible(), false);
+            const rows = details.locator(":scope > div");
+            assert.deepEqual(await rows.locator(":scope > dt").allTextContents(), ["Processor", "Memory", "Storage", "OS / Audio"]);
+            for (const row of await rows.all()) {
+              assert.deepEqual(await row.locator("dd dt").allTextContents(), ["Minimum", "Recommended"]);
+              const values = row.locator("dd dd");
+              assert.equal(await values.count(), 2);
+              for (const value of await values.all()) {
+                assert.equal(await value.isVisible(), true);
+                assert.ok((await value.innerText()).trim().length > 0);
+                const fits = await value.evaluate((element) => {
+                  const rect = element.getBoundingClientRect();
+                  return rect.left >= 0 && rect.right <= innerWidth
+                    && element.scrollWidth <= element.clientWidth + 1
+                    && element.scrollHeight <= element.clientHeight + 1;
+                });
+                assert.equal(fits, true, await value.innerText());
+              }
+            }
+            assert.equal(await card.evaluate((element) => element.scrollWidth > element.clientWidth), false);
+          } else {
+            assert.equal(await details.isVisible(), false);
+            assert.equal(await comparison.isVisible(), true);
+            assert.equal(await comparison.evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(" ").length), 3);
+          }
+          assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+        } finally {
+          await context.close();
+        }
+      });
+    }
+    await t.test("mobile requirements are readable without JavaScript", async () => {
+      const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 900 } });
+      try {
+        const page = await context.newPage();
+        await page.goto(base + "download");
+        const values = page.locator("#requirements dl dd dd");
+        assert.equal(await values.count(), 8);
+        for (const value of await values.all()) assert.equal(await value.isVisible(), true);
+        assert.equal(await page.locator("#requirements .sp-card").evaluate((element) => element.scrollWidth > element.clientWidth), false);
+      } finally {
+        await context.close();
+      }
+    });
     await t.test("legacy aliases preserve their destinations and unknown routes return 404", async () => {
       const context = await browser.newContext({ reducedMotion: "reduce" });
       try {

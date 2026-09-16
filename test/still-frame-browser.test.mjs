@@ -26,7 +26,7 @@ test("illustrations keep the same rendered frame while the animation engine load
             "openstudio.analytics-consent.v1", JSON.stringify({ choice: "rejected", time: Date.now() }),
           ));
           const page = await context.newPage();
-          const animationRequest = path === "" && width >= 768
+          const animationRequest = path === ""
             ? page.waitForRequest((request) => new URL(request.url()).pathname === animationPath)
             : undefined;
           const errors = [];

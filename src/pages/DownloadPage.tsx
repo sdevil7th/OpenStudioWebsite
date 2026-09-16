@@ -181,9 +181,33 @@ const DownloadPage = () => {
 
       {/* System requirements */}
       <div className="sp-container pt-[46px]" data-sp-reveal="rise" id="requirements">
-        <div className="sp-kicker">System requirements</div>
+        <h2 className="sp-kicker">System requirements</h2>
         <div className="sp-card sp-card--tight sp-scroll-x">
-          <div className="grid [grid-template-columns:1.1fr_1fr_1fr] min-w-[640px]">
+          <dl className="sm:hidden">
+            {systemRequirementMatrix.map((row) => (
+              <div key={row.component} className="p-[18px] border-t border-[var(--sp-hairline)] first:border-t-0">
+                <dt className="mb-3 [font:600_14px/1.4_'Space_Grotesk',_sans-serif]">{row.component}</dt>
+                <dd>
+                  <dl className="space-y-3">
+                    {([
+                      ["Minimum", row.minimum],
+                      ["Recommended", row.recommended],
+                    ] as const).map(([label, value]) => (
+                      <div key={label}>
+                        <dt className="mb-1 [font:500_10px/1.4_'JetBrains_Mono',_monospace] tracking-[0.14em] uppercase text-[var(--sp-mono-muted)]">
+                          {label}
+                        </dt>
+                        <dd className="[font:400_13px/1.5_'Space_Grotesk',_sans-serif] text-[var(--sp-body)]">
+                          {value}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </dd>
+              </div>
+            ))}
+          </dl>
+          <div className="hidden sm:grid [grid-template-columns:1.1fr_1fr_1fr] min-w-[640px]">
             <div className="sp-matrix__sticky p-[13px_18px] [border-right:1px_solid_var(--sp-hairline)]" />
             {["Minimum", "Recommended"].map((heading, index) => (
               <div

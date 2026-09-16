@@ -5,11 +5,31 @@ import type { DocContent } from "../types";
 
 const doc: DocContent = {
   updated: "2026-09-16",
-  appReference: { commit: "7f59cff", channel: "development" },
+  appReference: { commit: "681fec8", channel: "development" },
   blocks: [
     {
       type: "p",
       text: `Generation, stem separation, and the larger analysis models are optional in OpenStudio. They are never bundled with the base download and never block launch. This page covers what the **AI Tools** install actually puts on your disk, what each platform can run, and how to start each workflow. The rules it follows are the upstream [runtime dependency contract](${REPO.runtimeContractDoc}) and manual section 18. Shortcuts shown are the OpenStudio default keyboard profile.`,
+    },
+
+    { type: "h2", id: "model-versions", text: "Original and INT8 model versions" },
+    {
+      type: "p",
+      text: "In development builds containing app commit `681fec8`, choose a model, then **Original** or **INT8** in **Model version**. A suggestion above the selector explains when lower memory use may help. **AI Tools Setup** lists separate Original and INT8 installation status for ACE-Step, Stable Audio 3 Medium, and MiniMax Music 3. These controls may not be present in an older installed release.",
+    },
+    {
+      type: "p",
+      text: "INT8 currently requires an **NVIDIA CUDA GPU**. **Download and Prepare INT8** reuses installed original weights or downloads the official originals, then prepares and verifies a separate INT8 copy. The first download is not smaller. Prepared OpenStudio INT8 folders can also be imported. Choose the installed version in the generation dialog; the AI track remembers it and supports undo/redo. Original and INT8 can coexist, and the prepared INT8 version can run offline without keeping the Original version installed.",
+    },
+    {
+      type: "p",
+      text: "ACE-Step and Stable Audio quantize the diffusion transformer; MiniMax quantizes its language model. Other audio components retain their normal inference precision. Less memory use does not guarantee faster rendering or identical sound. Other GPU backends and CPU-only systems should select Original, subject to that model's hardware requirements.",
+    },
+    {
+      type: "callout",
+      tone: "note",
+      label: "MiniMax INT8 still needs a capable machine",
+      text: "The app's [local qualification report](https://github.com/sdevil7th/OpenStudio/blob/681fec8/docs/ai-quantization-2026-09-16.md) records generation on an RTX 4080 with 16 GB VRAM and 32 GB system RAM. It does not establish support for every smaller GPU or equivalent audio quality. MiniMax can take minutes per song; its INT8 path also uses about 15 GiB of temporary disk cache for inactive stages and takes longer on first load. Run the app's **Hardware check** for your selected model version and request.",
     },
 
     { type: "h2", id: "what-is-optional", text: "What is optional, and why" },

@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { Activity, AudioWaveform, CloudRain, Disc3, Gauge, SlidersHorizontal, Speaker, Timer, Waves, Zap } from "lucide-react";
-import { MIN_ANIMATED_SCALE, StageFrame, useStageScale } from "../stage/StageFrame";
+import { StageFrame, useStageScale } from "../stage/StageFrame";
 import type { StageProps } from "../stage/LiveStage";
 import { useStageTimeline } from "../stage/useStageTimeline";
 import { NAMCompactChain } from "../vendor/NAMCompactChain";
@@ -24,7 +24,7 @@ const POST: Record<PostId, Omit<NAMSignalChainRouteModule, "id">> = {
 const NamChainStage = ({ priority, className }: StageProps) => {
   const outerRef = useRef<HTMLDivElement>(null);
   const scale = useStageScale(outerRef, STAGE_WIDTH);
-  const state = useStageTimeline(SPEC, { scope: outerRef, enabled: scale >= MIN_ANIMATED_SCALE * 0.75, priority, startDelay: 0.6, fps: 20 });
+  const state = useStageTimeline(SPEC, { scope: outerRef, priority, startDelay: 0.6, fps: 20 });
 
   const fixedPre: NAMSignalChainRouteModule[] = [
     {

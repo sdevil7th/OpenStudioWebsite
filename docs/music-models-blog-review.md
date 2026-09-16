@@ -25,6 +25,16 @@ authors. It makes no new speed benchmark or subjective audio-quality claim.
 
 ## Source checks
 
+**INT8 follow-up — 16 September 2026:** the quantization paragraph below records
+the original review against `7f59cff`. App commit `681fec8` subsequently added
+explicit Original/INT8 selection and separate prepared installations for all three
+generation models. The article and AI runtime guide now reflect that development
+behavior. Verified the selector, setup modal, AI-track persistence tests,
+`ai_model_variants.py`, `prepare_diffusers_audio.py`, generation preflight and the
+committed quantization report. The copy retains NVIDIA CUDA restrictions, original
+download size, MiniMax's disk-cache cost and the limits of the RTX 4080 evidence.
+This website review did not rerun native GPU generation or qualify other hardware.
+
 Desktop base: `7f59cff92c4a5f70704ba5985e7da373900d6162`. The AI source files
 listed below were committed in that checkout. Its user manual and automation
 implementation also have concurrent working-tree edits; those were not treated

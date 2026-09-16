@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { AudioWaveform, MoveVertical, Waves } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DawButton } from "../DawButton";
-import { MIN_ANIMATED_SCALE, StageFrame, useStageScale } from "../stage/StageFrame";
+import { StageFrame, useStageScale } from "../stage/StageFrame";
 import type { StageProps } from "../stage/LiveStage";
 import { useStageTimeline } from "../stage/useStageTimeline";
 import { TransportLite } from "../TransportLite";
@@ -28,7 +28,7 @@ const rowCenterY = (row: number) => GRID_HEIGHT - (row + 0.5) * ROW_HEIGHT;
 const PitchEditorStage = ({ priority, className }: StageProps) => {
   const outerRef = useRef<HTMLDivElement>(null);
   const scale = useStageScale(outerRef, STAGE_WIDTH);
-  const state = useStageTimeline(SPEC, { scope: outerRef, enabled: scale >= MIN_ANIMATED_SCALE, priority, startDelay: 0.6, fps: 24 });
+  const state = useStageTimeline(SPEC, { scope: outerRef, priority, startDelay: 0.6, fps: 24 });
   const playheadX = KEYS_WIDTH + state.beat * BEAT_WIDTH;
 
   return (

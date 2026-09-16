@@ -30,7 +30,7 @@ export interface StageTimelineSpec<TState> {
 export interface StageTimelineOptions {
   /** Element whose visibility gates playback. */
   scope: RefObject<HTMLElement>;
-  /** False on stages too small to read; renders the static frame instead. */
+  /** Explicitly disables playback and renders the static frame instead. */
   enabled?: boolean;
   /** Delay before the first beat, so the reveal has landed. */
   startDelay?: number;
@@ -135,12 +135,13 @@ export const useStageTimeline = <TState,>(
             { threshold: [0, 0.05, 0.25, 0.5, 0.75, 1] },
           )
         : undefined;
-    observer?.observe(element);
-    // No observer: assume visible so the stage still runs.
-    if (!observer) updateStageRatio(entry, 1);
-
     const onVisibility = () => {
       pageVisible = document.visibilityState !== "hidden";
+      if (pageVisible && settled && observer) {
+        // Ask for fresh geometry when returning from a hidden/background page.
+        observer.unobserve(element);
+        observer.observe(element);
+      }
       syncPlayback();
     };
     document.addEventListener("visibilitychange", onVisibility);
@@ -148,6 +149,11 @@ export const useStageTimeline = <TState,>(
     const cancelSchedule = scheduleAfterInitialLoad(
       () => {
         settled = true;
+        // Subscribing while the route/intro is hidden can leave a stale zero
+        // intersection until another viewport change. Sample the revealed page.
+        observer?.observe(element);
+        // No observer: assume visible so the stage still runs.
+        if (!observer) updateStageRatio(entry, 1);
         syncPlayback();
       },
       { delay: 400, timeout: 2000 },

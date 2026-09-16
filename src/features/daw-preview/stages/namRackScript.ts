@@ -1,6 +1,6 @@
 // Choreography for the photoreal NAM Rack. The hero "tour" walks through the
 // sections; a section variant stays put and only breathes (meters, a knob,
-// an LED), or shows a static frame in a tile too small to animate.
+// an LED). Reduced motion retains the authored static frame.
 import { noise } from "../sessionScript";
 import type { StageTimelineSpec } from "../stage/useStageTimeline";
 import type { RackSectionId } from "../vendor/NAMSignalChainTypes";

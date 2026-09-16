@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { Eraser, MousePointer2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DawButton } from "../DawButton";
-import { MIN_ANIMATED_SCALE, StageFrame, useStageScale } from "../stage/StageFrame";
+import { StageFrame, useStageScale } from "../stage/StageFrame";
 import type { StageProps } from "../stage/LiveStage";
 import { useStageTimeline } from "../stage/useStageTimeline";
 import { TransportLite } from "../TransportLite";
@@ -32,7 +32,7 @@ const rowY = (row: number) => GRID_HEIGHT - (row + 1) * ROW_HEIGHT;
 const PianoRollStage = ({ priority, className }: StageProps) => {
   const outerRef = useRef<HTMLDivElement>(null);
   const scale = useStageScale(outerRef, STAGE_WIDTH);
-  const state = useStageTimeline(SPEC, { scope: outerRef, enabled: scale >= MIN_ANIMATED_SCALE, priority, startDelay: 0.6 });
+  const state = useStageTimeline(SPEC, { scope: outerRef, priority, startDelay: 0.6 });
   const playheadX = state.beat * BEAT_WIDTH;
 
   return (

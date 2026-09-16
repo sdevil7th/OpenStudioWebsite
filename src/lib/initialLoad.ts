@@ -71,7 +71,9 @@ export const scheduleAfterInitialLoad = (
   }
 
   function waitForIntro() {
-    if (document.querySelector("[data-openstudio-loader]")) {
+    // Route loaders share the artwork but never emit the one-time intro event.
+    // They can still be exiting when a late first route or an uncached route mounts.
+    if (!window.__openstudioIntroHidden && document.getElementById("openstudio-instant-loader")) {
       window.addEventListener("openstudio:intro-hidden", scheduleIdle, { once: true });
       return;
     }
