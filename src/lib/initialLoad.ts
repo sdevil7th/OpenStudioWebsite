@@ -61,7 +61,7 @@ export const scheduleAfterInitialLoad = (
     }
 
     delayTimer = window.setTimeout(() => {
-      if ("requestIdleCallback" in window) {
+      if (typeof window.requestIdleCallback === "function") {
         idleId = window.requestIdleCallback(run, { timeout });
         return;
       }

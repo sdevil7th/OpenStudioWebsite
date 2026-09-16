@@ -8,7 +8,7 @@ OpenStudio's NAM Rack is built for the full guitar workflow. Plug in, tune, choo
 
 There is no paid NAM Rack tier or separate NAM download. The rack engine ships inside the normal OpenStudio installer. Local `.nam` captures and cabinet IRs work without an account; a TONE3000 account is needed only for connected TONE3000 delivery. Third-party models and IRs remain subject to their creators' licenses.
 
-Explore the complete workflow in the [NAM Rack feature chapter](/features#nam-rack), read the practical [tone-building guide](/blogs/build-guitar-tones-with-openstudio-nam-rack), or [download OpenStudio](/download).
+Explore the complete workflow in the [NAM Rack feature chapter](/features#nam-rack), read the practical [tone-building guide](/blog/build-guitar-tones-with-openstudio-nam-rack), or [download OpenStudio](/download).
 
 ## The rack was rebuilt around the way guitarists work
 

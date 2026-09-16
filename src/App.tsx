@@ -1,47 +1,27 @@
-import {
-  lazy,
-  Suspense,
-  useEffect,
-  useLayoutEffect,
-  useState,
-  type ReactElement,
-  type ReactNode,
-} from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { useLocation } from "react-router-dom";
-import SiteShell from "@/components/SiteShell";
+import { lazy, Suspense, useEffect, useLayoutEffect, useState, type ReactElement, type ReactNode } from "react";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import SiteShell from "@/components/layout/SiteShell";
+import BrandLoader from "@/components/BrandLoader";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { trackPageView } from "@/lib/analytics";
 import { preloadModuleOnce } from "@/lib/runtimePreloadRegistry";
-
-const loadContactPage = () => preloadModuleOnce("route:contact", () => import("@/pages/ContactPage"));
-const loadBlogPostPage = () => preloadModuleOnce("route:blog-post", () => import("@/pages/BlogPostPage"));
-const loadBlogsPage = () => preloadModuleOnce("route:blogs", () => import("@/pages/BlogsPage"));
-const loadDownloadPage = () => preloadModuleOnce("route:download", () => import("@/pages/DownloadPage"));
-const loadFeaturesPage = () => preloadModuleOnce("route:features", () => import("@/pages/FeaturesPage"));
-const loadGithubPage = () => preloadModuleOnce("route:github", () => import("@/pages/GithubPage"));
-const loadHomePage = () => preloadModuleOnce("route:home", () => import("@/pages/HomePage"));
-const loadNotFound = () => preloadModuleOnce("route:not-found", () => import("@/pages/NotFound"));
-const loadOgCardPage = () => preloadModuleOnce("route:og-card", () => import("@/pages/OgCardPage"));
-const loadPrivacyPage = () => preloadModuleOnce("route:privacy", () => import("@/pages/PrivacyPage"));
-const loadReleasesPage = () => preloadModuleOnce("route:releases", () => import("@/pages/ReleasesPage"));
-const loadSecurityPage = () => preloadModuleOnce("route:security", () => import("@/pages/SecurityPage"));
-const loadStemSeparationPage = () => preloadModuleOnce("route:ai", () => import("@/pages/StemSeparationPage"));
-const loadTermsPage = () => preloadModuleOnce("route:terms", () => import("@/pages/TermsPage"));
-
-const ContactPage = lazy(loadContactPage);
-const BlogPostPage = lazy(loadBlogPostPage);
-const BlogsPage = lazy(loadBlogsPage);
-const DownloadPage = lazy(loadDownloadPage);
-const FeaturesPage = lazy(loadFeaturesPage);
-const GithubPage = lazy(loadGithubPage);
-const HomePage = lazy(loadHomePage);
-const NotFound = lazy(loadNotFound);
-const OgCardPage = lazy(loadOgCardPage);
-const PrivacyPage = lazy(loadPrivacyPage);
-const ReleasesPage = lazy(loadReleasesPage);
-const SecurityPage = lazy(loadSecurityPage);
-const StemSeparationPage = lazy(loadStemSeparationPage);
-const TermsPage = lazy(loadTermsPage);
+const HomePage = lazy(() => preloadModuleOnce("route:home", () => import("@/pages/HomePage")));
+const FeaturesPage = lazy(() => preloadModuleOnce("route:features", () => import("@/pages/FeaturesPage")));
+const NamRackPage = lazy(() => preloadModuleOnce("route:namrack", () => import("@/pages/NamRackPage")));
+const AiPage = lazy(() => preloadModuleOnce("route:ai", () => import("@/pages/AiPage")));
+const DownloadPage = lazy(() => preloadModuleOnce("route:download", () => import("@/pages/DownloadPage")));
+const DocsPage = lazy(() => preloadModuleOnce("route:docs", () => import("@/pages/DocsPage")));
+const DocPage = lazy(() => preloadModuleOnce("route:doc", () => import("@/pages/DocPage")));
+const ComparePage = lazy(() => preloadModuleOnce("route:compare", () => import("@/pages/ComparePage")));
+const CommunityPage = lazy(() => preloadModuleOnce("route:community", () => import("@/pages/CommunityPage")));
+const BlogPage = lazy(() => preloadModuleOnce("route:blog", () => import("@/pages/BlogPage")));
+const BlogPostPage = lazy(() => preloadModuleOnce("route:blogpost", () => import("@/pages/BlogPostPage")));
+const ReleasesPage = lazy(() => preloadModuleOnce("route:releases", () => import("@/pages/ReleasesPage")));
+const RoadmapPage = lazy(() => preloadModuleOnce("route:roadmap", () => import("@/pages/RoadmapPage")));
+const LegalPage = lazy(() => preloadModuleOnce("route:legal", () => import("@/pages/LegalPage")));
+const NotFound = lazy(() => import("@/pages/NotFound"));
+// Artwork generation is a local development tool, not a public search landing page.
+const OgCardPage = import.meta.env.DEV ? lazy(() => import("@/pages/OgCardPage")) : null;
 
 const markPerformance = (name: string) => {
   try {
@@ -92,17 +72,7 @@ const RouteFallback = () => {
     );
   }
 
-  return (
-    <div className="route-transition-surface" role="status" aria-live="polite">
-      <span className="sr-only">Preparing OpenStudio</span>
-      <div className="route-transition-surface__grid" aria-hidden="true">
-        <span className="route-transition-surface__beam route-transition-surface__beam--one" />
-        <span className="route-transition-surface__beam route-transition-surface__beam--two" />
-        <span className="route-transition-surface__beam route-transition-surface__beam--three" />
-        <span className="route-transition-surface__line" />
-      </div>
-    </div>
-  );
+  return <BrandLoader />;
 };
 
 const RouteReadySignal = ({ children }: { children: ReactNode }) => {
@@ -144,30 +114,53 @@ const withRouteFallback = (page: ReactElement) => (
   </Suspense>
 );
 
+/** Client-side equivalents of the permanent hosting redirects preserve query and hash. */
+const LegacyRedirect = ({ to }: { to?: string }) => {
+  const location = useLocation();
+  const pathname = to ?? (location.pathname.replace(/^\/v2(?=\/|$)/, "") || "/");
+  return <Navigate replace to={pathname + location.search + location.hash} />;
+};
+const LegacyBlogRedirect = () => {
+  const location = useLocation();
+  return <LegacyRedirect to={location.pathname.replace(/^\/blogs(?=\/|$)/, "/blog")} />;
+};
+const ContactRedirect = () => {
+  const location = useLocation();
+  return <Navigate replace to={"/community" + location.search + "#contact"} />;
+};
+
 const App = () => (
   <BrowserRouter>
-    <Routes>
-      {/* Standalone route - no navbar/footer, used for OG image generation */}
-      <Route path="/og-card" element={withRouteFallback(<OgCardPage />)} />
-      <Route element={<SiteShell />}>
-        <Route path="/" element={withRouteFallback(<HomePage />)} />
-        <Route path="/features" element={withRouteFallback(<FeaturesPage />)} />
-        <Route path="/ai" element={withRouteFallback(<StemSeparationPage />)} />
-        <Route path="/stem-separation" element={<Navigate to="/ai" replace />} />
-        <Route path="/github" element={withRouteFallback(<GithubPage />)} />
-        <Route path="/releases" element={withRouteFallback(<ReleasesPage />)} />
-        <Route path="/blogs" element={withRouteFallback(<BlogsPage />)} />
-        <Route path="/blogs/:slug" element={withRouteFallback(<BlogPostPage />)} />
-        <Route path="/download" element={withRouteFallback(<DownloadPage />)} />
-        <Route path="/contact" element={withRouteFallback(<ContactPage />)} />
-        <Route path="/privacy" element={withRouteFallback(<PrivacyPage />)} />
-        <Route path="/security" element={withRouteFallback(<SecurityPage />)} />
-        <Route path="/terms" element={withRouteFallback(<TermsPage />)} />
-        <Route path="/home" element={<Navigate to="/" replace />} />
-        <Route path="*" element={withRouteFallback(<NotFound />)} />
-      </Route>
-    </Routes>
+    <ErrorBoundary>
+      <Routes>
+        {OgCardPage && <Route path="/og-card" element={withRouteFallback(<OgCardPage />)} />}
+        <Route path="/v2/*" element={<LegacyRedirect />} />
+        <Route path="/home" element={<LegacyRedirect to="/" />} />
+        <Route path="/stem-separation" element={<LegacyRedirect to="/ai" />} />
+        <Route path="/github" element={<LegacyRedirect to="/community" />} />
+        <Route path="/contact" element={<ContactRedirect />} />
+        <Route path="/blogs/*" element={<LegacyBlogRedirect />} />
+        <Route element={<SiteShell />}>
+          <Route index element={withRouteFallback(<HomePage />)} />
+          <Route path="/features" element={withRouteFallback(<FeaturesPage />)} />
+          <Route path="/nam-rack" element={withRouteFallback(<NamRackPage />)} />
+          <Route path="/ai" element={withRouteFallback(<AiPage />)} />
+          <Route path="/download" element={withRouteFallback(<DownloadPage />)} />
+          <Route path="/docs" element={withRouteFallback(<DocsPage />)} />
+          <Route path="/docs/:slug" element={withRouteFallback(<DocPage />)} />
+          <Route path="/compare" element={withRouteFallback(<ComparePage />)} />
+          <Route path="/community" element={withRouteFallback(<CommunityPage />)} />
+          <Route path="/blog" element={withRouteFallback(<BlogPage />)} />
+          <Route path="/blog/:slug" element={withRouteFallback(<BlogPostPage />)} />
+          <Route path="/releases" element={withRouteFallback(<ReleasesPage />)} />
+          <Route path="/roadmap" element={withRouteFallback(<RoadmapPage />)} />
+          <Route path="/privacy" element={withRouteFallback(<LegalPage kind="privacy" />)} />
+          <Route path="/security" element={withRouteFallback(<LegalPage kind="security" />)} />
+          <Route path="/terms" element={withRouteFallback(<LegalPage kind="terms" />)} />
+          <Route path="*" element={withRouteFallback(<NotFound />)} />
+        </Route>
+      </Routes>
+    </ErrorBoundary>
   </BrowserRouter>
 );
-
 export default App;

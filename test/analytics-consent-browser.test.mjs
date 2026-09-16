@@ -255,28 +255,19 @@ test("analytics consent browser flows", { timeout: 120_000 }, async t => {
       }
     });
 
-    await t.test("download and navigation dialogs cover the consent banner", async () => {
+    await t.test("mobile navigation remains above consent controls and restores focus", async () => {
       const { context, page } = await createContext({ viewport: { width: 390, height: 844 } });
       try {
         await page.goto(`${baseUrl}/download`);
         await waitForApp(page);
-        await page.getByRole("button", { name: "Download Windows", exact: true }).click();
-        const dialog = page.getByRole("dialog");
-        await dialog.waitFor();
+        await page.locator('.sp-nav__menu-toggle').click();
+        await page.getByRole('navigation', {name:'Primary mobile'}).waitFor();
         const stacking = await page.evaluate(() => ({
           banner: Number(getComputedStyle(document.querySelector('section[aria-label="Website privacy choices"]')).zIndex),
-          dialog: Number(getComputedStyle(document.querySelector('[role="dialog"]')).zIndex),
+          nav: Number(getComputedStyle(document.querySelector('.sp-nav')).zIndex),
         }));
-        assert.ok(stacking.banner < stacking.dialog, "visible banner buttons must never be painted above the modal's click targets");
-        const download = dialog.getByRole("button", { name: "I understand, download for Windows", exact: true });
-        assert.equal(await download.evaluate(element => {
-          const rect = element.getBoundingClientRect();
-          return element.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
-        }), true);
-        await page.getByRole("button", { name: "Close download instructions", exact: true }).click();
-        await page.getByRole("button", { name: "Open navigation", exact: true }).click();
-        await page.getByRole("dialog", { name: "Navigate OpenStudio" }).waitFor();
-        await page.keyboard.press("Escape");
+        assert.ok(stacking.banner < stacking.nav);
+        await page.keyboard.press('Escape');
         await banner(page).waitFor();
         await page.getByRole("button", { name: "Reject analytics", exact: true }).click();
         await banner(page).waitFor({ state: "detached" });

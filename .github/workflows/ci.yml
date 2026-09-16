@@ -37,6 +37,9 @@ jobs:
         run: npm run lint
 
       - name: Build production site
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: npm run build
 
       - name: Install Chromium

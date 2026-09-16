@@ -2,14 +2,18 @@
   command = "npm run build"
   publish = "dist"
 
-# Git-triggered production deploys need the release files too. Fetch the last
-# published desktop release; never erase update feeds on a website-only push.
-[context.production.environment]
+[build.environment]
+  NODE_VERSION = "22.23.2"
+
+# Every deployment, including previews, needs the published release contracts.
+# Never erase update feeds on a website-only push.
   OPENSTUDIO_FETCH_RELEASE_METADATA = "true"
   OPENSTUDIO_REQUIRE_RELEASE_METADATA = "true"
 
-[functions]
-  included_files = ["public/assets/openstudio/generated/image-manifest.json"]
+[[headers]]
+  for = "/github/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
 
 [[headers]]
   for = "/assets/openstudio/generated/*"
@@ -91,111 +95,40 @@
   to = "/ai"
   status = 301
 
-# Serve prerendered route documents without Netlify's directory-slash redirect.
-# These must stay above the 404 catch-all, and the download function rewrites
-# above must retain priority over the canonical /download page.
-[[redirects]]
-  from = "/features"
-  to = "/features/index.html"
-  status = 200
-  force = true
+
+# Canonical page rewrites are generated in dist/_redirects from the route inventory.
 
 [[redirects]]
-  from = "/ai"
-  to = "/ai/index.html"
-  status = 200
-  force = true
+  from = "/v2"
+  to = "/"
+  status = 301
 
 [[redirects]]
-  from = "/download"
-  to = "/download/index.html"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/github"
-  to = "/github/index.html"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/releases"
-  to = "/releases/index.html"
-  status = 200
-  force = true
+  from = "/v2/*"
+  to = "/:splat"
+  status = 301
 
 [[redirects]]
   from = "/blogs"
-  to = "/blogs/index.html"
-  status = 200
-  force = true
+  to = "/blog"
+  status = 301
 
 [[redirects]]
-  from = "/blogs/building-the-midi-editor-harness"
-  to = "/blogs/building-the-midi-editor-harness/index.html"
-  status = 200
-  force = true
+  from = "/blogs/*"
+  to = "/blog/:splat"
+  status = 301
 
 [[redirects]]
-  from = "/blogs/ace-step-diffusers-almost-3x-faster"
-  to = "/blogs/ace-step-diffusers-almost-3x-faster/index.html"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/blogs/building-openstudio-nam-rack"
-  to = "/blogs/building-openstudio-nam-rack/index.html"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/blogs/build-guitar-tones-with-openstudio-nam-rack"
-  to = "/blogs/build-guitar-tones-with-openstudio-nam-rack/index.html"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/blogs/ace-step-integration-challenges"
-  to = "/blogs/ace-step-integration-challenges/index.html"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/blogs/ara2-hosting-challenges-blog"
-  to = "/blogs/ara2-hosting-challenges-blog/index.html"
-  status = 200
-  force = true
+  from = "/github"
+  to = "/community"
+  status = 301
 
 [[redirects]]
   from = "/contact"
-  to = "/contact/index.html"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/privacy"
-  to = "/privacy/index.html"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/security"
-  to = "/security/index.html"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/terms"
-  to = "/terms/index.html"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/og-card"
-  to = "/index.html"
-  status = 200
+  to = "/community#contact"
+  status = 301
 
 [[redirects]]
   from = "/*"
-  to = "/index.html"
+  to = "/404.html"
   status = 404

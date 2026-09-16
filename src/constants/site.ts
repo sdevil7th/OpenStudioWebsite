@@ -4,16 +4,16 @@ export const SITE_DESCRIPTION =
   "Free, open source DAW for Windows, macOS, and Linux — music production software with stem separation, pitch editing, MIDI instruments, plugin hosting, audio editing, and mixing.";
 export const SITE_TAGLINE = "The synthetic atmosphere for serious production workflows.";
 export const SITE_THEME_COLOR = "#050813";
-export const SITE_OG_IMAGE = "/assets/openstudio/branding/og-image.png?v=2";
+export const SITE_OG_IMAGE = "/assets/openstudio/branding/og-image.png?v=3";
 
 export const BRANDING_ASSETS = {
-  mark: "/assets/openstudio/branding/android-chrome-192x192.png",
-  favicon16: "/assets/openstudio/branding/favicon-16x16.png",
-  favicon32: "/assets/openstudio/branding/favicon-32x32.png",
-  appleTouch: "/assets/openstudio/branding/apple-touch-icon.png",
-  android192: "/assets/openstudio/branding/android-chrome-192x192.png",
-  android512: "/assets/openstudio/branding/android-chrome-512x512.png",
-  manifest: "/assets/openstudio/branding/site.webmanifest",
+  mark: "/assets/openstudio/branding/android-chrome-192x192.png?v=20260915",
+  favicon16: "/assets/openstudio/branding/favicon-16x16.png?v=20260915",
+  favicon32: "/assets/openstudio/branding/favicon-32x32.png?v=20260915",
+  appleTouch: "/assets/openstudio/branding/apple-touch-icon.png?v=20260915",
+  android192: "/assets/openstudio/branding/android-chrome-192x192.png?v=20260915",
+  android512: "/assets/openstudio/branding/android-chrome-512x512.png?v=20260915",
+  manifest: "/assets/openstudio/branding/site.webmanifest?v=20260915",
   ogImage: SITE_OG_IMAGE,
 };
 
@@ -36,3 +36,5 @@ export const DOWNLOAD_PATHS = {
   macosStableAppcast: "/appcast/macos-stable.xml",
   linuxStableAppcast: "/appcast/linux-stable.xml",
 };
+
+export const APP_REPOSITORY_URL = "https://github.com/sdevil7th/OpenStudio";

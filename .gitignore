@@ -44,3 +44,8 @@ public/assets/openstudio/generated/
 
 # Local Netlify folder
 .netlify
+
+# Generated from GitHub during dev/build; never maintain release values by hand.
+/public/github/
+/src/data/generatedGithubSnapshot.ts
+/src/data/generatedLatestRelease.ts

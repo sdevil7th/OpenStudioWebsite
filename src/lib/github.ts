@@ -1,72 +1,16 @@
 import type { GithubRepoSnapshot } from "@/data/marketing";
+import { parseGithubRepoSnapshot } from "../../shared/github-snapshot";
 
 export const GITHUB_SNAPSHOT_ENDPOINT = "/.netlify/functions/github-repo";
 
-export const githubFallbackSnapshot: GithubRepoSnapshot = {
-  fetchedAt: "2026-04-03T16:23:49Z",
-  fullName: "sdevil7th/OpenStudio",
-  repositoryUrl: "https://github.com/sdevil7th/OpenStudio",
-  ownerLogin: "sdevil7th",
-  ownerProfileUrl: "https://github.com/sdevil7th",
-  ownerAvatarUrl: "https://avatars.githubusercontent.com/u/44551979?v=4",
-  description: "DAW and Jam Station for the new era",
-  docsUrl: "https://github.com/sdevil7th/OpenStudio/tree/main/docs",
-  defaultBranch: "main",
-  license: "AGPL-3.0",
-  createdAt: "2026-01-23T23:46:39Z",
-  updatedAt: "2026-04-03T16:23:49Z",
-  pushedAt: "2026-04-03T16:23:45Z",
-  primaryLanguage: "C++",
-  languages: [
-    { name: "C++", bytes: 2054762, percent: 48.1 },
-    { name: "TypeScript", bytes: 2029511, percent: 47.5 },
-    { name: "PowerShell", bytes: 65090, percent: 1.5 },
-    { name: "Python", bytes: 50558, percent: 1.2 },
-  ],
-  contributors: [
-    {
-      login: "sdevil7th",
-      avatarUrl: "https://avatars.githubusercontent.com/u/44551979?v=4",
-      profileUrl: "https://github.com/sdevil7th",
-      contributions: 16,
-    },
-  ],
-  latestRelease: null,
-  hasPublishedReleases: false,
-  stats: {
-    stars: 0,
-    forks: 0,
-    openIssues: 0,
-    watchers: 0,
-    commitCount: 16,
-    contributorCount: 1,
-  },
-};
+import { generatedGithubSnapshot } from "@/data/generatedGithubSnapshot";
+
+// GitHub-derived build snapshot keeps prerendering and offline rendering honest.
+export const githubFallbackSnapshot = generatedGithubSnapshot;
 
 let snapshotRequest: Promise<GithubRepoSnapshot> | null = null;
 
-const shouldFetchGithubSnapshot = () => {
-  if (typeof window === "undefined") {
-    return true;
-  }
-
-  const { hostname, port } = window.location;
-  const localHost = hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
-
-  return !localHost || port === "8080" || port === "8888";
-};
-
-const normalizeGithubSnapshot = (snapshot: GithubRepoSnapshot): GithubRepoSnapshot => ({
-  ...snapshot,
-  languages: snapshot.languages ?? githubFallbackSnapshot.languages,
-  contributors: snapshot.contributors ?? githubFallbackSnapshot.contributors,
-});
-
 export const getGithubRepoSnapshot = async () => {
-  if (!shouldFetchGithubSnapshot()) {
-    return githubFallbackSnapshot;
-  }
-
   if (!snapshotRequest) {
     snapshotRequest = fetch(GITHUB_SNAPSHOT_ENDPOINT, {
       headers: {
@@ -78,9 +22,8 @@ export const getGithubRepoSnapshot = async () => {
           throw new Error(`GitHub snapshot request failed with status ${response.status}`);
         }
 
-        return (await response.json()) as GithubRepoSnapshot;
+        return parseGithubRepoSnapshot(await response.json(), githubFallbackSnapshot);
       })
-      .then(normalizeGithubSnapshot)
       .catch((error) => {
         snapshotRequest = null;
         throw error;

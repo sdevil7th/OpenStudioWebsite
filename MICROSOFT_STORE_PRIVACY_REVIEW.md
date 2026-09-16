@@ -3,13 +3,15 @@
 Reviewed September 10, 2026 for PR #19 (`NAM-support` into `develop`), initially
 at `9d1a31733a7cd4641a7ff5261a87350beb935e6d`.
 
+This is a dated review of the earlier privacy-policy change, not the current deployment runbook. The redesign retains the shared policy in `src/data/legal.ts`. For current route/loader/test behavior and publication steps, use [README.md](README.md), [RELEASE_SYNC.md](RELEASE_SYNC.md) and the [branding/redesign audit](docs/branding-and-download-audit.md).
+
 ## Requirements and findings
 
 The supplied certification report flags **10.5.1 Privacy Policy**: the submitted
 link resolved to a page without a displayed policy. The report does not identify
 the submitted URL, so it does not establish which URL or deployment was tested.
 
-Microsoft's current [Store policies, section 10.5.1](https://learn.microsoft.com/en-us/windows/apps/publish/store-policies#105-personal-information)
+Microsoft's [Store policies, section 10.5.1](https://learn.microsoft.com/en-us/windows/apps/publish/store-policies#105-personal-information)
 require a maintained policy for Win32/Desktop Bridge products. The policy must
 explain personal information accessed, collected or transmitted; its uses,
 storage and protection; recipients; and users' controls and access to their data.
@@ -66,7 +68,7 @@ user-agent detection.
   established from this repository. The policy avoids inventing fixed retention
   periods or claiming every platform's local files are encrypted.
 
-## Deployment and resubmission
+## Historical deployment and resubmission steps (PR #19)
 
 1. Include these follow-up changes in PR #19, then merge and allow the production
    Netlify deployment to finish. The PR targets `develop`; verify that the merged
@@ -88,7 +90,7 @@ user-agent detection.
 The review does not merge the PR, change Partner Center or resubmit the app.
 Microsoft makes the certification decision.
 
-## Verification
+## Historical verification (September 10, 2026)
 
 Run `npm run build`, `npm run lint` and `npm test`.
 The loader-bypass follow-up passed all three, including all 150 tests.
@@ -102,6 +104,6 @@ takes over. It models the checked
 Netlify rewrite because plain Vite preview serves the home document at
 `/privacy`; `/privacy/` resolves to the generated document directly.
 
-The extra `npx tsc --noEmit -p tsconfig.app.json` check reports 33 existing
+The extra `npx tsc --noEmit -p tsconfig.app.json` check at that time reported 33 existing
 diagnostics. A compiler comparison using the original PR version of `legal.ts`
 produced exactly the same diagnostics; these policy edits introduce none.
