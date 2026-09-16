@@ -11,6 +11,12 @@ import { parseVariant, specFor } from "./namRackScript";
 export const STAGE_WIDTH = 960;
 export const STAGE_HEIGHT = 540;
 
+// Inner canvas dimensions of the fixed 960×540 design: hardware-only tiles
+// retain the border; the tour also reserves its header, footer and library.
+// Seed prerendering before ResizeObserver can measure those same CSS boxes.
+const HARDWARE_CANVAS = { width: 950, height: 530 };
+const TOUR_CANVAS = { width: 668, height: 248 };
+
 const noop = () => undefined;
 
 const LABELS = {
@@ -60,6 +66,7 @@ const NamRackStage = ({ variant, priority, className }: StageProps) => {
     >
       <div className="daw-nam-stage" data-crop={crop}>
         <NAMRackDesignPort
+          initialStageSize={crop ? HARDWARE_CANVAS : TOUR_CANVAS}
           compareSlot={state.compareSlot}
           libraryItems={LIBRARY}
           onCycleSize={noop}

@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-15",
-  appReference: { commit: "808ccbe", channel: "development" },
+  updated: "2026-09-16",
+  appReference: { commit: "7f59cff", channel: "development" },
   blocks: [
     {
       type: "p",
@@ -14,7 +14,7 @@ const doc: DocContent = {
     { type: "h2", id: "interfaces-and-drivers", text: "Interfaces and drivers" },
     {
       type: "p",
-      text: "OpenStudio works with any interface your operating system exposes, from a built-in output to a multichannel Thunderbolt unit. The number of inputs you can pick on a track header comes straight from the interface's channel count. What matters more than the interface is the driver path you choose in **Audio System**.",
+      text: "OpenStudio lists the audio devices available through the selected driver backend; compatibility depends on the interface and driver. The number of inputs you can pick on a track header comes straight from the interface's channel count. What matters more than the interface is the driver path you choose in **Audio System**.",
     },
     {
       type: "kv",
@@ -29,7 +29,7 @@ const doc: DocContent = {
         ],
         [
           "Linux",
-          "JACK for the lowest latency, ALSA for simplicity. Builds target Ubuntu 22.04 or later with either available.",
+          "ALSA or JACK, depending on your audio setup. The release pipeline builds on Ubuntu 24.04.",
         ],
       ],
     },
@@ -61,7 +61,7 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: "Sample rate is a project-wide decision. Files imported at another rate are converted automatically, and playback uses linear interpolation for real-time conversion, so recording at the interface's native rate and keeping imports at that rate gives the cleanest result. Offline rendering can target a different rate from the render dialog.",
+      text: "The audio device sample rate controls recording and playback. Imported files can keep their original rate; playback converts them in real time using linear interpolation. Offline rendering can target a different rate from the render dialog.",
     },
 
     { type: "h2", id: "buffer-size-and-latency", text: "Buffer size and latency" },
@@ -87,7 +87,7 @@ const doc: DocContent = {
     { type: "h2", id: "input-monitoring", text: "Input monitoring" },
     {
       type: "p",
-      text: "Arm a track and toggle **Monitor** on its header to hear the live input. The signal passes through the track's full chain, input FX and track FX included, before it reaches the output, which is what lets you hear a NAM Rack tone or a compressor while you play. The delay you hear is the buffer size plus your interface's own conversion time.",
+      text: "Arm a track and toggle **Monitor** on its header to hear the live input. The signal passes through the track's full chain, input FX and track FX included, before it reaches the output, which is what lets you hear a NAM Rack tone or a compressor while you play. Monitoring latency also includes driver buffering, interface conversion, and any plugin latency.",
     },
     {
       type: "p",
@@ -167,7 +167,7 @@ const doc: DocContent = {
         "Input FX run before the fader, so fader automation does not affect them.",
         "Track insert FX run before the channel fader.",
         "Sends are pre-fader (independent of the fader) or post-fader (follow it), per send.",
-        "The master bus receives the sum of every track output and every send bus output.",
+        "The master bus receives the tracks and buses routed to it.",
       ],
     },
     {

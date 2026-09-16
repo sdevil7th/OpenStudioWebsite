@@ -108,3 +108,14 @@ possible viewport, animation state or browser's rendering.
 
 The remaining task is the three real screenshot recaptures above. Source changes
 are local and uncommitted; no push, deployment or external artwork upload was made.
+
+## Subsequent loading and release-copy correction
+
+The [illustration-loading follow-up](illustration-loading.md) records the later
+removal of screenshot placeholders, the coordinated AI release wording, and its
+own verification results. The screenshot-held comparisons above describe the
+earlier implementation and do not establish the new loading behavior.
+
+The [music-model blog and uncommitted-code review](music-models-blog-review.md)
+records the subsequent post, article readability fixes, source checks and the
+remaining NAM artwork and offscreen-meter performance work.

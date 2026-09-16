@@ -83,10 +83,10 @@ test("Tailwind exposes the OpenStudio daw-* and meter-* tokens", () => {
   }
 });
 
-test("the Studio Paper hero lazy-loads the live session behind the screenshot poster", () => {
+test("the hero renders its own rest frame without a screenshot substitution", () => {
   const home = read("src/pages/HomePage.tsx");
-  assert.match(home, /lazy\(\(\) => import\("@\/features\/daw-preview\/LiveSession"\)\)/);
-  assert.match(home, /fallback=\{\s*<ResponsiveImage[^>]*src=\{SHOTS\.heroTimeline\}/s);
+  assert.match(home, /import LiveSession from "@\/features\/daw-preview\/LiveSession"/);
+  assert.doesNotMatch(home, /heroReady|SHOTS\.heroTimeline/);
   assert.match(home, /<Frame hero[^>]*reveal="rise">/);
   const primitives = read("src/components/ui/primitives.tsx");
   assert.match(primitives, /sp-frame__live/);
@@ -111,7 +111,7 @@ test("every stage is a default export backed by a script that exports its SPEC",
   const stages = readdirSync(stagesDir).filter((name) => /Stage\.tsx$/.test(name));
   for (const name of stages) {
     const text = readFileSync(new URL(name, stagesDir), "utf8");
-    assert.match(text, /export default /, `${name} must default-export for React.lazy`);
+    assert.match(text, /export default /, `${name} must default-export for its owning pages`);
     assert.match(text, /useStageTimeline|useSessionTimeline/, `${name} must run on the shared driver`);
     assert.match(text, /<StageFrame/, `${name} must render inside StageFrame`);
     const script = name.replace(/Stage\.tsx$/, (m) => m.replace("Stage.tsx", "Script.ts"));
@@ -121,15 +121,11 @@ test("every stage is a default export backed by a script that exports its SPEC",
   }
 });
 
-test("LiveStage gates every stage chunk on the initial load and the viewport", () => {
+test("LiveStage owns no bitmap fallback or eager renderer barrel", () => {
   const path = "src/features/daw-preview/stage/LiveStage.tsx";
   if (!existsSync(new URL(`../${path}`, import.meta.url))) return;
   const live = read(path);
-  assert.match(live, /scheduleAfterInitialLoad/);
-  assert.match(live, /IntersectionObserver/);
-  assert.match(live, /Suspense/);
-  assert.match(live, /lazy\(/);
-  for (const [, id, file] of live.matchAll(/"([a-z-]+)":\s*\(\) => import\("\.\.\/stages\/(\w+)"\)/g)) {
-    assert.ok(existsSync(new URL(`${file}.tsx`, stagesDir)), `stage "${id}" points at missing ${file}.tsx`);
-  }
+  assert.match(live, /component: Stage/);
+  assert.doesNotMatch(live, /ResponsiveImage|poster:|STAGE_LOADERS/);
+  assert.match(live, /import type .*stages/);
 });

@@ -327,7 +327,6 @@
 
 .sp-home-session { container-type: inline-size; }
 .sp-home-session .sp-frame__live { height: min(626px, 97.8125cqw); }
-.sp-home-session .sp-frame__live > img { width: 100%; height: 100%; object-fit: cover; object-position: top left; }
 
 /* Live content (the animated session) takes the image's slot and radius. */
 .sp-frame__live {
@@ -2136,32 +2135,16 @@
 }
 
 /* ---------- live stages ----------
- * A screenshot that becomes a live DAW stage (src/features/daw-preview/stage/LiveStage.tsx).
- * The wrapper reserves the stage's design aspect so the swap never shifts
- * layout; the poster stays on top until the stage has mounted.
+ * The same DAW scene is rendered before and after its animation engine loads.
+ * The wrapper reserves the design aspect; there is no screenshot overlay.
  */
 .sp-live-stage {
   position: relative;
+  content-visibility: auto;
   width: 100%;
   overflow: hidden;
   background: #121212;
   border-radius: inherit;
-}
-
-.sp-live-stage__poster {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top left;
-  display: block;
-  transition: opacity 360ms var(--sp-ease);
-}
-
-.sp-live-stage[data-live="true"] .sp-live-stage__poster {
-  opacity: 0;
-  pointer-events: none;
 }
 
 .sp-live-stage > .daw-session {
@@ -2188,17 +2171,9 @@
   border-radius: 10px 10px 0 0;
 }
 
-.sp-feature-card__media .sp-live-stage__poster {
-  border-radius: 10px 10px 0 0;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .sp-showcase__media .sp-live-stage {
     animation: none;
-  }
-
-  .sp-live-stage__poster {
-    transition: none;
   }
 }
 

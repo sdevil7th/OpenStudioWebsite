@@ -1350,9 +1350,9 @@ export function sourceFlowResourceTerms(mode: NAMSourceFlowDesignMode) {
   } as const;
 }
 
-function useElementSize<T extends HTMLElement>() {
+function useElementSize<T extends HTMLElement>(initialSize = { width: 1280, height: 720 }) {
   const ref = useRef<T | null>(null);
-  const [size, setSize] = useState({ width: 1280, height: 720 });
+  const [size, setSize] = useState(initialSize);
 
   useEffect(() => {
     const node = ref.current;
@@ -7070,6 +7070,7 @@ function PremiumRigDrawer({
 }
 
 export function NAMRackDesignPort({
+  initialStageSize,
   sectionId,
   rackSizePercent,
   parameters,
@@ -7114,6 +7115,7 @@ export function NAMRackDesignPort({
   onCycleSize,
   onMaxSize,
 }: {
+  initialStageSize?: { width: number; height: number };
   sectionId: RackSectionId;
   rackSizePercent: number;
   parameters?: BuiltInParamDescriptor[];
@@ -7163,7 +7165,7 @@ export function NAMRackDesignPort({
   onMaxSize: () => void;
 }) {
   const [hostRef] = useElementSize<HTMLElement>();
-  const [stageRef, stageSize] = useElementSize<HTMLDivElement>();
+  const [stageRef, stageSize] = useElementSize<HTMLDivElement>(initialStageSize);
   const [localValues, setLocalValues] = useState<Record<string, number>>({});
   const designSection = designSectionFor(sectionId);
   const boardId = shellBoardForSection(sectionId);

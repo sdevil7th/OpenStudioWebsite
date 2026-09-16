@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-15",
-  appReference: { commit: "808ccbe", channel: "development" },
+  updated: "2026-09-16",
+  appReference: { commit: "7f59cff", channel: "development" },
   blocks: [
     {
       type: "p",

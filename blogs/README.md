@@ -49,6 +49,8 @@ For dated posts, the slug excludes the date prefix. If no matching image exists,
 
 Run `npm run sync-blog-images` after adding or removing blog images to update `src/data/generatedBlogIndex.ts`. Per-post SEO/image overrides live in `scripts/sync-blog-image-manifest.mjs`. The responsive-image generator creates candidates from 320 px up to the source width, capped at 2560 px normally; explicitly allowlisted high-resolution masters can reach 3360 px. It does not upscale smaller sources. `npm run dev` and `npm run build` generate this index, image variants and article HTML automatically. Do not edit `generatedBlogIndex.ts` or `generatedBlogContent/` by hand.
 
+Choose the post's display category in `src/data/blogCategories.ts`; an unlisted slug defaults to Engineering. Article text colors belong to the light-theme `.sp-article` styles in `src/styles/site.css`. Do not add dark-theme text utilities to the Markdown renderer: they can make list and table text unreadable. Production and SEO tests derive article coverage from the authored files, so a new post should not require updating a fixed page count.
+
 ## Recommended Structure
 
 ```md

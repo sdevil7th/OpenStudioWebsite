@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-15",
-  appReference: { commit: "808ccbe", channel: "development" },
+  updated: "2026-09-16",
+  appReference: { commit: "7f59cff", channel: "development" },
   blocks: [
     {
       type: "p",
@@ -14,7 +14,7 @@ const doc: DocContent = {
     { type: "h2", id: "download-and-install", text: "Download and install" },
     {
       type: "p",
-      text: `Grab the build for your platform from the [download page](${SITE_PATHS.download}). Builds are currently unsigned, so your OS will warn on first launch. That is expected, and the steps below are the whole workaround.`,
+      text: `Grab the build for your platform from the [download page](${SITE_PATHS.download}). Signing and notarization depend on the build, so your OS may warn or block first launch. Follow the release notes for that download.`,
     },
     {
       type: "kv",
@@ -36,8 +36,8 @@ const doc: DocContent = {
     {
       type: "callout",
       tone: "warn",
-      label: "Unsigned builds",
-      text: "Code signing costs money the project currently spends elsewhere. The first-launch approval path is documented, not warning-free. Verify the SHA-256 on the download page if you want certainty.",
+      label: "First-launch warnings",
+      text: "The first-launch approval path is documented, not warning-free. Compare the SHA-256 on the download page to check file integrity; a matching checksum does not guarantee OS approval.",
     },
     {
       type: "p",
@@ -47,7 +47,7 @@ const doc: DocContent = {
     { type: "h2", id: "first-launch", text: "First launch" },
     {
       type: "p",
-      text: "The layout follows the usual DAW pattern: menu bar and main toolbar on top, the track control panel on the left, the timeline in the centre, the mixer below when you toggle it with `Ctrl+M`, and the transport bar along the bottom with the time display, BPM, and time signature.",
+      text: "Shortcuts below use the OpenStudio keyboard profile; `Ctrl` means `Cmd` on macOS. The layout follows the usual DAW pattern: menu bar and main toolbar on top, the track control panel on the left, the timeline in the centre, the mixer below when you toggle it with `Ctrl+M`, and the transport bar along the bottom with the time display, BPM, and time signature.",
     },
     {
       type: "shot",
@@ -57,7 +57,7 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: "Press `F1` at any time for the searchable Help Reference, and `Ctrl+Shift+P` for the Command Palette, which fuzzy-finds every action in the app without you having to remember a menu location.",
+      text: "Press `F1` at any time for the searchable Help Reference, and `Ctrl+Shift+P` for the Command Palette, which searches registered app actions without you having to remember a menu location.",
     },
 
     { type: "h2", id: "audio-device", text: "Audio device and buffer size" },
@@ -70,7 +70,7 @@ const doc: DocContent = {
       rows: [
         ["macOS", "CoreAudio, using your interface or the built-in output."],
         ["Windows", "ASIO if your interface ships a driver, otherwise WASAPI. DirectSound works but adds latency."],
-        ["Linux", "JACK for the lowest latency, ALSA for simplicity."],
+        ["Linux", "ALSA or JACK, depending on your audio setup."],
       ],
     },
     {
@@ -101,7 +101,7 @@ const doc: DocContent = {
         "Click the record-arm circle. Toggle **Monitor** to hear the live input through the track's FX chain.",
         "Add **OpenStudio NAM Rack** to the FX chain if you are recording guitar or bass, so you hear the tone while you play.",
         "Press `Ctrl+R` to record and `Space` to stop. The take lands as a clip on the timeline.",
-        "Save with `Ctrl+S`. Projects use the `.osproj` extension; legacy `.s13` sessions still open.",
+        "Save with `Ctrl+S`. Projects use the `.osproj` extension. Back up older sessions and keep the older app for projects that need conversion.",
       ],
     },
     {

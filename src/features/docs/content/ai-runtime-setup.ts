@@ -4,8 +4,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-15",
-  appReference: { commit: "808ccbe", channel: "development" },
+  updated: "2026-09-16",
+  appReference: { commit: "7f59cff", channel: "development" },
   blocks: [
     {
       type: "p",
@@ -72,7 +72,7 @@ const doc: DocContent = {
     { type: "h2", id: "hardware", text: "Hardware notes" },
     {
       type: "p",
-      text: "Availability and speed depend on your machine. The upstream feature list is explicit that the optional runtime, model licenses, local hardware, RAM, and VRAM decide whether a generation workflow is available and how it performs, and that the result still needs your ears. Neither the manual nor the contract publishes minimum figures, so this page does not either.",
+      text: "Availability and speed depend on your machine. The upstream feature list is explicit that the optional runtime, model licenses, local hardware, RAM, and VRAM decide whether a generation workflow is available and how it performs, and that the result still needs your ears. Use the model-specific hardware checks in AI Tools Setup for the requirements of your installed build.",
     },
     {
       type: "ul",
@@ -95,12 +95,12 @@ const doc: DocContent = {
         ],
         [
           "**Lyrics + Style**",
-          "Generates a song with ACE-Step or MiniMax Music 3 (next desktop release).",
+          "Generates a song with ACE-Step or MiniMax Music 3.",
           "An AI track",
         ],
         [
           "**Song Sections**",
-          "MiniMax Music 3: structured verse, chorus and bridge lyrics and arrangement direction (next desktop release).",
+          "MiniMax Music 3: structured verse, chorus and bridge lyrics and arrangement direction.",
           "An AI track",
         ],
         [
@@ -110,12 +110,12 @@ const doc: DocContent = {
         ],
         [
           "**Create Variation**",
-          "Generates a related version of the selected clip while keeping its identity, per the source and variation controls.",
+          "Generates a related version of the selected clip using the source and variation controls; how much it preserves varies with the model and settings.",
           "Right-click an audio clip → **AI Generation**",
         ],
         [
           "**Inpaint Selection**",
-          "Regenerates the time selection that overlaps the clip and matches the surrounding audio. Make a time selection first.",
+          "Regenerates the time selection that overlaps the clip using surrounding audio as context. Make a time selection first and audition the transition.",
           "Right-click an audio clip → **AI Generation**",
         ],
         [
@@ -152,7 +152,7 @@ const doc: DocContent = {
     {
       type: "callout",
       tone: "note",
-      label: "MiniMax Music 3 — next desktop release",
+      label: "MiniMax Music 3",
       text: aiSetupDownloads[2].description,
     },
     {

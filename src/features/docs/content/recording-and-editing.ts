@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-15",
-  appReference: { commit: "808ccbe", channel: "development" },
+  updated: "2026-09-16",
+  appReference: { commit: "7f59cff", channel: "development" },
   blocks: [
     {
       type: "p",
@@ -26,14 +26,14 @@ const doc: DocContent = {
       text: `Buffer size, drivers, and the macOS microphone permission are in [Audio setup](${SITE_PATHS.docs}/audio-setup).`,
     },
 
-    { type: "h2", id: "recording", text: "Recording, record modes, and punch" },
+    { type: "h2", id: "recording", text: "Recording, record modes, and loops" },
     {
       type: "ol",
       items: [
         "Position the playhead where recording should begin.",
         "Press `Ctrl+R` or the transport **Record** button. The status reads `[Recording]`.",
         "Press `Space` or **Stop** to finish; there is no separate stop key in the default profile.",
-        "The new clip appears on the armed track. Audio is written as WAV into the project directory.",
+        "The new clip appears on the armed track. Audio is written as WAV into `OpenStudio/Audio` inside your Documents folder and referenced by the project.",
       ],
     },
     {
@@ -45,13 +45,13 @@ const doc: DocContent = {
       head: ["Mode", "Behaviour"],
       rows: [
         ["**Normal**", "Creates a new clip on the armed track. Existing clips are preserved."],
-        ["**Overdub**", "Records a new take over existing clips. Both are kept for comping."],
-        ["**Replace**", "Replaces existing audio in the recorded range with the new material."],
+        ["**Overdub (Layer)**", "Adds new clips while keeping the existing clips. Loop passes within one recording session are grouped as takes."],
+        ["**Replace**", "Removes existing audio clips that overlap the new recording. It does not trim and preserve their portions outside the recorded range."],
       ],
     },
     {
       type: "p",
-      text: "To punch in on a range, make a time selection or loop region over it, press `L` to enable loop, arm the track, and record. Only the range inside the boundaries is captured; playback runs outside it without recording.",
+      text: "For loop recording, make a time selection and choose **View → Set Loop to Selection**, which also enables looping. Then arm and record. Looping is not punch recording; a separate punch control is not exposed in the current UI.",
     },
     {
       type: "shot",
@@ -63,7 +63,7 @@ const doc: DocContent = {
     { type: "h2", id: "takes-and-comping", text: "Takes and comping" },
     {
       type: "p",
-      text: "In Overdub mode every pass over the same position becomes a take on that clip. Only the active take plays; switch it from the clip's take menu.",
+      text: "Multiple loop passes within one recording session become takes on one clip. Only the active take plays; switch it from the clip's take menu.",
     },
     {
       type: "ol",
@@ -81,7 +81,7 @@ const doc: DocContent = {
       items: [
         "Click a clip to select it; `Primary`+click adds or removes one. Drag on empty space to marquee-select. `Ctrl+Shift+A` selects every clip, `Esc` clears.",
         "Click a track header to select the track; `Ctrl+Click` multi-selects, `Shift+Click` selects a range, `Ctrl+A` selects all tracks.",
-        "`Primary`+drag on the timeline background, or `Shift`+drag on the ruler, makes a time selection. It drives punch recording, render bounds, and the operations below.",
+        "`Primary`+drag on the timeline background, or `Shift`+drag on the ruler, makes a time selection. It drives render bounds and the operations below, and can be copied to the loop range.",
         "Drag a clip to move it in time or to another track. Hold `Alt`/`Option` to bypass snap for one drag, `Primary` to copy instead of move, `Shift` to lock to the first axis you cross.",
         "`Ctrl+X`, `Ctrl+C`, and `Ctrl+V` cut, copy, and paste at the playhead. Multi-clip pastes keep their relative track positions.",
       ],

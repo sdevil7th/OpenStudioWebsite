@@ -1,6 +1,9 @@
 import "@/styles/daw.css";
-import { type ReactNode, type RefObject, useLayoutEffect, useState } from "react";
+import { type ReactNode, type RefObject, useContext, useEffect, useLayoutEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { StaticRenderContext } from "@/lib/staticRender";
+
+const useBrowserLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 /** Below this scale the 7–9 px labels stop being legible; show the static frame. */
 export const MIN_ANIMATED_SCALE = 0.6;
@@ -14,7 +17,7 @@ export const MIN_ANIMATED_SCALE = 0.6;
 export const useStageScale = (ref: RefObject<HTMLElement>, designWidth: number) => {
   const [scale, setScale] = useState(1);
 
-  useLayoutEffect(() => {
+  useBrowserLayoutEffect(() => {
     const outer = ref.current;
     if (!outer) return;
     const measure = () => setScale(outer.clientWidth / designWidth);
@@ -35,7 +38,7 @@ export const useStageScale = (ref: RefObject<HTMLElement>, designWidth: number) 
 export const useStageFit = (ref: RefObject<HTMLElement>, minWidth: number) => {
   const [available, setAvailable] = useState(minWidth);
 
-  useLayoutEffect(() => {
+  useBrowserLayoutEffect(() => {
     const outer = ref.current;
     if (!outer) return;
     const measure = () => setAvailable(outer.clientWidth || minWidth);
@@ -68,29 +71,39 @@ interface StageFrameProps {
  * events off for the whole stage (see daw.css).
  */
 export const StageFrame = ({ outerRef, width, height, scale, label, className, children, data }: StageFrameProps) => {
+  const staticRender = useContext(StaticRenderContext);
   const dataAttributes = Object.fromEntries(
     Object.entries(data ?? {})
       .filter(([, value]) => value !== undefined)
       .map(([key, value]) => [key.startsWith("data-") ? key : `data-${key}`, String(value)]),
   );
 
+  const stage = (
+    <div
+      {...{ inert: "" }}
+      aria-hidden="true"
+      className="daw-session__stage absolute top-0 left-0 flex flex-col bg-daw-dark text-daw-text"
+      style={{ width, height, transform: `scale(${staticRender ? 1 : scale})`, transformOrigin: "top left" }}
+    >
+      {children}
+    </div>
+  );
+
   return (
     <div
       ref={outerRef}
       className={cn("daw-session daw-session--showcase relative w-full overflow-hidden", className)}
-      style={{ height: Math.round(height * scale) }}
+      style={{ height: staticRender ? "100%" : Math.round(height * scale) }}
       role="img"
       aria-label={label}
+      data-static-frame={staticRender ? "true" : undefined}
       {...dataAttributes}
     >
-      <div
-        ref={(node) => { if (node) node.inert = true; }}
-        aria-hidden="true"
-        className="daw-session__stage absolute top-0 left-0 flex flex-col bg-daw-dark text-daw-text"
-        style={{ width, height, transform: `scale(${scale})`, transformOrigin: "top left" }}
-      >
-        {children}
-      </div>
+      {staticRender ? (
+        <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
+          <foreignObject width={width} height={height}>{stage}</foreignObject>
+        </svg>
+      ) : stage}
     </div>
   );
 };

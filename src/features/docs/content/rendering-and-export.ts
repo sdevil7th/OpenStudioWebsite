@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-15",
-  appReference: { commit: "808ccbe", channel: "development" },
+  updated: "2026-09-16",
+  appReference: { commit: "7f59cff", channel: "development" },
   blocks: [
     {
       type: "p",
@@ -46,7 +46,7 @@ const doc: DocContent = {
       type: "table",
       head: ["Bounds", "Range rendered"],
       rows: [
-        ["Entire project", "First clip start to last clip end"],
+        ["Entire project", "Project start (0 seconds) to the last clip end"],
         ["Custom range", "Start and end times you enter"],
         ["Time selection", "The current time selection"],
         ["Project regions", "Each region as a separate file"],
@@ -129,8 +129,8 @@ const doc: DocContent = {
       type: "ul",
       items: [
         "**Add to Queue** in the Render dialog stores the job instead of running it. Open **View → Render Queue** to manage and batch-process queued jobs.",
-        "**File → Region Render Matrix…** is a grid of regions against formats for multi-region, multi-format delivery.",
-        "**File → DDP Disc Image Export…** writes a DDP disc image for CD replication.",
+        "**File → Region Render Matrix…** is a grid of tracks against regions. Choose the intersections to render and one output format for the batch.",
+        "**File → DDP Disc Image Export…** packages a source WAV with project regions as CD track markers. Render a 44.1 kHz, 16-bit stereo WAV first; this dialog does not render the mix for you.",
       ],
     },
     {
@@ -146,7 +146,7 @@ const doc: DocContent = {
       rows: [
         [
           "Session archive",
-          "**File → Archive Session…** copies the project file and every referenced media file into one destination so the session moves between machines intact. Unarchive is supported.",
+          "**File → Archive Session…** writes a ZIP beside the saved project. Save first: it reads the on-disk project and collects existing top-level audio clip files. It does not rewrite media paths or collect every take, NAM capture, IR, or plugin dependency, so it is not a complete portable session. Extract with a ZIP tool; there is no in-app Unarchive command.",
         ],
         [
           "Export MIDI",
@@ -158,14 +158,14 @@ const doc: DocContent = {
         ],
         [
           "Clean project directory",
-          "**File → Clean Project Directory…** lists files in the project folder that nothing references and lets you delete them.",
+          "**File → Clean Project Directory…** lists files absent from the top-level audio clips’ paths. It does not account for every take, original pitch-edit source, NAM capture, IR, or plugin dependency. Review each entry and back up the folder before deleting; a listed file may still be needed.",
         ],
-        ["Interchange", "RPP import and RPP/EDL export are available for moving sessions to and from other hosts."],
+        ["Interchange", "RPP/AAF import and RPP/EDL export are not available as supported app workflows. Exchange audio stems or MIDI instead."],
       ],
     },
     {
       type: "p",
-      text: "Live capture of the master output (**File → Capture Output**) is an experimental plumbing path in the current build and is not part of the stable workflow.",
+      text: "Live capture of the master output is not exposed as a supported command in the current File menu. Use Render for a mix file.",
     },
 
     { type: "h2", id: "format-support", text: "Import and export format support" },
@@ -179,7 +179,7 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: `MP3, OGG, video extraction, and other FFmpeg conversions need the bundled Windows runtime or a system \`ffmpeg\` on macOS and Linux. If a render comes out silent, check the bounds cover the clips, the source is what you meant, and no track or clip is muted; the full checklist is in [Troubleshooting](${SITE_PATHS.docs}/troubleshooting).`,
+      text: `MP3/OGG export, video extraction, and other FFmpeg conversions need the bundled Windows runtime or a system \`ffmpeg\` on macOS and Linux. If a render comes out silent, check the bounds cover the clips, the source is what you meant, and no track or clip is muted; the full checklist is in [Troubleshooting](${SITE_PATHS.docs}/troubleshooting).`,
     },
   ],
 };

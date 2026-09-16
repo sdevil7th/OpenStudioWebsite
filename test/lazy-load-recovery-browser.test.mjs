@@ -105,12 +105,14 @@ test("redesigned navigation, fragments, decorative stages and chunk failures", {
         await ctx.close();
       }
     });
-    await t.test("failed optional stage leaves its poster, page and navigation usable", async () => {
-      const ctx = await context({ viewport: { width: 1440, height: 900 } });
+    await t.test("failed animation runtime leaves the real still frame and navigation usable", async () => {
+      const ctx = await context({ viewport: { width: 1440, height: 900 }, reducedMotion: "no-preference" });
       try {
         const page = await ctx.newPage();
         let failed = 0;
-        await page.route("**/src/features/daw-preview/stages/PianoRollStage.tsx*", (route) => {
+        const errors = [];
+        page.on("pageerror", (error) => errors.push(error.message));
+        await page.route("**/node_modules/.vite-redesign-tests/deps/gsap.js*", (route) => {
           failed++;
           return route.abort();
         });
@@ -119,8 +121,11 @@ test("redesigned navigation, fragments, decorative stages and chunk failures", {
         await page.waitForFunction(
           () => document.querySelector('[data-stage="arrangement"]')?.getAttribute("data-live") === "true",
         );
+        await page.waitForFunction(() => performance.getEntriesByType("resource").some((entry) => entry.name.includes("gsap.js")));
         assert.ok(failed > 0);
-        await page.locator('[data-stage="piano-roll"] img').waitFor({ state: "visible" });
+        await page.locator('[data-stage="piano-roll"] .daw-session__stage').waitFor({ state: "visible" });
+        assert.equal(await page.locator(".sp-live-stage__poster").count(), 0);
+        assert.deepEqual(errors, []);
         assert.equal(await page.locator("#sp-main h1").innerText(), "Every feature in OpenStudio.");
         assert.ok((await page.locator(".daw-session__stage[inert]").count()) > 0);
         const controls = page.locator(".daw-session__stage button").first();

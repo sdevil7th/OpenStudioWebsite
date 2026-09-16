@@ -24,6 +24,7 @@ What the script changes on the way in:
 | `NAMCompactChain.*`, `NAMRackChainModule.*`, `NAMSignalChainTypes.ts` | copied unchanged |
 | `ParametricGraph/*` | `utils/parameterWheel` → `../stubs/parameterWheel`; only the EQ and compressor graphs are exported from `index.ts` |
 | `NAMRackDesignPort.tsx` | store/util imports → `./stubs/*` and sibling vendored utils; `NAMRackMixer` type → `stubs/namRackMixerTypes`; studio backdrop → `/assets/openstudio/nam/…`; `useElementSize` measures `offsetWidth/Height` so a CSS-scaled host lays out consistently |
+| `NAMRackDesignPort.tsx` initial canvas | optional `initialStageSize` seeds `useElementSize` for the website's fixed 960×540 stage; the tour uses a 668×248 inner canvas and hardware tiles 950×530, preventing cropped artwork before browser measurements |
 | `NAMRackStage.css` | its two `font-family` declarations → `inherit` (the stage sets the family) |
 | `NAMDesignAssets.ts` | the `import.meta.glob` lookups → `/assets/openstudio/nam/design/{bodies,controls}/…` public paths |
 | `NAMToneCapturePicker.tsx` | `utils/namCaptureType` → `stubs/namCaptureType` (type only) |
@@ -42,6 +43,11 @@ thumbnail, recording clip) are redrawn as SVG in `ClipLite.tsx`, with determinis
 notes from `clipArt.ts` standing in for the engine's waveform cache. The piano roll and pitch
 editor (Konva/store-bound upstream) are rebuilt as small SVG stages in `src/features/daw-preview/stages/`.
 
-The NAM Rack design port and its stylesheets follow the lazy `NamRackStage` import. Shared stage helpers follow normal dynamic import boundaries; none are forced into the initial site bundle.
+The NAM Rack design port and its stylesheets follow the lazy NAM Rack page. That
+page imports its renderer directly so it can show the real rest frame before
+animation starts. Other pages import only their own renderers; the full design
+port is not forced into the site entry or text/legal pages. GSAP remains deferred
+until the initial load has settled and a timeline is eligible to play. See
+[illustration loading](../../../../docs/illustration-loading.md).
 
 Website integration patches also keep source-flow effects synchronized with their configuration. Eight upstream `!important` declarations remain in `NAMRackHardware.css` to preserve the control geometry; authored site CSS uses none. The no-JavaScript loader override is separately scoped in `index.html`.

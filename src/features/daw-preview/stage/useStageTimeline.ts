@@ -70,6 +70,9 @@ export const useStageTimeline = <TState,>(
     let derive: (() => TState) | undefined;
     let pageVisible = document.visibilityState !== "hidden";
     let lastCommit = 0;
+    let settled = false;
+    let loading = false;
+    let unavailable = false;
 
     const commit = (force = false) => {
       if (!derive) return;
@@ -86,11 +89,39 @@ export const useStageTimeline = <TState,>(
     };
 
     const syncPlayback = () => {
-      if (!timeline) return;
       const shouldPlay = pageVisible && isStageAllowed(entry);
+      if (!timeline) {
+        if (shouldPlay) prepareTimeline();
+        return;
+      }
       if (shouldPlay && timeline.paused()) timeline.play();
       else if (!shouldPlay && !timeline.paused()) timeline.pause();
     };
+
+    function prepareTimeline() {
+      if (!settled || loading || unavailable || !active) return;
+      loading = true;
+      void loadGsap().then(({ gsap }) => {
+        loading = false;
+        if (!active || !pageVisible || !isStageAllowed(entry)) return;
+        const tl = gsap.timeline({
+          repeat: -1,
+          paused: true,
+          defaults: { ease: "power2.inOut" },
+          onUpdate: () => commit(),
+          onRepeat: () => commit(true),
+        });
+        derive = spec.build(tl, startDelay);
+        tl.set({}, {}, spec.length);
+        timeline = tl;
+        commit(true);
+        syncPlayback();
+      }).catch(() => {
+        loading = false;
+        unavailable = true;
+        // Keep the complete rest frame if the optional animation download fails.
+      });
+    }
 
     const unregister = registerStage(entry);
 
@@ -116,23 +147,8 @@ export const useStageTimeline = <TState,>(
 
     const cancelSchedule = scheduleAfterInitialLoad(
       () => {
-        void loadGsap().then(({ gsap }) => {
-          if (!active) return;
-
-          const tl = gsap.timeline({
-            repeat: -1,
-            paused: true,
-            defaults: { ease: "power2.inOut" },
-            onUpdate: () => commit(),
-            onRepeat: () => commit(true),
-          });
-          derive = spec.build(tl, startDelay);
-          tl.set({}, {}, spec.length);
-
-          timeline = tl;
-          commit(true);
-          syncPlayback();
-        });
+        settled = true;
+        syncPlayback();
       },
       { delay: 400, timeout: 2000 },
     );

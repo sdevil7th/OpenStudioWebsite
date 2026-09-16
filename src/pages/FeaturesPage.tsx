@@ -4,6 +4,12 @@ import PageSeo from "@/components/PageSeo";
 import { REPO, SHOTS } from "@/data/siteContent";
 import { SITE_PATHS, docPath } from "@/constants/routes";
 import { LiveStage } from "@/features/daw-preview/stage/LiveStage";
+import ArrangementStage from "@/features/daw-preview/stages/ArrangementStage";
+import MixerStage from "@/features/daw-preview/stages/MixerStage";
+import PianoRollStage from "@/features/daw-preview/stages/PianoRollStage";
+import PitchEditorStage from "@/features/daw-preview/stages/PitchEditorStage";
+import PluginWindowStage from "@/features/daw-preview/stages/PluginWindowStage";
+import RenderDialogStage from "@/features/daw-preview/stages/RenderDialogStage";
 import { ArrowLink, Cta, DownloadCta, Eyebrow, GradIcon } from "@/components/ui/primitives";
 import { useSpReveal } from "@/hooks/useSpReveal";
 
@@ -15,51 +21,46 @@ const FEATURE_IMAGE_SIZES = "(max-width: 640px) calc(100vw - 62px), (max-width: 
 const FEATURE_CARDS = [
   {
     id: "recording",
-    stage: { id: "arrangement" as const, variant: "recording" as const },
+    stage: { id: "arrangement" as const, variant: "recording" as const, component: ArrangementStage },
     icon: Mic,
     title: "Recording & timeline editing",
     copy: "Arm tracks, monitor inputs, punch in, comp takes, and edit clips on the timeline with markers, regions, ripple, razor, and fades.",
-    shot: SHOTS.recordingSession,
     alt: "Recording and timeline editing",
     to: docPath("recording-and-editing"),
   },
   {
     id: "midi",
-    stage: { id: "piano-roll" as const },
+    stage: { id: "piano-roll" as const, component: PianoRollStage },
     icon: Music,
     title: "MIDI, piano roll & instruments",
     copy: "A docked or detached piano roll, hardware MIDI input, an on-screen keyboard, step input, quantize and transforms, and audio-to-MIDI.",
-    shot: SHOTS.pianoRoll,
     alt: "MIDI, piano roll and instruments",
     to: docPath("midi-and-piano-roll"),
   },
   {
     id: "mixing",
-    stage: { id: "mixer" as const },
+    stage: { id: "mixer" as const, component: MixerStage },
     icon: SlidersHorizontal,
     title: "Mixer, routing & automation",
     copy: "Channel strips, sends, buses, a routing matrix, metering, channel EQ, mixer snapshots, and automation lanes with read, write, touch, and latch.",
-    shot: SHOTS.mixerMeters,
     alt: "Mixer, routing and automation",
     to: docPath("mixing-and-routing"),
   },
   {
     id: "plugins",
-    stage: { id: "plugin-window" as const },
+    stage: { id: "plugin-window" as const, component: PluginWindowStage },
     icon: Plug,
     title: "Plugins: VST3 / CLAP / LV2 / ARA2",
     copy: "Native plugin windows, input / track / master FX chains, presets and A/B, sidechain routing, optional ARA2 hosting, and built-in processors.",
-    shot: SHOTS.pluginHosting,
     alt: "Plugins: VST3 / CLAP / LV2 / ARA2",
     to: docPath("plugins-and-scanning"),
   },
   {
     id: "pitch",
-    stage: { id: "pitch-editor" as const },
+    stage: { id: "pitch-editor" as const, component: PitchEditorStage },
     icon: AudioWaveform,
     title: "Graphical pitch editing",
     copy: "Note-level editing with a contour and blobs, scale and chromatic snapping, offline correction on the take, and a real-time corrector effect.",
-    shot: SHOTS.pitchEditor,
     alt: "Graphical pitch editing",
     to: docPath("pitch-editing"),
   },
@@ -74,11 +75,10 @@ const FEATURE_CARDS = [
   },
   {
     id: "export",
-    stage: { id: "render-dialog" as const },
+    stage: { id: "render-dialog" as const, component: RenderDialogStage },
     icon: File,
     title: "Render, formats & project files",
     copy: "Master and stem renders, region and razor bounds, WAV, AIFF, FLAC, MP3, and OGG, a render queue, DDP export, and an inspectable project file on disk.",
-    shot: SHOTS.exportDialog,
     alt: "Render, formats and project files",
     to: docPath("rendering-and-export"),
   },
@@ -130,7 +130,7 @@ const FeaturesPage = () => {
             <div key={card.id} className="sp-card overflow-hidden flex flex-col" id={card.id}>
               <div className="[background:var(--sp-frame)] p-[10px_10px_0]">
                 {"stage" in card && card.stage ? (
-                  <LiveStage alt={card.alt} className="sp-feature-card__media" {...card.stage} poster={card.shot} sizes={FEATURE_IMAGE_SIZES} />
+                  <LiveStage alt={card.alt} className="sp-feature-card__media" {...card.stage} />
                 ) : (
                   <ResponsiveImage
                     className="block w-full [aspect-ratio:16_/_9] object-cover [object-position:top_left] rounded-[10px_10px_0_0]"

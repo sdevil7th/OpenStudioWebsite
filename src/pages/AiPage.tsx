@@ -1,9 +1,9 @@
 import { AI_MODEL_CATALOG, aiSetupDownloads } from "@/data/aiSetup";
 import { AudioWaveform, Book, Cpu, Download, Music, Scissors, Sparkles, Wand2 } from "lucide-react";
 import PageSeo from "@/components/PageSeo";
-import { SHOTS } from "@/data/siteContent";
 import { SITE_PATHS, blogPostPath, docPath } from "@/constants/routes";
 import { LiveStage } from "@/features/daw-preview/stage/LiveStage";
+import ArrangementStage from "@/features/daw-preview/stages/ArrangementStage";
 import {
   ArrowLink,
   Cta,
@@ -165,10 +165,9 @@ const AiPage = () => {
         <div className="sp-row min-[901px]:grid-cols-[1.1fr_.9fr]">
           <Frame reveal="media-left">
             <LiveStage
+              component={ArrangementStage}
               alt="Separated stems as tracks in the arrangement"
               id="arrangement"
-              poster={SHOTS.arrangementOverviewWide}
-              sizes="(max-width: 640px) calc(100vw - 58px), (max-width: 900px) calc(100vw - 86px), (max-width: 1240px) calc((100vw - 102px) * 0.55 - 18px), 608px"
               variant="stems"
             />
           </Frame>
@@ -195,7 +194,7 @@ const AiPage = () => {
               An AI track takes a prompt and optional lyrics and writes a fully decoded WAV into the session. Any
               existing audio clip can use variation, continuation or inpainting with a compatible model. Variation and
               inpainting create a new result track; continuation generates a tail. MiniMax Music 3 adds Lyrics + Style
-              and Song Sections in the next desktop release.
+              and Song Sections.
             </p>
             <p className="sp-body max-w-[440px] mb-[16px]">
               The models run through a diffusers pipeline. In our ACE-Step benchmark that path came in almost three
@@ -249,8 +248,8 @@ const AiPage = () => {
       {/* Honest block */}
       <div className="sp-container pt-[46px]" data-sp-reveal="rise">
         <HonestCallout>
-          The guided setup installs BS Roformer and ACE-Step. The next desktop release adds guided setup for Stable
-          Audio 3 Medium and MiniMax Music 3. Licence access and hardware support depend on the model. Intel Macs can
+          The guided setup installs BS Roformer, ACE-Step, Stable Audio 3 Medium and MiniMax Music 3.
+          Licence access and hardware support depend on the model. Intel Macs can
           run the base app, but the managed AI runtime currently targets Apple silicon.
         </HonestCallout>
       </div>

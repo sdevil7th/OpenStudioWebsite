@@ -1,6 +1,3 @@
-import { scheduleAfterInitialLoad } from "@/lib/initialLoad";
-import { ResponsiveImage } from "@/components/ResponsiveImage";
-import { StaticRenderContext } from "@/lib/staticRender";
 import {
   AudioWaveform,
   Cpu,
@@ -19,25 +16,29 @@ import {
   Zap,
   type LucideProps,
 } from "lucide-react";
-import { Suspense, lazy, useContext, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
+import { useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import PageSeo from "@/components/PageSeo";
 import { getHomeJsonLd } from "@/lib/structuredData";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { getPrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { useGithubRepoSnapshot } from "@/hooks/useGithubRepoSnapshot";
-import { REPO, SHOTS } from "@/data/siteContent";
+import { REPO } from "@/data/siteContent";
 import { SITE_PATHS, docPath } from "@/constants/routes";
 import { formatBytes, formatCount, formatDate } from "@/lib/format";
 import { ArrowLink, Cta, DownloadCta, Eyebrow, Frame, GradIcon, Kicker } from "@/components/ui/primitives";
-import { LiveStage, preloadStage, type StageSelection } from "@/features/daw-preview/stage/LiveStage";
+import { LiveStage, type StageSelection } from "@/features/daw-preview/stage/LiveStage";
+import LiveSession from "@/features/daw-preview/LiveSession";
+import ArrangementStage from "@/features/daw-preview/stages/ArrangementStage";
+import MixerStage from "@/features/daw-preview/stages/MixerStage";
+import NamChainStage from "@/features/daw-preview/stages/NamChainStage";
+import PianoRollStage from "@/features/daw-preview/stages/PianoRollStage";
+import PitchEditorStage from "@/features/daw-preview/stages/PitchEditorStage";
+import PluginWindowStage from "@/features/daw-preview/stages/PluginWindowStage";
+import RenderDialogStage from "@/features/daw-preview/stages/RenderDialogStage";
 import { useFooterLead } from "@/components/layout/footerLeadContext";
 import { orderPlatforms, usePlatform } from "@/hooks/usePlatform";
 import { useReleaseInfo } from "@/hooks/useReleaseInfo";
 import { useSpReveal } from "@/hooks/useSpReveal";
-
-const LiveSession = lazy(() => import("@/features/daw-preview/LiveSession"));
-const HERO_IMAGE_SIZES = "(max-width: 640px) calc(100vw - 60px), (max-width: 1188px) calc(100vw - 88px), 1100px";
-const SHOWCASE_IMAGE_SIZES = "(max-width: 640px) calc(100vw - 42px), (max-width: 900px) calc(100vw - 70px), (max-width: 1240px) calc((100vw - 120px) * 0.575 - 2px), 642px";
 
 /* ---------- showcase carousel ---------- */
 
@@ -49,12 +50,10 @@ interface Slide {
   title: string;
   copy: string;
   chips: string[];
-  shot: string;
   alt: string;
   linkLabel: string;
   to: string;
-  /** Live stage that replaces the screenshot once loaded. */
-  stage?: StageSelection;
+  stage: StageSelection;
 }
 
 const SLIDES: Slide[] = [
@@ -64,20 +63,19 @@ const SLIDES: Slide[] = [
     tab: "Local AI",
     eyebrow: "Optional · Local · Offline after setup",
     title: "Generate, separate, and vary audio without leaving the project.",
-    copy: "ACE-Step and Stable Audio 3 turn a prompt into a clip, extend or vary what is already on the timeline, and BS Roformer pulls a mix apart into six stems. MiniMax Music 3 adds lyrics and structured songs in the next desktop release. Processing runs locally after setup.",
+    copy: "ACE-Step and Stable Audio 3 turn a prompt into a clip, extend or vary what is already on the timeline, and BS Roformer pulls a mix apart into six stems. MiniMax Music 3 adds lyrics and structured songs. Processing runs locally after setup.",
     chips: [
       "BS Roformer stems",
       "ACE-Step",
       "Stable Audio 3",
-      "MiniMax Music 3 · next release",
+      "MiniMax Music 3",
       "Continue clip",
       "Inpaint",
     ],
-    shot: SHOTS.arrangementOverviewWide,
     alt: "Separated stems arriving as tracks in the arrangement",
     linkLabel: "How the AI tools work",
     to: SITE_PATHS.ai,
-    stage: { id: "arrangement", variant: "stems" },
+    stage: { id: "arrangement", variant: "stems", component: ArrangementStage },
   },
   {
     id: "nam",
@@ -87,11 +85,10 @@ const SLIDES: Slide[] = [
     title: "Plug in and the rig is already there.",
     copy: "Load any Neural Amp Modeler capture, stack native pedals in front of it, drop a cabinet IR behind it, and A/B two chains against each other. Presets recall with the project, and it renders offline with the rest of the mix.",
     chips: ["NAM A1 / A2", "Pre-FX pedalboard", "Cabinet IR", "Graphic EQ", "Tuner", "TONE3000", "Offline render"],
-    shot: SHOTS.namRackSignalChain,
     alt: "NAM Rack signal chain",
     linkLabel: "Explore the NAM Rack",
     to: SITE_PATHS.namRack,
-    stage: { id: "nam-chain" },
+    stage: { id: "nam-chain", component: NamChainStage },
   },
   {
     id: "pitch",
@@ -101,11 +98,10 @@ const SLIDES: Slide[] = [
     title: "Fix the take right where it sits in the arrangement.",
     copy: "A graphical pitch editor with note blobs and a contour, scale and chromatic snapping, a correct-pitch macro, and an offline render path. There is also a real-time pitch corrector effect for when you would rather work live.",
     chips: ["Note editor", "Scale snap", "Drift · Vibrato · Transition", "Correct-pitch macro", "Real-time corrector"],
-    shot: SHOTS.pitchEditor,
     alt: "The graphical pitch editor",
     linkLabel: "Pitch editing in the docs",
     to: docPath("pitch-editing"),
-    stage: { id: "pitch-editor" },
+    stage: { id: "pitch-editor", component: PitchEditorStage },
   },
   {
     id: "plugins",
@@ -115,11 +111,10 @@ const SLIDES: Slide[] = [
     title: "Your plugins, hosted natively.",
     copy: "Native editor windows, input, track, and master FX chains, presets and A/B, sidechain routing, and a set of built-in processors (EQ, compressor, gate, delay, reverb, saturator, chorus) that cover the rest.",
     chips: ["Native editors", "Input / track / master FX", "Presets & A/B", "Sidechain", "Built-in FX", "Safe mode"],
-    shot: SHOTS.pluginHosting,
     alt: "Plugin hosting inside OpenStudio",
     linkLabel: "Every feature",
     to: `${SITE_PATHS.features}#plugins`,
-    stage: { id: "plugin-window" },
+    stage: { id: "plugin-window", component: PluginWindowStage },
   },
 ];
 
@@ -142,23 +137,6 @@ const Showcase = () => {
     const timer = window.setInterval(() => setIndex((value) => (value + 1) % SLIDES.length), SLIDE_INTERVAL);
     return () => window.clearInterval(timer);
   }, [playing, index]);
-
-  // Warm the next slide's stage chunk so the auto-advance never shows a poster.
-  useEffect(() => {
-    const next = SLIDES[(index + 1) % SLIDES.length].stage;
-    if (
-      !next ||
-      !visible ||
-      paused ||
-      getPrefersReducedMotion() ||
-      (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData
-    )
-      return;
-    const idle =
-      window.requestIdleCallback?.(() => void preloadStage(next.id).catch(() => undefined)) ??
-      window.setTimeout(() => void preloadStage(next.id), 800);
-    return () => (window.cancelIdleCallback ? window.cancelIdleCallback(idle) : window.clearTimeout(idle));
-  }, [index, visible, paused]);
 
   // Stop the clock while the band is off screen so a long page never spins it for nothing.
   useEffect(() => {
@@ -249,11 +227,7 @@ const Showcase = () => {
       </div>
       <div>
         <div className="sp-card sp-card--dark sp-showcase__media">
-          {slide.stage ? (
-            <LiveStage key={slide.id} alt={slide.alt} eager {...slide.stage} poster={slide.shot} priority={1} sizes={SHOWCASE_IMAGE_SIZES} />
-          ) : (
-            <ResponsiveImage key={slide.id} alt={slide.alt} loading="lazy" src={slide.shot} sizes={SHOWCASE_IMAGE_SIZES} />
-          )}
+          <LiveStage key={slide.id} alt={slide.alt} {...slide.stage} priority={1} />
         </div>
         <div className="sp-showcase__controls">
           {SLIDES.map((entry, slideIndex) => (
@@ -289,44 +263,40 @@ const SESSION_ROWS = [
     icon: Mic,
     title: "Record & arrange",
     copy: "Arm tracks, monitor inputs, punch in, and edit clips on the same timeline. Markers, regions, ripple, razor, takes, and fades.",
-    shot: SHOTS.recordingSession,
     alt: "Recording session",
     imageFirst: false,
     to: docPath("recording-and-editing"),
-    stage: { id: "arrangement" as const, variant: "recording" as const },
+    stage: { id: "arrangement" as const, variant: "recording" as const, component: ArrangementStage },
   },
   {
     number: "02",
     icon: Music,
     title: "MIDI & instruments",
     copy: "A docked or detached piano roll, hardware MIDI input, an on-screen keyboard, quantize and transforms, and audio-to-MIDI when an idea needs it.",
-    shot: SHOTS.pianoRoll,
     alt: "Piano roll",
     imageFirst: true,
     to: docPath("midi-and-piano-roll"),
-    stage: { id: "piano-roll" as const },
+    stage: { id: "piano-roll" as const, component: PianoRollStage },
   },
   {
     number: "03",
     icon: SlidersHorizontal,
     title: "Mix & route",
     copy: "Channel strips, sends, buses, a routing matrix, metering, channel EQ, and mixer snapshots. Detach the mixer onto a second screen.",
-    shot: SHOTS.mixerMeters,
     alt: "Mixer",
     imageFirst: false,
     to: docPath("mixing-and-routing"),
-    stage: { id: "mixer" as const },
+    stage: { id: "mixer" as const, component: MixerStage },
   },
   {
     number: "04",
     icon: AudioWaveform,
     title: "Render & deliver",
     copy: "Master and stem renders, region and razor bounds, WAV, AIFF, FLAC, MP3, and OGG, a render queue, and DDP export for CD mastering.",
-    shot: SHOTS.exportDialog,
     alt: "Render dialog",
     imageFirst: true,
     to: docPath("rendering-and-export"),
-    stage: { id: "render-dialog" as const },
+    stage: { id: "render-dialog" as const, component: RenderDialogStage },
   },
 ];
 
@@ -374,9 +344,6 @@ const GetStartedLead = () => {
 };
 
 const HomePage = () => {
-  const staticRender = useContext(StaticRenderContext);
-  const [heroReady, setHeroReady] = useState(false);
-  useEffect(() => scheduleAfterInitialLoad(() => setHeroReady(true), { delay: 400, timeout: 2000 }), []);
   const platform = usePlatform();
   const release = useReleaseInfo();
   const { snapshot } = useGithubRepoSnapshot();
@@ -426,17 +393,9 @@ const HomePage = () => {
           </div>
           <Frame hero className="sp-home-session" reveal="rise">
             <ErrorBoundary
-              fallback={<ResponsiveImage alt="OpenStudio timeline" loading="eager" src={SHOTS.heroTimeline} sizes={HERO_IMAGE_SIZES} />}
+              fallback={<div className="grid h-full place-items-center text-sm text-slate-300">Illustration unavailable</div>}
             >
-              <Suspense
-                fallback={<ResponsiveImage alt="OpenStudio timeline" loading="eager" src={SHOTS.heroTimeline} sizes={HERO_IMAGE_SIZES} />}
-              >
-                {staticRender || !heroReady ? (
-                  <ResponsiveImage alt="OpenStudio timeline" loading="eager" src={SHOTS.heroTimeline} sizes={HERO_IMAGE_SIZES} />
-                ) : (
-                  <LiveSession />
-                )}
-              </Suspense>
+              <LiveSession />
             </ErrorBoundary>
           </Frame>
           <div className="sp-hero-stack__copy" data-sp-reveal="hero">
@@ -489,8 +448,7 @@ const HomePage = () => {
             );
             const imageBlock = (
               <Frame key="image" reveal={row.imageFirst ? "media-left" : "media-right"}>
-                <LiveStage alt={row.alt} {...row.stage} poster={row.shot}
-                  sizes="(max-width: 640px) calc(100vw - 58px), (max-width: 900px) calc(100vw - 86px), (max-width: 1240px) calc((100vw - 102px) * 0.58 - 18px), 643px" />
+                <LiveStage alt={row.alt} {...row.stage} />
               </Frame>
             );
 

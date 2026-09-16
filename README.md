@@ -35,7 +35,7 @@ The Studio Paper redesign is the sole website. Source folders describe their res
 - `src/components/layout/`: `SiteShell.tsx`, `SiteHeader.tsx`, `SiteFooter.tsx` and the footer-lead context. The shell owns shared layout and privacy controls.
 - `src/components/ui/`: shared website presentation primitives.
 - `src/features/docs/content/`: one typed, lazy-loaded module per guide. Each records the app revision and release/development status it describes.
-- `src/features/daw-preview/`: optional animated illustrations, scheduler and pinned upstream UI. See its `vendor/README.md` before syncing.
+- `src/features/daw-preview/`: real static illustration layouts with a deferred animation engine, scheduler and pinned upstream UI. Each lazy page imports its own renderers; text/legal pages exclude them. See its `vendor/README.md` before syncing.
 - `src/hooks/`: shared release, platform, media-query, section-reveal and navigation hooks.
 - `src/constants/routes.ts`: canonical `SITE_PATHS`, `docPath` and `blogPostPath`; `src/data/siteContent.ts` contains shared repository/contact/media references.
 - `src/lib/`: formatting, analytics, loading and SEO helpers.
@@ -52,6 +52,9 @@ and the remaining deployment/release checks for this migration.
 The [review follow-up](docs/review-follow-up.md) records the subsequent navigation,
 upgrade guidance, image delivery and data-validation fixes, including the pending
 native plugin screenshot captures.
+The [illustration loading follow-up](docs/illustration-loading.md) replaces the
+temporary screenshots with the illustrations' own rest frames and records the
+coordinated MiniMax/Stable Audio release wording.
 
 ## Local
 
@@ -90,6 +93,7 @@ Run `npm run build` before `npm test` in a clean checkout; tests consume the gen
 - Browser tests cover all canonical routes at 390, 768 and 1440 px, legacy redirects/404s, navigation and keyboard behavior, privacy consent, lazy-load recovery and GitHub release label/link consistency.
 - SEO browser tests visit every sitemap page with JavaScript disabled and enabled, compare the head metadata and structured data, validate social-image dimensions, and check metadata cleanup during navigation and 404 recovery.
 - Focused browser regressions cover normal-motion two-piece loading, AI card/table layout, current-page mobile-menu activation, and Features/NAM image selection at standard and high-density resolutions. Build tests check upgrade guidance before JavaScript; contract tests reject malformed repository snapshots and verify retry behavior.
+- Illustration tests delay or fail the animation-engine request, verify that the same scene elements and dimensions remain, and cover prerendered artwork with JavaScript disabled. Ordinary screenshot/thumbnail delivery tests remain separate.
 - The suite also includes unit, source-contract and build tests. A reported total is not an E2E-only count. Desktop app tests live in the separate app repository.
 - Browsers currently run in Chromium. The eight-width visual comparison recorded in the audit is a manual review artifact, not an automated screenshot-regression suite. Firefox/WebKit coverage and CI screenshot baselines are follow-up improvements.
 - Loading performance is an explicit `npm run verify:perf` check; the current CI workflow does not run that matrix automatically.

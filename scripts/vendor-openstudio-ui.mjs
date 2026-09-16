@@ -166,6 +166,19 @@ const designAssetHref = (_assets: Record<string, string>, directory: "bodies" | 
       ['from "../utils/tone3000InfiniteAppend"', 'from "./tone3000InfiniteAppend"'],
       ['from "../utils/parameterWheel"', 'from "./stubs/parameterWheel"'],
       ['from "../utils/namInstrumentProfile"', 'from "./namInstrumentProfile"'],
+      // The website prerenders a fixed-size illustration. Seed its actual
+      // canvas geometry so artwork is positioned correctly before effects run.
+      [
+        'function useElementSize<T extends HTMLElement>() {',
+        'function useElementSize<T extends HTMLElement>(initialSize = { width: 1280, height: 720 }) {',
+      ],
+      ['const [size, setSize] = useState({ width: 1280, height: 720 });', 'const [size, setSize] = useState(initialSize);'],
+      ['export function NAMRackDesignPort({\n', 'export function NAMRackDesignPort({\n  initialStageSize,\n'],
+      [
+        '}: {\n  sectionId: RackSectionId;\n  rackSizePercent: number;\n  parameters?: BuiltInParamDescriptor[];',
+        '}: {\n  initialStageSize?: { width: number; height: number };\n  sectionId: RackSectionId;\n  rackSizePercent: number;\n  parameters?: BuiltInParamDescriptor[];',
+      ],
+      ['const [stageRef, stageSize] = useElementSize<HTMLDivElement>();', 'const [stageRef, stageSize] = useElementSize<HTMLDivElement>(initialStageSize);'],
       // The site scales the port with a CSS transform; getBoundingClientRect
       // would report the transformed box while layout runs in untransformed
       // pixels. Measure the layout size instead so both agree.

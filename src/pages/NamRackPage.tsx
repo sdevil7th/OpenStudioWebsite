@@ -5,6 +5,7 @@ import { blogPosts } from "@/data/blogs";
 import { REPO, SHOTS, TONE3000_URL } from "@/data/siteContent";
 import { SITE_PATHS, blogPostPath, docPath } from "@/constants/routes";
 import { LiveStage } from "@/features/daw-preview/stage/LiveStage";
+import NamRackStage from "@/features/daw-preview/stages/NamRackStage";
 import { formatBytes, formatDate } from "@/lib/format";
 import {
   ArrowLink,
@@ -23,12 +24,12 @@ import { useSpReveal } from "@/hooks/useSpReveal";
 
 // Each tile is the real rack, cropped to its hardware page.
 const CHAIN_STAGES = [
-  { label: "01 Tuner", shot: SHOTS.namRackTuner, alt: "Tuner", variant: "amp+tuner" as const },
-  { label: "02 Pre-FX pedalboard", shot: SHOTS.namRackPreFx, alt: "Pre-FX pedalboard", variant: "pre" as const },
-  { label: "03 NAM amp · A1/A2", shot: SHOTS.namRackOverview, alt: "NAM amp · A1/A2", variant: "amp" as const },
-  { label: "04 Cabinet IR", shot: SHOTS.namRackCabinetIr, alt: "Cabinet IR", variant: "cab" as const },
-  { label: "05 Graphic EQ", shot: SHOTS.namRackGraphicEq, alt: "Graphic EQ", variant: "eq" as const },
-  { label: "06 Post-FX", shot: SHOTS.namRackPostFx, alt: "Post-FX", variant: "post" as const },
+  { label: "01 Tuner", alt: "Tuner", variant: "amp+tuner" as const },
+  { label: "02 Pre-FX pedalboard", alt: "Pre-FX pedalboard", variant: "pre" as const },
+  { label: "03 NAM amp · A1/A2", alt: "NAM amp · A1/A2", variant: "amp" as const },
+  { label: "04 Cabinet IR", alt: "Cabinet IR", variant: "cab" as const },
+  { label: "05 Graphic EQ", alt: "Graphic EQ", variant: "eq" as const },
+  { label: "06 Post-FX", alt: "Post-FX", variant: "post" as const },
 ];
 
 // One card for the captures themselves (NAM + TONE3000); the other three are
@@ -98,10 +99,8 @@ const NamRackPage = () => {
           <Frame hero reveal="media-right">
             <LiveStage
               alt="The OpenStudio NAM Rack amp page"
-              eager
+              component={NamRackStage}
               id="nam-rack"
-              poster={SHOTS.namRackOverview}
-              sizes="(max-width: 640px) calc(100vw - 60px), (max-width: 900px) calc(100vw - 88px), (max-width: 1240px) calc((100vw - 116px) * 0.475 - 20px), 514px"
               priority={1}
               variant="amp+tour"
             />
@@ -128,8 +127,7 @@ const NamRackPage = () => {
                 alt={stage.alt}
                 className="sp-chain-grid__stage"
                 id="nam-rack"
-                poster={stage.shot}
-                sizes="(max-width: 640px) calc((100vw - 58px) / 2), (max-width: 1240px) calc((100vw - 102px) / 3), 380px"
+                component={NamRackStage}
                 variant={stage.variant}
               />
             </div>

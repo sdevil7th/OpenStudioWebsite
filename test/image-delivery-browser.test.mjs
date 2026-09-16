@@ -18,8 +18,6 @@ test("image requests follow card widths at standard and high pixel densities", {
           const context = await browser.newContext({ viewport: { width, height: 900 }, deviceScaleFactor: dpr, reducedMotion: "reduce" });
           try {
             await context.route("https://**/*", (route) => route.abort());
-            // Keep the real posters visible, as they are when optional artwork fails.
-            await context.route(/\/assets\/(?:Arrangement|Mixer|PianoRoll|PluginWindow|PitchEditor|RenderDialog|NamRack|NamChain)Stage-[^/]+\.js$/, (route) => route.abort());
             await context.addInitScript(() => localStorage.setItem(
               "openstudio.analytics-consent.v1", JSON.stringify({ choice: "rejected", time: Date.now() }),
             ));

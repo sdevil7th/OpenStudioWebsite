@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-15",
-  appReference: { commit: "808ccbe", channel: "development" },
+  updated: "2026-09-16",
+  appReference: { commit: "7f59cff", channel: "development" },
   blocks: [
     {
       type: "p",
@@ -17,7 +17,7 @@ const doc: DocContent = {
       items: [
         "Click the **BPM** field in the transport bar and type a tempo, or tap `T` in time with the song. Set the **Time Signature** beside it if the song is not in 4/4.",
         "Click the metronome icon so you have a click to play to. The gear next to it sets the sound, accent pattern, and volume.",
-        "Press `Ctrl+S` and choose a folder. Recorded audio is written as WAV files into a subdirectory beside the `.osproj`, and auto-backup only runs once the project has a path, so save before you record.",
+        "Press `Ctrl+S` and choose a folder. Recorded WAV files go into `OpenStudio/Audio` inside your Documents folder and are referenced by the project; saving does not copy them beside the `.osproj`. Keep those files with your backups.",
       ],
     },
 
@@ -46,7 +46,7 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: `For another pass, set **Options → Record Mode** to **Overdub** and record over the same range; each pass becomes a take. Comping is in [Recording & editing](${SITE_PATHS.docs}/recording-and-editing), the rack in [NAM Rack setup](${SITE_PATHS.docs}/nam-rack-setup).`,
+      text: `For takes, set a loop range, enable loop, and record several passes in one recording session. Overdub keeps existing clips when you record over them; it does not fold separate recording sessions into one take stack. Comping is in [Recording & editing](${SITE_PATHS.docs}/recording-and-editing), the rack in [NAM Rack setup](${SITE_PATHS.docs}/nam-rack-setup).`,
     },
     {
       type: "callout",
@@ -61,7 +61,7 @@ const doc: DocContent = {
       items: [
         "Press `Ctrl+Shift+I` for an instrument track. The Plugin Browser opens; pick a VST3 drum instrument (click **Scan** first if the list is empty).",
         "To play it in: choose your controller in the track header's MIDI input dropdown, arm, enable monitoring, press `Ctrl+R`, and play. No controller? `Alt+B` opens the on-screen keyboard.",
-        "To draw it: double-click a MIDI clip to open the Piano Roll, choose the **Draw** tool, and click in the grid. Row is pitch, column is time; drag to set length.",
+        "To draw it: select the instrument track, choose **Insert → Empty MIDI Clip**, then double-click the clip to open the Piano Roll, choose the **Draw** tool, and click in the grid. Row is pitch, column is time; drag to set length.",
         "For a step-entered pattern, enable **Step Input** in the Piano Roll toolbar, pick a step size, and press `C` through `B` to insert notes.",
         "Tighten timing with **MIDI → Quantize Notes…**; `Q` reapplies the same settings later. Drag bars in the velocity lane to set how hard each hit plays.",
       ],

@@ -73,7 +73,7 @@ const Article = ({ post }: { post: BlogPostSummary }) => {
         </ArrowLink>
         <div className="h-[26px]" />
         <Kicker>
-          {categoryOf(post)} · <Book aria-hidden="true" size={11} style={{ verticalAlign: "-1px" }} /> {SITE_NAME} blog
+          {categoryOf(post)} · <Book aria-hidden="true" size={11} className="inline-block align-[-1px]" /> {SITE_NAME} blog
         </Kicker>
         <h1 className="sp-h1 max-w-[900px]">{post.title}</h1>
         <p className="sp-lede max-w-[760px] text-[18px]">{post.dek}</p>

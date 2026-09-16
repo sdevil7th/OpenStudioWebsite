@@ -310,3 +310,27 @@
 .daw-nam-stage[data-crop="hardware"] .premium-rig-drawer {
   display: none;
 }
+
+/* Without JS, fit one complete design composition through StageFrame's SVG.
+   The desktop port's viewport media rules otherwise resize its canvas while
+   its measurement hook cannot run. Client rendering keeps the upstream rules. */
+.daw-session[data-static-frame] .premium-nam-shell {
+  position: absolute;
+  inset: 4px;
+  width: auto;
+  height: auto;
+  min-height: 0;
+  margin: 0;
+}
+
+.daw-session[data-static-frame] .daw-nam-stage:not([data-crop]) .premium-nam-shell {
+  grid-template-rows: 174px 60px minmax(0, 1fr) 48px;
+}
+
+.daw-session[data-static-frame] .daw-nam-stage:not([data-crop]) .hardware-stage {
+  grid-template-columns: minmax(0, 1fr) 282px;
+}
+
+.daw-session[data-static-frame] .daw-nam-stage:not([data-crop]) .premium-rig-drawer {
+  display: grid;
+}

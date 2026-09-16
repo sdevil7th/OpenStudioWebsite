@@ -138,7 +138,7 @@ test("production loader artwork and AI layouts", { timeout: 120_000 }, async (t)
           await page.goto(base + "ai");
           await ready(page);
           await page.evaluate(() => document.fonts.ready);
-          const cards = page.locator("section.sp-card").filter({ hasText: "next desktop release" });
+          const cards = page.locator("section.sp-card").filter({ has: page.getByRole("heading", { name: /^(Stable Audio 3 Medium|MiniMax Music 3)$/ }) });
           assert.equal(await cards.count(), 2);
           for (const card of await cards.all()) {
             await card.scrollIntoViewIfNeeded();
@@ -164,7 +164,8 @@ test("production loader artwork and AI layouts", { timeout: 120_000 }, async (t)
           const table = page.locator("#models table");
           assert.equal(await table.locator("tbody tr").count(), 5);
           const statuses = await table.locator("tbody tr td:last-child").allTextContents();
-          assert.equal(statuses.filter((text) => text === "Next desktop release").length, 2);
+          assert.equal(statuses.filter((text) => text === "Guided setup · Diffusers").length, 3);
+          assert.doesNotMatch(await page.locator("#sp-main").innerText(), /next (desktop )?release/i);
           assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
           if (width < 900) {
             assert.ok(await table.evaluate((e) => e.parentElement.scrollWidth > e.parentElement.clientWidth));

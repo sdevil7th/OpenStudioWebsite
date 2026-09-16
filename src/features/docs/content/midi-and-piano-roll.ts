@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-15",
-  appReference: { commit: "808ccbe", channel: "development" },
+  updated: "2026-09-16",
+  appReference: { commit: "7f59cff", channel: "development" },
   blocks: [
     {
       type: "p",
@@ -18,7 +18,7 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: "A **MIDI** track (`Ctrl+Shift+T`, or **Insert → New MIDI Track**) records and plays MIDI data and does no audio processing. An **Instrument** track (`Ctrl+Shift+I`, or **Insert → Virtual Instrument on New Track…**) is a MIDI track with a virtual instrument (VST3) loaded; the Plugin Browser opens automatically when you create one.",
+      text: "A **MIDI** track (`Ctrl+Shift+T`, or **Insert → New MIDI Track**) records and plays MIDI data. An **Instrument** track (`Ctrl+Shift+I`, or **Insert → Virtual Instrument on New Track…**) is a MIDI track with a virtual instrument (VST3) loaded; the Plugin Browser opens automatically when you create one.",
     },
 
     { type: "h2", id: "recording-midi", text: "Recording MIDI" },
@@ -67,14 +67,14 @@ const doc: DocContent = {
     { type: "h2", id: "midi-learn", text: "MIDI learn" },
     {
       type: "p",
-      text: "MIDI Learn maps a physical control to an OpenStudio parameter, including plugin parameters.",
+      text: "MIDI Learn maps a controller CC to an exposed plugin parameter in a track or input FX chain.",
     },
     {
       type: "ol",
       items: [
-        "Right-click a parameter such as a track fader or a plugin knob.",
-        "Choose **MIDI Learn** from the context menu.",
-        "Move the control on your controller. The mapping is stored and that control now drives the parameter.",
+        "Open the track or input FX chain and expand the plugin parameter list.",
+        "Click the **MIDI Learn** button beside the parameter.",
+        "Move a CC control on your controller within ten seconds. Save the project to retain the mapping.",
       ],
     },
 

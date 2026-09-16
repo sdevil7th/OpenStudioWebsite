@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { routeDependencies } from "../scripts/prerender-site.mjs";
+import { authoredRoutes } from "./helpers/authored-routes.mjs";
 
 const read = (file) => readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
 const root = path.resolve(import.meta.dirname, "..");
@@ -24,9 +25,8 @@ test("download guidance preserves backup and retired-format warnings before Java
   assert.match(html, /Keep the older app for unconverted sessions/);
 });
 
-test("all 35 canonical pages have unique, indexable prerendered documents", () => {
-  assert.equal(routes.size, 35);
-  assert.equal([...routes.keys()].filter((route) => route.startsWith("/docs/")).length, 15);
+test("all authored pages have unique, indexable prerendered documents", () => {
+  assert.deepEqual([...routes.keys()].sort(), authoredRoutes);
   const titles = new Set();
   for (const [route, file] of routes) {
     const html = read(`dist${file}`);

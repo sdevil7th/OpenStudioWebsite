@@ -20,6 +20,24 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
 });
 
 const blogPostSeoOverrides = {
+  "minimax-stable-audio-diffusers-openstudio": {
+    author: "OpenStudio team",
+    dateModified: "2026-09-16",
+    seoTitle: "MiniMax Music 3 & Stable Audio 3 in OpenStudio | Blog",
+    seoDescription:
+      "Explore MiniMax Music 3, Stable Audio 3 Medium and ACE-Step in OpenStudio: local Diffusers generation, clip editing, guided setup and memory tradeoffs.",
+    imageAlt:
+      "A sunlit home studio with a MIDI keyboard, headphones and an open songwriting notebook on a wooden desk.",
+    keywords: [
+      "OpenStudio AI music",
+      "MiniMax Music 3",
+      "Stable Audio 3 Medium",
+      "ACE-Step 1.5 XL Turbo",
+      "Diffusers audio generation",
+      "local music generation",
+      "AI audio inpainting",
+    ],
+  },
   "building-openstudio-nam-rack": {
     author: DEFAULT_BLOG_AUTHOR,
     dateModified: "2026-08-31",

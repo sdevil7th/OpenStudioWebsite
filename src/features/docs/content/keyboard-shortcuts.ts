@@ -4,8 +4,12 @@ import type { DocContent } from "../types";
 
 const doc: DocContent = {
   updated: "2026-09-16",
-  appReference: { commit: "98197be", channel: "development" },
+  appReference: { commit: "7f59cff", channel: "development" },
   blocks: [
+    {
+      type: "p",
+      text: "Cubase automation update: the unshipped working tree reviewed on top of app commit `7f59cff` maps `F6` to the envelope panel, `Alt/Option+R` to all-track Read and `Alt/Option+W` to all-track Write. These are Cubase-profile bindings; the default OpenStudio tables below are unchanged. Write also enables Read, and switching Write off leaves Read on. Master R/W is controlled separately.",
+    },
     {
       type: "p",
       text: "The default OpenStudio keyboard profile, its mouse and scroll gestures, and the profile system that lets you borrow another DAW's conventions or build your own.",

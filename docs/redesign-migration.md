@@ -7,6 +7,11 @@ AI setup cards. The [16 September correction](visual-regression-correction.md)
 records their repair, all identified visible changes, and the limitations of the
 earlier checks. Loading animations must be verified separately from settled pages.
 
+The later [illustration-loading correction](illustration-loading.md) replaces
+screenshot placeholders with the actual scene's rest frame. It also supersedes
+the historical next-release model wording below: the rebranding release includes
+MiniMax Music 3 and Stable Audio 3 Medium.
+
 ## Implementation sequence
 
 1. Capture deterministic desktop/mobile screenshots of `/v2` pages before editing. Inventory source imports, build-time dependencies and public asset references.

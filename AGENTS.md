@@ -45,12 +45,15 @@ by installed OpenStudio apps. Start with [README.md](README.md) and
 - Do not add authored `!important` rules. The retained upstream NAM artwork
   exceptions and reproducible patches are documented in
   [the vendor guide](src/features/daw-preview/vendor/README.md).
-- Preserve lazy page, guide, article, animation and illustration boundaries.
-  Text/legal routes must not eagerly load NAM/DAW/GSAP code. Optional artwork
-  failures leave a usable poster; route/article failures provide recovery.
+- Preserve lazy page, guide, article and animation-engine boundaries. Each
+  illustration page imports its own renderers so the real rest frame is present
+  before animation starts; do not reintroduce screenshot placeholders. Text/legal
+  routes must not eagerly load NAM/DAW/GSAP code. Failed animation downloads leave
+  the real rest frame visible; route/article failures provide recovery. See
+  [illustration loading](docs/illustration-loading.md).
 - Use `ResponsiveImage` and generated `srcset` variants with intrinsic dimensions
-  and meaningful alt text. Supply `sizes` for the owning layout, including lazy
-  `LiveStage` posters and `Frame` images; account for columns, padding and
+  and meaningful alt text. Supply `sizes` for the owning layout and `Frame`
+  images; account for columns, padding and
   breakpoints. Check the selected variants at device pixel ratios 1 and 2.
   The image GraphQL service has been retired.
 - Keep decorative controls out of keyboard navigation and preserve reduced-motion
@@ -61,6 +64,9 @@ by installed OpenStudio apps. Start with [README.md](README.md) and
 - Follow [the guide authoring notes](src/features/docs/README.md). Check menu labels,
   shortcuts, profiles and model behavior against the desktop implementation,
   record the verified app commit, and distinguish development from shipped features.
+  The rebranding release includes MiniMax Music 3 and Stable Audio 3 Medium guided
+  setup. Keep that coordinated-release copy consistent with `RELEASE_SYNC.md`;
+  do not label these models as arriving in a later release.
 - Edit shared legal text in `src/data/legal.ts`; do not fork a second privacy
   policy in a page. Privacy, Terms and Security must remain readable without
   application JavaScript. Preserve analytics acceptance, rejection and revocation.

@@ -64,9 +64,11 @@ stages. Keep guide and article contents separate from their small inventories.
   identifies the Studio Paper design; it is not a website version.
 - Tests: browser failure-recovery tests deliberately intercept specific source
   modules or production chunks. Keep those paths consistent with renamed modules.
-- Images: `ResponsiveImage`, `Frame` and `LiveStage` accept a layout-specific
-  `sizes` value. Keep it aligned with the owning grid, breakpoints and inner
-  padding; the lazy poster needs the same delivery attention as a direct image.
+- Images: `ResponsiveImage` and `Frame` accept a layout-specific `sizes` value.
+  Keep it aligned with the owning grid, breakpoints and inner padding.
+- Illustrations: `LiveStage` receives a renderer from its owning page. Its real
+  rest frame is rendered before the deferred animation engine starts; it no longer
+  swaps a screenshot for a different scene. See [illustration loading](illustration-loading.md).
 
 ## Version references that remain intentional
 

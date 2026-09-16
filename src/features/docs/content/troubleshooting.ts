@@ -4,7 +4,7 @@ import type { DocContent } from "../types";
 
 const doc: DocContent = {
   updated: "2026-09-16",
-  appReference: { commit: "98197be", channel: "development" },
+  appReference: { commit: "7f59cff", channel: "development" },
   blocks: [
     {
       type: "p",
@@ -12,10 +12,10 @@ const doc: DocContent = {
     },
 
     { type: "h2", id: "install-and-launch", text: "Install and first launch" },
-    { type: "h3", text: "The OS warns that the build is unsigned" },
+    { type: "h3", text: "The OS warns or blocks first launch" },
     {
       type: "p",
-      text: "Expected. Builds are not code-signed yet, so each platform warns once on first launch.",
+      text: "Signing and notarization depend on the build. Check the release notes; a signature does not guarantee that SmartScreen or Gatekeeper will accept a download without a warning.",
     },
     {
       type: "ol",
@@ -23,7 +23,7 @@ const doc: DocContent = {
         "Windows: when SmartScreen appears, choose **More info** → **Run anyway**.",
         "macOS: right-click the app, choose **Open**, then allow it under **System Settings → Privacy & Security** if asked.",
         "Linux: run `chmod +x OpenStudio-*.AppImage` before launching.",
-        `Verify the SHA-256 on the [download page](${SITE_PATHS.download}) if you want certainty.`,
+        `Verify the SHA-256 on the [download page](${SITE_PATHS.download}) to check file integrity.`,
       ],
     },
     { type: "h3", text: "AI Tools are missing, or a generation dialog says the runtime is absent" },
@@ -81,7 +81,7 @@ const doc: DocContent = {
         "Increase the buffer size.",
         "Remove or bypass plugins you are not using.",
         "Reduce the number of simultaneous tracks.",
-        "Close the Mixer, Spectrum Analyzer, and Loudness Meter when not in use; their real-time displays cost CPU.",
+        "Close the Mixer and unused plugin editors to reduce display work.",
       ],
     },
 
@@ -100,8 +100,8 @@ const doc: DocContent = {
     {
       type: "ol",
       items: [
-        "Open the project in Safe Mode with `Ctrl+Shift+O`; every plugin loads bypassed.",
-        "Enable plugins one at a time to find the culprit.",
+        "Open a copy in Safe Mode with `Ctrl+Shift+O`; saved instruments and FX are not loaded. Avoid overwriting the original from this mode.",
+        "Add plugins one at a time in the copy to find the culprit.",
         "Check the plugin's documentation for channel configuration requirements.",
         "Update the plugin to its latest version.",
         "Remove and re-add the plugin to reset its state.",
@@ -174,7 +174,7 @@ const doc: DocContent = {
       type: "ol",
       items: [
         "Wait a moment on first load; the peak cache is being built.",
-        "Waveforms come from `.ospeaks` sidecar files. Legacy `.s13peaks` files still work and are regenerated when needed; deleting a sidecar is safe.",
+        "Waveforms come from `.ospeaks` sidecar files, which the app regenerates when needed. Deleting a peak-cache sidecar does not delete the source audio.",
         "Check the referenced audio file exists and is readable.",
         "Zoom in or out to force a refresh.",
       ],

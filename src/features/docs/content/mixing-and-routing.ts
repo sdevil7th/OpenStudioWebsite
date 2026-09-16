@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-15",
-  appReference: { commit: "808ccbe", channel: "development" },
+  updated: "2026-09-16",
+  appReference: { commit: "7f59cff", channel: "development" },
   blocks: [
     {
       type: "p",
@@ -35,8 +35,8 @@ const doc: DocContent = {
     {
       type: "ul",
       items: [
-        "**Volume** runs from -60 dB (silence) to +12 dB. Drag the fader or the track header knob; double-click the fader to reset to 0 dB. Gain changes are smoothed, so there is no zipper noise.",
-        "**Pan** runs from L100 through C to R100 using an equal-power (cosine/sine) pan law.",
+        "**Volume** runs from -60 dB to +12 dB. Drag the fader or the track header knob; double-click the fader to reset to 0 dB.",
+        "**Pan** runs from L100 through C to R100 with the selected pan law; equal-power is the default.",
         "**Mute** silences the track output. **Solo** mutes every track that is not soloed; several tracks can be soloed at once, and a soloed track still plays when others are muted.",
         "Solo and mute can be linked across tracks through a track group.",
       ],
@@ -79,11 +79,11 @@ const doc: DocContent = {
     { type: "h2", id: "snapshots-and-gain-staging", text: "Mixer snapshots and gain staging" },
     {
       type: "p",
-      text: "Snapshots save and recall the whole mixer state: volumes, pans, mutes, and solos. Click **Save** in the snapshots toolbar at the top of the mixer and name it. Click a snapshot button to recall it (undoable), or the trash icon to delete it. Use them to A/B two balances, keep several mix passes, or store reference levels.",
+      text: "Snapshots save and recall track volumes, pans, mutes, and solos. Click **Save** in the snapshots toolbar at the top of the mixer and name it. Click a snapshot button to recall it (undoable), or the trash icon to delete it. Use them to A/B two balances, keep several mix passes, or store reference levels.",
     },
     {
       type: "p",
-      text: "The gain staging display on each strip shows the level at successive points in the chain (clip gain, track fader, master output) so you can see where clipping is introduced.",
+      text: "Hover the gain readout to see the active clip gain, track fader, master gain, and their sum. These are gain settings, not measured audio levels at each stage.",
     },
 
     { type: "h2", id: "routing-matrix", text: "Routing matrix and signal flow" },
@@ -97,13 +97,13 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: `Input FX are pre-fader, so fader automation does not affect them; track insert FX are also pre-fader. The master receives the sum of all track outputs and bus outputs. Chains and plugins are covered in [Plugins & scanning](${SITE_PATHS.docs}/plugins-and-scanning).`,
+      text: `Input FX are pre-fader, so fader automation does not affect them; track insert FX are also pre-fader. The master receives tracks and buses routed to it. Chains and plugins are covered in [Plugins & scanning](${SITE_PATHS.docs}/plugins-and-scanning).`,
     },
 
     { type: "h2", id: "automation", text: "Automation" },
     {
       type: "p",
-      text: "Track volume, pan, mute, master parameters, and individual plugin parameters can be automated. Click the disclosure triangle on a track header, or right-click and choose **Show Automation**; lanes appear under the track. Pick the parameter from the lane dropdown.",
+      text: "The development checkout supports track volume, pan, width, mute and trim; instrument/bus pre-FX controls; MIDI velocity, pitch bend, pressure and CC; and master volume/pan. Host-exposed input FX, track FX and instrument parameters also have lanes. Open the track's envelope panel to select parameters. The native plugin gesture capture and Cubase shortcut changes below are unshipped working-tree changes reviewed on top of app commit `7f59cff`.",
     },
     {
       type: "shot",
@@ -124,26 +124,35 @@ const doc: DocContent = {
       head: ["Mode", "Behaviour"],
       rows: [
         ["Read", "Automation plays back; manual changes are temporary."],
-        ["Write", "During playback every change is recorded, overwriting existing points."],
+        ["Write", "Arms controls for capture while playback or recording runs. Enabling it also enables Read; switching Write off leaves Read on."],
         ["Touch", "Records only while you hold a control, then reverts to the existing curve."],
         ["Latch", "Like Touch, but keeps writing the last value after release until the transport stops."],
+        ["Overwrite", "Writes armed lanes continuously across the traversed range."],
       ],
     },
     {
       type: "p",
-      text: "Set the mode from the lane dropdown or with `openstudio.setAutomationMode()` in Lua. **Options → Move Envelopes with Items** decides whether automation points follow a clip when you move it; off, they stay at their original times.",
+      text: "Use the track R/W buttons and the envelope panel's Write selector. The Cubase keyboard profile uses `F6` for this panel, `Alt/Option+R` for all-track Read and `Alt/Option+W` for all-track Write. Master has separate R/W controls. **Options → Move Envelopes with Items** decides whether automation points follow a moved clip. Cubase Cross-over and advanced fill/trim workflows are not implemented.",
+    },
+    {
+      type: "p",
+      text: "Native VST3 editor changes, including isolated plugins, and eligible NAM Rack controls feed the automation writer. NAM model/IR files, calibration and configuration are not envelope targets. Kontakt libraries need host-automation assignments for controls they do not expose automatically; Komplete Kontrol supplies its mapped controls. CLAP editor capture, JSFX slider envelopes and master/monitor FX automation are not covered by this path. Capture is at control rate, not sample accurate.",
+    },
+    {
+      type: "p",
+      text: "Stopped knob edits are saved as plugin state. Save the project to retain them across reopening. Removing an FX closes its editor and removes its lanes; undo restores the saved plugin state and lanes. Reordering retains lane ownership. Failed plugin loads or rejected saved state are reported, and a missing plugin identity stops saving instead of shifting state onto another slot.",
     },
 
     { type: "h2", id: "metering", text: "Metering panels" },
     {
       type: "p",
-      text: "Three panels live under **View → Metering**: a **Loudness Meter** (LUFS), a **Spectrum Analyzer**, and a **Phase Correlation Meter**. The master strip has a peak meter with a clipping reset.",
+      text: "Track strips and the master strip have peak meters. **View → Metering** lists Loudness Meter and Phase Correlation as unavailable; there is no standalone Spectrum Analyzer panel in the current workspace.",
     },
     {
       type: "callout",
       tone: "note",
-      label: "These panels cost CPU",
-      text: "The loudness, spectrum, and phase displays render in real time. Close them, and the mixer panel, when the machine is struggling.",
+      label: "Metering limits",
+      text: "Peak meters show level, not integrated loudness or phase correlation. Use a suitable metering plugin when you need those measurements.",
     },
   ],
 };

@@ -125,15 +125,15 @@ export const removeLeadingArticleMetadata = (markdown) => {
 
 const markdownComponents = (imageManifest) => ({
   h1: ({ children }) =>
-    h("h2", { className: "mt-12 font-headline text-3xl font-bold leading-tight text-white md:text-[2.45rem]" }, children),
+    h("h2", { className: "mt-12 font-headline text-3xl font-bold leading-tight md:text-[2.45rem]" }, children),
   h2: ({ children }) =>
-    h("h2", { className: "mt-12 font-headline text-3xl font-bold leading-tight text-white md:text-[2.45rem]" }, children),
+    h("h2", { className: "mt-12 font-headline text-3xl font-bold leading-tight md:text-[2.45rem]" }, children),
   h3: ({ children }) =>
-    h("h3", { className: "mt-10 font-headline text-2xl font-semibold leading-tight text-white" }, children),
+    h("h3", { className: "mt-10 font-headline text-2xl font-semibold leading-tight" }, children),
   h4: ({ children }) =>
-    h("h4", { className: "mt-8 font-headline text-xl font-semibold leading-tight text-white" }, children),
+    h("h4", { className: "mt-8 font-headline text-xl font-semibold leading-tight" }, children),
   p: ({ children }) =>
-    h("p", { className: "mt-5 text-[1.06rem] leading-[1.82] text-white/82 md:text-[1.12rem]" }, children),
+    h("p", { className: "mt-5 text-[1.06rem] leading-[1.82] md:text-[1.12rem]" }, children),
   a: ({ children, href }) => {
     const external = href?.startsWith("http");
     return h("a", {
@@ -144,27 +144,27 @@ const markdownComponents = (imageManifest) => ({
     }, children);
   },
   blockquote: ({ children }) =>
-    h("blockquote", { className: "mt-8 border-l-2 border-secondary/70 pl-6 text-white/82 [&>p]:mt-0 [&>p]:text-xl [&>p]:leading-9 [&>p]:text-white/82" }, children),
+    h("blockquote", { className: "mt-8 border-l-2 border-secondary/70 pl-6 [&>p]:mt-0 [&>p]:text-xl [&>p]:leading-9" }, children),
   ul: ({ children }) =>
-    h("ul", { className: "mt-6 space-y-3 pl-6 text-[1.04rem] leading-8 text-white/80 marker:text-primary" }, children),
+    h("ul", { className: "mt-6 space-y-3 pl-6 text-[1.04rem] leading-8 marker:text-primary" }, children),
   ol: ({ children }) =>
-    h("ol", { className: "mt-6 list-decimal space-y-3 pl-6 text-[1.04rem] leading-8 text-white/80 marker:text-primary" }, children),
+    h("ol", { className: "mt-6 list-decimal space-y-3 pl-6 text-[1.04rem] leading-8 marker:text-primary" }, children),
   li: ({ children }) => h("li", { className: "pl-2" }, children),
-  strong: ({ children }) => h("strong", { className: "font-semibold text-white" }, children),
-  em: ({ children }) => h("em", { className: "text-white/82" }, children),
+  strong: ({ children }) => h("strong", { className: "font-semibold" }, children),
+  em: ({ children }) => h("em", null, children),
   hr: () => h("hr", { className: "my-12 border-white/10" }),
   pre: ({ children }) =>
-    h("pre", { className: "mt-8 overflow-x-auto rounded-lg border border-white/10 bg-black/55 p-5 text-sm leading-7 text-white/84 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]" }, children),
+    h("pre", { className: "mt-8 overflow-x-auto rounded-lg border border-white/10 bg-black/55 p-5 text-sm leading-7 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]" }, children),
   code: ({ children, className }) =>
     h("code", {
       className: className
-        ? `text-sm text-white/88 ${className}`
-        : "rounded-md border border-white/10 bg-white/[0.06] px-1.5 py-0.5 text-[0.9em] text-secondary",
+        ? `text-sm ${className}`
+        : "rounded-md border border-white/10 bg-white/[0.06] px-1.5 py-0.5 text-[0.9em]",
     }, children),
   table: ({ children }) =>
     h("div", { className: "mt-9 overflow-x-auto rounded-lg border border-white/10" },
-      h("table", { className: "w-full min-w-[42rem] border-collapse text-left text-sm text-white/80" }, children)),
-  thead: ({ children }) => h("thead", { className: "bg-white/[0.06] text-white" }, children),
+      h("table", { className: "w-full min-w-[42rem] border-collapse text-left text-sm" }, children)),
+  thead: ({ children }) => h("thead", { className: "bg-white/[0.06]" }, children),
   th: ({ children }) =>
     h("th", { className: "border-b border-white/10 px-4 py-3 font-mono text-[0.68rem] uppercase tracking-[0.18em]" }, children),
   td: ({ children }) =>

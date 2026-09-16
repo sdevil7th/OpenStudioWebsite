@@ -130,3 +130,7 @@ The subsequent [review follow-up](review-follow-up.md) records the remaining cod
 fixes, image-delivery checks and the blocked native screenshot recapture. Its
 layout comparison uses the repaired site above as its baseline; it does not
 replace the original-loader comparison recorded here.
+
+The subsequent [illustration-loading correction](illustration-loading.md) removes
+the different-scene screenshot placeholders while preserving this restored loader.
+It records the loading tradeoff and verification of the real illustration frames.

@@ -4,11 +4,11 @@ import type { DocContent } from "../types";
 
 const doc: DocContent = {
   updated: "2026-09-16",
-  appReference: { commit: "98197be", channel: "development" },
+  appReference: { commit: "7f59cff", channel: "development" },
   blocks: [
     {
       type: "p",
-      text: `OpenStudio has two ways to fix pitch. The graphical **Pitch Editor** analyses a monophonic audio clip, shows its notes, and lets you reshape them before an offline correction is rendered back into the clip. The built-in real-time pitch corrector is an FX-chain effect for live or immediate corrective work. This page covers both, and is written from the upstream [implemented features list](${REPO.implementedFeatures}); where that source is thin, this page stays thin too.`,
+      text: `OpenStudio has two ways to fix pitch. The graphical **Pitch Editor** analyses a monophonic audio clip, shows its notes, and lets you reshape them before an offline correction is rendered back into the clip. The built-in real-time pitch corrector is an FX-chain effect for live or immediate corrective work. This page covers both and was checked against the app’s editor and correction code. The [upstream feature list](${REPO.implementedFeatures}) provides additional background.`,
     },
 
     { type: "h2", id: "what-it-is", text: "What the Pitch Editor is" },
@@ -31,16 +31,16 @@ const doc: DocContent = {
     { type: "h2", id: "tools", text: "The tools" },
     {
       type: "p",
-      text: "Six tools act on the selected notes. The names are the upstream feature list's; each changes one aspect of the contour and leaves the rest alone.",
+      text: "Six tools cover note selection and movement, contour edits, and splitting.",
     },
     {
       type: "table",
       head: ["Tool", "What it changes"],
       rows: [
-        ["**Pitch**", "The note's centre pitch: moves the whole note."],
+        ["**Select**", "Selects notes; dragging vertically changes their centre pitch."],
         ["**Drift**", "The slow pitch movement within a note, without touching its centre."],
         ["**Vibrato**", "The amount of periodic pitch movement within a note."],
-        ["**Transition**", "How one note moves into the next: the shape and speed of the slide between them."],
+        ["**Trans**", "How one note moves into the next: the shape and speed of the slide between them."],
         ["**Draw**", "Freehand editing of the contour itself."],
         [
           "**Split**",
@@ -50,7 +50,7 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: "Undo and redo cover every edit in the editor, and the editor keeps an A/B comparison state so you can flip between the analysed original and your edited version by ear before you commit. Keyboard bindings for the editor have their own **Pitch Editor** scope in **Help → Keyboard, Mouse & Trackpad**, so a key that works on the timeline may do something else here.",
+      text: "Undo and redo cover every edit in the editor, and the editor keeps an A/B comparison state so you can flip between the analysed original and your edited version by ear as you edit. Keyboard bindings for the editor have their own **Pitch Editor** scope in **Help → Keyboard, Mouse & Trackpad**, so a key that works on the timeline may do something else here.",
     },
 
     { type: "h2", id: "snapping", text: "Scale, key, and snapping" },
@@ -75,14 +75,14 @@ const doc: DocContent = {
       items: [
         "Analyse the clip and confirm the notes are segmented the way you expect. Use Split where two notes were merged.",
         "Choose a key and scale, or accept the detected one, and run the correct-pitch macro if the take needs broad tidying.",
-        "Adjust individual notes with the Pitch, Drift, Vibrato, and Transition tools, previewing as you go.",
+        "Adjust individual notes with the Select, Drift, Vibrato, and Trans tools, previewing as you go.",
         "Compare against the original with A/B at a matched level.",
-        "Apply. The offline monophonic correction is rendered into the clip's audio and the result lands back on the timeline.",
+        "Wait for the automatic correction render to finish, then audition the updated clip on the timeline.",
       ],
     },
     {
       type: "p",
-      text: "Applying is an offline render, not a live process; the preview and HQ states exist so you can hear the result before that render happens.",
+      text: "Edits schedule correction automatically; there is no separate Apply button in this editor. Watch the status message while preview and HQ renders update the clip.",
     },
 
     { type: "h2", id: "real-time-corrector", text: "The real-time pitch corrector" },

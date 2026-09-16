@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-15",
-  appReference: { commit: "808ccbe", channel: "development" },
+  updated: "2026-09-16",
+  appReference: { commit: "7f59cff", channel: "development" },
   blocks: [
     {
       type: "p",
@@ -22,7 +22,7 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: `The license covers the software, not what you produce with it, so commercial releases made in OpenStudio are yours. If you modify OpenStudio and distribute your version, or run a modified version for others over a network, you must publish your changes under AGPLv3. Full text: the [LICENSE file](${REPO.license}); plain summary: the [terms page](${SITE_PATHS.terms}).`,
+      text: `The app’s license does not by itself put your recordings under AGPLv3; third-party content and models have their own terms. Distributing a modified app, or letting others use it over a network, carries corresponding-source obligations under AGPLv3. Full text: the [LICENSE file](${REPO.license}); plain summary: the [terms page](${SITE_PATHS.terms}).`,
     },
 
     { type: "h2", id: "which-platforms", text: "Which platforms does it run on?" },
@@ -30,8 +30,8 @@ const doc: DocContent = {
       type: "ul",
       items: [
         "Windows 10 or later, 64-bit, as an installer that also handles WebView2 and the VC++ redistributable.",
-        "macOS 12 Monterey or later, as an unsigned DMG.",
-        "x86-64 Linux as an AppImage, tested on Ubuntu 22.04 and later.",
+        "macOS 12 Monterey or later, as a DMG.",
+        "x86-64 Linux as an AppImage; the release pipeline builds on Ubuntu 24.04.",
       ],
     },
     {
@@ -42,11 +42,11 @@ const doc: DocContent = {
     { type: "h2", id: "why-does-the-installer-warn", text: "Why does the installer warn me?" },
     {
       type: "p",
-      text: "Builds are unsigned, so SmartScreen on Windows and Gatekeeper on macOS warn on first launch. On Windows choose **More info** → **Run anyway**; on macOS right-click the app, choose **Open**, and allow it under **System Settings → Privacy & Security** if asked. Most Linux distributions run the AppImage without extra steps.",
+      text: "Signing and notarization depend on the build. SmartScreen on Windows or Gatekeeper on macOS may warn or block first launch. On Windows choose **More info** → **Run anyway**; on macOS right-click the app, choose **Open**, and allow it under **System Settings → Privacy & Security** if asked. Most Linux distributions run the AppImage without extra steps.",
     },
     {
       type: "p",
-      text: `That path is documented, not warning-free. Download only from openstudio.org.in or the official [GitHub releases](${REPO.releases}), and compare the SHA-256 on the [download page](${SITE_PATHS.download}) if you want certainty.`,
+      text: `That path is documented, not warning-free. Download only from openstudio.org.in or the official [GitHub releases](${REPO.releases}), and compare the SHA-256 on the [download page](${SITE_PATHS.download}) to check file integrity.`,
     },
 
     { type: "h2", id: "which-plugin-formats", text: "Which plugin formats work, and how well?" },
@@ -58,7 +58,7 @@ const doc: DocContent = {
       type: "callout",
       tone: "warn",
       label: "32-bit bridge",
-      text: `**Options → Toggle 32-bit Plugin Bridge** is experimental. The supported path is 64-bit native hosting. See [Plugins & scanning](${SITE_PATHS.docs}/plugins-and-scanning).`,
+      text: `32-bit plugin hosting is not a supported workflow. Use 64-bit native plugins. See [Plugins & scanning](${SITE_PATHS.docs}/plugins-and-scanning).`,
     },
 
     { type: "h2", id: "does-it-bundle-captures-or-irs", text: "Does it bundle amp captures or cabinet IRs?" },
@@ -86,19 +86,19 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: `The bundled Basic Pitch model for audio-to-MIDI needs ONNX Runtime, provisioned on Windows and Linux only. Generation results depend on your hardware, RAM, and VRAM; upstream gives no fixed minimum. The next desktop release adds guided Stable Audio 3 Medium download after Hugging Face licence approval, and MiniMax Music 3 setup after licence acceptance. Local snapshot import remains optional. See [AI Tools setup](${SITE_PATHS.docs}/ai-runtime-setup).`,
+      text: `The bundled Basic Pitch model for audio-to-MIDI needs ONNX Runtime, provisioned on Windows and Linux only. Generation results depend on your hardware, RAM, and VRAM; upstream gives no fixed minimum. Guided setup downloads Stable Audio 3 Medium after Hugging Face licence approval, and MiniMax Music 3 after licence acceptance. Local snapshot import remains optional. See [AI Tools setup](${SITE_PATHS.docs}/ai-runtime-setup).`,
     },
 
     { type: "h2", id: "what-project-format", text: "What is the project file format?" },
     {
       type: "p",
-      text: "Projects save as `.osproj`; legacy `.s13` files still open. The file holds tracks, clip references, MIDI data, automation, markers, the tempo map, mixer and plugin state, and settings. Audio stays outside the project and is referenced by path. To move a session, use **File → Archive Session…**, which copies every referenced media file alongside the project.",
+      text: "Projects save as `.osproj`; retired project formats require conversion and cannot be opened by renaming the file. Back up projects and keep the older app for unconverted sessions. The file holds tracks, clip references, MIDI data, automation, markers, the tempo map, mixer and plugin state, and settings. Audio stays outside the project and is referenced by path. To move a session, copy its project and media files, including any NAM captures and IRs. **File → Archive Session…** has portability limits; see [Rendering & export](/docs/rendering-and-export#project-tools).",
     },
 
     { type: "h2", id: "can-i-import-reaper-or-ableton-projects", text: "Can I import REAPER or Ableton projects?" },
     {
       type: "p",
-      text: "REAPER: yes. OpenStudio imports `.rpp` and exports RPP and EDL. Ableton Live: no, there is no `.als` import. AAF import is stubbed and should not be counted on. For anything else, export stems from the other DAW and import the audio.",
+      text: "Not currently. REAPER `.rpp`, Ableton Live `.als`, and AAF import are not available as supported project workflows. RPP and EDL export are not available from the app either. Export stems from the other DAW and import the audio.",
     },
 
     { type: "h2", id: "what-export-formats", text: "What can I export?" },

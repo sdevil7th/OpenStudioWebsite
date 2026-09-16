@@ -2,12 +2,12 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-15",
-  appReference: { commit: "808ccbe", channel: "development" },
+  updated: "2026-09-16",
+  appReference: { commit: "7f59cff", channel: "development" },
   blocks: [
     {
       type: "p",
-      text: "OpenStudio ships a Lua scripting engine with access to most DAW functions: tracks, transport, FX chains, sends, automation, audio analysis, freeze, and offline render. Scripts automate repetitive setup work and build custom workflows without touching the C++ engine. This page covers the editor, the namespace, a compact API reference, and a few working scripts.",
+      text: "OpenStudio ships a Lua scripting engine with native bindings for tracks, transport, FX chains, sends, automation, audio analysis, freeze, and offline render. This page covers the editor, the namespace, a compact API reference, and examples. Project-editing scripts have the synchronization limits described below.",
     },
 
     { type: "h2", id: "the-script-editor", text: "The script editor" },
@@ -26,7 +26,7 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: "Scripts act on the open project. Save the project first if a script adds or removes tracks or FX, and keep the scripts you reuse as files on disk so they carry across projects.",
+      text: "Scripts call the native audio engine directly. Track, clip, mixer, and automation edits are not synchronized back into the frontend project state or its undo history, so they may not appear in the UI or survive saving. Use the UI for persistent project edits; keep reusable analysis scripts as files on disk.",
     },
 
     { type: "h2", id: "the-s13-namespace", text: "The OpenStudio namespace" },
@@ -36,7 +36,7 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: "Track functions take a `trackId` string returned by `openstudio.addTrack`. Volume is in dB, pan runs from `-1.0` (left) to `1.0` (right), and times are in seconds. Master volume is linear (`0.0` to `2.0`) rather than dB. Read the argument column in the tables below before assuming a range.",
+      text: "Track functions take a `trackId` string returned by `openstudio.addTrack`. Volume is in dB, pan runs from `-1.0` (left) to `1.0` (right), and times are in seconds. Master volume is linear, from `0.0` to about `3.98` (+12 dB). Read the argument column in the tables below before assuming a range.",
     },
     {
       type: "callout",
@@ -48,32 +48,19 @@ const doc: DocContent = {
     { type: "h2", id: "a-first-script", text: "A first script" },
     {
       type: "p",
-      text: "The script below creates four audio tracks, sets levels and a pan, and sets the tempo. Paste it into the editor and click **Run** on an empty project. Track names can be changed in the UI afterwards.",
+      text: "This read-only script prints the engine’s tempo, time signature, and track count. Paste it into the editor and click **Run**.",
     },
     {
       type: "code",
       lang: "lua",
-      code: `-- Create tracks for a band recording
-local drums = openstudio.addTrack()
-local bass = openstudio.addTrack()
-local guitar = openstudio.addTrack()
-local vocal = openstudio.addTrack()
-
--- Set levels
-openstudio.setTrackVolume(drums, -3.0)
-openstudio.setTrackVolume(bass, -6.0)
-openstudio.setTrackVolume(guitar, -6.0)
-openstudio.setTrackVolume(vocal, 0.0)
-
--- Pan instruments
-openstudio.setTrackPan(guitar, -0.3)
-
-openstudio.setTempo(120)
-openstudio.print("Band template ready!")`,
+      code: `local signature = openstudio.getTimeSignature()
+openstudio.print("Tempo: " .. openstudio.getTempo() .. " BPM")
+openstudio.print("Time signature: " .. signature.num .. "/" .. signature.den)
+openstudio.print("Native tracks: " .. openstudio.getTrackCount())`,
     },
     {
       type: "p",
-      text: "Each `openstudio.addTrack` call returns the new track's id, which the later calls use. The `ipairs` loop is ordinary Lua; nothing in the API needs special iteration.",
+      text: "`getTimeSignature()` returns a table with `num` and `den` fields. A native track count does not provide the IDs of the tracks in the project.",
     },
 
     { type: "h2", id: "api-reference", text: "API reference" },
@@ -189,7 +176,7 @@ openstudio.print("Band template ready!")`,
       type: "table",
       head: ["Function", "Arguments", "Returns", "Description"],
       rows: [
-        ["`openstudio.setMasterVolume(volume)`", "`volume: number`", "none", "Set master volume (0.0 to 2.0 linear)"],
+        ["`openstudio.setMasterVolume(volume)`", "`volume: number`", "none", "Set master volume (0.0 to about 3.98 linear, +12 dB)"],
         ["`openstudio.getMasterVolume()`", "none", "`number`", "Get master volume"],
         ["`openstudio.setMasterPan(pan)`", "`pan: number`", "none", "Set master pan (-1.0 to +1.0)"],
         ["`openstudio.getMasterPan()`", "none", "`number`", "Get master pan"],
@@ -397,14 +384,13 @@ end`,
     },
     {
       type: "p",
-      text: "To apply an operation to tracks created by your script, retain their returned IDs. A track count does not provide IDs for existing tracks. This example creates two tracks and gives both the same level.",
+      text: "Use returned values to inspect the engine without changing the project. For example, list the plugin names returned by the current scan:",
     },
     {
       type: "code",
       lang: "lua",
-      code: `local tracks = { openstudio.addTrack(), openstudio.addTrack() }
-for _, trackId in ipairs(tracks) do
-    openstudio.setTrackVolume(trackId, -6.0)
+      code: `for _, plugin in ipairs(openstudio.getAvailablePlugins() or {}) do
+    openstudio.print(plugin.name)
 end`,
     },
     {
@@ -416,9 +402,9 @@ end`,
     {
       type: "ul",
       items: [
-        "Use scripts for the jobs you repeat: adding the same FX chain to every vocal track, building a session template, or batch-measuring loudness.",
+        "Start with read-only tasks such as inspecting engine state or batch-measuring audio files.",
         "`openstudio.print()` is the debugging tool. Print ids and return values as you go; inspect returned values before continuing.",
-        "Scripts can modify tracks, FX and automation through the exposed functions. Their API does not mirror every UI action. Save before running a script you have not tested.",
+        "Native mutation bindings are available, but do not provide the UI’s project synchronization or undo guarantees. Experiment in a disposable session.",
         "Save commonly used scripts as files so you can reuse them across projects.",
       ],
     },

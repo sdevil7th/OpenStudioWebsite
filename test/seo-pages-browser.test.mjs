@@ -6,6 +6,7 @@ import { chromium } from "playwright";
 import sharp from "sharp";
 import { preview } from "vite";
 import { XMLParser } from "fast-xml-parser";
+import { authoredRoutes } from "./helpers/authored-routes.mjs";
 
 const origin = "https://openstudio.org.in";
 const sitemap = new XMLParser().parse(readFileSync(new URL("../dist/sitemap.xml", import.meta.url), "utf8"));
@@ -19,6 +20,19 @@ const readHead = (page) => page.evaluate(() => ({
   metas: [...document.querySelectorAll("head meta[name], head meta[property]")].map(el => [el.getAttribute("name") ?? el.getAttribute("property"), el.content]),
   schemas: [...document.querySelectorAll('script[type="application/ld+json"]')].map(el => JSON.parse(el.textContent)),
 }));
+
+async function verifyArticleText(page, route) {
+  if (!route.startsWith("/blog/")) return;
+  const mismatches = await page.locator(".sp-article").evaluate(article => {
+    const bodyColor = getComputedStyle(article).color;
+    // The retired dark theme made ordinary list/table text white on this
+    // light article surface. Test rendered inheritance, not utility names.
+    return [...article.querySelectorAll("td, li")]
+      .filter(element => getComputedStyle(element).color !== bodyColor)
+      .map(element => ({ tag: element.tagName, color: getComputedStyle(element).color }));
+  });
+  assert.deepEqual(mismatches, [], `${route}: table and list text use the article's readable body color`);
+}
 
 function verifyHead(head, route) {
   assert.equal(head.titles.length, 1, route);
@@ -91,6 +105,7 @@ test("all sitemap pages expose matching SEO before and after JavaScript", { time
       assert.equal(await staticPage.locator("main h1").count(), 1, route);
       assert.ok((await staticPage.locator("main").innerText()).length > 200, `readable content: ${route}`);
       const staticHead = await readHead(staticPage);
+      await verifyArticleText(staticPage, route);
       const meta = verifyHead(staticHead, route);
       assert.ok(!titles.has(staticHead.titles[0]), `unique title: ${route}`);
       assert.ok(!descriptions.has(meta.description), `unique description: ${route}`);
@@ -105,12 +120,13 @@ test("all sitemap pages expose matching SEO before and after JavaScript", { time
       assert.equal((await runtimePage.goto(new URL(route, base).href)).status(), 200, route);
       await runtimePage.waitForFunction(() => window.__openstudioAppReady && window.__openstudioIntroHidden && document.querySelector('script[data-page]'));
       const runtimeHead = await readHead(runtimePage);
+      await verifyArticleText(runtimePage, route);
       verifyHead(runtimeHead, route);
       // Attribute order is irrelevant; compare the semantic values, including schema.
       assert.deepEqual({ ...runtimeHead, metas: runtimeHead.metas.sort() }, { ...staticHead, metas: staticHead.metas.sort() }, `static/runtime agreement: ${route}`);
     }
     assert.deepEqual(errors, []);
-    assert.equal(routes.length, 35);
+    assert.deepEqual([...routes].sort(), authoredRoutes);
 
     // Actual SPA link navigation must clear blog-only metadata and update the canonical.
     await runtimePage.locator('header a[href="/docs"]').click();

@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-15",
-  appReference: { commit: "808ccbe", channel: "development" },
+  updated: "2026-09-16",
+  appReference: { commit: "7f59cff", channel: "development" },
   blocks: [
     {
       type: "p",
@@ -29,7 +29,7 @@ const doc: DocContent = {
     { type: "h2", id: "built-in-effects", text: "Built-in effects" },
     {
       type: "p",
-      text: "Built-in effects carry the `OpenStudio` prefix. Older projects and scripts that use the legacy `S13` names still load. Each one has dedicated parameter sliders, a graph of its curve or response, preset save and load, and a bypass toggle.",
+      text: "Built-in effects carry the `OpenStudio` prefix. Use the current names when adding effects from scripts. Editors provide effect-specific controls, preset save and load, and bypass; graphical displays vary by effect.",
     },
     {
       type: "table",
@@ -85,7 +85,7 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: "Native editors open in separate windows when the plugin provides one. Parameters can be changed there or from the parameter list in the FX Chain panel, and each parameter can be automated or mapped to a controller with MIDI Learn.",
+      text: "Native editors open in separate windows when the plugin provides one. Parameters can be changed there or from the parameter list in the FX Chain panel, where exposed. Automation uses eligible host-exposed parameters; the track and input FX parameter lists provide MIDI Learn buttons for controller CCs.",
     },
     {
       type: "shot",
@@ -104,7 +104,7 @@ const doc: DocContent = {
       items: [
         "**FX Bypass** on the track header bypasses the whole chain without removing anything. The FX button turns from green (active) to red (bypassed). Individual plugins bypass from inside the FX Chain panel.",
         "Drag effects within a track or input chain to reorder them; signal flows top to bottom.",
-        "**File → Open Project (Safe Mode)…** (`Ctrl+Shift+O`) opens a project with every plugin bypassed so it loads quickly. Enable plugins one at a time afterwards.",
+        "**File → Open Project (Safe Mode)…** (`Ctrl+Shift+O`) skips loading saved instruments and FX. Use a copy for diagnosis and avoid overwriting the original project from this mode.",
       ],
     },
     {
@@ -117,13 +117,13 @@ const doc: DocContent = {
     { type: "h2", id: "bridges-ara-sidechain", text: "32-bit bridge, ARA2, and sidechain" },
     {
       type: "p",
-      text: "Sidechain routing into plugins is supported for plugins that take a sidechain input. ARA2 hosting exists at the host-controller level: the ARA host controller lifecycle and per-track ARA status are implemented. The feature list does not describe an end-user ARA editing workflow beyond that, so treat ARA support as plumbing for now.",
+      text: "Sidechain routing into plugins is supported for plugins that take a sidechain input. For an ARA-capable plugin in a track FX chain, the app attempts to initialize ARA, attach the track’s audio clips, and open its editor. This depends on an ARA-enabled build and a compatible plugin; compatibility is not guaranteed for every ARA editor.",
     },
     {
       type: "callout",
       tone: "warn",
-      label: "32-bit plugins are experimental",
-      text: "**Options → Toggle 32-bit Plugin Bridge** exists for 32-bit VST plugins, but the control is experimental. The stable hosting path is 64-bit native plugins only, and bridging is not part of the supported plugin-hosting contract.",
+      label: "Use 64-bit plugins",
+      text: "A bridge action exists internally, but there is no supported 32-bit hosting workflow. Install the 64-bit version of the plugin.",
     },
 
     { type: "h2", id: "troubleshooting", text: "When a plugin will not show up or misbehaves" },
@@ -141,8 +141,8 @@ const doc: DocContent = {
     {
       type: "ol",
       items: [
-        "Open the project in Safe Mode (`Ctrl+Shift+O`) so every plugin loads bypassed.",
-        "Enable plugins one at a time until the problem returns.",
+        "Open a copy in Safe Mode (`Ctrl+Shift+O`) to skip loading saved instruments and FX.",
+        "Add plugins one at a time in the copy until the problem returns.",
         "Check the plugin's documentation for channel configuration requirements; some expect a specific layout.",
         "Update the plugin to its latest version.",
         "Remove the plugin from the chain and add it again to reset its state.",
