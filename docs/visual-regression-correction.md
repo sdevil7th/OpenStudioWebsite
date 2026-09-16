@@ -1,5 +1,29 @@
 # Visual regression correction — 16 September 2026
 
+## Follow-up: mobile download requirements
+
+The download page's 640 px minimum-width comparison grid gave the sticky label
+column about 227 px, even inside a 280–350 px phone card. That left very little
+room for the values and covered text as the visitor scrolled sideways.
+
+Below 640 px, the requirements now use a definition list: each component has
+full-width Minimum and Recommended values. All four components and eight values
+come from the same `systemRequirementMatrix` as the larger-screen comparison.
+CSS selects the layout, so it also works before JavaScript and when the viewport
+changes. There is no extra request or screen-size JavaScript. The phone section
+is intentionally taller because every value is readable without horizontal
+scrolling. The side-by-side comparison remains at 640 px and wider.
+
+Visual captures cover 320, 390, 640, 768, 900, 901 and 1440 px. The comparison
+grid's columns and styling match the approved `97a3f2e` design; the retained
+current copy is unchanged. Before/after captures at 768, 901 and 1440 px are
+pixel-identical; 640 and 900 px retain the same dimensions with six and one
+different pixels respectively. Phone captures were inspected for text wrapping
+and spacing. Evidence is in ignored `output/playwright/requirements-*.png`.
+`test/redesign-routes-browser.test.mjs` checks all eight values for clipping at
+phone widths, the layout switch at 640 px, both sides of the navigation breakpoint,
+and the JavaScript-disabled phone page.
+
 ## What happened
 
 The branding/cleanup work replaced suprabho's two-piece SVG loader with a single
