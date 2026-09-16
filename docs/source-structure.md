@@ -1,5 +1,11 @@
 # Website source structure
 
+The visual comparisons in this document isolate the directory reorganization.
+Their baseline already contained the earlier loader and AI card regressions;
+they did not establish equivalence to suprabho's original design. See the
+[visual regression correction](visual-regression-correction.md) for that distinction
+and the subsequent fixes.
+
 ## Purpose and migration plan
 
 The redesign is the sole website. Its former version prefix described the
@@ -37,6 +43,8 @@ The cleanup follows this sequence:
 | `src/data/` | Legal policy, AI setup, blogs and generated GitHub data |
 | `src/lib/` | Formatting, analytics, loading, prerender and SEO helpers |
 | `src/styles/` | `site.css` design system and specialized DAW styling |
+| `shared/github-snapshot.ts` | Repository snapshot contracts and runtime JSON validation, shared by build/server/browser |
+| `shared/` and `netlify/functions/` | Release/runtime contracts, GitHub data fetching and public endpoint handlers; explicitly included in the Node TypeScript project |
 
 Use `@/` imports across these boundaries and relative imports within a feature.
 Avoid a top-level barrel that eagerly imports pages, guides or illustration
@@ -56,6 +64,9 @@ stages. Keep guide and article contents separate from their small inventories.
   identifies the Studio Paper design; it is not a website version.
 - Tests: browser failure-recovery tests deliberately intercept specific source
   modules or production chunks. Keep those paths consistent with renamed modules.
+- Images: `ResponsiveImage`, `Frame` and `LiveStage` accept a layout-specific
+  `sizes` value. Keep it aligned with the owning grid, breakpoints and inner
+  padding; the lazy poster needs the same delivery attention as a direct image.
 
 ## Version references that remain intentional
 

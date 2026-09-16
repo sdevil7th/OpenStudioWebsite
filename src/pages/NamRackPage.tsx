@@ -101,6 +101,7 @@ const NamRackPage = () => {
               eager
               id="nam-rack"
               poster={SHOTS.namRackOverview}
+              sizes="(max-width: 640px) calc(100vw - 60px), (max-width: 900px) calc(100vw - 88px), (max-width: 1240px) calc((100vw - 116px) * 0.475 - 20px), 514px"
               priority={1}
               variant="amp+tour"
             />
@@ -128,6 +129,7 @@ const NamRackPage = () => {
                 className="sp-chain-grid__stage"
                 id="nam-rack"
                 poster={stage.shot}
+                sizes="(max-width: 640px) calc((100vw - 58px) / 2), (max-width: 1240px) calc((100vw - 102px) / 3), 380px"
                 variant={stage.variant}
               />
             </div>
@@ -155,7 +157,8 @@ const NamRackPage = () => {
       {/* Preset library */}
       <div className="sp-container pt-[46px]">
         <div className="sp-row min-[901px]:grid-cols-[1.15fr_.85fr]">
-          <Frame alt="The NAM Rack preset library" reveal="media-left" src={SHOTS.namRackPresetLibrary} />
+          <Frame alt="The NAM Rack preset library" reveal="media-left" src={SHOTS.namRackPresetLibrary}
+            sizes="(max-width: 640px) calc(100vw - 58px), (max-width: 900px) calc(100vw - 86px), (max-width: 1240px) calc((100vw - 102px) * 0.575 - 18px), 637px" />
           <div>
             <Kicker>Preset library</Kicker>
             <h2 className="sp-h2 text-[30px]">Your tones, recalled with the project.</h2>
@@ -186,6 +189,7 @@ const NamRackPage = () => {
             alt="The TONE3000 capture browser inside OpenStudio"
             reveal="media-right"
             src={SHOTS.tone3000Browser}
+            sizes="(max-width: 640px) calc(100vw - 58px), (max-width: 900px) calc(100vw - 86px), (max-width: 1240px) calc((100vw - 102px) * 0.55 - 18px), 608px"
           />
         </div>
       </div>
@@ -215,6 +219,7 @@ const NamRackPage = () => {
                   <ResponsiveImage
                     alt={post.imageAlt ?? post.title}
                     className="sp-blog-mini__shot"
+                    sizes="(max-width: 640px) calc(100vw - 42px), 150px"
                     loading="lazy"
                     src={post.image}
                   />

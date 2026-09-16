@@ -1,5 +1,10 @@
 # Final pre-push review
 
+**Subsequent correction — 16 September 2026:** this historical review missed the
+loader replacement and AI card styling regression later reported by the user.
+Its approval below must not be read as proof of unchanged visuals. See the
+[correction, visual inventory and new loading-state checks](visual-regression-correction.md).
+
 Reviewed **16 September 2026**. Website branch: `studio-paper-v2`; app branch:
 `fix-nam-rack`. Changes remain uncommitted and have not been pushed or deployed.
 

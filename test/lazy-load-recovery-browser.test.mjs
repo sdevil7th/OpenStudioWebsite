@@ -60,6 +60,21 @@ test("redesigned navigation, fragments, decorative stages and chunk failures", {
           .click();
         await page.locator("#sp-mobile-navigation").waitFor({ state: "detached" });
         assert.ok(page.url().endsWith("/docs"));
+        await ready(page);
+        await toggle.click();
+        await page.getByRole("navigation", { name: "Primary mobile" })
+          .getByRole("link", { name: "Docs", exact: true }).click();
+        await page.locator("#sp-mobile-navigation").waitFor({ state: "detached" });
+        assert.ok(page.url().endsWith("/docs"));
+        // The separate Releases link also closes on same-route keyboard activation.
+        await toggle.click();
+        await page.getByRole("navigation", { name: "Primary mobile" }).getByRole("link", { name: "Releases" }).click();
+        await ready(page);
+        await toggle.click();
+        const releases = page.getByRole("navigation", { name: "Primary mobile" }).getByRole("link", { name: "Releases" });
+        await releases.focus();
+        await page.keyboard.press("Enter");
+        await page.locator("#sp-mobile-navigation").waitFor({ state: "detached" });
       } finally {
         await ctx.close();
       }

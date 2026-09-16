@@ -44,10 +44,14 @@ The Studio Paper redesign is the sole website. Source folders describe their res
 - `src/styles/site.css`: shared design tokens, typography, responsive component styles and animation effects in Tailwind's component layer. Ordinary page layouts use Tailwind utilities; runtime artwork geometry remains inline.
 - `src/prerender.tsx` and `scripts/prerender-site.mjs`: render the actual page components into static HTML, route-specific head metadata, sitemap and exact hosting rewrites.
 - `shared/` and `netlify/functions/`: release/runtime contracts and stable download endpoints.
+- `shared/github-snapshot.ts`: the repository snapshot types and nested JSON parser shared by build generation, the GitHub function and browser refreshes.
 
 See [repository instructions](AGENTS.md), [source structure and cleanup verification](docs/source-structure.md), [guide authoring](src/features/docs/README.md), and [migration plan and verification](docs/redesign-migration.md) for maintenance rules and regression checks.
 The [final pre-push review](docs/final-review.md) records clean-checkout validation
 and the remaining deployment/release checks for this migration.
+The [review follow-up](docs/review-follow-up.md) records the subsequent navigation,
+upgrade guidance, image delivery and data-validation fixes, including the pending
+native plugin screenshot captures.
 
 ## Local
 
@@ -74,6 +78,10 @@ npm run preview
 ```
 
 `npm run build` fetches current GitHub data, generates branding, responsive images and blog HTML, stages and validates release inputs, runs strict TypeScript checking, builds the client and prerenders all canonical pages. Run `npm run lint` and `npm test` for the remaining CI checks. Browser tests require `npx playwright install chromium`.
+The TypeScript build covers client code, configuration, all shared TypeScript
+modules and all Netlify functions. Network and cached repository snapshots must
+pass the shared runtime parser before use; malformed browser refreshes preserve
+the valid build snapshot.
 
 ## Test coverage
 
@@ -81,6 +89,7 @@ Run `npm run build` before `npm test` in a clean checkout; tests consume the gen
 
 - Browser tests cover all canonical routes at 390, 768 and 1440 px, legacy redirects/404s, navigation and keyboard behavior, privacy consent, lazy-load recovery and GitHub release label/link consistency.
 - SEO browser tests visit every sitemap page with JavaScript disabled and enabled, compare the head metadata and structured data, validate social-image dimensions, and check metadata cleanup during navigation and 404 recovery.
+- Focused browser regressions cover normal-motion two-piece loading, AI card/table layout, current-page mobile-menu activation, and Features/NAM image selection at standard and high-density resolutions. Build tests check upgrade guidance before JavaScript; contract tests reject malformed repository snapshots and verify retry behavior.
 - The suite also includes unit, source-contract and build tests. A reported total is not an E2E-only count. Desktop app tests live in the separate app repository.
 - Browsers currently run in Chromium. The eight-width visual comparison recorded in the audit is a manual review artifact, not an automated screenshot-regression suite. Firefox/WebKit coverage and CI screenshot baselines are follow-up improvements.
 - Loading performance is an explicit `npm run verify:perf` check; the current CI workflow does not run that matrix automatically.

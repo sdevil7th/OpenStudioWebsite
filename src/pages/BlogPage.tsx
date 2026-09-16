@@ -38,6 +38,7 @@ const BlogPage = () => {
             {featured.image ? (
               <ResponsiveImage
                 className="block w-full h-full object-cover"
+                sizes="(max-width: 640px) calc(100vw - 42px), (max-width: 900px) calc(100vw - 70px), (max-width: 1240px) calc((100vw - 70px) * 0.575), 673px"
                 alt={featured.imageAlt ?? featured.title}
                 src={featured.image}
               />
@@ -69,6 +70,7 @@ const BlogPage = () => {
               {post.image ? (
                 <ResponsiveImage
                   className="block w-full h-[150px] object-cover"
+                  sizes="(max-width: 640px) calc(100vw - 42px), (max-width: 1000px) calc((100vw - 90px) / 2), (max-width: 1240px) calc((100vw - 110px) / 3), 377px"
                   alt={post.imageAlt ?? post.title}
                   loading="lazy"
                   src={post.image}

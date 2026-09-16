@@ -166,6 +166,7 @@ export const ArrowLink = ({ children, to, href, tone = "accent", className = "" 
 export const Frame = ({
   alt,
   src,
+  sizes,
   hero = false,
   className = "",
   reveal,
@@ -173,6 +174,7 @@ export const Frame = ({
 }: {
   alt?: string;
   src?: string;
+  sizes?: string;
   hero?: boolean;
   className?: string;
   reveal?: SpReveal;
@@ -183,7 +185,7 @@ export const Frame = ({
     {children ? (
       <div className="sp-frame__live">{children}</div>
     ) : src ? (
-      <ResponsiveImage alt={alt ?? ""} loading={hero ? "eager" : "lazy"} src={src} />
+      <ResponsiveImage alt={alt ?? ""} loading={hero ? "eager" : "lazy"} src={src} sizes={sizes} />
     ) : null}
   </div>
 );

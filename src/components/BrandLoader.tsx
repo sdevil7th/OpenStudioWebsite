@@ -11,6 +11,11 @@ let removalTimer = 0;
 // clipping by transformed page containers.
 const BrandLoader = () => {
   useLayoutEffect(() => {
+    // The first legal document must remain readable while its JavaScript loads.
+    // Later client-side navigation still uses the shared animated surface.
+    if (document.documentElement.hasAttribute("data-openstudio-immediate-content") && !window.__openstudioAppReady) {
+      return;
+    }
     const template = document.getElementById("openstudio-loader-template");
     if (!(template instanceof HTMLTemplateElement)) return;
 

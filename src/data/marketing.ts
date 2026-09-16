@@ -28,67 +28,11 @@ export interface ProjectEmailMap {
   personal: string;
 }
 
-export interface GithubRepoStats {
-  stars: number;
-  forks: number;
-  openIssues: number;
-  watchers: number;
-  commitCount: number;
-  contributorCount: number;
-}
-
-export interface GithubLanguageShare {
-  name: string;
-  bytes: number;
-  percent: number;
-}
-
-export interface GithubContributorSummary {
-  login: string;
-  avatarUrl: string;
-  profileUrl: string;
-  contributions: number;
-}
-
-export interface GithubReleaseAssetSummary {
-  name: string;
-  size: number;
-  downloadUrl: string;
-  downloadCount: number;
-}
-
-export interface GithubReleaseSummary {
-  id: number;
-  tagName: string;
-  name: string;
-  htmlUrl: string;
-  publishedAt: string;
-  isPrerelease: boolean;
-  assetCount: number;
-  assets: GithubReleaseAssetSummary[];
-  body?: string;
-}
-
-export interface GithubRepoSnapshot {
-  fetchedAt: string;
-  fullName: string;
-  repositoryUrl: string;
-  ownerLogin: string;
-  ownerProfileUrl: string;
-  ownerAvatarUrl: string;
-  description: string;
-  docsUrl: string;
-  defaultBranch: string;
-  license: string;
-  createdAt: string;
-  updatedAt: string;
-  pushedAt: string;
-  primaryLanguage: string;
-  languages: GithubLanguageShare[];
-  contributors: GithubContributorSummary[];
-  latestRelease: GithubReleaseSummary | null;
-  hasPublishedReleases: boolean;
-  releases?: GithubReleaseSummary[];
-  releaseCount?: number;
-  stats: GithubRepoStats;
-}
+export type {
+  GithubRepoStats,
+  GithubLanguageShare,
+  GithubContributorSummary,
+  GithubReleaseAssetSummary,
+  GithubReleaseSummary,
+  GithubRepoSnapshot,
+} from "../../shared/github-snapshot";

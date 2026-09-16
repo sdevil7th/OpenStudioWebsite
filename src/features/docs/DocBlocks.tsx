@@ -73,7 +73,8 @@ export const DocBlockView = ({ block }: { block: DocBlock }) => {
     case "shot":
       return (
         <figure className="sp-doc-shot">
-          <Frame alt={block.alt} src={block.src} />
+          <Frame alt={block.alt} src={block.src}
+            sizes="(max-width: 780px) calc(100vw - 58px), (max-width: 900px) 722px, (max-width: 1030px) calc(100vw - 356px), 674px" />
           {block.caption ? <figcaption className="sp-mono">{block.caption}</figcaption> : null}
         </figure>
       );

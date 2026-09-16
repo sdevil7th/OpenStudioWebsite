@@ -26,6 +26,7 @@ function harness(reducedMotion = false) {
     HTMLTemplateElement: Template,
     performance: { now: () => now },
     document: {
+      documentElement: { hasAttribute: () => false },
       getElementById: () => new Template(),
       body: { appendChild: (node) => visible.add(node) },
     },

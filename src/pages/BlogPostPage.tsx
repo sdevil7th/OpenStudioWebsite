@@ -97,6 +97,7 @@ const Article = ({ post }: { post: BlogPostSummary }) => {
                   className="w-full block"
                   alt={post.imageAlt ?? post.title}
                   src={post.image}
+                  sizes="(max-width: 640px) calc(100vw - 58px), (max-width: 1000px) calc(100vw - 86px), (max-width: 1144px) calc(100vw - 402px), 742px"
                   style={{ objectFit: post.imageFit ?? "cover" }}
                 />
               </div>

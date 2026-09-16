@@ -16,14 +16,15 @@ const server = await createServer({
 });
 try {
   const { fetchGithubRepoSnapshot } = await server.ssrLoadModule("/shared/github-api.ts");
+  const { parseGithubRepoSnapshot } = await server.ssrLoadModule("/shared/github-snapshot.ts");
   let snapshot;
   try {
-    snapshot = await fetchGithubRepoSnapshot(process.env.GITHUB_TOKEN);
+    snapshot = parseGithubRepoSnapshot(await fetchGithubRepoSnapshot(process.env.GITHUB_TOKEN));
   } catch (error) {
     // Local iteration can survive a temporary API outage/quota limit without inventing release values.
     // Clean CI/Netlify builds still require a successful GitHub fetch.
     if (process.env.CI || process.env.NETLIFY) throw error;
-    const cached = JSON.parse(await fs.readFile(path.join(output, "repository.json"), "utf8").catch(() => "null"));
+    const cached = parseGithubRepoSnapshot(JSON.parse(await fs.readFile(path.join(output, "repository.json"), "utf8")));
     const age = Date.now() - Date.parse(cached?.fetchedAt ?? "");
     if (
       !cached?.latestRelease ||

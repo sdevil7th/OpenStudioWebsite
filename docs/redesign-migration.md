@@ -2,6 +2,11 @@
 
 Baseline: `studio-paper-v2` at `97a3f2e`. The Studio Paper design becomes the sole website. Existing public links, legal policy content, release downloads, appcasts and runtime metadata remain supported.
 
+The original visual checks missed a subsequent loader substitution and unstyled
+AI setup cards. The [16 September correction](visual-regression-correction.md)
+records their repair, all identified visible changes, and the limitations of the
+earlier checks. Loading animations must be verified separately from settled pages.
+
 ## Implementation sequence
 
 1. Capture deterministic desktop/mobile screenshots of `/v2` pages before editing. Inventory source imports, build-time dependencies and public asset references.

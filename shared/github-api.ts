@@ -1,73 +1,8 @@
 import { selectReleaseAsset } from "./release-assets";
 export type GithubPlatform = "windows" | "macos" | "linux";
 
-export interface GithubRepoStats {
-  stars: number;
-  forks: number;
-  openIssues: number;
-  watchers: number;
-  commitCount: number;
-  contributorCount: number;
-}
-
-export interface GithubLanguageShare {
-  name: string;
-  bytes: number;
-  percent: number;
-}
-
-export interface GithubContributorSummary {
-  login: string;
-  avatarUrl: string;
-  profileUrl: string;
-  contributions: number;
-}
-
-export interface GithubReleaseAssetSummary {
-  name: string;
-  size: number;
-  downloadUrl: string;
-  downloadCount: number;
-}
-
-export interface GithubReleaseSummary {
-  id: number;
-  tagName: string;
-  name: string;
-  htmlUrl: string;
-  publishedAt: string;
-  isPrerelease: boolean;
-  assetCount: number;
-  assets: GithubReleaseAssetSummary[];
-  /** Release notes body (GitHub-flavoured markdown). Absent on older cached snapshots. */
-  body?: string;
-}
-
-export interface GithubRepoSnapshot {
-  fetchedAt: string;
-  fullName: string;
-  repositoryUrl: string;
-  ownerLogin: string;
-  ownerProfileUrl: string;
-  ownerAvatarUrl: string;
-  description: string;
-  docsUrl: string;
-  defaultBranch: string;
-  license: string;
-  createdAt: string;
-  updatedAt: string;
-  pushedAt: string;
-  primaryLanguage: string;
-  languages: GithubLanguageShare[];
-  contributors: GithubContributorSummary[];
-  latestRelease: GithubReleaseSummary | null;
-  hasPublishedReleases: boolean;
-  /** Every published (non-draft) release, newest first, including runtime tags. */
-  releases?: GithubReleaseSummary[];
-  /** Count of published desktop app releases (tags starting with `v`). */
-  releaseCount?: number;
-  stats: GithubRepoStats;
-}
+import type { GithubReleaseSummary, GithubRepoSnapshot } from "./github-snapshot";
+export type { GithubContributorSummary, GithubLanguageShare, GithubReleaseAssetSummary, GithubReleaseSummary, GithubRepoSnapshot, GithubRepoStats } from "./github-snapshot";
 
 interface GithubRepoResponse {
   full_name: string;

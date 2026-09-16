@@ -36,6 +36,9 @@ by installed OpenStudio apps. Start with [README.md](README.md) and
 
 - Keep strict TypeScript checks passing. Validate untrusted JSON at network
   boundaries; avoid `any`, unchecked assertions and duplicated contract types.
+  `shared/github-snapshot.ts` owns the repository snapshot types and parser used
+  by the build, server function and browser. Keep all `shared/` and
+  `netlify/functions/` TypeScript covered by `tsconfig.node.json`.
 - Use Tailwind for ordinary static layout, spacing, typography and responsive
   states. Shared design tokens and specialized artwork/keyframes belong in their
   existing stylesheets. Use inline styles for runtime geometry when needed.
@@ -46,7 +49,10 @@ by installed OpenStudio apps. Start with [README.md](README.md) and
   Text/legal routes must not eagerly load NAM/DAW/GSAP code. Optional artwork
   failures leave a usable poster; route/article failures provide recovery.
 - Use `ResponsiveImage` and generated `srcset` variants with intrinsic dimensions
-  and meaningful alt text. The image GraphQL service has been retired.
+  and meaningful alt text. Supply `sizes` for the owning layout, including lazy
+  `LiveStage` posters and `Frame` images; account for columns, padding and
+  breakpoints. Check the selected variants at device pixel ratios 1 and 2.
+  The image GraphQL service has been retired.
 - Keep decorative controls out of keyboard navigation and preserve reduced-motion
   alternatives, menu focus behavior and readable content before JavaScript.
 
@@ -62,8 +68,14 @@ by installed OpenStudio apps. Start with [README.md](README.md) and
   derivatives from it with `npm run generate-branding`. Follow the
   [branding inventory](docs/branding-and-download-audit.md) for social/Store artwork,
   cache versions and coordinated app updates. Keep marketing exports in `output/`.
+- Preserve the original two-piece SVG loader in `index.html`, including its
+  entrance, rotation, background and wordmark. It is shared with route loading;
+  the raster app icon is not a replacement for this animated artwork.
 - Blog Markdown is authored in `blogs/`; follow [its guide](blogs/README.md).
   Generated blog/GitHub/image files are outputs, not alternate sources of truth.
+- Keep backup and retired-format guidance in `src/data/downloads.ts`, visible
+  in the download callout before JavaScript. Verify compatibility claims against
+  the app manual instead of tying evergreen advice to an unverified release tag.
 - Keep prerendered and client SEO consistent: one canonical URL, matching social
   metadata and page-owned JSON-LD. Use genuine content update dates in the sitemap
   or omit `lastmod`; never substitute build time. Keep internal artwork tools out
@@ -81,6 +93,12 @@ budgets unless measurements justify a change. For layout changes, compare affect
 routes against the approved design at phone, tablet and desktop widths, including
 both sides of the 900 px navigation breakpoint. The browser suite uses Chromium;
 it is not a Safari/Firefox or automatic screenshot-baseline suite.
+
+Visual checks must include normal-motion initial loading and delayed uncached
+navigation, as well as reduced motion and settled content. Use the approved design
+commit as the baseline, not just the preceding refactor. Do not infer animation or
+card-layout equivalence from matching main-heading geometry. See the
+[visual regression correction](docs/visual-regression-correction.md).
 
 For documentation-only changes, validate referenced paths, commands and relevant
 source behavior. Keep historical test results dated instead of presenting them as

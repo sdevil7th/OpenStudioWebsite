@@ -1,7 +1,7 @@
 import { Book, Clock, Cpu, Download, Rocket, type LucideProps } from "lucide-react";
 import { Fragment, type ComponentType, type ReactNode } from "react";
 import PageSeo from "@/components/PageSeo";
-import { systemRequirementMatrix } from "@/data/downloads";
+import { downloadUpgradeNote, systemRequirementMatrix } from "@/data/downloads";
 import { REPO } from "@/data/siteContent";
 import { SITE_PATHS, docPath } from "@/constants/routes";
 import { abbreviateDigest, formatBytes, formatLongDate } from "@/lib/format";
@@ -175,6 +175,7 @@ const DownloadPage = () => {
           choose <strong>Open</strong>, then allow it in System Settings → Privacy &amp; Security if prompted. The Linux
           AppImage needs <code className="sp-code">chmod +x</code>. Code signing costs money the project currently
           spends elsewhere. If you want certainty, verify the checksum above.
+          <span className="block mt-3">{downloadUpgradeNote}</span>
         </WarnCallout>
       </div>
 

@@ -20,7 +20,9 @@ test("production privacy policy is readable with and without application JavaScr
     assert.ok(rewrites.includes(`/${path} /${path}/index.html 200!`));
     const document = await readFile(new URL(`../dist/${path}/index.html`, import.meta.url), "utf8");
     assert.match(document, /<html\b[^>]*data-openstudio-immediate-content/);
-    assert.doesNotMatch(document, /<div[^>]*data-openstudio-loader/);
+    // An inert template is retained for later client-side navigation. There must
+    // be no rendered loader over the initial legal document.
+    assert.doesNotMatch(document.replace(/<template\b[^>]*>[\s\S]*?<\/template>/g, ""), /<div[^>]*data-openstudio-loader/);
     assert.doesNotMatch(document, /constructing the production surface/);
   }
   const homeHtml = await readFile(new URL("../dist/index.html", import.meta.url), "utf8");

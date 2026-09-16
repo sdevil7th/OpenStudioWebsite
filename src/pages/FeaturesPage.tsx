@@ -7,6 +7,9 @@ import { LiveStage } from "@/features/daw-preview/stage/LiveStage";
 import { ArrowLink, Cta, DownloadCta, Eyebrow, GradIcon } from "@/components/ui/primitives";
 import { useSpReveal } from "@/hooks/useSpReveal";
 
+// Container gutters, the two-column gap, and each card's border/media padding.
+const FEATURE_IMAGE_SIZES = "(max-width: 640px) calc(100vw - 62px), (max-width: 1240px) calc((100vw - 132px) / 2), 554px";
+
 // Each card carries the anchor the footer links to and the doc page that
 // actually goes deeper — "Read more" never loops back to this page.
 const FEATURE_CARDS = [
@@ -127,13 +130,14 @@ const FeaturesPage = () => {
             <div key={card.id} className="sp-card overflow-hidden flex flex-col" id={card.id}>
               <div className="[background:var(--sp-frame)] p-[10px_10px_0]">
                 {"stage" in card && card.stage ? (
-                  <LiveStage alt={card.alt} className="sp-feature-card__media" {...card.stage} poster={card.shot} />
+                  <LiveStage alt={card.alt} className="sp-feature-card__media" {...card.stage} poster={card.shot} sizes={FEATURE_IMAGE_SIZES} />
                 ) : (
                   <ResponsiveImage
                     className="block w-full [aspect-ratio:16_/_9] object-cover [object-position:top_left] rounded-[10px_10px_0_0]"
                     alt={card.alt}
                     loading="lazy"
                     src={card.shot}
+                    sizes={FEATURE_IMAGE_SIZES}
                   />
                 )}
               </div>

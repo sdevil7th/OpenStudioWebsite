@@ -112,7 +112,9 @@ export function buildRouteHtml(template, route, { manifest, imageIndex = {} }) {
   if (/^\/(privacy|security|terms)$/.test(route.path)) {
     html = html
       .replace('<html lang="en">', '<html lang="en" data-openstudio-immediate-content>')
-      .replace(/<!-- openstudio-loader:start -->[\s\S]*?<!-- openstudio-loader:end -->/, "");
+      .replace(/<!-- openstudio-loader:start -->([\s\S]*?)<!-- openstudio-loader:end -->/, (_match, markup) =>
+        `<template id="openstudio-loader-template">${markup.replace('id="openstudio-instant-loader"', "")}</template>`,
+      );
   }
   return html.replace("</head>", `${tags.join("\n")}\n</head>`);
 }

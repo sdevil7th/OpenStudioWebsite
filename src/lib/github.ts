@@ -1,4 +1,5 @@
 import type { GithubRepoSnapshot } from "@/data/marketing";
+import { parseGithubRepoSnapshot } from "../../shared/github-snapshot";
 
 export const GITHUB_SNAPSHOT_ENDPOINT = "/.netlify/functions/github-repo";
 
@@ -8,12 +9,6 @@ import { generatedGithubSnapshot } from "@/data/generatedGithubSnapshot";
 export const githubFallbackSnapshot = generatedGithubSnapshot;
 
 let snapshotRequest: Promise<GithubRepoSnapshot> | null = null;
-
-const normalizeGithubSnapshot = (snapshot: GithubRepoSnapshot): GithubRepoSnapshot => ({
-  ...snapshot,
-  languages: snapshot.languages ?? githubFallbackSnapshot.languages,
-  contributors: snapshot.contributors ?? githubFallbackSnapshot.contributors,
-});
 
 export const getGithubRepoSnapshot = async () => {
   if (!snapshotRequest) {
@@ -27,9 +22,8 @@ export const getGithubRepoSnapshot = async () => {
           throw new Error(`GitHub snapshot request failed with status ${response.status}`);
         }
 
-        return (await response.json()) as GithubRepoSnapshot;
+        return parseGithubRepoSnapshot(await response.json(), githubFallbackSnapshot);
       })
-      .then(normalizeGithubSnapshot)
       .catch((error) => {
         snapshotRequest = null;
         throw error;

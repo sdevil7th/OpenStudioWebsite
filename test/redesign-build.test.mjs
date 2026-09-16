@@ -16,6 +16,14 @@ const netlify = read("netlify.toml");
 const downloadPaths = new Set([...netlify.matchAll(/from = "(\/download\/[^\"]+)"/g)].map((match) => match[1]));
 const decode = (text) => text.replaceAll("&amp;", "&").replaceAll("&quot;", '"');
 
+test("download guidance preserves backup and retired-format warnings before JavaScript loads", () => {
+  const html = read("dist/download/index.html");
+  assert.match(html, /Before upgrading, back up projects, recordings, presets, NAM models, and cabinet IRs/);
+  assert.match(html, /renaming a file does not convert it/);
+  assert.match(html, /automatic migration is not included/);
+  assert.match(html, /Keep the older app for unconverted sessions/);
+});
+
 test("all 35 canonical pages have unique, indexable prerendered documents", () => {
   assert.equal(routes.size, 35);
   assert.equal([...routes.keys()].filter((route) => route.startsWith("/docs/")).length, 15);

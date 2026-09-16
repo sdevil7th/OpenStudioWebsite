@@ -36,6 +36,8 @@ import { useReleaseInfo } from "@/hooks/useReleaseInfo";
 import { useSpReveal } from "@/hooks/useSpReveal";
 
 const LiveSession = lazy(() => import("@/features/daw-preview/LiveSession"));
+const HERO_IMAGE_SIZES = "(max-width: 640px) calc(100vw - 60px), (max-width: 1188px) calc(100vw - 88px), 1100px";
+const SHOWCASE_IMAGE_SIZES = "(max-width: 640px) calc(100vw - 42px), (max-width: 900px) calc(100vw - 70px), (max-width: 1240px) calc((100vw - 120px) * 0.575 - 2px), 642px";
 
 /* ---------- showcase carousel ---------- */
 
@@ -248,9 +250,9 @@ const Showcase = () => {
       <div>
         <div className="sp-card sp-card--dark sp-showcase__media">
           {slide.stage ? (
-            <LiveStage key={slide.id} alt={slide.alt} eager {...slide.stage} poster={slide.shot} priority={1} />
+            <LiveStage key={slide.id} alt={slide.alt} eager {...slide.stage} poster={slide.shot} priority={1} sizes={SHOWCASE_IMAGE_SIZES} />
           ) : (
-            <ResponsiveImage key={slide.id} alt={slide.alt} loading="lazy" src={slide.shot} />
+            <ResponsiveImage key={slide.id} alt={slide.alt} loading="lazy" src={slide.shot} sizes={SHOWCASE_IMAGE_SIZES} />
           )}
         </div>
         <div className="sp-showcase__controls">
@@ -424,13 +426,13 @@ const HomePage = () => {
           </div>
           <Frame hero className="sp-home-session" reveal="rise">
             <ErrorBoundary
-              fallback={<ResponsiveImage alt="OpenStudio timeline" loading="eager" src={SHOTS.heroTimeline} />}
+              fallback={<ResponsiveImage alt="OpenStudio timeline" loading="eager" src={SHOTS.heroTimeline} sizes={HERO_IMAGE_SIZES} />}
             >
               <Suspense
-                fallback={<ResponsiveImage alt="OpenStudio timeline" loading="eager" src={SHOTS.heroTimeline} />}
+                fallback={<ResponsiveImage alt="OpenStudio timeline" loading="eager" src={SHOTS.heroTimeline} sizes={HERO_IMAGE_SIZES} />}
               >
                 {staticRender || !heroReady ? (
-                  <ResponsiveImage alt="OpenStudio timeline" loading="eager" src={SHOTS.heroTimeline} />
+                  <ResponsiveImage alt="OpenStudio timeline" loading="eager" src={SHOTS.heroTimeline} sizes={HERO_IMAGE_SIZES} />
                 ) : (
                   <LiveSession />
                 )}
@@ -487,7 +489,8 @@ const HomePage = () => {
             );
             const imageBlock = (
               <Frame key="image" reveal={row.imageFirst ? "media-left" : "media-right"}>
-                <LiveStage alt={row.alt} {...row.stage} poster={row.shot} />
+                <LiveStage alt={row.alt} {...row.stage} poster={row.shot}
+                  sizes="(max-width: 640px) calc(100vw - 58px), (max-width: 900px) calc(100vw - 86px), (max-width: 1240px) calc((100vw - 102px) * 0.58 - 18px), 643px" />
               </Frame>
             );
 

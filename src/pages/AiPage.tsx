@@ -168,6 +168,7 @@ const AiPage = () => {
               alt="Separated stems as tracks in the arrangement"
               id="arrangement"
               poster={SHOTS.arrangementOverviewWide}
+              sizes="(max-width: 640px) calc(100vw - 58px), (max-width: 900px) calc(100vw - 86px), (max-width: 1240px) calc((100vw - 102px) * 0.55 - 18px), 608px"
               variant="stems"
             />
           </Frame>
@@ -254,13 +255,17 @@ const AiPage = () => {
         </HonestCallout>
       </div>
 
-      <div className="sp-container mt-6 grid gap-4 md:grid-cols-2">
-        {aiSetupDownloads.slice(1).map((setup) => (
-          <section key={setup.title} className="sp-card sp-card--tight">
-            <h2 className="sp-h3">{setup.title}</h2>
-            <p className="sp-body mt-3">{setup.description}</p>
-          </section>
-        ))}
+      <div className="sp-container mt-6">
+        <div className="sp-grid-2 gap-[16px]" data-sp-reveal="stagger">
+          {aiSetupDownloads.slice(1).map((setup) => (
+            <section key={setup.title} className="sp-card sp-card--tight p-[22px_24px_24px]">
+              <h2 className="[font:700_17px/1.3_'Space_Grotesk',_sans-serif] tracking-[-0.01em] mb-[10px]">
+                {setup.title}
+              </h2>
+              <p className="sp-body text-[13.5px] leading-[1.62]">{setup.description}</p>
+            </section>
+          ))}
+        </div>
       </div>
 
       {/* CTA */}

@@ -88,12 +88,13 @@ const SiteHeader = () => {
             <NavLink
               key={item.to}
               className={({ isActive }) => `sp-nav__link text-[15px]${isActive ? " sp-nav__link--active" : ""}`}
+              onClick={() => setOpen(false)}
               to={item.to}
             >
               {item.label}
             </NavLink>
           ))}
-          <NavLink className="sp-nav__link text-[15px]" to={SITE_PATHS.releases}>
+          <NavLink className="sp-nav__link text-[15px]" onClick={() => setOpen(false)} to={SITE_PATHS.releases}>
             Releases
           </NavLink>
         </nav>

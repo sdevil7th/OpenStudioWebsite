@@ -22,4 +22,4 @@ export const systemRequirementMatrix = [
 ];
 
 export const downloadUpgradeNote =
-  "Before upgrading to the upcoming 0.1.02 release, back up projects, presets, NAM models, and cabinet IRs. Retired project and preset formats require conversion; renaming a file does not convert it, and automatic migration is not included. Keep the older app for unconverted sessions.";
+  "Before upgrading, back up projects, recordings, presets, NAM models, and cabinet IRs. Projects and presets using retired formats require conversion; renaming a file does not convert it, and automatic migration is not included. Keep the older app for unconverted sessions.";

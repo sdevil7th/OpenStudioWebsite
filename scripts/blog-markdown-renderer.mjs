@@ -8,7 +8,7 @@ const GENERATED_WIDTHS = [
   320, 480, 640, 768, 960, 1280, 1600, 1920, 2560, 3200, 3360,
 ];
 const INLINE_IMAGE_SIZES =
-  "(min-width: 824px) 760px, (min-width: 768px) calc(100vw - 4rem), calc(100vw - 2rem)";
+  "(max-width: 640px) calc(100vw - 42px), (max-width: 1000px) calc(100vw - 70px), (max-width: 1144px) calc(100vw - 386px), 758px";
 
 export const normalizeBlogMarkdown = (markdown) => markdown.replace(/\r\n?/g, "\n");
 

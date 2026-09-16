@@ -72,6 +72,8 @@ type LiveStageProps = StageSelection & {
   className?: string;
   /** Design aspect of the stage; reserves the box so the swap causes no layout shift. */
   ratio?: string;
+  /** Match the poster's displayed slot in the owning page layout. */
+  sizes?: string;
 };
 
 /** Fires once the lazy stage next to it has committed. */
@@ -95,6 +97,7 @@ export const LiveStage = ({
   priority,
   className = "",
   ratio = "16 / 9",
+  sizes,
 }: LiveStageProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [settled, setSettled] = useState(false);
@@ -149,6 +152,7 @@ export const LiveStage = ({
         loading={eager ? "eager" : "lazy"}
         decoding="async"
         src={poster}
+        sizes={sizes}
       />
     </div>
   );

@@ -1,5 +1,10 @@
 # Branding and download audit
 
+**Correction — 16 September 2026:** the original branding work changed the loader
+animation and missed the unpadded AI setup cards. The visual review below did not
+justify a claim of no visual changes. The loader has been restored and the AI
+layout repaired; see the [complete visual-change inventory and verification](visual-regression-correction.md).
+
 ## Approved source
 
 Both repositories now keep the supplied **2160 × 2160 PNG** at `assets/branding/openstudio-logo-source.png`. It was copied from `openstudio-app-tile-2160x2160.png` without modifying the master.
@@ -13,7 +18,7 @@ PNG icons retain transparency. The small website mark is lossless WebP; larger w
 | Placement found | Updated source/output |
 | --- | --- |
 | Header and footer mark | `src/components/layout/SiteHeader.tsx`, `src/components/layout/SiteFooter.tsx`, `OPENSTUDIO_MARK` in `src/data/siteContent.ts`, `public/assets/openstudio/branding/openstudio-mark-78.webp` |
-| Initial loading screen and route loading screen | Shared `index.html` template, responsive 512/1024 px WebP marks; obsolete flat-purple SVG pieces removed |
+| Initial loading screen and route loading screen | Original two-piece SVG and animation restored in the shared `index.html` template. The raster icon substitution was a regression, not an approved branding change. |
 | Browser favicons | `favicon-16x16.png`, `favicon-32x32.png`, new `favicon-48x48.png`; links in `index.html` and shared branding constants |
 | Browser automatic favicon request | New `public/favicon.ico`, with 16/32/48/256 px entries |
 | Apple home-screen icon | `apple-touch-icon.png`, 180 px |
@@ -87,7 +92,7 @@ Reference: [PR 18's actual /v2 preview](https://deploy-preview-18--openstudioweb
 
 Compared **35 canonical routes at 360, 390, 768, 900, 901, 1024, 1440 and 1920 px**: 280 route/width pairs and **560 comparison images**. Each reference route uses its `/v2` path; the updated build uses its canonical path. This includes both sides of the 900 px navigation breakpoint. Captures use reduced motion, loaded fonts, rejected analytics consent and the same GitHub repository snapshot to keep changing statistics out of the comparison.
 
-Reviewed paired desktop/mobile page captures and breakpoint contact sheets, and compared heading geometry throughout all pages. No unintended layout regression was found in this matrix. All marketing-page main heading bounds match the reference at every tested width, and the updated pages have no document-level horizontal overflow.
+Reviewed paired desktop/mobile page captures and breakpoint contact sheets, and compared heading geometry throughout all pages. Marketing-page main heading bounds matched the reference and there was no document-level horizontal overflow. Those checks missed the changed loader and the new AI cards' missing spacing and heading style. They establish neither complete visual equivalence nor animation equivalence.
 
 Expected differences are:
 
@@ -182,8 +187,10 @@ visual baselines remain potential testing improvements.
    build do not qualify or replace those artifacts.
 3. Upload the generated Microsoft Store artwork and any custom GitHub social
    preview. These external account settings were not changed.
-4. Recapture `plugin-hosting-1.webp` and `plugin-hosting-2.webp` from the updated
+4. Recapture `plugin-hosting-1.webp`, `plugin-hosting-2.webp` and `fx-chain-browser.webp` from the updated
    app when refreshing product screenshots; their old native title-bar glyphs
-   remain inside the historical captures.
+   remain inside the historical captures. The [review follow-up](review-follow-up.md)
+   records the attempted capture and unavailable native Computer Use service;
+   these images have not been replaced or repainted.
 
 All repository changes remain uncommitted and undeployed.
