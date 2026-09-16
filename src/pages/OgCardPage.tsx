@@ -1,4 +1,29 @@
 import { useEffect } from "react";
+import { ShieldCheck } from "lucide-react";
+
+import { SITE_NAME, SITE_URL } from "@/constants/site";
+import { OPENSTUDIO_MARK, REPO, SHOTS } from "@/data/siteContent";
+
+/**
+ * Development-only source for `public/assets/openstudio/branding/og-image.png`.
+ * `npm run generate-og` screenshots `#og-card` at 1200 × 630, so everything here
+ * is static: no release fetch, no responsive sources, no animation.
+ *
+ * The composition mirrors the Studio Paper home hero — paper gradient, indigo
+ * eyebrow, Space Grotesk headline, and the dark `sp-frame` holding the app —
+ * with the frame bleeding off the right edge.
+ */
+
+const CARD_WIDTH = 1200;
+const CARD_HEIGHT = 630;
+
+/* The shot is 3838 × 2088; rendering it wider than the frame and pinning it
+   top-left crops to the track headers and the arrangement lanes, the way
+   `.sp-home-session` crops the live session on the home page. */
+const SHOT_WIDTH = 1300;
+const FRAME_INNER = { width: 660, height: 357 };
+
+const PLATFORMS = ["Windows", "macOS", "Linux"];
 
 const OgCardPage = () => {
   useEffect(() => {
@@ -11,7 +36,7 @@ const OgCardPage = () => {
       padding: document.body.style.padding,
       margin: document.body.style.margin,
     };
-    document.body.style.background = "#000";
+    document.body.style.background = "#e6eaf4";
     document.body.style.display = "flex";
     document.body.style.justifyContent = "center";
     document.body.style.alignItems = "center";
@@ -24,163 +49,101 @@ const OgCardPage = () => {
   }, []);
 
   return (
+    // `sp-root` carries the Studio Paper tokens and type; the inline styles
+    // undo its page-level layout (full-height flex column) for a fixed card.
     <div
       id="og-card"
-      style={{ width: "1200px", height: "630px", flexShrink: 0 }}
-      className="relative overflow-hidden bg-[#0e0e0e]"
+      className="sp-root relative overflow-hidden"
+      style={{
+        width: `${CARD_WIDTH}px`,
+        height: `${CARD_HEIGHT}px`,
+        minHeight: 0,
+        display: "block",
+        flexShrink: 0,
+        background: "var(--sp-paper)",
+      }}
     >
-      {/* Background - hero timeline screenshot */}
-      <img
-        src="/assets/openstudio/screenshots/hero-timeline.webp"
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full object-cover opacity-60"
-        decoding="async"
-      />
-
-      {/* Obsidian overlay - horizontal fade */}
+      {/* Accent wash — indigo top-left, teal bottom-left */}
       <div
         aria-hidden="true"
         className="absolute inset-0"
         style={{
-          background: "linear-gradient(to right, rgba(14,14,14,0.96) 0%, rgba(14,14,14,0.38) 100%)",
+          background:
+            "radial-gradient(660px 460px at -6% -12%, rgba(80, 0, 255, 0.12), transparent 70%), radial-gradient(520px 420px at 4% 108%, rgba(0, 177, 143, 0.14), transparent 70%)",
         }}
       />
-      {/* Bottom fade */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-t from-[#0e0e0e] via-transparent to-transparent opacity-80"
-      />
 
-      {/* Ambient glow — purple top-left */}
+      {/* The app, in the dark frame, bleeding off the right edge */}
       <div
-        aria-hidden="true"
-        className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-primary/20 blur-[120px]"
-      />
-      {/* Ambient glow — green bottom-right */}
-      <div
-        aria-hidden="true"
-        className="absolute -bottom-40 right-20 h-80 w-80 rounded-full bg-secondary/10 blur-[100px]"
-      />
-
-      {/* Signal slat decoration — right edge */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-0 right-0 top-0 z-10 flex w-28 items-stretch gap-3.5 p-4 opacity-20"
+        className="sp-frame absolute"
+        style={{
+          left: "676px",
+          top: "127px",
+          padding: "10px",
+          borderRadius: "18px",
+          boxShadow: "0 30px 70px rgba(21, 23, 28, 0.22)",
+        }}
       >
-        <div className="w-1 bg-white/20" />
-        <div className="w-1 bg-white/20" />
-        <div className="w-1 self-center bg-secondary" style={{ height: "66%", boxShadow: "0 0 18px rgba(74,225,118,0.85)" }} />
-        <div className="w-1 bg-white/20" />
-        <div className="w-1 bg-white/20" />
+        <div
+          className="relative overflow-hidden"
+          style={{ width: `${FRAME_INNER.width}px`, height: `${FRAME_INNER.height}px`, borderRadius: "12px" }}
+        >
+          <img
+            src={SHOTS.heroTimeline}
+            alt=""
+            aria-hidden="true"
+            decoding="async"
+            className="absolute left-0 top-0 max-w-none"
+            style={{ width: `${SHOT_WIDTH}px` }}
+          />
+        </div>
       </div>
 
-      {/* Main content */}
-      <div className="relative z-20 flex h-full flex-col justify-between p-16">
-
-        {/* ── Header ── */}
-        <div className="flex items-center justify-between">
-          {/* Logo + wordmark */}
-          <div className="flex items-center gap-5">
-            <div style={{ width: "78px", height: "78px", flexShrink: 0 }}>
-              <img src="/assets/openstudio/branding/openstudio-mark-216.webp" width="78" height="78" alt="OpenStudio" />
-            </div>
-            <span className="font-headline font-bold tracking-tighter text-foreground" style={{ fontSize: "62px", lineHeight: 1 }}>
-              OpenStudio
-            </span>
-          </div>
-
-          {/* Badge */}
-          <div
-            className="rounded-full border border-white/20 px-5 py-2"
-            style={{ background: "rgba(30,32,44,0.72)", backdropFilter: "blur(20px)" }}
-          >
-            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-secondary">
-              Open Source / AI-Native
-            </span>
-          </div>
+      {/* Copy column */}
+      <div
+        className="absolute flex flex-col justify-between"
+        style={{ left: "56px", top: "52px", width: "620px", height: `${CARD_HEIGHT - 104}px` }}
+      >
+        {/* Brand lockup */}
+        <div className="flex items-center gap-[11px]">
+          <img src={OPENSTUDIO_MARK} width={38} height={38} alt="" aria-hidden="true" className="block" />
+          <span className="[font:700_26px/1_'Space_Grotesk',_sans-serif] tracking-[-0.02em]">{SITE_NAME}</span>
         </div>
 
-        {/* ── Main typography ── */}
-        <div style={{ maxWidth: "720px" }}>
-          {/* Eyebrow */}
-          <div className="mb-3 flex items-center gap-3">
-            <span className="h-[2px] w-8 bg-primary" />
-            <span className="font-mono text-sm uppercase tracking-widest text-primary/70">
-              Craft sound faster
-            </span>
+        <div>
+          <div className="sp-eyebrow mb-[16px] text-[11.5px]">
+            <ShieldCheck aria-hidden="true" size={15} strokeWidth={1.8} />
+            Free · Open source · AGPLv3
           </div>
-
-          {/* Headline */}
-          <h1
-            className="mb-6 font-headline font-bold text-foreground"
-            style={{ fontSize: "68px", lineHeight: 0.95, letterSpacing: "-0.03em" }}
-          >
-            Open-Source,
-            <br />
-            <span className="italic text-primary">AI-Native</span> DAW
+          <h1 className="[font:700_42px/1.04_'Space_Grotesk',_sans-serif] tracking-[-0.038em] mb-[16px]">
+            Record, edit, mix, and generate. <span className="block">One free DAW.</span>
           </h1>
-
-          {/* Subtext glass card */}
-          <div
-            className="rounded-xl border-l-4 border-primary/50 p-5"
-            style={{
-              maxWidth: "560px",
-              background: "rgba(28,30,42,0.68)",
-              backdropFilter: "blur(20px)",
-            }}
-          >
-            <p className="font-body text-[17px] font-light leading-relaxed text-muted-foreground">
-              Precision engineering meets neural synthesis, with{" "}
-              <span className="font-mono text-secondary">AI stem separation</span>, ultra-transparent
-              pitch editing, MIDI instruments, and plugin hosting for the modern producer.
-            </p>
-          </div>
+          <p className="sp-lede text-[16.5px] leading-[1.55] m-0 max-w-[560px]">
+            Multitrack recording, MIDI, a full mixer, VST3/CLAP/LV2 hosting, graphical pitch editing, local AI
+            generation and stem separation, and a Neural Amp Modeler guitar rig.
+          </p>
         </div>
 
-        {/* ── Footer row ── */}
-        <div className="flex items-end justify-between">
-          {/* Stats */}
-          <div className="flex gap-10">
-            <div className="flex flex-col gap-1">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                Spectral Engine
+        {/* Platforms + where to find it */}
+        <div>
+          <div className="flex items-center gap-[8px] mb-[18px]">
+            {PLATFORMS.map((platform) => (
+              <span
+                key={platform}
+                className="[font:400_12px/1_'JetBrains_Mono',_ui-monospace,_monospace] text-[var(--sp-mono-muted)]"
+                style={{ border: "1px solid var(--sp-hairline)", borderRadius: "4px", padding: "8px 11px" }}
+              >
+                {platform}
               </span>
-              <span className="font-display text-xl tracking-tighter text-foreground">
-                192<span className="text-primary">kHz</span>
-              </span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                Release
-              </span>
-              <span className="font-display text-xl tracking-tighter text-secondary">PUBLIC</span>
-            </div>
+            ))}
           </div>
-
-          {/* Platform + GitHub */}
-          <div className="flex items-center gap-6">
-            <div className="text-right">
-              <div className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                Available on
-              </div>
-              <div className="flex items-center gap-4 font-mono text-sm text-foreground/50">
-                <span>Windows</span>
-                <span>macOS</span>
-                <span>Linux</span>
-              </div>
-            </div>
-
-            <div className="h-10 w-[1px] bg-white/15" />
-
-            <div className="flex flex-col gap-0.5">
-              <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-primary">
-                Open-Source
-              </span>
-              <span className="font-headline text-[17px] font-semibold text-foreground">
-                github.com/sdevil7th/openstudio
-              </span>
-            </div>
+          <div
+            className="sp-mono flex items-center gap-[10px] text-[12px] leading-[1.4]"
+            style={{ borderTop: "1px solid var(--sp-hairline)", paddingTop: "16px" }}
+          >
+            <span className="text-[var(--sp-accent)]">{SITE_URL.replace("https://", "")}</span>
+            <span aria-hidden="true">·</span>
+            <span>{REPO.url.replace("https://", "")}</span>
           </div>
         </div>
       </div>
