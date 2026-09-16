@@ -1,5 +1,5 @@
 import { useMemo, useRef } from "react";
-import { MIN_ANIMATED_SCALE, StageFrame, useStageScale } from "../stage/StageFrame";
+import { StageFrame, useStageScale } from "../stage/StageFrame";
 import type { StageProps } from "../stage/LiveStage";
 import { useStageTimeline } from "../stage/useStageTimeline";
 import { NAMRackDesignPort } from "../vendor/NAMRackDesignPort";
@@ -31,7 +31,7 @@ const LABELS = {
 
 /**
  * `variant` is "<section>[+tuner][+tour]", e.g. "amp+tour" for the page hero
- * or "cab" for a tile. Tiles below the legibility scale show a static frame.
+ * or "cab" for a tile. Visible tiles animate at every viewport size.
  */
 const NamRackStage = ({ variant, priority, className }: StageProps) => {
   const outerRef = useRef<HTMLDivElement>(null);
@@ -40,7 +40,6 @@ const NamRackStage = ({ variant, priority, className }: StageProps) => {
   const spec = useMemo(() => specFor(parsed), [parsed]);
   const state = useStageTimeline(spec, {
     scope: outerRef,
-    enabled: scale >= MIN_ANIMATED_SCALE,
     priority,
     startDelay: 0.8,
     // The port is a large tree; 20 commits a second is plenty for knobs and meters.

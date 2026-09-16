@@ -5,9 +5,6 @@ import { StaticRenderContext } from "@/lib/staticRender";
 
 const useBrowserLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-/** Below this scale the 7–9 px labels stop being legible; show the static frame. */
-export const MIN_ANIMATED_SCALE = 0.6;
-
 /**
  * Fits a fixed design width to the element's current width, in both
  * directions: a column wider than the design scales the stage up so it fills

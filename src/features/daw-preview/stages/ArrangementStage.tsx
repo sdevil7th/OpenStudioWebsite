@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { ArrangementLanes, arrangementHeight } from "../ArrangementLanes";
 import { BigClockLite } from "../BigClockLite";
 import { rowMetrics } from "../clipArt";
-import { MIN_ANIMATED_SCALE, StageFrame, useStageScale } from "../stage/StageFrame";
+import { StageFrame, useStageScale } from "../stage/StageFrame";
 import type { StageProps } from "../stage/LiveStage";
 import { useStageTimeline } from "../stage/useStageTimeline";
 import { TRACK_HEADER_WIDTH } from "../TrackHeaderLite";
@@ -24,7 +24,7 @@ const ArrangementStage = ({ variant = "default", priority, className }: StagePro
   const outerRef = useRef<HTMLDivElement>(null);
   const scale = useStageScale(outerRef, STAGE_WIDTH);
   const kind = (variant in SPECS ? variant : "default") as ArrangementVariant;
-  const state = useStageTimeline(SPECS[kind], { scope: outerRef, enabled: scale >= MIN_ANIMATED_SCALE, priority, startDelay: 0.6 });
+  const state = useStageTimeline(SPECS[kind], { scope: outerRef, priority, startDelay: 0.6 });
 
   const capacity = laneCapacity(kind);
   const laneHeight = Math.floor((STAGE_HEIGHT - TRANSPORT_HEIGHT - 30) / capacity);

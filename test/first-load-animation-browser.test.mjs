@@ -9,7 +9,7 @@ const homePath = "/" + manifest["src/pages/HomePage.tsx"].file;
 const animationPath = "/" + manifest["node_modules/gsap/index.js"].file;
 const clockSelector = '.sp-home-session [title="Click to toggle between time and beats"]';
 
-test("illustrations start after slow first loads and uncached navigation", { timeout: 120_000 }, async (t) => {
+test("illustrations start after slow first loads and uncached navigation", { timeout: 180_000 }, async (t) => {
   const server = await preview({ logLevel: "error", preview: { host: "127.0.0.1", port: 0, strictPort: true } });
   let browser;
   try {
@@ -17,13 +17,20 @@ test("illustrations start after slow first loads and uncached navigation", { tim
     const base = server.resolvedUrls.local[0];
     const cases = [
       { name: "first route arriving after the initial loader timeout", width: 1440, slowEntry: true },
+      { name: "phone first route arriving after the initial loader timeout", width: 390, mobile: true, slowEntry: true },
       { name: "uncached desktop navigation", width: 1440 },
       { name: "uncached tablet navigation", width: 768 },
+      { name: "uncached phone navigation", width: 320, mobile: true },
+      { name: "phone reload with missed visibility notifications during the intro", width: 390, mobile: true, lateVisibility: true },
       { name: "uncached navigation with reduced motion", width: 1440, reducedMotion: true },
+      { name: "uncached phone navigation with reduced motion", width: 390, mobile: true, reducedMotion: true },
     ];
     for (const entry of cases) await t.test(entry.name, async () => {
       const context = await browser.newContext({
         viewport: { width: entry.width, height: 1000 },
+        isMobile: entry.mobile ?? false,
+        hasTouch: entry.mobile ?? false,
+        deviceScaleFactor: entry.mobile ? 2 : 1,
         reducedMotion: entry.reducedMotion ? "reduce" : "no-preference",
       });
       let release;
@@ -37,6 +44,26 @@ test("illustrations start after slow first loads and uncached navigation", { tim
         await context.addInitScript(() => localStorage.setItem(
           "openstudio.analytics-consent.v1", JSON.stringify({ choice: "rejected", time: Date.now() }),
         ));
+        if (entry.lateVisibility) await context.addInitScript(() => {
+          const NativeObserver = window.IntersectionObserver;
+          // Reproduce a loading-time visibility subscription that never delivers
+          // a usable sample. A fresh subscription after the intro can see the page.
+          window.IntersectionObserver = class extends NativeObserver {
+            constructor(callback, options) {
+              const readyTargets = new WeakSet();
+              super((entries, observer) => callback(entries.filter((entry) => readyTargets.has(entry.target)), observer), options);
+              this.readyTargets = readyTargets;
+            }
+            observe(target) {
+              if (!target.classList.contains("daw-session") || window.__openstudioIntroHidden) this.readyTargets.add(target);
+              super.observe(target);
+            }
+            unobserve(target) {
+              this.readyTargets.delete(target);
+              super.unobserve(target);
+            }
+          };
+        });
         const page = await context.newPage();
         const errors = [];
         const animationRequests = [];

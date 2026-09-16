@@ -1,13 +1,13 @@
 /**
  * Caps how many live stages animate at once. A features grid can have four
  * stages in view; letting them all tween and commit at 30 fps is wasteful, so
- * only the most visible (then highest priority) `MAX_PLAYING` run and the rest
+ * only the highest-priority visible stages (then most visible) run and the rest
  * hold their last frame.
  */
 export interface StageEntry {
   /** Visible fraction reported by the stage's IntersectionObserver. */
   ratio: number;
-  /** Ties on ratio go to the higher priority (hero/carousel pass 1). */
+  /** Heroes/carousels pass 1 to rank ahead of other visible stages. */
   priority: number;
   /** Called whenever the stage's allowance changes. */
   onAllowed: (allowed: boolean) => void;
@@ -46,8 +46,11 @@ export const registerStage = (entry: StageEntry) => {
 };
 
 export const updateStageRatio = (entry: StageEntry, ratio: number) => {
-  if (entry.ratio === ratio) return;
-  entry.ratio = ratio;
+  // A subpixel container clip can report 0.9986 for an otherwise fully visible
+  // phone tile. Treat the top 1% as fully visible so later rows cannot starve it.
+  const visibleRatio = ratio >= 0.99 ? 1 : ratio;
+  if (entry.ratio === visibleRatio) return;
+  entry.ratio = visibleRatio;
   rebalance();
 };
 

@@ -58,6 +58,8 @@ by installed OpenStudio apps. Start with [README.md](README.md) and
   The image GraphQL service has been retired.
 - Keep decorative controls out of keyboard navigation and preserve reduced-motion
   alternatives, menu focus behavior and readable content before JavaScript.
+  Small viewport size must not disable illustration playback. Verify that phones
+  actually animate on first visit, while offscreen and hidden-tab timelines pause.
 
 ## Content and branding
 

@@ -3,7 +3,7 @@ import { Check, ChevronDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ArrangementLanes } from "../ArrangementLanes";
 import { DawButton } from "../DawButton";
-import { MIN_ANIMATED_SCALE, StageFrame, useStageScale } from "../stage/StageFrame";
+import { StageFrame, useStageScale } from "../stage/StageFrame";
 import type { StageProps } from "../stage/LiveStage";
 import { useStageTimeline } from "../stage/useStageTimeline";
 import { TransportLite } from "../TransportLite";
@@ -112,7 +112,7 @@ const Dialog = ({ state }: { state: RenderDialogState }) => (
 const RenderDialogStage = ({ priority, className }: StageProps) => {
   const outerRef = useRef<HTMLDivElement>(null);
   const scale = useStageScale(outerRef, STAGE_WIDTH);
-  const state = useStageTimeline(SPEC, { scope: outerRef, enabled: scale >= MIN_ANIMATED_SCALE, priority, startDelay: 0.5, fps: 24 });
+  const state = useStageTimeline(SPEC, { scope: outerRef, priority, startDelay: 0.5, fps: 24 });
 
   return (
     <StageFrame

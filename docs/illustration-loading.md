@@ -30,8 +30,9 @@ their bandwidth without fixing the scene change.
   screenshot, bitmap crossfade or second scene to replace it.
 - `useStageTimeline` loads GSAP after initial loading, only when the visible
   stage has a playback slot. It animates the same DOM elements. Off-screen,
-  hidden-tab and scheduler-limited timelines pause; reduced-motion and small
-  stages retain their authored static state.
+  hidden-tab and scheduler-limited timelines pause; reduced motion and explicit
+  playback disabling retain their authored static state. Visible illustrations
+  animate at phone, tablet and desktop sizes.
 - `LiveStage` reserves its aspect ratio and uses `content-visibility: auto` so
   the browser can skip layout and painting of distant off-screen scenes. This
   does not substitute another scene or remove the actual renderer's DOM. It is
@@ -92,6 +93,67 @@ lint and all **147 tests** pass. The unchanged core performance matrix passes
 recorded below. Generated CSS hashes match the pre-fix build. Local reproduction
 and check logs are retained in ignored `output/review/first-load-*` files and
 `output/review/production-reproduction.log`.
+
+## Phone playback correction — 16 September 2026
+
+The initial-load event fix above did not address a separate size gate. Every
+illustration disabled its timeline below 60% of its design width (45% for the
+compact NAM chain). Home scales to approximately 41%, 52% and 58% at 320, 390 and
+430 px, respectively. These phones therefore never requested GSAP, even with
+normal motion enabled. Waiting or refreshing could not remove the size gate.
+
+Removed that gate from Home and all eight stage renderers. Viewport size now
+controls only layout. The shared driver still honors reduced motion, explicit
+disabling, document visibility and its two-active-stage limit. Small NAM tiles
+can share a viewport; the most eligible two play, and scrolling changes their
+eligibility. Other tiles hold their frame instead of all consuming animation
+work simultaneously.
+
+The all-tile test also exposed fractional clipping in the NAM grid: amp/cab
+reported a 0.99865 intersection ratio while the following EQ/post row reported
+1. The latter kept taking both slots even after scrolling amp/cab into view.
+The scheduler now treats at least 99% visibility as fully visible, retaining
+the priority order and two-stage cap. A regression using the measured fractions
+fails against the previous scheduler and passes with this correction.
+
+Reload stress checks found another intermittent stall: the driver was settled,
+the document visible and the intro complete, but every stage still had a zero
+intersection ratio. Visibility observation now starts after the initial-loading
+gate, and returning to a visible tab requests a fresh observation. This avoids
+depending on measurements made while the route was hidden. Browser coverage
+simulates missed loading-time visibility notifications and verifies that reload
+still starts the clock without a scroll, tap or another refresh.
+
+The original artwork, sizing, loop choreography and two-piece loader are intact.
+Phones now use the existing animation rest frame and start playback instead of
+remaining on the reduced-motion sample. No screenshot placeholders were added.
+All four generated CSS bundle hashes match the preceding build.
+
+The earlier rest-frame test only required Home playback at widths of at least
+768 px. It now includes 390 px. First-load coverage adds delayed phone entry,
+uncached phone navigation and reduced-motion phone navigation; the two
+normal-motion regressions failed before the size-gate removal. The dedicated
+mobile browser test checks fresh 320/390/430 px contexts with touch/mobile
+emulation, actual clock advancement without input, offscreen pause/resume,
+all eight illustration types and the rack tour plus all six smaller rack tiles.
+Tile checks scroll the relevant row below the sticky header so it can receive
+a playback slot. Canvas repainting alone is not treated as proof of a running
+scene timeline.
+
+This is Chromium phone emulation, not physical Android/iOS or Safari testing.
+Local evidence is under ignored `output/review/mobile-animation-fix/` and
+`output/playwright/phone-*` files. The AI guide's accompanying INT8 correction
+is sourced separately in [the music-model review](music-models-blog-review.md).
+
+The final production build (including strict TypeScript), zero-warning lint and
+all **181 tests** pass. Earlier failed runs are retained: they exposed the phone
+cutoff, fractional NAM visibility and intermittent zero-intersection reload.
+The controlled visibility regression fails before the observer lifecycle change
+and passes afterward; the final full suite includes that scenario.
+The unchanged core performance matrix passes **10/10** cases. A separate mobile
+NAM Rack check measures 3.12 s reveal-adjusted LCP, zero layout shift, 376 ms of
+long tasks and 664.6 KiB encoded. Its 48 requests still exceed the generic limit
+of 35; no request budget was raised. These are local throttled measurements.
 
 ## Performance tradeoff
 

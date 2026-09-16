@@ -3,7 +3,7 @@ import { ArrangementLanes, arrangementHeight } from "./ArrangementLanes";
 import { BigClockLite } from "./BigClockLite";
 import { MixerPanelLite } from "./MixerPanelLite";
 import { LOOP_RANGE, SESSION_LENGTH, TEMPO, TIME_SIGNATURE, TRACKS } from "./sessionScript";
-import { MIN_ANIMATED_SCALE, StageFrame, useStageFit } from "./stage/StageFrame";
+import { StageFrame, useStageFit } from "./stage/StageFrame";
 import { TransportLite } from "./TransportLite";
 import { useSessionTimeline } from "./useSessionTimeline";
 
@@ -27,7 +27,7 @@ interface LiveSessionProps {
 const LiveSession = ({ className, paused = false }: LiveSessionProps) => {
   const outerRef = useRef<HTMLDivElement>(null);
   const { width: stageWidth, scale } = useStageFit(outerRef, MIN_STAGE_WIDTH);
-  const state = useSessionTimeline({ scope: outerRef, enabled: !paused && scale >= MIN_ANIMATED_SCALE });
+  const state = useSessionTimeline({ scope: outerRef, enabled: !paused });
 
   const lanes = TRACKS.map((track, index) => ({
     name: track.name,
