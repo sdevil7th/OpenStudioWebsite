@@ -1,0 +1,336 @@
+/*
+ * Styles for the vendored OpenStudio UI in src/features/daw-preview/. Everything here is
+ * either copied from OpenStudio (source noted per block) or scoped under
+ * .daw-session so it cannot leak into the Studio Paper pages around it.
+ */
+
+.daw-session {
+  color-scheme: dark;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  line-height: 1.4;
+  font-weight: 400;
+  color: #e0e0e0;
+  background-color: #121212;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Upstream renders in Segoe UI, which sits ~8% narrower than Inter at the
+     same pixel size. Tightening tracking keeps the 7–10px chip labels inside
+     the boxes the upstream layout sized for them. */
+  letter-spacing: -0.02em;
+  user-select: none;
+}
+
+.daw-session *,
+.daw-session *::before,
+.daw-session *::after {
+  box-sizing: border-box;
+}
+
+/* Zero-specificity, as Tailwind's preflight does it, so a button's own
+   `text-[10px]` still wins — a plain `.daw-session button` outranks it and
+   every chip inherits the stage font instead. */
+:where(.daw-session button) {
+  font: inherit;
+  cursor: default;
+}
+
+/* The showcase is watched, not operated. Pointer events stay off so nothing
+   ever half-works; the wrapper still gets a hover tilt from the frame. */
+.daw-session--showcase .daw-session__stage {
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Source: OpenStudio frontend/src/index.css @ d2056151222fefcede123ef614ec38c6893cbfd5
+ * ------------------------------------------------------------------------- */
+
+@keyframes recording-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.daw-session .recording-dot {
+  animation: recording-pulse 1s ease-in-out infinite;
+}
+
+.daw-session .vertical-fader {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.daw-session .vertical-fader::-webkit-slider-runnable-track {
+  width: 6px;
+  height: 100%;
+  background: linear-gradient(to top, #1a1a1a, #252525);
+  border: 1px solid #333;
+  border-radius: 3px;
+}
+
+.daw-session .vertical-fader::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 10px;
+  background: linear-gradient(to bottom, #555, #333);
+  border: 1px solid #666;
+  border-radius: 2px;
+  cursor: grab;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  margin-left: -6px;
+}
+
+.daw-session .vertical-fader::-webkit-slider-thumb:hover {
+  background: linear-gradient(to bottom, #666, #444);
+}
+
+.daw-session .vertical-fader::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  background: linear-gradient(to bottom, #777, #555);
+}
+
+.daw-session .vertical-fader::-moz-range-track {
+  width: 6px;
+  background: linear-gradient(to top, #1a1a1a, #252525);
+  border: 1px solid #333;
+  border-radius: 3px;
+}
+
+.daw-session .vertical-fader::-moz-range-thumb {
+  width: 18px;
+  height: 10px;
+  background: linear-gradient(to bottom, #555, #333);
+  border: 1px solid #666;
+  border-radius: 2px;
+  cursor: grab;
+}
+
+/* ---------------------------------------------------------------------------
+ * Source: OpenStudio frontend/src/components/FXChainPanel.css
+ *         @ d2056151222fefcede123ef614ec38c6893cbfd5 (base NAM rack knob rules;
+ *         upstream keeps them in the FX chain panel stylesheet)
+ * ------------------------------------------------------------------------- */
+
+.nam-rack-control {
+  min-width: 0;
+}
+
+.nam-rack-control-knob {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  color: #f8fafc;
+  font-size: 11px;
+}
+
+.nam-rack-control-knob input[type="range"] {
+  width: 100%;
+  height: 4px;
+  accent-color: #f5c86a;
+}
+
+.nam-rack-knob-cap {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, #181818 0 46%, transparent 48%),
+    conic-gradient(#f5c86a var(--nam-knob-pct), #2c2c2c 0);
+  box-shadow:
+    inset 0 0 0 3px #080808,
+    0 5px 12px rgba(0, 0, 0, 0.34);
+}
+
+.nam-rack-control-knob[data-size="large"] .nam-rack-knob-cap {
+  width: 58px;
+  height: 58px;
+}
+
+.nam-rack-knob-cap > span {
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  transform: rotate(var(--nam-knob-rotation));
+}
+
+.nam-rack-knob-cap > span::before {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 50%;
+  width: 3px;
+  height: 11px;
+  border-radius: 999px;
+  background: #f8fafc;
+  transform: translateX(-50%);
+}
+
+.nam-rack-knob-label,
+.nam-rack-control strong {
+  max-width: 100%;
+  overflow: hidden;
+  color: rgba(248, 250, 252, 0.88);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nam-rack-control strong {
+  color: rgba(226, 232, 240, 0.58);
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.nam-rack-control-select,
+.nam-rack-control-switch {
+  display: grid;
+  gap: 6px;
+  color: rgba(248, 250, 252, 0.84);
+  font-size: 11px;
+}
+
+.nam-rack-control-switch {
+  min-height: 64px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.nam-rack-control-switch[data-active="true"] {
+  border-color: rgba(69, 179, 107, 0.5);
+  color: #8ef5c2;
+}
+
+.nam-rack-control-knob {
+  position: relative;
+  touch-action: none;
+  user-select: none;
+  cursor: ns-resize;
+}
+
+.nam-rack-control-knob:focus-within .nam-rack-knob-cap {
+  outline: 2px solid rgba(142, 245, 194, 0.54);
+  outline-offset: 3px;
+}
+
+.nam-rack-control-knob .nam-rack-knob-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.nam-rack-knob-cap {
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.26), transparent 17%),
+    radial-gradient(circle at 50% 54%, #1a1a1a 0 43%, #070707 44% 58%, transparent 60%),
+    conic-gradient(
+      from -135deg,
+      rgba(255, 217, 120, 0.1) 0 var(--nam-knob-fill-start),
+      #ffd978 var(--nam-knob-fill-start) var(--nam-knob-fill-end),
+      rgba(65, 65, 65, 0.92) var(--nam-knob-fill-end) 75%,
+      transparent 75% 100%
+    );
+}
+
+/* Source: OpenStudio frontend/src/components/NAMRackPanel.css (tooltip keyframe) */
+@keyframes nam-rack-tooltip-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * NAM chain stage: the compact chain is a popover in the app (absolute, with
+ * a rise animation). Inside the stage it is the whole picture.
+ * ------------------------------------------------------------------------- */
+.daw-nam-chain-stage .nam-compact-chain {
+  animation: none;
+  right: 16px;
+  bottom: 16px;
+  left: 16px;
+  height: calc(100% - 32px);
+  min-height: 0;
+}
+
+.daw-nam-chain-stage .nam-compact-chain-titlebar small {
+  display: none;
+}
+
+.daw-nam-chain-stage[data-focus="lock"] .nam-compact-chain-group-tools button:first-child,
+.daw-nam-chain-stage[data-focus="reset"] .nam-compact-chain-group-tools button:last-child,
+.daw-nam-chain-stage[data-focus="pedal"] [data-qa="nam-compact-chain-node-pedal"] .nam-compact-chain-power,
+.daw-nam-chain-stage[data-focus="delay"] [data-qa="nam-compact-chain-node-delay"] .nam-compact-chain-order button:first-child {
+  box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.55);
+  border-radius: 6px;
+}
+
+/* ---------------------------------------------------------------------------
+ * NAM Rack stage host. The vendored design port is `position: absolute;
+ * inset: 0` and sizes its artboard with container units, so the host is the
+ * container: a fixed 960×540 that StageFrame scales into the column.
+ * ------------------------------------------------------------------------- */
+.daw-nam-stage {
+  position: relative;
+  width: 960px;
+  height: 540px;
+  overflow: hidden;
+  container-type: inline-size;
+  background: #080a0e;
+}
+
+/* Tiles show the hardware only: collapse the header, section nav, and footer
+   rows of the shell grid and hide everything but the stage. */
+.daw-nam-stage[data-crop="hardware"] .premium-nam-shell {
+  grid-template-rows: 0 0 minmax(0, 1fr) 0;
+}
+
+.daw-nam-stage[data-crop="hardware"] .premium-nam-shell > :not(.hardware-stage) {
+  display: none;
+}
+
+/* …and the capture library drawer beside the stage, so the hardware fills the tile. */
+.daw-nam-stage[data-crop="hardware"] .hardware-stage {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.daw-nam-stage[data-crop="hardware"] .premium-rig-drawer {
+  display: none;
+}
+
+/* Without JS, fit one complete design composition through StageFrame's SVG.
+   The desktop port's viewport media rules otherwise resize its canvas while
+   its measurement hook cannot run. Client rendering keeps the upstream rules. */
+.daw-session[data-static-frame] .premium-nam-shell {
+  position: absolute;
+  inset: 4px;
+  width: auto;
+  height: auto;
+  min-height: 0;
+  margin: 0;
+}
+
+.daw-session[data-static-frame] .daw-nam-stage:not([data-crop]) .premium-nam-shell {
+  grid-template-rows: 174px 60px minmax(0, 1fr) 48px;
+}
+
+.daw-session[data-static-frame] .daw-nam-stage:not([data-crop]) .hardware-stage {
+  grid-template-columns: minmax(0, 1fr) 282px;
+}
+
+.daw-session[data-static-frame] .daw-nam-stage:not([data-crop]) .premium-rig-drawer {
+  display: grid;
+}

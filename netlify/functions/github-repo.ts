@@ -1,8 +1,9 @@
 import { fetchGithubRepoSnapshot } from "../../shared/github-api";
+import { parseGithubRepoSnapshot } from "../../shared/github-snapshot";
 
 export default async () => {
   try {
-    const snapshot = await fetchGithubRepoSnapshot(process.env.GITHUB_TOKEN);
+    const snapshot = parseGithubRepoSnapshot(await fetchGithubRepoSnapshot(process.env.GITHUB_TOKEN));
 
     return new Response(JSON.stringify(snapshot), {
       status: 200,

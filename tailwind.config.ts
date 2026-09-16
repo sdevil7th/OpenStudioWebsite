@@ -1,8 +1,11 @@
 import type { Config } from "tailwindcss";
-import tailwindcssAnimate from "tailwindcss-animate";
+
 
 export default {
   darkMode: ["class"],
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     container: {
@@ -72,6 +75,30 @@ export default {
           amber: "hsl(var(--signal-amber))",
           frost: "hsl(var(--signal-frost))",
         },
+        // OpenStudio app tokens (Tailwind 4 `@theme` in the app → Tailwind 3
+        // config here) for the vendored DAW UI under src/features/daw-preview/.
+        daw: {
+          dark: "#121212",
+          panel: "#1a1a1a",
+          lighter: "#252525",
+          selection: "#333333",
+          text: "#e0e0e0",
+          "text-muted": "#888888",
+          "text-dim": "#555555",
+          accent: "#0078d4",
+          record: "#e53935",
+          mute: "#43a047",
+          solo: "#fdd835",
+          fx: "#7cb342",
+          border: "#2a2a2a",
+          "border-light": "#3a3a3a",
+        },
+        meter: {
+          green: "#4caf50",
+          yellow: "#ffc107",
+          red: "#f44336",
+          bg: "#0a0a0a",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -125,5 +152,5 @@ export default {
       },
     },
   },
-  plugins: [tailwindcssAnimate],
+
 } satisfies Config;

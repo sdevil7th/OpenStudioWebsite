@@ -1,56 +1,18 @@
-import { ArrowLeft, Download } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import PageSeo from "@/components/PageSeo";
-import { Button } from "@/components/ui/button";
-import { SITE_NAME } from "@/constants/site";
-import { trackEvent } from "@/lib/analytics";
 
-const NotFound = () => {
-  const location = useLocation();
-
+export default function NotFound() {
+  const { pathname } = useLocation();
   return (
-    <main
-      className="flex min-h-screen items-center px-4 pb-16 pt-28 md:px-6 md:pt-32 route-appear"
-      id="main-content"
-    >
-      <PageSeo
-        description="The requested OpenStudio page could not be found."
-        path={location.pathname}
-        robots="noindex, nofollow"
-        title={`Page not found | ${SITE_NAME}`}
-      />
-      <div className="mx-auto max-w-3xl border border-white/10 p-8 text-center md:p-12">
-        <p className="signal-label mb-4">404</p>
-        <h1 className="text-4xl font-semibold text-white md:text-5xl">That route is outside the current release scaffold.</h1>
-        <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-muted-foreground">
-          The page you requested is not part of the current OpenStudio marketing release. Use the feature or download routes below to get back into the live scaffold.
-        </p>
-        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-          <Button asChild variant="outline">
-            <Link to="/">
-              <ArrowLeft className="h-4 w-4" />
-              Return home
-            </Link>
-          </Button>
-          <Button asChild>
-            <Link
-              onClick={() =>
-                trackEvent("primary_cta_clicked", {
-                  cta_name: "go_to_download",
-                  destination_path: "/download",
-                  source: "not_found_page",
-                })
-              }
-              to="/download"
-            >
-              <Download className="h-4 w-4" />
-              Go to download
-            </Link>
-          </Button>
-        </div>
+    <section className="sp-container min-h-[75svh] py-24 text-center">
+      <PageSeo description="The requested OpenStudio page could not be found." path={pathname} robots="noindex, nofollow" title="Page not found | OpenStudio" />
+      <p className="sp-kicker">404</p>
+      <h1 className="sp-h1">Page not found</h1>
+      <p className="sp-body mx-auto max-w-xl">This link may have moved. Explore the documentation or return to the homepage.</p>
+      <div className="mt-8 flex flex-wrap justify-center gap-4">
+        <Link className="sp-btn" to="/">Return home</Link>
+        <Link className="sp-btn sp-btn--outline" to="/docs">Documentation</Link>
       </div>
-    </main>
+    </section>
   );
-};
-
-export default NotFound;
+}

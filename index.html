@@ -11,6 +11,25 @@
         document.documentElement.setAttribute("data-openstudio-immediate-content", "");
       }
     </script>
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="/assets/openstudio/fonts/google/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPbF4Cw.woff2"
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="/assets/openstudio/fonts/google/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2"
+    />
+    <link
+      rel="stylesheet"
+      href="/assets/openstudio/fonts/google-fonts-20260915.css"
+      data-openstudio-fonts="true"
+    />
     <style id="openstudio-instant-loader-style">
       html,
       body {
@@ -25,9 +44,9 @@
         display: none;
       }
 
-      #openstudio-instant-loader {
+      .openstudio-loader {
         --os-loader-backdrop-exit-duration: 220ms;
-        --os-loader-panel-exit-duration: 1050ms;
+        --os-loader-panel-exit-duration: 200ms;
         --os-loader-content-opacity-exit-duration: 280ms;
         --os-loader-content-filter-exit-duration: 360ms;
         --os-loader-progress-exit-duration: 240ms;
@@ -44,54 +63,38 @@
         pointer-events: auto;
       }
 
-      #openstudio-instant-loader::before {
+      .openstudio-loader::before {
         content: "";
         position: absolute;
         inset: 0;
         z-index: 0;
-        background: #04050a;
+        background: #fcfcff;
         transition: opacity var(--os-loader-backdrop-exit-duration) ease;
       }
 
       .os-instant-loader__panel {
         position: absolute;
-        right: 0;
-        left: 0;
+        inset: 0;
         z-index: 1;
         overflow: hidden;
-        background:
-          radial-gradient(circle at 50% var(--os-loader-glow-y), rgba(12, 250, 247, 0.14), transparent 26%),
-          radial-gradient(circle at 52% var(--os-loader-soft-y), rgba(136, 188, 236, 0.13), transparent 31%),
-          linear-gradient(180deg, rgba(3, 5, 12, 0.995), rgba(5, 8, 18, 0.985));
-        box-shadow: 0 0 80px rgba(12, 250, 247, 0.08);
-        transition: transform var(--os-loader-panel-exit-duration) cubic-bezier(0.22, 1, 0.36, 1);
-        will-change: transform;
+        background: #fcfcff;
+        transition: opacity var(--os-loader-panel-exit-duration) ease;
       }
 
-      .os-instant-loader__panel::before {
+      .os-instant-loader__panel::before,
+      .os-instant-loader__panel::after {
         content: "";
         position: absolute;
-        inset: -12%;
-        background-image:
-          linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-          linear-gradient(to bottom, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
-        background-size: 5rem 5rem;
-        opacity: 0.24;
-        transform: rotate(-4deg);
+        inset: -45%;
+        will-change: transform;
+        animation: os_loader_mint 9s ease-in-out infinite alternate;
+        background: radial-gradient(ellipse at 30% 65%, rgba(0, 234, 210, 0.32), transparent 48%);
       }
 
-      .os-instant-loader__panel--top {
-        top: 0;
-        height: calc(50% + 1px);
-        --os-loader-glow-y: 100%;
-        --os-loader-soft-y: 82%;
-      }
-
-      .os-instant-loader__panel--bottom {
-        bottom: 0;
-        height: calc(50% + 1px);
-        --os-loader-glow-y: 0%;
-        --os-loader-soft-y: 18%;
+      .os-instant-loader__panel::after {
+        background: radial-gradient(ellipse at 72% 30%, rgba(241, 63, 154, 0.24), transparent 46%);
+        animation-name: os_loader_pink;
+        animation-duration: 11s;
       }
 
       .os-instant-loader__content {
@@ -109,13 +112,11 @@
       .os-instant-loader__mark {
         position: absolute;
         left: 50%;
-        bottom: calc(50% + max(clamp(1.75rem, 4svh, 3rem), 6rem));
-        width: clamp(10rem, 26vw, 16.4rem);
+        top: 50%;
+        width: min(80svh, 90vw);
         aspect-ratio: 1;
-        transform: translate3d(-50%, 0, 0);
-        filter:
-          drop-shadow(0 24px 70px rgba(0, 0, 0, 0.5))
-          drop-shadow(0 0 28px rgba(12, 250, 247, 0.16));
+        transform: translate(-50%, -50%);
+        filter: drop-shadow(0 5px 4px rgba(35, 43, 105, 0.18));
       }
 
       .os-instant-loader__svg {
@@ -123,21 +124,47 @@
         width: 100%;
         height: 100%;
         overflow: visible;
-        transform: translateZ(0);
+        animation: os_loader_rotate 3s linear 800ms infinite;
       }
 
       .os-instant-loader__piece {
-        will-change: transform, opacity, filter;
-        mix-blend-mode: screen;
+        will-change: transform;
+        animation: os_loader_join 800ms cubic-bezier(0.22, 1, 0.36, 1) both;
       }
 
-      .os-instant-loader__piece--navy {
-        mix-blend-mode: normal;
+      .os-instant-loader__piece--top-right {
+        --os-piece-x: 50vw;
+        --os-piece-y: -50vh;
+      }
+
+      .os-instant-loader__piece--bottom-left {
+        --os-piece-x: -50vw;
+        --os-piece-y: 50vh;
+      }
+
+      @keyframes os_loader_join {
+        from { transform: translate(var(--os-piece-x), var(--os-piece-y)); opacity: 0; }
+        15% { opacity: 1; }
+        to { transform: translate(0, 0); opacity: 1; }
+      }
+
+      @keyframes os_loader_rotate {
+        to { transform: rotate(360deg); }
+      }
+
+      @keyframes os_loader_mint {
+        from { transform: translate(-8%, 5%) rotate(-12deg) scale(1); }
+        to { transform: translate(12%, -10%) rotate(28deg) scale(1.12); }
+      }
+
+      @keyframes os_loader_pink {
+        from { transform: translate(8%, -6%) rotate(10deg) scale(1.12); }
+        to { transform: translate(-12%, 12%) rotate(-24deg) scale(0.94); }
       }
 
       .os-instant-loader__wordmark {
         position: absolute;
-        top: calc(50% + clamp(2rem, 4.8svh, 3.35rem));
+        bottom: max(3.5rem, calc(env(safe-area-inset-bottom) + 2rem));
         left: 50%;
         display: grid;
         gap: 0.4rem;
@@ -146,12 +173,11 @@
       }
 
       .os-instant-loader__wordmark strong {
-        font-size: clamp(2rem, 5.2vw, 5rem);
+        font-size: clamp(1.5rem, 3vw, 2.25rem);
         font-weight: 800;
         line-height: 0.96;
         letter-spacing: 0;
-        color: #f8fbff;
-        text-shadow: 0 0 34px rgba(136, 188, 236, 0.18);
+        color: #3445dc;
       }
 
       .os-instant-loader__wordmark span {
@@ -161,19 +187,20 @@
         font-weight: 700;
         letter-spacing: 0.28em;
         text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.42);
+        color: #737993;
       }
 
       .os-instant-loader__progress {
         position: absolute;
-        top: 50%;
-        right: 0;
-        left: 0;
+        bottom: max(2rem, env(safe-area-inset-bottom));
+        left: calc(50% - 4rem);
+        width: 8rem;
+        border-radius: 2px;
         z-index: 4;
         height: 3px;
         overflow: hidden;
         transform: translateY(-50%);
-        background: rgba(255, 255, 255, 0.08);
+        background: rgba(52, 69, 220, 0.1);
         box-shadow:
           0 0 0 1px rgba(255, 255, 255, 0.035),
           0 0 34px rgba(12, 250, 247, 0.18);
@@ -188,44 +215,34 @@
         height: 100%;
         transform: scaleX(0.08);
         transform-origin: left center;
-        background: linear-gradient(90deg, rgba(136, 188, 236, 0.94), rgba(12, 250, 247, 0.86));
+        background: linear-gradient(90deg, #3445dc, #00cbbb);
         box-shadow: 0 0 22px rgba(12, 250, 247, 0.3);
         animation: os_loader_progress 8200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
 
-      #openstudio-instant-loader[data-openstudio-loader-state="assembling"] .os-instant-loader__progress span {
-        animation: none;
-        transform: scaleX(1);
-        transition: transform 760ms cubic-bezier(0.22, 1, 0.36, 1);
-      }
-
-      #openstudio-instant-loader[data-openstudio-loader-state="leaving"] .os-instant-loader__panel--top {
-        transform: translate3d(0, -102%, 0);
-      }
-
-      #openstudio-instant-loader[data-openstudio-loader-state="leaving"] .os-instant-loader__panel--bottom {
-        transform: translate3d(0, 102%, 0);
-      }
-
-      #openstudio-instant-loader[data-openstudio-loader-state="leaving"]::before {
+      .openstudio-loader[data-openstudio-loader-state="leaving"] .os-instant-loader__panel--top {
         opacity: 0;
       }
 
-      #openstudio-instant-loader[data-openstudio-loader-state="leaving"] {
+      .openstudio-loader[data-openstudio-loader-state="leaving"]::before {
+        opacity: 0;
+      }
+
+      .openstudio-loader[data-openstudio-loader-state="leaving"] {
         pointer-events: none;
       }
 
-      #openstudio-instant-loader[data-openstudio-loader-state="leaving"] .os-instant-loader__content {
+      .openstudio-loader[data-openstudio-loader-state="leaving"] .os-instant-loader__content {
         opacity: 0;
         filter: blur(10px);
       }
 
-      #openstudio-instant-loader[data-openstudio-loader-state="leaving"] .os-instant-loader__progress {
+      .openstudio-loader[data-openstudio-loader-state="leaving"] .os-instant-loader__progress {
         opacity: 0;
         transform: translateY(-50%) scaleY(0);
       }
 
-      #openstudio-instant-loader[data-openstudio-loader-state="leaving"] .os-instant-loader__progress span {
+      .openstudio-loader[data-openstudio-loader-state="leaving"] .os-instant-loader__progress span {
         animation: none;
         transform: scaleX(1);
       }
@@ -245,7 +262,7 @@
       }
 
       @media (max-width: 767px) {
-        #openstudio-instant-loader {
+        .openstudio-loader {
           --os-loader-backdrop-exit-duration: 200ms;
           --os-loader-panel-exit-duration: 200ms;
           --os-loader-content-opacity-exit-duration: 140ms;
@@ -255,6 +272,10 @@
       }
 
       @media (prefers-reduced-motion: reduce) {
+        .os-instant-loader__svg,
+        .os-instant-loader__piece,
+        .os-instant-loader__panel::before,
+        .os-instant-loader__panel::after,
         .os-instant-loader__progress span {
           animation: none;
         }
@@ -274,7 +295,7 @@
     <noscript>
       <style>
         #openstudio-instant-loader {
-          display: none !important;
+          display: none;
         }
 
         .openstudio-noscript-notice {
@@ -288,10 +309,10 @@
         }
       </style>
     </noscript>
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/openstudio/branding/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/openstudio/branding/favicon-16x16.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/openstudio/branding/apple-touch-icon.png" />
-    <link rel="manifest" href="/assets/openstudio/branding/site.webmanifest" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/openstudio/branding/favicon-32x32.png?v=20260915" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/openstudio/branding/favicon-16x16.png?v=20260915" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/openstudio/branding/apple-touch-icon.png?v=20260915" />
+    <link rel="manifest" href="/assets/openstudio/branding/site.webmanifest?v=20260915" />
     <title>OpenStudio | Free Open-Source DAW for Music Production</title>
     <meta
       name="description"
@@ -308,10 +329,10 @@
     />
     <meta property="og:url" content="https://openstudio.org.in/" />
     <meta property="og:site_name" content="OpenStudio" />
-    <meta property="og:image" content="https://openstudio.org.in/assets/blogs/building-openstudio-nam-rack.webp?v=1ab18641912af0" />
-    <meta property="og:image:alt" content="OpenStudio NAM Rack redesigned amp view with an A2 capture, input and output meters, cabinet navigation, and preset controls." />
-    <meta property="og:image:width" content="3360" />
-    <meta property="og:image:height" content="1764" />
+    <meta property="og:image" content="https://openstudio.org.in/assets/openstudio/branding/og-image.png?v=3" />
+    <meta property="og:image:alt" content="OpenStudio share image" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta property="og:locale" content="en_US" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="OpenStudio | Free Open-Source DAW for Music Production" />
@@ -319,26 +340,9 @@
       name="twitter:description"
       content="Free, open-source DAW for multitrack recording, MIDI, plug-in hosting, pitch editing, mixing, and rendering, with a built-in Neural Amp Modeler guitar rig."
     />
-    <meta name="twitter:image" content="https://openstudio.org.in/assets/blogs/building-openstudio-nam-rack.webp?v=1ab18641912af0" />
-    <meta name="twitter:image:alt" content="OpenStudio NAM Rack redesigned amp view with an A2 capture, input and output meters, cabinet navigation, and preset controls." />
-    <script type="application/ld+json">
-      [
-        {
-          "@context": "https://schema.org",
-          "@type": "WebSite",
-          "name": "OpenStudio",
-          "url": "https://openstudio.org.in"
-        },
-        {
-          "@context": "https://schema.org",
-          "@type": "Organization",
-          "name": "OpenStudio",
-          "url": "https://openstudio.org.in",
-          "logo": "https://openstudio.org.in/assets/openstudio/branding/android-chrome-512x512.png",
-          "sameAs": ["https://github.com/sdevil7th/openstudio"]
-        }
-      ]
-    </script>
+    <meta name="twitter:image" content="https://openstudio.org.in/assets/openstudio/branding/og-image.png?v=3" />
+    <meta name="twitter:image:alt" content="OpenStudio share image" />
+    <!-- Page-owned JSON-LD is emitted by prerendering and kept in sync by PageSeo. -->
   </head>
   <body class="dark">
     <noscript>
@@ -347,49 +351,18 @@
       </p>
     </noscript>
     <!-- openstudio-loader:start -->
-    <div id="openstudio-instant-loader" data-openstudio-loader data-openstudio-loader-state="loading" role="status" aria-live="polite">
+    <div id="openstudio-instant-loader" class="openstudio-loader" data-openstudio-loader data-openstudio-loader-state="loading" role="status" aria-live="polite">
       <div class="os-instant-loader__panel os-instant-loader__panel--top" aria-hidden="true"></div>
-      <div class="os-instant-loader__panel os-instant-loader__panel--bottom" aria-hidden="true"></div>
       <div class="os-instant-loader__content">
         <div class="os-instant-loader__mark" aria-hidden="true">
-          <svg class="os-instant-loader__svg" viewBox="634 505 784 784">
-            <g transform="translate(1023.5, 898) scale(1.2) rotate(45) translate(-1023.5, -898)">
-              <g class="os-instant-loader__piece os-instant-loader__piece--navy" data-os-loader-piece="navy-left-spark">
-                <path d="M 589.457 899.079 C 583.662 899.178 574.375 899.803 568.86 899.523 L 568.63 899.178 C 568.17 899.167 567.71 899.156 567.251 899.144 C 567.183 899.011 567.116 898.878 567.049 898.744 C 566.903 898.877 586.81 896.357 588.171 896.208 C 588.414 896.815 588.658 897.422 588.901 898.028 L 589.457 899.079 z" fill="rgb(23,21,60)" />
-              </g>
-              <g class="os-instant-loader__piece os-instant-loader__piece--navy" data-os-loader-piece="navy-sweep-main">
-                <path d="M 602.084 895.192 C 705.574 889.339 793.658 907.831 880.463 966.171 C 968.901 1025.61 1039.81 1116.37 1071.72 1218.23 C 1040.52 1221.96 1018.53 1222.29 987.296 1219.03 C 975.732 1218.81 951.436 1212.89 939.902 1209.56 C 857.463 1185.44 788.332 1128.91 748.318 1052.9 C 730.954 1019.21 726.551 981.274 699.751 953.594 C 674.804 927.827 642.7 914.594 608.639 905.983 C 602.704 904.482 593.838 903.13 589.457 899.079 L 588.901 898.028 C 588.658 897.422 588.414 896.815 588.171 896.208 C 592.751 895.859 597.708 895.026 602.084 895.192 z" fill="rgb(23,21,60)" />
-              </g>
-              <g class="os-instant-loader__piece os-instant-loader__piece--blue" data-os-loader-piece="blue-ribbon-lower">
-                <path d="M 1152.97 915.493 C 1162.68 914.351 1183.15 928.286 1190.82 934.418 C 1228.06 964.188 1257.66 1006.53 1270.6 1052.63 C 1273.04 1061.35 1275.78 1087.36 1277.53 1091.35 C 1275.68 1094.84 1261.29 1112.41 1258.16 1115.99 C 1220.7 1158.33 1172.55 1189.82 1118.75 1207.15 C 1110.5 1171.05 1090.11 1133.12 1068.05 1103.77 C 1091.52 1103.62 1105.01 1100.72 1126.69 1091.79 C 1202.51 1060.56 1229.52 964.846 1152.97 915.493 z" fill="rgb(56,154,216)" />
-              </g>
-              <g class="os-instant-loader__piece os-instant-loader__piece--blue" data-os-loader-piece="deep-blue-right-spark">
-                <path d="M 1478.34 891.794 C 1481.42 892.127 1486.55 893.279 1479.74 894.206 L 1478.34 891.794 z" fill="rgb(36,116,180)" />
-              </g>
-              <g class="os-instant-loader__piece os-instant-loader__piece--cyan" data-os-loader-piece="cyan-arc-main">
-                <path d="M 979.015 578.239 C 1005.02 574.436 1037.35 575.239 1063.31 577.748 C 1146.62 589.033 1222.12 632.686 1273.47 699.25 C 1295.44 727.809 1317.61 766.027 1326.88 800.433 C 1344.73 866.736 1405.84 883.212 1466.14 890.727 C 1470.05 891.214 1474.29 891.876 1478.34 891.794 L 1479.74 894.206 C 1453.6 895.792 1439.82 898.323 1411.99 898.365 C 1350 902.5 1266.48 882.172 1211.4 853.764 C 1102.31 797.49 1016.73 694.68 979.015 578.239 z" fill="rgb(12,250,247)" />
-              </g>
-              <g class="os-instant-loader__piece os-instant-loader__piece--blue" data-os-loader-piece="blue-sweep-edge">
-                <path d="M 602.084 895.192 C 705.574 889.339 793.658 907.831 880.463 966.171 C 968.901 1025.61 1039.81 1116.37 1071.72 1218.23 C 1040.52 1221.96 1018.53 1222.29 987.296 1219.03 C 944.614 1055.22 779.989 909.659 609.551 897.909 C 608.19 897.617 602.428 896.899 601.692 896.374 C 601.587 895.902 601.799 895.775 602.084 895.192 z" fill="rgb(56,154,216)" />
-              </g>
-              <g class="os-instant-loader__piece os-instant-loader__piece--sky" data-os-loader-piece="sky-ribbon-main">
-                <path d="M 782.528 691.718 C 818.3 645.424 877.331 606.011 933.236 589.489 C 944.52 628.796 956.906 655.66 982.337 687.618 C 916.516 688.862 848.176 727.505 846.95 801.529 C 846.488 829.446 858.996 848.415 877.865 867.761 C 904.663 887.296 926.615 893.691 959.983 893.908 C 981.802 894.05 1003.73 894.027 1025.56 894.028 L 1176.82 894.162 C 1203.02 894.238 1230.5 892.673 1255.85 899.212 C 1288.73 907.693 1317.8 936.44 1323.18 970.394 C 1328.87 1006.2 1299.46 1063.72 1277.53 1091.35 C 1275.68 1094.84 1261.29 1112.41 1258.16 1115.99 C 1220.7 1158.33 1172.55 1189.82 1118.75 1207.15 C 1110.5 1171.05 1090.11 1133.12 1068.05 1103.77 C 1091.52 1103.62 1105.01 1100.72 1126.69 1091.79 C 1202.51 1060.56 1229.52 964.846 1152.97 915.493 C 1140.95 910.069 1123.47 901.872 1110.32 900.402 C 1080.27 897.04 1045.55 898.048 1015.15 897.994 L 869.677 897.046 C 830.601 897.046 785.856 902.429 753.498 876.682 C 737.523 864.188 727.39 845.672 725.479 825.481 C 721.619 786.772 758.109 721.589 782.528 691.718 z" fill="rgb(136,188,236)" />
-              </g>
-              <g class="os-instant-loader__piece os-instant-loader__piece--blue" data-os-loader-piece="blue-arc-shadow">
-                <path d="M 979.015 578.239 C 1005.02 574.436 1037.35 575.239 1063.31 577.748 C 1066.33 590.612 1072.54 607.158 1077.16 619.636 C 1111.89 713.344 1176.94 792.76 1261.97 845.27 C 1294.54 865.465 1330.22 880.152 1367.57 888.741 C 1382.12 892.108 1397.41 893.406 1411 898.124 C 1411.33 898.204 1411.66 898.285 1411.99 898.365 C 1350 902.5 1266.48 882.172 1211.4 853.764 C 1102.31 797.49 1016.73 694.68 979.015 578.239 z" fill="rgb(56,154,216)" />
-              </g>
-              <g class="os-instant-loader__piece os-instant-loader__piece--blue" data-os-loader-piece="deep-blue-join">
-                <path d="M 588.171 896.208 C 592.751 895.859 597.708 895.026 602.084 895.192 C 601.799 895.775 601.587 895.902 601.692 896.374 C 602.428 896.899 608.19 897.617 609.551 897.909 C 602.668 898.038 595.785 898.078 588.901 898.028 C 588.658 897.422 588.414 896.815 588.171 896.208 z" fill="rgb(36,116,180)" />
-              </g>
-              <g class="os-instant-loader__piece os-instant-loader__piece--blue" data-os-loader-piece="blue-ribbon-upper">
-                <path d="M 782.528 691.718 C 818.3 645.424 877.331 606.011 933.236 589.489 C 944.52 628.796 956.906 655.66 982.337 687.618 C 916.516 688.862 848.176 727.505 846.95 801.529 C 846.488 829.446 858.996 848.415 877.865 867.761 C 873.112 866.396 862.152 857.998 858.04 854.663 C 817.309 821.638 786.669 767.845 783.818 714.995 C 783.414 707.503 783.54 700.146 782.656 692.723 L 782.528 691.718 z" fill="rgb(56,154,216)" />
-              </g>
-            </g>
+          <svg class="os-instant-loader__svg" viewBox="0 0 108 108" fill="none">
+            <g class="os-instant-loader__piece os-instant-loader__piece--top-right" data-os-loader-piece="top-right"><path d="M76.5317 29.4591C80.2082 29.4592 83.4256 30.5468 86.183 32.7228C88.9076 34.8989 91.0415 37.8506 92.5844 41.5763C94.0944 45.302 94.849 49.5059 94.8491 54.1877C94.849 58.21 94.2583 61.9692 93.0766 65.464C91.862 68.9259 90.023 71.7945 87.561 74.0695C85.0661 76.3114 81.9148 77.5982 78.1069 77.9279L78.1059 87.0675C73.3245 90.5225 67.721 92.9984 61.5346 94.1418C50.5148 96.178 39.712 93.6077 31.103 87.798C37.4139 87.569 42.5604 85.2689 46.5424 80.8947C49.9139 77.1909 52.6609 72.4252 54.7856 66.5988C58.614 66.3885 62.3073 64.4726 64.6489 61.0695C68.5727 55.3667 67.2475 47.6096 61.7319 43.5187C62.207 42.205 62.7075 40.931 63.2358 39.6974C64.5489 36.6311 66.256 34.1569 68.3569 32.2775C70.4579 30.3982 73.1833 29.4591 76.5317 29.4591Z" fill="#3445DC"/></g>
+            <g class="os-instant-loader__piece os-instant-loader__piece--bottom-left" data-os-loader-piece="bottom-left"><path d="M46.6088 13.3742C56.2759 11.5879 65.777 13.3472 73.7758 17.7277C70.3171 18.0565 67.3117 18.98 64.7621 20.506C61.5124 22.4512 58.8537 24.9248 56.7856 27.925C54.6846 30.8924 53.0266 34.0094 51.812 37.2736C51.2498 38.769 50.745 40.2012 50.2953 41.5695C47.641 42.3911 45.2329 44.0753 43.5356 46.5421C40.1566 51.453 40.669 57.8878 44.3989 62.1925C44.3582 62.3097 44.3183 62.4279 44.2768 62.5461C43.4562 64.7878 42.4225 66.9308 41.1752 68.9748C39.8949 71.019 38.3029 72.7018 36.3989 74.0207C34.462 75.3065 32.1473 75.9494 29.4555 75.9494C26.2385 75.9494 23.366 75.0261 20.8383 73.1798C18.3105 71.3004 16.3238 68.6946 14.8793 65.3644C14.6261 64.7746 14.3958 64.1674 14.1869 63.5431C14.0002 62.7789 13.8327 62.0052 13.6879 61.2218C12.5116 54.8563 12.8735 48.5621 14.5073 42.7218C15.1273 41.0578 15.9075 39.5047 16.8491 38.0636C19.6066 33.8433 23.4813 31.4374 28.4711 30.8439L28.4702 21.6398C33.5772 17.5616 39.733 14.6449 46.6088 13.3742Z" fill="#3445DC"/></g>
           </svg>
         </div>
         <div class="os-instant-loader__wordmark">
           <strong>OpenStudio</strong>
-          <span>constructing the production surface</span>
+          <span>Loading your studio</span>
         </div>
       </div>
       <div class="os-instant-loader__progress" aria-hidden="true"><span></span></div>
@@ -399,6 +372,16 @@
     <script>
       (() => {
         const loader = document.getElementById("openstudio-instant-loader");
+        // Preserve one source of markup for initial and client-side route loading.
+        // Prerendered legal pages already contain an inert copy of this template.
+        if (loader) {
+          const loaderTemplate = document.createElement("template");
+          loaderTemplate.id = "openstudio-loader-template";
+          const reusableLoader = loader.cloneNode(true);
+          reusableLoader.removeAttribute("id");
+          loaderTemplate.content.appendChild(reusableLoader);
+          document.body.appendChild(loaderTemplate);
+        }
         if (document.documentElement.hasAttribute("data-openstudio-immediate-content")) {
           loader?.remove();
           window.__openstudioLoaderReady = true;
@@ -419,14 +402,12 @@
 
         const startedAt = performance.now();
         const mobileIntro = window.matchMedia("(max-width: 767px)").matches;
-        const minimumVisibleMs = mobileIntro ? 0 : 620;
         const fallbackMs = 9500;
         const cssFallbackMs = 6500;
         const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        const mobileAssembleMs = 160;
+
         const mobileRevealMs = 220;
-        const desktopAssembleMs = 900;
-        const desktopRevealMs = 1120;
+        const desktopRevealMs = 250;
         const revealMs = reduceMotion
           ? mobileIntro
             ? 120
@@ -434,225 +415,14 @@
           : mobileIntro
             ? mobileRevealMs
             : desktopRevealMs;
-        const assembleMs = reduceMotion ? 0 : mobileIntro ? mobileAssembleMs : desktopAssembleMs;
+        // Let the two pieces meet before revealing a fast-loading route.
+        const entranceMs = reduceMotion ? 0 : 800;
         let routeReady = Boolean(window.__openstudioAppReady);
         let cssReady = false;
         let hidden = false;
-        let assembled = reduceMotion;
-        let assembling = false;
-        let assembleStartedAt = 0;
-        let pieceRaf = 0;
-        let pieceFilterFrame = 0;
 
         window.__openstudioLoaderReady = true;
         window.__openstudioAppCssReady = false;
-
-        const clamp = (value) => Math.max(0, Math.min(1, value));
-        const mix = (from, to, amount) => from + (to - from) * amount;
-        const ease = (value) => {
-          const t = clamp(value);
-          return t * t * t * (t * (t * 6 - 15) + 10);
-        };
-        const seedFor = (text) => {
-          let hash = 2166136261;
-          for (let index = 0; index < text.length; index += 1) {
-            hash ^= text.charCodeAt(index);
-            hash = Math.imul(hash, 16777619);
-          }
-
-          return (hash >>> 0) / 4294967295;
-        };
-        const finalPieceState = {
-          x: 0,
-          y: 0,
-          rotate: 0,
-          scale: 1,
-          opacity: 1,
-          brightness: 1.08,
-          blur: 0,
-        };
-        const fallbackCenter = { x: 1023.5, y: 898 };
-        const pieceElements = Array.from(loader.querySelectorAll("[data-os-loader-piece]"));
-        const orbitableCount = Math.max(
-          1,
-          pieceElements.filter((element) => element.dataset.osLoaderPiece !== "sky-ribbon-main").length,
-        );
-        let orbitSlot = 0;
-        const piecePlans = pieceElements.map((element, index) => {
-          const id = element.dataset.osLoaderPiece || `piece-${index}`;
-          const seed = seedFor(id);
-          const anchor = id === "sky-ribbon-main";
-          const slot = anchor ? -1 : orbitSlot;
-          if (!anchor) {
-            orbitSlot += 1;
-          }
-
-          const slotAngle = anchor ? 0 : (slot / orbitableCount) * Math.PI * 2;
-          const direction = slot % 2 === 0 ? 1 : -1;
-          let box;
-
-          try {
-            box = element.getBBox();
-          } catch {
-            box = { x: fallbackCenter.x, y: fallbackCenter.y, width: 1, height: 1 };
-          }
-
-          const center = {
-            x: box.x + box.width / 2,
-            y: box.y + box.height / 2,
-          };
-
-          return {
-            element,
-            id,
-            anchor,
-            center,
-            slot,
-            phase: slotAngle + (seed - 0.5) * 0.24,
-            radiusX: anchor ? 0 : 260 + (slot % 3) * 58 + seed * 64,
-            radiusY: anchor ? 0 : 170 + (slot % 4) * 34 + seed * 48,
-            speed: anchor ? 0 : direction * (0.00072 + seed * 0.00018),
-            rotateRange: anchor ? 0.55 : 5 + seed * 8,
-            scaleBase: anchor ? 1 : 0.88 + seed * 0.16,
-            glow: element.querySelector("path")?.getAttribute("fill") || "rgba(12, 250, 247, 0.7)",
-            current: finalPieceState,
-            from: finalPieceState,
-          };
-        });
-        const anchorCenter =
-          piecePlans.find((plan) => plan.anchor)?.center || fallbackCenter;
-
-        const pieceStateAt = (plan, now) => {
-          const elapsed = now - startedAt;
-          const pulse = Math.sin(elapsed * 0.0017 + plan.phase);
-
-          if (plan.anchor) {
-            return {
-              x: Math.sin(elapsed * 0.0011 + plan.phase) * 3.2,
-              y: Math.cos(elapsed * 0.001 + plan.phase) * 3.8,
-              rotate: Math.sin(elapsed * 0.0009 + plan.phase) * plan.rotateRange,
-              scale: 1 + pulse * 0.01,
-              opacity: 1,
-              brightness: 1.1 + pulse * 0.06,
-              blur: 0,
-            };
-          }
-
-          const angle = plan.phase + elapsed * plan.speed;
-          const orbitalWobble = Math.sin(elapsed * 0.00105 + plan.phase * 1.7);
-          const desiredX =
-            anchorCenter.x +
-            Math.cos(angle) * plan.radiusX +
-            Math.cos(angle * 2 + plan.phase) * 10;
-          const desiredY =
-            anchorCenter.y +
-            Math.sin(angle) * plan.radiusY +
-            orbitalWobble * 12;
-
-          return {
-            x: desiredX - plan.center.x,
-            y: desiredY - plan.center.y,
-            rotate: Math.sin(angle + plan.phase * 0.4) * plan.rotateRange,
-            scale: plan.scaleBase + pulse * 0.025,
-            opacity: 0.84 + Math.sin(elapsed * 0.0011 + plan.phase) * 0.1,
-            brightness: 1.08 + Math.sin(angle) * 0.1,
-            blur: 0.04 + Math.abs(Math.sin(angle)) * 0.22,
-          };
-        };
-
-        const applyPiece = (plan, state, updateFilter = true) => {
-          plan.current = state;
-          const centerX = plan.center.x.toFixed(2);
-          const centerY = plan.center.y.toFixed(2);
-          const negativeCenterX = (-plan.center.x).toFixed(2);
-          const negativeCenterY = (-plan.center.y).toFixed(2);
-
-          plan.element.setAttribute(
-            "transform",
-            `translate(${state.x.toFixed(2)} ${state.y.toFixed(2)}) translate(${centerX} ${centerY}) rotate(${state.rotate.toFixed(2)}) scale(${state.scale.toFixed(3)}) translate(${negativeCenterX} ${negativeCenterY})`,
-          );
-          plan.element.style.opacity = state.opacity.toFixed(3);
-          if (updateFilter) {
-            plan.element.style.filter = `brightness(${state.brightness.toFixed(3)}) blur(${state.blur.toFixed(2)}px) drop-shadow(0 0 ${Math.round(10 + state.opacity * 18)}px ${plan.glow})`;
-          }
-        };
-
-        const applyFinalPieces = () => {
-          piecePlans.forEach((plan) => applyPiece(plan, finalPieceState, true));
-        };
-
-        const tickPieces = (now) => {
-          pieceRaf = 0;
-          if (hidden) return;
-          const updatePieceFilter = !mobileIntro || pieceFilterFrame % 2 === 0;
-          pieceFilterFrame += 1;
-
-          if (assembling) {
-            const amount = assembleMs === 0 ? 1 : ease((now - assembleStartedAt) / assembleMs);
-            piecePlans.forEach((plan) => {
-              const from = plan.from || plan.current || finalPieceState;
-              applyPiece(
-                plan,
-                {
-                  x: mix(from.x, finalPieceState.x, amount),
-                  y: mix(from.y, finalPieceState.y, amount),
-                  rotate: mix(from.rotate, finalPieceState.rotate, amount),
-                  scale: mix(from.scale, finalPieceState.scale, amount),
-                  opacity: mix(from.opacity, finalPieceState.opacity, amount),
-                  brightness: mix(from.brightness, finalPieceState.brightness, amount),
-                  blur: mix(from.blur, finalPieceState.blur, amount),
-                },
-                updatePieceFilter,
-              );
-            });
-
-            if (amount >= 1) {
-              assembling = false;
-              assembled = true;
-              applyFinalPieces();
-              finishWhenReady();
-              return;
-            }
-          } else {
-            piecePlans.forEach((plan) =>
-              applyPiece(plan, pieceStateAt(plan, now), updatePieceFilter),
-            );
-          }
-
-          pieceRaf = requestAnimationFrame(tickPieces);
-        };
-
-        const startPieceLoop = () => {
-          if (reduceMotion || pieceRaf || piecePlans.length === 0) return;
-          pieceRaf = requestAnimationFrame(tickPieces);
-        };
-
-        const beginAssemble = () => {
-          if (hidden || assembled || assembling) return;
-
-          if (reduceMotion || piecePlans.length === 0) {
-            assembled = true;
-            applyFinalPieces();
-            finishWhenReady();
-            return;
-          }
-
-          const now = performance.now();
-          assembling = true;
-          assembleStartedAt = now;
-          loader.dataset.openstudioLoaderState = "assembling";
-          piecePlans.forEach((plan) => {
-            plan.from = plan.current || pieceStateAt(plan, now);
-          });
-          startPieceLoop();
-        };
-
-        if (reduceMotion || piecePlans.length === 0) {
-          assembled = true;
-          applyFinalPieces();
-        } else {
-          startPieceLoop();
-        }
 
         const appCssLinks = () => Array.from(document.querySelectorAll("link[data-openstudio-app-css]"));
         const setCssReady = () => {
@@ -680,27 +450,11 @@
         requestAnimationFrame(markCssIfReady);
         window.setTimeout(setCssReady, cssFallbackMs);
 
-        const loadFonts = () => {
-          if (document.querySelector("link[data-openstudio-fonts]")) return;
-
-          const fontStylesheet = document.createElement("link");
-          fontStylesheet.rel = "stylesheet";
-          fontStylesheet.href =
-            "/assets/openstudio/fonts/google-fonts-20260815.css";
-          fontStylesheet.dataset.openstudioFonts = "true";
-
-          document.head.append(fontStylesheet);
-        };
-        requestAnimationFrame(() => requestAnimationFrame(loadFonts));
-
         function reveal() {
           if (hidden) return;
 
           hidden = true;
-          if (pieceRaf) {
-            cancelAnimationFrame(pieceRaf);
-            pieceRaf = 0;
-          }
+
           loader.dataset.openstudioLoaderState = "leaving";
           window.setTimeout(() => {
             loader.remove();
@@ -714,13 +468,8 @@
           if (hidden || !routeReady || !cssReady) return;
 
           const elapsed = performance.now() - startedAt;
-          if (elapsed < minimumVisibleMs) {
-            window.setTimeout(finishWhenReady, minimumVisibleMs - elapsed);
-            return;
-          }
-
-          if (!assembled) {
-            beginAssemble();
+          if (elapsed < entranceMs) {
+            window.setTimeout(finishWhenReady, entranceMs - elapsed);
             return;
           }
 
@@ -765,7 +514,7 @@
         fallback.hidden = !immediateContent;
         // Keep the complete legal document readable while React and its lazy
         // route load, including requests which stall without raising an error.
-        if (immediateContent) root.hidden = true;
+        root.hidden = true;
         fallback.append(staticContent);
         root.after(fallback);
 

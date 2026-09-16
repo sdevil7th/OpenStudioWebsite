@@ -1,257 +1,166 @@
-import {
-  ArrowLeft,
-  ArrowRight,
-  BookOpen,
-  CalendarDays,
-  Clock3,
-  History,
-  UserRound,
-} from "lucide-react";
+import { ResponsiveImage } from "@/components/ResponsiveImage";
+import NotFound from "@/pages/NotFound";
+import { ArrowLeft, Book, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import PageSeo from "@/components/PageSeo";
-import { Button } from "@/components/ui/button";
 import { SITE_NAME, SITE_URL } from "@/constants/site";
-import {
-  getLoadedBlogPost,
-  loadBlogPostContent,
-  preloadBlogPostContent,
-} from "@/data/blogContent";
-import { blogPosts, getBlogPostBySlug, getBlogPostJsonLd, getBlogPostUrl } from "@/data/blogs";
-import { getResponsiveImageAttributes } from "@/lib/assetLoading";
-import "@/lib/generatedImageRoutes/blogs";
-import { cn } from "@/lib/utils";
+import { getBreadcrumbJsonLd } from "@/lib/structuredData";
+import { getLoadedBlogPost, loadBlogPostContent } from "@/data/blogContent";
+import { blogPosts, getBlogPostBySlug, getBlogPostJsonLd, type BlogPost, type BlogPostSummary } from "@/data/blogs";
+import { SITE_PATHS, blogPostPath } from "@/constants/routes";
+import { formatDate } from "@/lib/format";
+import { ArrowLink, DownloadCta, Kicker } from "@/components/ui/primitives";
+import { useSpReveal } from "@/hooks/useSpReveal";
+import { categoryOf } from "@/data/blogCategories";
 
-const BLOG_HERO_SIZES =
-  "(min-width: 1984px) 1920px, (min-width: 768px) calc(100vw - 4rem), calc(100vw - 2rem)";
-const BLOG_ARTICLE_BODY_CLASS = "mx-auto mt-10 max-w-[760px] md:mt-12";
+const RelatedPosts = ({ current }: { current: BlogPostSummary }) => {
+  const related = blogPosts.filter((post) => post.slug !== current.slug).slice(0, 3);
 
-if (typeof window !== "undefined") {
-  const initialSlug = window.location.pathname.match(/^\/blogs\/([^/]+)\/?$/)?.[1];
-  const initialPost = getBlogPostBySlug(initialSlug);
-  if (initialPost) {
-    preloadBlogPostContent(initialPost);
-  }
-}
-
-const BlogPostPage = () => {
-  const { slug } = useParams();
-  const post = getBlogPostBySlug(slug);
-  const [loadedPost, setLoadedPost] = useState(() =>
-    post ? getLoadedBlogPost(post) : undefined,
+  return (
+    <aside className="sp-blog-aside">
+      <Kicker>More from the blog</Kicker>
+      <div className="flex flex-col gap-[12px]">
+        {related.map((post) => (
+          <Link key={post.slug} className="sp-card sp-card--tight p-[14px_16px] block" to={blogPostPath(post.slug)}>
+            <div className="sp-mono mb-[6px]">
+              {categoryOf(post)} · {formatDate(post.date) ?? "—"}
+            </div>
+            <div className="[font:600_14px/1.35_'Space_Grotesk',_sans-serif] tracking-[-0.01em]">{post.title}</div>
+          </Link>
+        ))}
+      </div>
+      <div className="mt-[26px]">
+        <Kicker>Try it</Kicker>
+        <DownloadCta variant="sm" />
+      </div>
+    </aside>
   );
-  const [articleLoadError, setArticleLoadError] = useState(false);
+};
+
+const Article = ({ post }: { post: BlogPostSummary }) => {
+  const [loaded, setLoaded] = useState<BlogPost | undefined>(() => getLoadedBlogPost(post));
+  const [failed, setFailed] = useState(false);
+
+  useSpReveal();
 
   useEffect(() => {
-    setArticleLoadError(false);
-
-    if (!post) {
-      setLoadedPost(undefined);
-      return undefined;
-    }
-
-    const cachedPost = getLoadedBlogPost(post);
-    if (cachedPost) {
-      setLoadedPost(cachedPost);
-      return undefined;
-    }
-
-    setLoadedPost(undefined);
     let active = true;
-    void loadBlogPostContent(post)
-      .then((hydratedPost) => {
+    loadBlogPostContent(post)
+      .then((hydrated) => {
         if (active) {
-          setLoadedPost(hydratedPost);
+          setLoaded(hydrated);
         }
       })
       .catch(() => {
         if (active) {
-          setArticleLoadError(true);
+          setFailed(true);
         }
       });
-
     return () => {
       active = false;
     };
   }, [post]);
 
-  if (!post) {
-    return <BlogPostNotFound slug={slug} />;
-  }
+  const published = formatDate(post.date);
+  const modified = post.dateModified && post.dateModified !== post.date ? formatDate(post.dateModified) : null;
 
   return (
-    <main
-      className="design-page-main audio-scan-grid route-appear"
-      id="main-content"
-    >
-      <PageSeo
-        authorProfileUrl={SITE_URL}
-        description={post.seoDescription ?? post.dek}
-        image={post.image}
-        imageAlt={post.imageAlt}
-        jsonLd={getBlogPostJsonLd(post)}
-        modifiedTime={post.dateModified}
-        ogType="article"
-        path={getBlogPostUrl(post)}
-        publishedTime={post.date}
-        title={post.seoTitle ?? `${post.title} | ${SITE_NAME} Blog`}
-      />
+    <div className="sp-container pt-[44px] pb-[72px]">
+      <div data-sp-reveal="hero">
+        <ArrowLink to={SITE_PATHS.blog} tone="plain">
+          <ArrowLeft aria-hidden="true" size={13} strokeWidth={2} /> All posts
+        </ArrowLink>
+        <div className="h-[26px]" />
+        <Kicker>
+          {categoryOf(post)} · <Book aria-hidden="true" size={11} className="inline-block align-[-1px]" /> {SITE_NAME} blog
+        </Kicker>
+        <h1 className="sp-h1 max-w-[900px]">{post.title}</h1>
+        <p className="sp-lede max-w-[760px] text-[18px]">{post.dek}</p>
+        <div className="sp-doc-meta mb-[36px]">
+          <span className="sp-mono">{post.author}</span>
+          {published ? <span className="sp-mono">Published {published}</span> : null}
+          {modified ? <span className="sp-mono">Updated {modified}</span> : null}
+          <span className="sp-mono inline-flex items-center gap-[6px]">
+            <Clock aria-hidden="true" size={12} strokeWidth={1.8} />
+            {post.readTimeMinutes} min read
+          </span>
+        </div>
+      </div>
 
-      <div className="px-4 pb-24 md:px-8">
-        <article className="mx-auto max-w-[1920px] pt-3 md:pt-6">
-          <div className="w-full" data-blog-masthead>
-            <Link
-              className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/10 bg-black/25 px-4 text-sm font-medium text-white/70 transition hover:border-primary/35 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
-              to="/blogs"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              All posts
-            </Link>
-
-            <header className="pt-8 md:pt-10">
-              <div className="design-badge design-badge-secondary mb-6 w-fit">
-                <BookOpen className="h-3.5 w-3.5" />
-                OpenStudio blog
-              </div>
-              <h1 className="max-w-[1200px] font-headline text-4xl font-bold leading-[1.08] text-white md:text-[3.45rem] md:leading-[1.04]">
-                {post.title}
-              </h1>
-              <p className="mt-5 max-w-[960px] text-lg leading-8 text-white/70 md:text-xl md:leading-9">{post.dek}</p>
-              <div className="mt-7 flex flex-wrap gap-x-5 gap-y-3 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-white/48">
-                <span className="inline-flex items-center gap-2">
-                  <UserRound className="h-3.5 w-3.5 text-primary" />
-                  By {post.author}
-                </span>
-                <span className="inline-flex items-center gap-2">
-                  <CalendarDays className="h-3.5 w-3.5 text-secondary" />
-                  {post.dateLabel ?? "Engineering note"}
-                </span>
-                {post.dateModified &&
-                post.dateModified !== post.date &&
-                post.dateModifiedLabel ? (
-                  <span className="inline-flex items-center gap-2">
-                    <History className="h-3.5 w-3.5 text-secondary" />
-                    Updated {post.dateModifiedLabel}
-                  </span>
-                ) : null}
-                <span className="inline-flex items-center gap-2">
-                  <Clock3 className="h-3.5 w-3.5 text-primary" />
-                  {post.readTimeMinutes} min read
-                </span>
-              </div>
-            </header>
-          </div>
-
+      <div className="sp-article-layout">
+        <div>
           {post.image ? (
-            <figure
-              className="mt-9 aspect-[1200/630] w-full overflow-hidden rounded-lg border border-white/10 bg-black/30 md:mt-10"
-              data-blog-hero
-            >
-              <img
-                {...getResponsiveImageAttributes(post.image, "hero/eager", {
-                  maxWidth: 3360,
-                  sizes: BLOG_HERO_SIZES,
-                })}
-                alt={post.imageAlt ?? ""}
-                className={cn(
-                  "h-full w-full bg-black",
-                  post.imageFit === "contain" ? "object-contain" : "object-cover",
-                )}
-              />
+            <figure className="m-[0_0_32px]" data-sp-reveal="rise">
+              <div className="sp-frame">
+                <ResponsiveImage
+                  className="w-full block"
+                  alt={post.imageAlt ?? post.title}
+                  src={post.image}
+                  sizes="(max-width: 640px) calc(100vw - 58px), (max-width: 1000px) calc(100vw - 86px), (max-width: 1144px) calc(100vw - 402px), 742px"
+                  style={{ objectFit: post.imageFit ?? "cover" }}
+                />
+              </div>
             </figure>
           ) : null}
-
-          {loadedPost?.slug === post.slug ? (
-            <div
-              className={BLOG_ARTICLE_BODY_CLASS}
-              dangerouslySetInnerHTML={{ __html: loadedPost.articleHtml }}
-              data-blog-body
-            />
+          {loaded ? (
+            <div className="sp-article" dangerouslySetInnerHTML={{ __html: loaded.articleHtml }} />
+          ) : failed ? (
+            <section role="alert" className="sp-body">
+              <p>This post could not load.</p>
+              <button
+                className="mt-3 rounded border border-current px-3 py-2 focus-visible:outline"
+                onClick={() => window.location.reload()}
+                type="button"
+              >
+                Reload article
+              </button>
+            </section>
           ) : (
-            <div className={BLOG_ARTICLE_BODY_CLASS} data-blog-body>
-              {articleLoadError ? (
-                <div
-                  className="rounded-lg border border-white/10 bg-white/[0.03] p-6 text-center"
-                  role="alert"
-                >
-                  <p className="text-base leading-7 text-white/72">
-                    The article text could not be loaded. Check your connection and try again.
-                  </p>
-                  <Button
-                    className="mt-5 rounded-full"
-                    onClick={() => window.location.reload()}
-                    variant="outline"
-                  >
-                    Retry article
-                  </Button>
-                </div>
-              ) : (
-                <p className="text-sm text-white/48" role="status">
-                  Loading article…
-                </p>
-              )}
-            </div>
+            <p aria-live="polite" className="sp-mono">
+              Loading…
+            </p>
           )}
-        </article>
-
-        {blogPosts.length > 1 ? (
-          <section className="mx-auto mt-16 max-w-[760px] border-t border-white/10 pt-8">
-            <div className="font-mono text-[0.68rem] uppercase tracking-[0.2em] text-primary">Keep reading</div>
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              {blogPosts
-                .filter((candidate) => candidate.slug !== post.slug)
-                .slice(0, 2)
-                .map((candidate) => (
-                  <Link
-                    className="group rounded-lg border border-white/10 bg-white/[0.03] p-5 transition hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.052] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
-                    key={candidate.slug}
-                    onFocus={() => preloadBlogPostContent(candidate)}
-                    onPointerDown={() => preloadBlogPostContent(candidate)}
-                    onPointerEnter={() => preloadBlogPostContent(candidate)}
-                    to={getBlogPostUrl(candidate)}
-                  >
-                    <div className="font-headline text-lg font-semibold leading-snug text-white transition group-hover:text-primary">{candidate.title}</div>
-                    <div className="mt-3 flex items-center gap-2 text-sm font-semibold text-primary">
-                      Read
-                      <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-                    </div>
-                  </Link>
-                ))}
-            </div>
-          </section>
-        ) : null}
+        </div>
+        <RelatedPosts current={post} />
       </div>
-    </main>
+    </div>
   );
 };
 
-const BlogPostNotFound = ({ slug }: { slug?: string }) => (
-  <main
-    className="flex min-h-screen items-center px-4 pb-16 pt-28 md:px-6 md:pt-32 route-appear"
-    id="main-content"
-  >
-    <PageSeo
-      description="That OpenStudio blog post could not be found. Return to the blog archive to browse the available engineering notes."
-      path={slug ? `/blogs/${slug}` : "/blogs"}
-      robots="noindex, nofollow"
-      title={`Blog post not found | ${SITE_NAME}`}
-    />
-    <div className="mx-auto max-w-3xl rounded-lg border border-white/10 bg-white/[0.03] p-8 text-center md:p-12">
-      <p className="signal-label mb-4">Blog route not found</p>
-      <h1 className="font-headline text-4xl font-semibold text-white md:text-5xl">That post is not in the current archive.</h1>
-      <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-muted-foreground">
-        The blog index is generated from Markdown files in the blogs directory. This slug does not match a published post.
-      </p>
-      <div className="mt-8 flex justify-center">
-        <Button asChild variant="outline">
-          <Link to="/blogs">
-            <ArrowLeft className="h-4 w-4" />
-            Return to blogs
-          </Link>
-        </Button>
-      </div>
-    </div>
-  </main>
-);
+const BlogPostPage = () => {
+  const { slug } = useParams();
+  const post = getBlogPostBySlug(slug);
+
+  if (!post) {
+    return <NotFound />;
+  }
+
+  return (
+    <>
+      <PageSeo
+        description={post.seoDescription ?? post.summary}
+        image={post.image}
+        imageAlt={post.imageAlt}
+        jsonLd={[
+          getBlogPostJsonLd(post),
+          getBreadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Blog", path: SITE_PATHS.blog },
+            { name: post.title, path: blogPostPath(post.slug) },
+          ]),
+        ]}
+        authorProfileUrl={SITE_URL}
+        modifiedTime={post.dateModified}
+        ogType="article"
+        path={blogPostPath(post.slug)}
+        publishedTime={post.date}
+        title={post.seoTitle ?? `${post.title} | ${SITE_NAME} Blog`}
+      />
+      {/* Keyed so navigating between posts remounts the article and re-runs the reveal observer. */}
+      <Article key={post.slug} post={post} />
+    </>
+  );
+};
 
 export default BlogPostPage;

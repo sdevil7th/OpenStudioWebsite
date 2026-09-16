@@ -12,9 +12,9 @@ const fontRoot = path.join(
   "fonts",
 );
 const binaryRoot = path.join(fontRoot, "google");
-const cssFilename = "google-fonts-20260815.css";
+const cssFilename = "google-fonts-20260915.css";
 const cssPath = path.join(fontRoot, cssFilename);
-const manifestPath = path.join(fontRoot, "google-fonts-20260815.json");
+const manifestPath = path.join(fontRoot, "google-fonts-20260915.json");
 const sourceCssUrl =
   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Orbitron:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,500;1,9..144,600;1,9..144,700&display=swap";
 const browserUserAgent =
@@ -73,17 +73,19 @@ if (JSON.stringify(discoveredFamilies) !== JSON.stringify(expectedFamilies)) {
   );
 }
 
+// Preserve the pinned source snapshot while publishing only families used by this website.
+const retainedSourceCss = sourceCss.replace(/@font-face\s*\{[^}]*font-family:\s*'Fraunces';[^}]*\}\s*/g, "");
 const remoteFontUrls = [
   ...new Set(
-    [...sourceCss.matchAll(/https:\/\/fonts\.gstatic\.com\/[^)]+\.woff2/g)].map(
+    [...retainedSourceCss.matchAll(/https:\/\/fonts\.gstatic\.com\/[^)]+\.woff2/g)].map(
       ([url]) => url,
     ),
   ),
 ];
 
-if (remoteFontUrls.length !== 23) {
+if (remoteFontUrls.length !== 17) {
   throw new Error(
-    `Expected 23 unique Google Fonts WOFF2 files, found ${remoteFontUrls.length}.`,
+    `Expected 17 retained Google Fonts WOFF2 files, found ${remoteFontUrls.length}.`,
   );
 }
 
@@ -123,7 +125,7 @@ const fontRecords = await Promise.all(
   }),
 );
 
-let localCss = sourceCss;
+let localCss = retainedSourceCss;
 for (const record of fontRecords) {
   localCss = localCss.replaceAll(record.sourceUrl, record.localUrl);
 }
@@ -136,7 +138,7 @@ const cssBanner = [
   "/*",
   " * OpenStudio self-hosted Google Fonts snapshot (2026-08-15).",
   " * The face declarations and WOFF2 bytes match the source recorded in",
-  " * google-fonts-20260815.json. Licenses are under ./licenses/.",
+  " * google-fonts-20260915.json. Licenses are under ./licenses/.",
   " */",
   "",
 ].join("\n");
@@ -145,7 +147,7 @@ await fs.mkdir(fontRoot, { recursive: true });
 await fs.writeFile(cssPath, `${cssBanner}${localCss.trim()}\n`, "utf8");
 
 const licenseRecords = await Promise.all(
-  [...licenses].map(async ([family, sourceUrl]) => {
+  [...licenses].filter(([family]) => family !== "Fraunces").map(async ([family, sourceUrl]) => {
     const filename = `${family.toLowerCase().replaceAll(" ", "-")}-OFL.txt`;
     const localPath = path.join(fontRoot, "licenses", filename);
     const content = await fetchStrict(sourceUrl).then((response) => response.text());
@@ -170,13 +172,14 @@ const manifest = {
     sourceSha256: sourceCssSha256,
     sourceUrl: sourceCssUrl,
   },
-  families: expectedFamilies,
-  fontFaceCount: (sourceCss.match(/@font-face/g) ?? []).length,
+  families: expectedFamilies.filter(family => family !== "Fraunces"),
+  fontFaceCount: (retainedSourceCss.match(/@font-face/g) ?? []).length,
   fonts: fontRecords.sort((first, second) =>
     first.localUrl.localeCompare(second.localUrl),
   ),
   licenses: licenseRecords,
   snapshotDate: "2026-08-15",
+  retainedSubsetDate: "2026-09-15",
 };
 
 await fs.writeFile(

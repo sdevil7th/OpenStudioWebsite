@@ -24,6 +24,8 @@ Example:
 2026-05-02-ara2-hosting-challenges.md
 ```
 
+Posts use `/blog/<slug>`; `/blogs/<slug>` and `/v2/blog/<slug>` are compatibility redirects. Keep existing slugs stable.
+
 The date prefix is optional. If present, it is used as the post date and stripped from the public URL slug. Without a date prefix, the post still publishes, but it appears as an undated engineering note.
 
 ## Social Share Image
@@ -31,7 +33,7 @@ The date prefix is optional. If present, it is used as the post date and strippe
 Add a unique social image for every new post so WhatsApp, LinkedIn, X, and other preview unfurlers do not all show the generic OpenStudio card. The same image is also shown on the blog card and post hero.
 
 - Minimum size: `1200x630`.
-- Preferred master size: `3360x1764` for a crisp 80%-viewport post hero on 4K displays.
+- Preferred master size: `3360x1764` when creating artwork intended for large/high-density displays; the redesigned article uses a constrained content column.
 - Recommended format: `.webp`.
 - Keep the image in `public/assets/blogs/`.
 - Name the image with the public blog slug.
@@ -45,7 +47,9 @@ public/assets/blogs/ara2-hosting-challenges.webp
 
 For dated posts, the slug excludes the date prefix. If no matching image exists, the post still publishes and falls back to the default OpenStudio social image without rendering a broken visible image.
 
-Run `npm run sync-blog-images` after adding or removing blog images so the React image manifest stays in sync. The build also creates responsive 320–3360px candidates: small screens receive a small file, while wide and high-density displays can select a larger one. `npm run dev` and `npm run build` run both steps automatically.
+Run `npm run sync-blog-images` after adding or removing blog images to update `src/data/generatedBlogIndex.ts`. Per-post SEO/image overrides live in `scripts/sync-blog-image-manifest.mjs`. The responsive-image generator creates candidates from 320 px up to the source width, capped at 2560 px normally; explicitly allowlisted high-resolution masters can reach 3360 px. It does not upscale smaller sources. `npm run dev` and `npm run build` generate this index, image variants and article HTML automatically. Do not edit `generatedBlogIndex.ts` or `generatedBlogContent/` by hand.
+
+Choose the post's display category in `src/data/blogCategories.ts`; an unlisted slug defaults to Engineering. Article text colors belong to the light-theme `.sp-article` styles in `src/styles/site.css`. Do not add dark-theme text utilities to the Markdown renderer: they can make list and table text unreadable. Production and SEO tests derive article coverage from the authored files, so a new post should not require updating a fixed page count.
 
 ## Recommended Structure
 

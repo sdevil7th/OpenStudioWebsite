@@ -10,8 +10,7 @@ import {
 } from "@/data/generatedBlogIndex";
 import type { SeoMeta } from "@/data/marketing";
 
-const BLOG_ROUTE = "/blogs";
-const DEFAULT_BLOG_AUTHOR = "OpenStudio engineering team";
+const BLOG_ROUTE = "/blog";
 
 export interface BlogPostSummary {
   author: string;

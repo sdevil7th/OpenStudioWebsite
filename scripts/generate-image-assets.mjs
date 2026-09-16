@@ -10,57 +10,16 @@ const openstudioSourceRoot = path.join(publicAssetsRoot, "openstudio");
 const blogAssetsRoot = path.join(publicAssetsRoot, "blogs");
 const generatedRoot = path.join(openstudioSourceRoot, "generated");
 const manifestPath = path.join(generatedRoot, "image-manifest.json");
-const generatedIndexPath = path.join(repoRoot, "src", "lib", "generatedImageIndex.ts");
 const generatedSeoIndexPath = path.join(repoRoot, "src", "lib", "generatedImageSeoIndex.ts");
-const generatedRuntimeIndexRoot = path.join(repoRoot, "src", "lib", "generatedImageRoutes");
 
 const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp"]);
-const STANDARD_WIDTHS = [320, 480, 640, 768, 960, 1280, 1600];
-const TRANSITION_WIDTHS = [320, 480, 640, 768, 960];
-const BLOG_WIDTHS = [...STANDARD_WIDTHS, 1920, 2560, 3200, 3360];
-const TRANSITION_ASSET_PREFIX = "/assets/openstudio/feature-story/transitions/";
+const STANDARD_WIDTHS = [320, 480, 640, 768, 960, 1280, 1600, 1920, 2560];
+const BLOG_WIDTHS = [...STANDARD_WIDTHS, 3200, 3360];
 const HIGH_RESOLUTION_BLOG_MASTERS = new Set([
   "/assets/blogs/building-openstudio-nam-rack.webp",
 ]);
-const HOME_RUNTIME_ASSETS = new Set([
-  "/assets/blogs/building-openstudio-nam-rack.webp",
-  "/assets/openstudio/design-reference/home-story-server.webp",
-  "/assets/openstudio/design-reference/home-usp-code.webp",
-  "/assets/openstudio/design-reference/home-usp-mixer.webp",
-  "/assets/openstudio/design-reference/home-usp-stems.webp",
-  "/assets/openstudio/screenshots/arrangement-overview-wide.webp",
-  "/assets/openstudio/screenshots/channel-strip-closeup.webp",
-  "/assets/openstudio/screenshots/hero-timeline.webp",
-  "/assets/openstudio/screenshots/mixer-meters.webp",
-  "/assets/openstudio/screenshots/piano-roll.webp",
-  "/assets/openstudio/screenshots/pitch-editor.webp",
-  "/assets/openstudio/screenshots/plugin-hosting-2.webp",
-]);
-const AI_RUNTIME_ASSETS = new Set([
-  "/assets/openstudio/screenshots/arrangement-overview-wide.webp",
-  "/assets/openstudio/screenshots/channel-strip-closeup.webp",
-  "/assets/openstudio/screenshots/hero-timeline.webp",
-  "/assets/openstudio/screenshots/plugin-hosting-3.webp",
-]);
-const DOWNLOAD_RUNTIME_ASSETS = new Set([
-  "/assets/openstudio/design-reference/download-cta-workspace.webp",
-  "/assets/openstudio/screenshots/recording-session.webp",
-]);
-const FEATURE_RUNTIME_EXTRAS = new Set([
-  "/assets/blogs/building-openstudio-nam-rack.webp",
-  "/assets/blogs/nam-rack-overview.webp",
-  "/assets/openstudio/design-reference/home-hero-timeline.jpg",
-  "/assets/openstudio/design-reference/home-story-server.jpg",
-]);
-const RUNTIME_IMAGE_GROUP_NAMES = ["home", "features", "ai", "download", "blogs"];
 const REFERENCE_ROOTS = ["src", "index.html"];
-const OPENSTUDIO_SOURCE_DIRS = [
-  "screenshots",
-  "feature-story",
-  path.join("feature-story", "transitions"),
-  "download-cinematic",
-  "design-reference",
-];
+const OPENSTUDIO_SOURCE_DIRS = ["screenshots"];
 
 const toPosix = (value) => value.split(path.sep).join("/");
 
@@ -144,71 +103,7 @@ export const candidateWidthsForAsset = (publicPath) => {
     return BLOG_WIDTHS;
   }
 
-  if (publicPath.startsWith(TRANSITION_ASSET_PREFIX)) {
-    return TRANSITION_WIDTHS;
-  }
-
   return STANDARD_WIDTHS;
-};
-
-export const runtimeImageGroupsForAsset = (publicPath) => {
-  const groups = [];
-
-  if (HOME_RUNTIME_ASSETS.has(publicPath)) {
-    groups.push("home");
-  }
-
-  if (
-    publicPath.startsWith("/assets/openstudio/feature-story/") ||
-    publicPath.startsWith("/assets/openstudio/screenshots/") ||
-    FEATURE_RUNTIME_EXTRAS.has(publicPath)
-  ) {
-    groups.push("features");
-  }
-
-  if (AI_RUNTIME_ASSETS.has(publicPath)) {
-    groups.push("ai");
-  }
-
-  if (
-    publicPath.startsWith("/assets/openstudio/download-cinematic/") ||
-    DOWNLOAD_RUNTIME_ASSETS.has(publicPath)
-  ) {
-    groups.push("download");
-  }
-
-  if (publicPath.startsWith("/assets/blogs/")) {
-    groups.push("blogs");
-  }
-
-  return groups;
-};
-
-export const compactImageIndex = (manifest) =>
-  Object.fromEntries(
-    Object.entries(manifest).map(([source, entry]) => [
-      source,
-      [
-        entry.width,
-        entry.aspectRatio ?? 0,
-        entry.hash ?? "",
-        entry.variants.map((variant) => [variant.width, variant.src]),
-      ],
-    ]),
-  );
-
-export const splitRuntimeImageIndex = (manifest) => {
-  const indexes = Object.fromEntries(
-    RUNTIME_IMAGE_GROUP_NAMES.map((groupName) => [groupName, {}]),
-  );
-
-  for (const [source, entry] of Object.entries(compactImageIndex(manifest))) {
-    for (const groupName of runtimeImageGroupsForAsset(source)) {
-      indexes[groupName][source] = entry;
-    }
-  }
-
-  return indexes;
 };
 
 const hashFile = async (filePath) => {
@@ -248,7 +143,10 @@ const collectReferencedAssetPaths = async () => {
   const assetPattern = /\/assets\/(?:openstudio|blogs)\/[^"'()\s?#]+\.(?:png|jpe?g|webp)/gi;
 
   for (const filePath of files) {
-    const source = await fs.readFile(filePath, "utf8");
+    if (/src[\\/]lib[\\/]generated|generatedBlogContent/.test(filePath)) continue;
+    let source = await fs.readFile(filePath, "utf8");
+    const constants = [...source.matchAll(/const (\w+) = "(\/assets\/[^"]+)"/g)];
+    for (const [, name, value] of constants) source = source.replaceAll("${" + name + "}", value);
     for (const match of source.matchAll(assetPattern)) {
       references.add(match[0]);
     }
@@ -300,6 +198,7 @@ const generateVariant = async (sourcePath, width, metadata, sourceStats) => {
 };
 
 const pruneGeneratedFiles = async (directory, keepFiles) => {
+  if (path.resolve(directory) !== path.resolve(generatedRoot) && !isInside(path.resolve(directory), path.resolve(generatedRoot))) throw new Error("Unsafe generated asset cleanup");
   const entries = await fs.readdir(directory, { withFileTypes: true });
 
   for (const entry of entries) {
@@ -321,52 +220,10 @@ const pruneGeneratedFiles = async (directory, keepFiles) => {
 };
 
 const writeGeneratedImageIndex = async (manifest) => {
-  const compactIndex = compactImageIndex(manifest);
-  const output = [
-    "// Generated from public/assets/openstudio/generated/image-manifest.json.",
-    "// Full index for build-time prerendering; client routes use generatedImageRoutes/*.",
-    `export const generatedImageIndex = ${JSON.stringify(compactIndex)} as const;`,
-    "",
-  ].join("\n");
-
-  const compactSeoIndex = Object.fromEntries(
-    Object.entries(manifest).map(([source, entry]) => [
-      source,
-      [entry.width, entry.aspectRatio ?? 0, entry.hash ?? ""],
-    ]),
-  );
-  const seoOutput = [
-    "// Generated from public/assets/openstudio/generated/image-manifest.json.",
-    "// This metadata-only index keeps responsive variant URLs out of SEO-only route chunks.",
-    `export const generatedImageSeoIndex = ${JSON.stringify(compactSeoIndex)} as const;`,
-    "",
-  ].join("\n");
-
-  await fs.mkdir(generatedRuntimeIndexRoot, { recursive: true });
-  const runtimeIndexes = splitRuntimeImageIndex(manifest);
-  const runtimeOutputs = Object.entries(runtimeIndexes).map(([groupName, index]) => {
-    const moduleOutput = [
-      "// Generated from public/assets/openstudio/generated/image-manifest.json.",
-      `// Responsive metadata used only by the ${groupName} route consumer.`,
-      'import { registerGeneratedImageIndex } from "@/lib/generatedImageRegistry";',
-      "",
-      `export const generatedImageIndex = ${JSON.stringify(index)} as const;`,
-      "",
-      "registerGeneratedImageIndex(generatedImageIndex);",
-      "",
-    ].join("\n");
-
-    return fs.writeFile(
-      path.join(generatedRuntimeIndexRoot, `${groupName}.ts`),
-      moduleOutput,
-    );
-  });
-
-  await Promise.all([
-    fs.writeFile(generatedIndexPath, output),
-    fs.writeFile(generatedSeoIndexPath, seoOutput),
-    ...runtimeOutputs,
-  ]);
+  const seoIndex = Object.fromEntries(Object.entries(manifest).map(([source, entry]) => [source, [entry.width, entry.aspectRatio ?? 0, entry.hash ?? ""]]));
+  const widths = Object.fromEntries(Object.entries(manifest).map(([source, entry]) => [source, entry.variants.map(({ width }) => width)]));
+  await fs.writeFile(generatedSeoIndexPath, "// Generated image dimensions and content hashes.\nexport const generatedImageSeoIndex = " + JSON.stringify(seoIndex) + " as const;\n");
+  await fs.writeFile(path.join(repoRoot, "src/lib/generatedResponsiveWidths.ts"), "// Generated from the image manifest; only widths that exist on disk.\nexport const generatedResponsiveWidths = " + JSON.stringify(widths) + " as const;\n");
 };
 
 const generate = async () => {

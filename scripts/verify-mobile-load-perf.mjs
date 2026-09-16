@@ -55,9 +55,9 @@ export const DESKTOP_PROFILE = Object.freeze({
 });
 
 export const DEFAULT_HERO_SELECTOR =
-  "[data-home-hero-title], [data-download-logo-stage] [data-brand-logo-construct], h1";
+  "h1";
 
-export const MATRIX_ROUTES = Object.freeze(["/", "/features", "/download", "/ai", "/blogs"]);
+export const MATRIX_ROUTES = Object.freeze(["/", "/features", "/download", "/ai", "/blog"]);
 
 export const PROFILE_DEFINITIONS = Object.freeze({
   desktop: Object.freeze({
@@ -585,7 +585,7 @@ const installPerformanceObservers = async (context, heroSelector) => {
 
       const checkContentVisibility = () => {
         const loader = document.querySelector("[data-openstudio-loader]");
-        const main = document.querySelector("#root main#main-content");
+        const main = document.querySelector("#root main#sp-main");
         const hero = main?.querySelector(selector) ?? document.querySelector(selector);
 
         if (
@@ -617,7 +617,7 @@ const summarizeBrowserMetrics = async (page, heroSelector) =>
     );
     const navigation = performance.getEntriesByType("navigation")[0];
     const resources = performance.getEntriesByType("resource");
-    const main = document.querySelector("#root main#main-content");
+    const main = document.querySelector("#root main#sp-main");
     const hero = main?.querySelector(selector) ?? document.querySelector(selector);
     const longTasks = state.longTasks ?? [];
 
@@ -699,7 +699,7 @@ export const evaluateResult = (result, budgets) => {
   requireTiming("contentVisibleMs", "Real main/hero visible", budgets.contentVisibleMs);
 
   if (!result.metrics.content.mainFound || result.metrics.content.mainIsStaticFallback) {
-    violations.push("A real React main#main-content element was not rendered.");
+    violations.push("A real React main#sp-main element was not rendered.");
   }
 
   if (!result.metrics.content.heroFound || result.metrics.content.heroIsStaticFallback) {
