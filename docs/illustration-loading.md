@@ -56,6 +56,43 @@ their bandwidth without fixing the scene change.
   barrel. Text/legal pages still exclude NAM/DAW/GSAP code. Standalone screenshots
   in articles, guides and nonanimated cards continue to use responsive images.
 
+## Initial-load lifecycle correction — 16 September 2026
+
+The initial HTML loader (`#openstudio-instant-loader`) emits
+`openstudio:intro-hidden` once and records completion in
+`window.__openstudioIntroHidden`. Later route loaders reuse its artwork and
+`data-openstudio-loader` attribute, but have their own entrance/exit lifecycle.
+They do not emit the initial-intro event.
+
+The startup scheduler previously waited for that event whenever *any* loader was
+present. If the initial loader timed out before the first route's code arrived,
+or a visitor navigated to an uncached route, the illustration could mount while
+a route loader was still exiting. The initial event had already happened, so the
+GSAP request was never scheduled. Waiting longer did not help; a reload could
+avoid the timing window.
+
+`scheduleAfterInitialLoad` now checks the recorded completion state and the
+specific initial loader. An exiting route loader cannot restart the initial
+wait. The existing idle delay, input scheduling and cancellation remain intact;
+GSAP still loads only for eligible visible illustrations. No loader artwork,
+layout, animation sequence or screenshot fallback changes are part of this fix.
+
+`test/initial-load.test.mjs` covers both readiness orders, absent initial loaders,
+idle/input scheduling and cancellation. `test/first-load-animation-browser.test.mjs`
+holds the production Home chunk past the real initial-loader timeout and tests
+uncached navigation at 768 and 1440 px. It verifies that the scene's clock advances
+without a refresh or further interaction; a `playing` attribute alone would also
+pass for the intentionally static reduced-motion frame. Reduced motion is checked
+separately for a stable clock and no animation-engine download. The slow-entry
+and normal-motion navigation regressions failed against the pre-fix build.
+
+After this fix, the production build (including strict TypeScript), zero-warning
+lint and all **147 tests** pass. The unchanged core performance matrix passes
+**10 of 10 cases**; it does not include the separate NAM Rack network limitation
+recorded below. Generated CSS hashes match the pre-fix build. Local reproduction
+and check logs are retained in ignored `output/review/first-load-*` files and
+`output/review/production-reproduction.log`.
+
 ## Performance tradeoff
 
 A still image can give a cheap early paint while complex rendering code loads;
