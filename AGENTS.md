@@ -37,7 +37,7 @@ by installed OpenStudio apps. Start with [README.md](README.md) and
 - Keep strict TypeScript checks passing. Validate untrusted JSON at network
   boundaries; avoid `any`, unchecked assertions and duplicated contract types.
   `shared/github-snapshot.ts` owns the repository snapshot types and parser used
-  by the build, server function and browser. Keep all `shared/` and
+  by build generation and the browser. Keep all `shared/` and
   `netlify/functions/` TypeScript covered by `tsconfig.node.json`.
 - Use Tailwind for ordinary static layout, spacing, typography and responsive
   states. Shared design tokens and specialized artwork/keyframes belong in their
@@ -72,6 +72,11 @@ by installed OpenStudio apps. Start with [README.md](README.md) and
 - Edit shared legal text in `src/data/legal.ts`; do not fork a second privacy
   policy in a page. Privacy, Terms and Security must remain readable without
   application JavaScript. Preserve analytics acceptance, rejection and revocation.
+  Follow [analytics setup](docs/analytics.md) when changing tracking or routes.
+  Preserve the event's original URL/title/referrer across deferred initialization
+  and route changes. Keep one manual page-view producer and verify the GA stream
+  has history page views disabled with `npm run verify:analytics`; mocked providers
+  alone cannot verify account settings. Never bypass consent to improve metrics.
 - The approved master is `assets/branding/openstudio-logo-source.png`. Generate
   derivatives from it with `npm run generate-branding`. Follow the
   [branding inventory](docs/branding-and-download-audit.md) for social/Store artwork,

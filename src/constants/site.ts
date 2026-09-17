@@ -1,10 +1,14 @@
+import { generatedImageSeoIndex } from "@/lib/generatedImageSeoIndex";
+import { withVersionQuery } from "../../shared/asset-image-plan";
+
 export const SITE_NAME = "OpenStudio";
 export const SITE_URL = "https://openstudio.org.in";
 export const SITE_DESCRIPTION =
   "Free, open source DAW for Windows, macOS, and Linux — music production software with stem separation, pitch editing, MIDI instruments, plugin hosting, audio editing, and mixing.";
 export const SITE_TAGLINE = "The synthetic atmosphere for serious production workflows.";
 export const SITE_THEME_COLOR = "#050813";
-export const SITE_OG_IMAGE = "/assets/openstudio/branding/og-image.png?v=3";
+const OG_IMAGE_PATH = "/assets/openstudio/branding/og-image.png";
+export const SITE_OG_IMAGE = withVersionQuery(OG_IMAGE_PATH, generatedImageSeoIndex[OG_IMAGE_PATH]?.[2]);
 
 export const BRANDING_ASSETS = {
   mark: "/assets/openstudio/branding/android-chrome-192x192.png?v=20260915",

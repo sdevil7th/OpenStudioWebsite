@@ -23,7 +23,7 @@ PNG icons retain transparency. The small website mark is lossless WebP; larger w
 | Browser automatic favicon request | New `public/favicon.ico`, with 16/32/48/256 px entries |
 | Apple home-screen icon | `apple-touch-icon.png`, 180 px |
 | Web app / Android icons | `android-chrome-192x192.png`, `android-chrome-512x512.png`, `site.webmanifest` |
-| Social-sharing / Open Graph image | Old inline vector in `src/pages/OgCardPage.tsx` replaced; `og-image.png` regenerated at 1200 × 630; sharing URL advanced to `?v=3` |
+| Social-sharing / Open Graph image | `src/pages/OgCardPage.tsx` is the design source; every build renders `og-image.png` at 1200 × 630 and automatically versions its sharing URL from the PNG content hash |
 | Structured metadata / publisher logo | Shared branding constants and the organization logo in `index.html` now point to the regenerated PNGs |
 | Main README | `README.md` displays the new `icon.png` |
 | Microsoft Store promotional/tile exports | Generator now uses the approved PNG. Twelve checked exports and their manifest/README are in local `output/store-branding/images/`; contact sheet at `output/store-branding/preview.png` |
@@ -31,7 +31,7 @@ PNG icons retain transparency. The small website mark is lossless WebP; larger w
 
 Removed old `icon.svg`, `vismay-mark.png` and the superseded `vismay-mark-78.webp`. Browser/PWA icon URLs carry a new cache version so returning visitors do not retain the previous icons under the site's immutable asset cache policy. Bump the icon URL version again when replacing the master in the future.
 
-Regenerate ordinary icons with `npm run generate-branding` (also part of dev/build). For the social card, start `npm run dev`, then run `npm run generate-og`. Run `node scripts/generate-store-branding.mjs` for Store uploads; these marketing exports are kept outside the published website payload.
+Regenerate ordinary icons with `npm run generate-branding` (also part of dev/build). For the social card, run `npm run generate-og` (also part of build); it owns and closes its temporary server/browser and refreshes the image metadata. Install Chromium once with `npx playwright install chromium` before local builds. Run `node scripts/generate-store-branding.mjs` for Store uploads; these marketing exports are kept outside the published website payload.
 
 ## App repository inventory
 
@@ -58,10 +58,10 @@ Historical screenshots and blog illustrations can contain the old menu-bar glyph
 ## Release data and installer behavior
 
 - `npm run sync-github-data` fetches GitHub repository/release data before dev and production builds. Generated TypeScript/JSON files are ignored; there is no hand-maintained version, tag, timestamp, installer filename, size or release-history snapshot in the source.
-- Clean CI/Netlify builds fail if current GitHub release data cannot be obtained. Local builds can reuse a verified snapshot less than 24 hours old after a temporary API failure, printing its original fetch time. Dev/preview serve these GitHub-derived payloads instead of consuming the API quota for every test page. The generated build snapshot provides prerendered/offline values, and a small `/.netlify/functions/github-release` response refreshes the browser's release labels and installers. Netlify caches that live response for five minutes.
-- Version, date, filename and size come from the same GitHub release. Download buttons use that release's exact asset URLs. A new live version updates its labels and links together.
+- Clean CI/Netlify builds fail if current GitHub release data cannot be obtained. Local builds can reuse a verified snapshot less than 24 hours old after a temporary API failure, printing its original fetch time. Dev/preview serve these GitHub-derived payloads instead of consuming the API quota for every test page. The generated build snapshot provides prerendered/offline values; the browser reads `/github/latest-release.json` from the CDN. The old raw function URL redirects to that static document through the rate-limited compatibility resolver. Snapshots refresh on website deployments. See [API abuse protection](api-abuse-protection.md).
+- Version, date, filename and size come from the same GitHub release. Download buttons use that release's exact asset URLs. A newly deployed snapshot updates its labels and links together.
 - Published manifest checksums are used only when version, URL, filename and size match that GitHub artifact. A mismatched manifest cannot supply another version's checksum or size.
-- Stable `/download/{windows,macos,linux}/latest` endpoints remain available. Local production preview now exercises the actual redirect handler against the built metadata.
+- Stable `/download/{windows,macos,linux}/latest` endpoints remain available. Build-generated CDN redirects resolve these URLs from validated metadata; local production preview exercises the same catalog.
 - Runtime tags and prereleases cannot become the advertised stable desktop release. Installer selection excludes metadata/checksum/debug assets.
 
 ### Live download evidence — 15 September 2026
@@ -127,7 +127,7 @@ The existing budgets were unchanged; **all ten mobile/desktop checks passed**.
 
 LCP is the gate's reveal-adjusted largest-content timing; CLS measures unexpected layout movement. Mobile used 390 × 844, 4× CPU slowdown, 1.6 Mbps download and 150 ms latency. Desktop used 1440 × 900, 2× CPU slowdown, 10 Mbps and 40 ms latency. Measurements are controlled local results, not production field measurements.
 
-### External state and release follow-up
+### Historical external state and release follow-up ? 15 September 2026
 
 GitHub's anonymous API quota was exhausted during repeated QA requests, after successful live data/installer verification. A later direct invocation of the new release function correctly returned 503 under that limit; its successful response path was validated with controlled GitHub data, and browser failure recovery retains the GitHub-derived build snapshot. CI now supplies its read-only token. Netlify's optional server-side `GITHUB_TOKEN` should be configured for a larger API quota; no token is shipped to browsers. Clean production builds require a successful GitHub fetch, while local iteration can reuse the recent verified snapshot described above.
 

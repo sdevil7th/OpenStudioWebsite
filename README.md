@@ -44,9 +44,27 @@ The Studio Paper redesign is the sole website. Source folders describe their res
 - `src/styles/site.css`: shared design tokens, typography, responsive component styles and animation effects in Tailwind's component layer. Ordinary page layouts use Tailwind utilities; runtime artwork geometry remains inline.
 - `src/prerender.tsx` and `scripts/prerender-site.mjs`: render the actual page components into static HTML, route-specific head metadata, sitemap and exact hosting rewrites.
 - `shared/` and `netlify/functions/`: release/runtime contracts and stable download endpoints.
-- `shared/github-snapshot.ts`: the repository snapshot types and nested JSON parser shared by build generation, the GitHub function and browser refreshes.
+- `shared/github-snapshot.ts`: the repository snapshot types and nested JSON parser shared by build generation, build-time generation and browser refreshes.
 
 See [repository instructions](AGENTS.md), [source structure and cleanup verification](docs/source-structure.md), [guide authoring](src/features/docs/README.md), and [migration plan and verification](docs/redesign-migration.md) for maintenance rules and regression checks.
+
+Contributor counts refer to the **desktop app repository**, including GitHub's
+recognized co-authors. `shared/github-contributors.ts` reads the same public
+repository summary shown by GitHub. Its total is independent of the limited avatar
+list. This public web endpoint is not a versioned REST API, so its schema is
+validated and errors preserve the existing verified snapshot through the normal
+fallback path; no names/counts or inferred commit totals are hardcoded. If GitHub
+changes this endpoint, update the parser and fixture tests before accepting new
+data. The REST `/contributors` list omits the co-author credit in the app's
+squashed release commit and previously caused the website to show one instead of
+two. Stars, releases and other statistics still come from GitHub's REST API.
+
+See [analytics setup and verification](docs/analytics.md) for the public build
+variables `VITE_GA_MEASUREMENT_ID`, `VITE_CLARITY_PROJECT_ID`, and
+`VITE_ANALYTICS_ENABLED`. **Disable GA Enhanced Measurement's history page views**
+when using this site's manual router tracking. After changing routing or tracking,
+run `npm run verify:analytics` against an analytics-enabled deployment; consent
+tests alone cannot detect duplicate events created by account settings.
 The [final pre-push review](docs/final-review.md) records clean-checkout validation
 and the remaining deployment/release checks for this migration.
 The [review follow-up](docs/review-follow-up.md) records the subsequent navigation,
@@ -80,7 +98,7 @@ npm run build
 npm run preview
 ```
 
-`npm run build` fetches current GitHub data, generates branding, responsive images and blog HTML, stages and validates release inputs, runs strict TypeScript checking, builds the client and prerenders all canonical pages. Run `npm run lint` and `npm test` for the remaining CI checks. Browser tests require `npx playwright install chromium`.
+`npm run build` fetches current GitHub data, generates branding, the social PNG, responsive images and blog HTML, stages and validates release inputs, generates the download routing catalog, runs strict TypeScript checking, builds the client and prerenders all canonical pages. Run `npm run lint` and `npm test` for the remaining CI checks. Both OG generation and browser tests require `npx playwright install chromium` before the first build. GitHub Actions uses `--with-deps` to install Linux system packages too; Netlify uses the browser-only installation because its build user cannot elevate to root.
 The TypeScript build covers client code, configuration, all shared TypeScript
 modules and all Netlify functions. Network and cached repository snapshots must
 pass the shared runtime parser before use; malformed browser refreshes preserve
@@ -110,7 +128,15 @@ Keep schemas in `src/lib/structuredData.ts` and the blog metadata helpers aligne
 with visible content. Never invent reviews, ratings, release versions or dates for
 search features. Old routes use permanent redirects; missing pages return 404
 and `noindex`. `/og-card` is available only on the Vite development server for
-`npm run generate-og`, and returns 404 in production.
+`npm run generate-og`, and returns 404 in production. `src/pages/OgCardPage.tsx`
+is the editable design source; crawlers fetch the generated PNG, never that route.
+Every build regenerates it using a temporary local Vite server and Chromium,
+waits for fonts and images to decode, and fails if rendering fails. No manually
+started dev server is needed. `npm run generate-og` also refreshes image metadata.
+The PNG's content hash automatically versions the sharing URL in both static and
+client metadata, including structured data. Blog posts retain their own images.
+Social tags appear before loader scripts/styles in the published HTML. External
+preview caches may still need a fresh scrape after deploying changed artwork.
 
 After deployment, verify production HTTP status/robots headers and submit the
 canonical sitemap in Search Console. Deploy-preview `noindex` headers are
@@ -301,12 +327,14 @@ Illustrative AI runtime manifest shape (example versions, hashes and sizes below
 }
 ```
 
+GitHub JSON is served from static build snapshots; the old function URLs remain rate-limited compatibility redirects. Statistics and release snapshots refresh when the website is rebuilt/deployed. The browser reads the static URLs directly and makes no GitHub proxy function calls.
+
 ## Environment Variables And Secrets
 
 Build/runtime env:
 
 - `GITHUB_TOKEN`
-  - Optional for public GitHub access; recommended for builds and runtime to reduce API rate-limit risk. CI supplies its read-only token.
+  - Optional for public GitHub access; recommended for builds to reduce API rate-limit risk. CI supplies its read-only token.
 - `OPENSTUDIO_FETCH_RELEASE_METADATA`
   - Set to `true` in the production Netlify context to fetch published manifests/appcasts before staging. Local builds can opt in to the same path.
 - `OPENSTUDIO_RELEASE_METADATA_DIR`
@@ -316,7 +344,7 @@ Build/runtime env:
   - Set to `true` for release-publish builds so missing or malformed metadata/appcasts fail the build.
 - `OPENSTUDIO_DESKTOP_REPO`
   - Optional. Defaults to `sdevil7th/OpenStudio`.
-  - Used by GitHub build/runtime helpers and by the publish workflow contract.
+  - Used by GitHub build helpers and by the publish workflow contract.
 
 Website workflow secrets:
 
@@ -331,9 +359,9 @@ Desktop-side secret outside this repo:
 
 ## Redirect Behavior
 
-Canonical pages are emitted into `dist/_redirects` at build time. `/v2/*` redirects to the corresponding canonical route, `/blogs/*` to `/blog/*`, `/github` to `/community`, and `/contact` to `/community#contact`. Unknown routes receive `404.html` with HTTP 404 and `noindex`. Local production preview applies the same page rewrites and aliases, serves the GitHub-derived build payloads, and runs the desktop download redirect handler against staged metadata. It does not emulate deployed AI-runtime functions; validate those on Netlify.
+Canonical pages are emitted into `dist/_redirects` at build time. `/v2/*` redirects to the corresponding canonical route, `/blogs/*` to `/blog/*`, `/github` to `/community`, and `/contact` to `/community#contact`. Unknown routes receive `404.html` with HTTP 404 and `noindex`. Local production preview applies the same page rewrites and aliases, serves the GitHub-derived build payloads, and exercises app/runtime download routing against the same bundled catalog. It does not emulate Netlify rate-limit enforcement. See [API abuse protection](docs/api-abuse-protection.md) for the static/CDN architecture, Free-plan limits and bounded verification procedure.
 
-- `/download/windows/latest`, `/download/macos/latest`, and `/download/linux/latest` resolve from `/releases/stable/latest.json` first, then fall back to GitHub latest-release asset matching if metadata is not available.
+- `/download/windows/latest`, `/download/macos/latest`, and `/download/linux/latest` are generated at build time from validated `/releases/stable/latest.json`, with the fetched GitHub release snapshot providing the fallback for absent platform entries. Requests receive CDN redirects without invoking a function.
 - `/download/ai-runtime/windows/latest` resolves to `platforms.windows.base.url` when the new Windows manifest shape is present, otherwise it falls back to the legacy flat `platforms.windows.url` entry when available.
 - Windows backend install-plan metadata is preserved verbatim in the published JSON at `/releases/ai-runtime/latest.json` and `/releases/ai-runtime/stable/latest.json`.
 - `/download/ai-runtime/windows/latest` does not treat `platforms.windows.backends.cuda` or `platforms.windows.backends.directml` as downloadable URLs when those entries only contain `installPlan`.
@@ -417,5 +445,5 @@ Responsive WebP derivatives are generated only for referenced screenshot/blog so
 
 - The approved 2160 px master lives in `assets/branding/openstudio-logo-source.png`. `npm run generate-branding` produces the website icons in `public/assets/openstudio/branding/`.
 - Screenshot assets live in `public/assets/openstudio/screenshots/`
-- Share image contract lives at `public/assets/openstudio/branding/og-image.png?v=3`.
+- Share image contract lives at `public/assets/openstudio/branding/og-image.png`; published metadata adds an automatically generated `?v=<content-hash>`.
 - See the [branding inventory, download verification and visual comparison](docs/branding-and-download-audit.md) for all website/app placements and the GitHub data flow.

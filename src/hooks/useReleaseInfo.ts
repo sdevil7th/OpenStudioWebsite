@@ -183,6 +183,8 @@ export function withManifestChecksums(github: ReleaseInfo, manifest: ReleaseInfo
 }
 
 const buildRelease = fromGithubRelease(generatedLatestRelease, "build");
+let retryAfter = 0;
+let failures = 0;
 let releaseRequest: Promise<ReleaseInfo> | null = null;
 const readJson = async (url: string) => {
   const response = await fetch(url, { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(8000) });
@@ -192,9 +194,11 @@ const readJson = async (url: string) => {
 };
 
 export const loadReleaseInfo = () => {
+  if (releaseRequest && retryAfter && Date.now() >= retryAfter) releaseRequest = null;
   if (!releaseRequest) {
+    retryAfter = 0;
     releaseRequest = Promise.all([
-      readJson("/.netlify/functions/github-release")
+      readJson("/github/latest-release.json")
         .then(parseGithubRelease)
         .catch(() => null),
       readJson(DOWNLOAD_PATHS.releaseMetadataLatest)
@@ -202,7 +206,12 @@ export const loadReleaseInfo = () => {
         .catch(() => null),
     ]).then(([live, manifest]) => {
       // The offline value was fetched from GitHub during this build, never maintained by hand.
-      if (!live) releaseRequest = null;
+      if (!live) {
+        retryAfter = Date.now() + Math.min(300_000, 30_000 * 2 ** Math.min(failures++, 4));
+      } else {
+        retryAfter = 0;
+        failures = 0;
+      }
       return withManifestChecksums(live ? fromGithubRelease(live, "github") : buildRelease, manifest);
     });
   }

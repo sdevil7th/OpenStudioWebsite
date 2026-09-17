@@ -147,6 +147,76 @@ test("analytics consent browser flows", { timeout: 120_000 }, async t => {
       });
     }
 
+    await t.test("SPA page views and engagement retain the right URL, title and referrer", async () => {
+      const { context, page } = await createContext();
+      try {
+        await page.goto(`${baseUrl}/privacy?private=example#section`, { referer: "https://example.org/source?private=example" });
+        await waitForApp(page);
+        const privacyTitle = await page.title();
+        await page.getByRole("button", { name: "Accept analytics", exact: true }).click();
+        await waitForProviders(page);
+        await page.waitForTimeout(1100);
+        await page.getByRole("navigation", { name: "Primary", exact: true }).getByRole("link", { name: "Docs", exact: true }).click();
+        await page.waitForURL(`${baseUrl}/docs`);
+        await page.waitForFunction(() => window.dataLayer.some(args => args[1] === "page_view" && args[2]?.page_path === "/docs"));
+        const events = await page.evaluate(() => window.dataLayer.map(args => Array.from(args)).filter(args => args[0] === "event"));
+        const views = events.filter(args => args[1] === "page_view").map(args => args[2]);
+        assert.deepEqual(views.map(({ page_location, page_referrer }) => ({ page_location, page_referrer })), [
+          { page_location: `${baseUrl}/privacy`, page_referrer: "https://example.org/source" },
+          { page_location: `${baseUrl}/docs`, page_referrer: `${baseUrl}/privacy` },
+        ]);
+        const engagement = events.find(args => args[1] === "page_engagement_time")[2];
+        assert.equal(engagement.page_location, `${baseUrl}/privacy`);
+        assert.equal(engagement.page_path, "/privacy");
+        assert.equal(engagement.page_title, privacyTitle);
+        assert.equal(engagement.page_referrer, "https://example.org/source");
+        assert.ok(engagement.duration_ms >= 1000);
+        assert.equal(engagement.engagement_time_msec, undefined, "Google owns its built-in engagement timing");
+        await page.evaluate(async () => {
+          const analytics = await import("/src/lib/analytics.ts");
+          analytics.trackPageView("/docs?search=example#heading");
+          analytics.trackPageView("/docs");
+          analytics.trackEvent("context_probe");
+        });
+        const later = await page.evaluate(() => window.dataLayer.map(args => Array.from(args)).filter(args => args[0] === "event"));
+        assert.equal(later.filter(args => args[1] === "page_view").length, 2);
+        assert.equal(later.at(-1)[2].page_location, `${baseUrl}/docs`);
+        assert.equal(later.at(-1)[2].page_referrer, `${baseUrl}/privacy`);
+        await page.goBack();
+        await page.waitForFunction(() => window.dataLayer.filter(args => args[1] === "page_view").length === 3);
+        const back = await page.evaluate(() => window.dataLayer.filter(args => args[1] === "page_view").at(-1)[2]);
+        assert.equal(back.page_location, `${baseUrl}/privacy`);
+        assert.equal(back.page_referrer, `${baseUrl}/docs`);
+      } finally { await context.close(); }
+    });
+
+    await t.test("queued events keep their original page context while providers are deferred", async () => {
+      const { context, page } = await createContext();
+      try {
+        await page.goto(`${baseUrl}/privacy`);
+        await waitForApp(page);
+        await page.evaluate(async () => {
+          const consent = await import("/src/lib/analyticsConsent.ts");
+          const analytics = await import("/src/lib/analytics.ts");
+          consent.setAnalyticsConsent("accepted");
+          analytics.trackEvent("queued_privacy_event");
+          document.title = "Next view";
+          history.pushState(null, "", "/docs?private=example");
+          analytics.trackPageView("/docs?private=example");
+          analytics.trackEvent("queued_docs_event");
+        });
+        await waitForProviders(page);
+        const events = await page.evaluate(() => window.dataLayer.map(args => Array.from(args)).filter(args => args[0] === "event"));
+        assert.equal(events.find(args => args[1] === "queued_privacy_event")[2].page_location, `${baseUrl}/privacy`);
+        const next = events.find(args => args[1] === "queued_docs_event")[2];
+        assert.equal(next.page_location, `${baseUrl}/docs`);
+        assert.equal(next.page_title, "Next view");
+        assert.equal(next.page_referrer, `${baseUrl}/privacy`);
+        const settings = await page.evaluate(() => window.dataLayer.map(args => Array.from(args)).filter(args => args[0] === "set"));
+        assert.equal(settings.at(-1)[1].page_location, `${baseUrl}/docs`);
+      } finally { await context.close(); }
+    });
+
     await t.test("other-tab decisions and whole-storage clearing update providers and UI", async () => {
       const { context, page } = await createContext();
       try {

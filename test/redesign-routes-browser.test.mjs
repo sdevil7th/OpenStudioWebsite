@@ -9,7 +9,9 @@ const routes = [
   ...readFileSync(new URL("../dist/_redirects", import.meta.url), "utf8")
     .trim()
     .split("\n")
-    .map((line) => line.split(" ")[0]),
+    .map((line) => line.trim().split(/\s+/))
+    .filter(([, to, status]) => status === "200!" && to.endsWith("/index.html"))
+    .map(([from]) => from),
 ];
 
 test("every redesigned production route fits mobile, tablet and desktop", { timeout: 180_000 }, async (t) => {

@@ -19,6 +19,8 @@ by GitHub releases and published release metadata, never by the local desktop ve
 
 For a local build with the same release inputs, run
 `npm run fetch-release-publish-inputs` followed by `npm run build`.
+GitHub JSON and fixed download redirects are static build outputs. Architecture detection uses the validated manifest bundled with the same deployment. A desktop release must trigger a website deploy to refresh these surfaces; no request-time GitHub API refresh is performed. See [API abuse protection](docs/api-abuse-protection.md).
+
 All dev/build starts run `sync-github-data` for the site's GitHub-derived labels and release history. Clean CI/Netlify builds require a successful fetch; local builds can reuse a verified snapshot less than 24 hours old after a temporary API failure. Published manifests/appcasts use a separate fetch path: builds automatically retrieve them when local inputs are absent, and Netlify refreshes them for every deployment, including previews. Existing valid local inputs are reused; malformed inputs fail validation instead of being silently replaced. The command above explicitly refreshes them.
 
 `GITHUB_TOKEN` authenticates site-data build/runtime requests. `OPENSTUDIO_RELEASE_SOURCE_TOKEN` (falling back to `GH_TOKEN`) authenticates published-metadata discovery. CI supplies its read-only token through both paths. Public release-asset downloads never receive these credentials. Configure the appropriate server-side token for each path when increasing API quota, and do not commit credentials or generated `release-input` files.
@@ -45,7 +47,7 @@ runtime metadata layouts remain supported so deploying this repository first is 
 ## Redesign and branding release checks
 
 1. Include the canonical-route redirects and serverless functions with the website deployment. Verify the public privacy page without JavaScript, consent controls, a legacy `/v2` link, a blog/doc deep link, a real 404, and all metadata/download endpoints in the README.
-2. Check `/.netlify/functions/github-release` for a successful small JSON response, current stable tag, matching installer sizes/URLs and cache headers. Confirm fallback labels remain usable if it is unavailable. Verify metadata/appcasts separately; a successful HTML page does not prove they were published.
+2. Check `/github/latest-release.json` for a successful small static JSON response with the current stable tag, matching installer sizes/URLs and cache headers. Check that `/.netlify/functions/github-release` redirects to it. Confirm fallback labels remain usable if it is unavailable. Verify metadata/appcasts separately; a successful HTML page does not prove they were published.
 3. Check fresh and returning-browser favicon/PWA/social images. Follow the [branding inventory](docs/branding-and-download-audit.md) for generated Store artwork and external upload locations.
 4. Rebuild and qualify new Windows/macOS/Linux app packages before publishing the app rebrand. A successful website or Debug build does not change existing installers or prove native icon/installer behavior on every platform. Use the app's `docs/branding.md` and release smoke checklist.
 5. Recapture the three plugin-window/FX-chain screenshots listed in the inventory when replacing their baked-in old title-bar icons. Historical screenshots and released binaries are not changed by icon generation.

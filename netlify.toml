@@ -1,5 +1,6 @@
 [build]
-  command = "npm run build"
+  # Netlify builds cannot elevate to root to install OS packages.
+  command = "npx playwright install chromium && npm run build"
   publish = "dist"
 
 [build.environment]
@@ -25,65 +26,8 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-[[redirects]]
-  from = "/download/windows/latest"
-  to = "/.netlify/functions/download-latest-windows"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/download/macos/latest"
-  to = "/.netlify/functions/download-latest-macos"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/download/linux/latest"
-  to = "/.netlify/functions/download-latest-linux"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/download/ai-runtime/windows/latest"
-  to = "/.netlify/functions/download-latest-ai-runtime-windows"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/download/ai-runtime/macos/latest"
-  to = "/.netlify/functions/download-latest-ai-runtime-macos"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/download/ai-runtime/macos/arm64/latest"
-  to = "/.netlify/functions/download-latest-ai-runtime-macos-arm64"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/download/ai-runtime/macos/x64/latest"
-  to = "/.netlify/functions/download-latest-ai-runtime-macos-x64"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/download/ai-runtime/linux/latest"
-  to = "/.netlify/functions/download-latest-ai-runtime-linux"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/download/ai-runtime/linux/x64/latest"
-  to = "/.netlify/functions/download-latest-ai-runtime-linux-x64"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/download/ai-runtime/linux/arm64/latest"
-  to = "/.netlify/functions/download-latest-ai-runtime-linux-arm64"
-  status = 200
-  force = true
+# Download redirects are generated from validated manifests in dist/_redirects.
+# Dynamic compatibility routes and their rate limit are in download-resolver.ts.
 
 [[redirects]]
   from = "/home"
