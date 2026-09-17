@@ -1,4 +1,5 @@
 import { selectReleaseAsset } from "./release-assets";
+import { fetchGithubContributors } from "./github-contributors";
 export type GithubPlatform = "windows" | "macos" | "linux";
 
 import type { GithubReleaseSummary, GithubRepoSnapshot } from "./github-snapshot";
@@ -27,13 +28,6 @@ interface GithubRepoResponse {
     spdx_id: string | null;
     name: string | null;
   } | null;
-}
-
-interface GithubContributorResponse {
-  login: string;
-  avatar_url: string;
-  html_url: string;
-  contributions: number;
 }
 
 interface GithubReleaseResponse {
@@ -199,7 +193,7 @@ export const fetchLatestGithubRelease = async (token?: string): Promise<GithubRe
 export const fetchGithubRepoSnapshot = async (token?: string): Promise<GithubRepoSnapshot> => {
   const [repoResult, contributorsResult, languagesResult, releasesResult, commitCount] = await Promise.all([
     fetchGithubJson<GithubRepoResponse>(GITHUB_API_BASE, token),
-    fetchGithubJson<GithubContributorResponse[]>(`${GITHUB_API_BASE}/contributors?per_page=8`, token),
+    fetchGithubContributors(GITHUB_REPOSITORY_URL),
     fetchGithubJson<Record<string, number>>(`${GITHUB_API_BASE}/languages`, token),
     fetchGithubJson<GithubReleaseResponse[]>(`${GITHUB_API_BASE}/releases?per_page=100`, token),
     parseCommitCount(token),
@@ -207,12 +201,6 @@ export const fetchGithubRepoSnapshot = async (token?: string): Promise<GithubRep
 
   const releases = normalizeReleases(releasesResult.data);
   const latestRelease = releases.find((release) => isDesktopAppRelease(release) && !release.isPrerelease) ?? null;
-  const contributors = contributorsResult.data.map((contributor) => ({
-    login: contributor.login,
-    avatarUrl: contributor.avatar_url,
-    profileUrl: contributor.html_url,
-    contributions: contributor.contributions,
-  }));
 
   return {
     fetchedAt: new Date().toISOString(),
@@ -230,7 +218,7 @@ export const fetchGithubRepoSnapshot = async (token?: string): Promise<GithubRep
     pushedAt: repoResult.data.pushed_at,
     primaryLanguage: repoResult.data.language ?? "Unknown",
     languages: normalizeLanguages(languagesResult.data),
-    contributors,
+    contributors: contributorsResult.contributors,
     latestRelease,
     hasPublishedReleases: latestRelease !== null,
     releases,
@@ -241,7 +229,7 @@ export const fetchGithubRepoSnapshot = async (token?: string): Promise<GithubRep
       openIssues: repoResult.data.open_issues_count,
       watchers: repoResult.data.subscribers_count ?? repoResult.data.watchers_count,
       commitCount,
-      contributorCount: contributors.length,
+      contributorCount: contributorsResult.count,
     },
   };
 };

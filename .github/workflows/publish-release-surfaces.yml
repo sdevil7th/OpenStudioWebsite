@@ -122,6 +122,9 @@ jobs:
         shell: bash
         run: npm run validate-release-publish-inputs -- --root release-input
 
+      - name: Install Chromium for social artwork
+        run: npx playwright install --with-deps chromium
+
       - name: Build website
         shell: bash
         env:
@@ -130,4 +133,4 @@ jobs:
 
       - name: Deploy to Netlify
         shell: bash
-        run: npx netlify-cli deploy --dir dist --site "$NETLIFY_SITE_ID" --prod
+        run: npx netlify-cli deploy --dir dist --functions netlify/functions --site "$NETLIFY_SITE_ID" --prod

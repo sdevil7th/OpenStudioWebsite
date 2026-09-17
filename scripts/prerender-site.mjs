@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createServer } from "vite";
+import { parseAllRedirects } from "@netlify/redirect-parser";
 
 const repoRoot = path.resolve(import.meta.dirname, "..");
 const SITE_URL = "https://openstudio.org.in";
@@ -35,11 +36,13 @@ export function routeDependencies(manifest, sources) {
 export function buildRouteHtml(template, route, { manifest, imageIndex = {} }) {
   const { seo } = route;
   const canonical = new URL(route.path, SITE_URL).href;
-  const image = seo.image ?? "/assets/openstudio/branding/og-image.png?v=3";
+  const image = seo.image ?? "/assets/openstudio/branding/og-image.png";
   const metadata = imageIndex[new URL(image, SITE_URL).pathname];
   const width = metadata?.[0] ?? 1200;
   const height = metadata?.[1] ? Math.round(width / metadata[1]) : 630;
-  const imageUrl = new URL(image, SITE_URL).href;
+  const socialImageUrl = new URL(image, SITE_URL);
+  if (metadata?.[2]) socialImageUrl.searchParams.set("v", metadata[2]);
+  const imageUrl = socialImageUrl.href;
   const robots = seo.robots ?? "index, follow";
   const tags = [];
   const meta = (attribute, name, content) => {
@@ -116,7 +119,11 @@ export function buildRouteHtml(template, route, { manifest, imageIndex = {} }) {
         `<template id="openstudio-loader-template">${markup.replace('id="openstudio-instant-loader"', "")}</template>`,
       );
   }
-  return html.replace("</head>", `${tags.join("\n")}\n</head>`);
+  // Put crawler metadata before loader CSS/scripts, while keeping charset first.
+  const headMetadata = `${tags.join("\n")}\n`;
+  return html.includes("<!-- route-metadata -->")
+    ? html.replace("<!-- route-metadata -->", headMetadata)
+    : html.replace("</head>", `${headMetadata}</head>`);
 }
 
 export function buildSitemapXml(routes) {
@@ -171,7 +178,15 @@ export async function generateStaticSeo({ root = repoRoot } = {}) {
     const redirects = routes
       .filter(({ path: routePath }) => routePath !== "/" && routePath !== "/404")
       .map(({ path: routePath }) => `${routePath} ${routePath}/index.html 200!`);
+    const { downloadCatalog } = await vite.ssrLoadModule("/shared/generatedDownloadCatalog.ts");
+    const { downloadRedirectRules } = await vite.ssrLoadModule("/shared/download-routing.ts");
+    redirects.unshift(...downloadRedirectRules(downloadCatalog));
+    await fs.writeFile(path.join(dist, ".vite/download-routing.json"), `${JSON.stringify({ ...downloadCatalog.app, fallback: downloadCatalog.fallback })}\n`);
     await fs.writeFile(path.join(dist, "_redirects"), `${redirects.join("\n")}\n`);
+    const parsedRedirects = await parseAllRedirects({ redirectsFiles: [path.join(dist, "_redirects")], netlifyConfigPath: path.join(root, "netlify.toml") });
+    if (parsedRedirects.errors.length) {
+      throw new Error(`Invalid Netlify redirects: ${parsedRedirects.errors.map((error) => error.message).join("; ")}`);
+    }
     return {
       routeCount: routes.length,
       blogPostCount: routes.filter(({ path: routePath }) => routePath.startsWith("/blog/")).length,

@@ -25,6 +25,13 @@ const DOWNLOAD_FILE_EXTENSIONS = new Set([
 type AnalyticsParamValue = boolean | number | string | null | undefined;
 type AnalyticsParams = Record<string, AnalyticsParamValue>;
 
+interface PageContext {
+  location: string;
+  path: string;
+  referrer: string;
+  title: string;
+}
+
 interface AnalyticsDestinations {
   googleAnalytics: boolean;
   microsoftClarity: boolean;
@@ -36,23 +43,17 @@ type PendingAnalyticsCommand =
       params: Record<string, AnalyticsParamValue>;
       type: "event";
     }
-  | {
-      location: string;
-      path: string;
-      title: string;
-      type: "page_view";
-    };
+  | (PageContext & { type: "page_view" });
 
-interface PageSession {
-  path: string;
+interface PageSession extends PageContext {
   startedAt: number;
-  title: string;
   maxScrollDepth: number;
   reportedScrollDepths: Set<number>;
 }
 
 let lifecycleTrackingInstalled = false;
 let activePageSession: PageSession | null = null;
+let currentPage: PageContext | null = null;
 let analyticsInitializationScheduled = false;
 let analyticsProvidersInitialized = false;
 let analyticsProvidersStopped = false;
@@ -138,6 +139,22 @@ const hasAnalyticsDestination = ({
 
 const getCurrentPagePath = () => window.location.pathname;
 
+const sanitizePageUrl = (value: string) => {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:" ? `${url.origin}${url.pathname}` : "";
+  } catch {
+    return "";
+  }
+};
+
+const pageParams = (page: PageContext) => ({
+  page_location: page.location,
+  page_path: page.path,
+  page_referrer: page.referrer,
+  page_title: page.title,
+});
+
 const getScrollDepth = () => {
   const scrollableHeight = Math.max(
     1,
@@ -197,11 +214,10 @@ const getDownloadExtension = (url: URL) => {
   return extension;
 };
 
-const startPageSession = (path: string) => {
+const startPageSession = (page: PageContext) => {
   activePageSession = {
-    path,
+    ...page,
     startedAt: window.performance?.now?.() ?? Date.now(),
-    title: document.title,
     maxScrollDepth: getScrollDepth(),
     reportedScrollDepths: new Set(),
   };
@@ -223,13 +239,11 @@ const flushPageSession = (exitReason: string) => {
   }
 
   trackEvent("page_engagement_time", {
+    ...pageParams(session),
     duration_bucket: getDurationBucket(durationMs),
     duration_ms: durationMs,
     duration_seconds: Math.round(durationMs / 1000),
-    engagement_time_msec: durationMs,
     exit_reason: exitReason,
-    page_path: session.path,
-    page_title: session.title,
     scroll_depth_percent: session.maxScrollDepth,
     transport_type: "beacon",
   });
@@ -252,7 +266,7 @@ const trackScrollDepth = () => {
     ) {
       activePageSession.reportedScrollDepths.add(threshold);
       trackEvent("scroll_depth_reached", {
-        page_path: activePageSession.path,
+        ...pageParams(activePageSession),
         scroll_depth_percent: threshold,
       });
     }
@@ -339,8 +353,8 @@ const installLifecycleTracking = () => {
       return;
     }
 
-    if (!activePageSession && readAnalyticsConsent() === "accepted") {
-      startPageSession(getCurrentPagePath());
+    if (!activePageSession && currentPage && readAnalyticsConsent() === "accepted") {
+      startPageSession(currentPage);
     }
   });
 };
@@ -374,6 +388,9 @@ const initializeGoogleAnalytics = () => {
     window.gtag("js", new Date());
     window.gtag("consent", "default", googleConsent(true));
     window.gtag("config", measurementId, {
+      // Also disable Enhanced Measurement's history page views in the GA stream.
+      // This setting only disables the config command's initial automatic view.
+      // See docs/analytics.md and npm run verify:analytics.
       send_page_view: false,
       allow_google_signals: false,
       allow_ad_personalization_signals: false,
@@ -433,10 +450,10 @@ const dispatchAnalyticsCommand = (
   }
 
   if (destinations.googleAnalytics) {
+    // Update automatic events too, while queued events retain their own context.
+    window.gtag?.("set", pageParams(command));
     window.gtag?.("event", "page_view", {
-      page_location: command.location,
-      page_path: command.path,
-      page_title: command.title,
+      ...pageParams(command),
       send_to: getGoogleAnalyticsId(),
     });
   }
@@ -510,7 +527,7 @@ export const trackEvent = (eventName: string, params: AnalyticsParams = {}) => {
 
   const command: PendingAnalyticsCommand = {
     eventName,
-    params: normalizeAnalyticsParams(params),
+    params: { ...(currentPage ? pageParams(currentPage) : {}), ...normalizeAnalyticsParams(params) },
     type: "event",
   };
 
@@ -535,13 +552,20 @@ export const trackPageView = (path: string) => {
     return;
   }
 
-  flushPageSession("route_change");
-  startPageSession(path);
-
-  const command: PendingAnalyticsCommand = {
+  // Query/hash-only updates and repeated readiness signals are the same view.
+  if (currentPage?.path === path) return;
+  const page: PageContext = {
     location: `${window.location.origin}${path}`,
     path,
+    referrer: currentPage?.location ?? sanitizePageUrl(document.referrer),
     title: document.title,
+  };
+  flushPageSession("route_change");
+  currentPage = page;
+  if (document.visibilityState !== "hidden") startPageSession(page);
+
+  const command: PendingAnalyticsCommand = {
+    ...page,
     type: "page_view",
   };
 
@@ -578,6 +602,7 @@ if (typeof window !== "undefined") {
     analyticsInitializationScheduled = false;
     pendingAnalyticsCommands.splice(0);
     activePageSession = null;
+    currentPage = null;
     if (analyticsProvidersInitialized && !analyticsProvidersStopped) {
       if (initializedDestinations.googleAnalytics) {
         setGoogleAnalyticsDisabled(true);

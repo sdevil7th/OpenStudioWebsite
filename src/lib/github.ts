@@ -1,18 +1,24 @@
 import type { GithubRepoSnapshot } from "@/data/marketing";
 import { parseGithubRepoSnapshot } from "../../shared/github-snapshot";
 
-export const GITHUB_SNAPSHOT_ENDPOINT = "/.netlify/functions/github-repo";
+export const GITHUB_SNAPSHOT_ENDPOINT = "/github/repository.json";
 
 import { generatedGithubSnapshot } from "@/data/generatedGithubSnapshot";
 
 // GitHub-derived build snapshot keeps prerendering and offline rendering honest.
 export const githubFallbackSnapshot = generatedGithubSnapshot;
 
+let retryAfter = 0;
+let failures = 0;
 let snapshotRequest: Promise<GithubRepoSnapshot> | null = null;
 
 export const getGithubRepoSnapshot = async () => {
+  if (snapshotRequest && retryAfter && Date.now() >= retryAfter) snapshotRequest = null;
   if (!snapshotRequest) {
+    // Clear the expired cooldown before starting, so concurrent callers share this retry.
+    retryAfter = 0;
     snapshotRequest = fetch(GITHUB_SNAPSHOT_ENDPOINT, {
+      signal: AbortSignal.timeout(8000),
       headers: {
         Accept: "application/json",
       },
@@ -22,10 +28,13 @@ export const getGithubRepoSnapshot = async () => {
           throw new Error(`GitHub snapshot request failed with status ${response.status}`);
         }
 
-        return parseGithubRepoSnapshot(await response.json(), githubFallbackSnapshot);
+        const snapshot = parseGithubRepoSnapshot(await response.json(), githubFallbackSnapshot);
+        failures = 0;
+        retryAfter = 0;
+        return snapshot;
       })
       .catch((error) => {
-        snapshotRequest = null;
+        retryAfter = Date.now() + Math.min(300_000, 30_000 * 2 ** Math.min(failures++, 4));
         throw error;
       });
   }

@@ -12,9 +12,12 @@ const rewrites = read("dist/_redirects")
   .trim()
   .split("\n")
   .map((line) => line.split(/\s+/));
-const routes = new Map([["/", "/index.html"], ...rewrites.map(([from, to]) => [from, to])]);
+const routes = new Map([["/", "/index.html"], ...rewrites.filter(([, to, status]) => status === "200!" && to.endsWith("/index.html")).map(([from, to]) => [from, to])]);
 const netlify = read("netlify.toml");
-const downloadPaths = new Set([...netlify.matchAll(/from = "(\/download\/[^\"]+)"/g)].map((match) => match[1]));
+const downloadPaths = new Set([
+  ...rewrites.map(([from]) => from).filter((from) => from.startsWith("/download/")),
+  ...[...read("netlify/functions/download-resolver.ts").matchAll(/"(\/download\/[^"\n]+)"/g)].map((match) => match[1]),
+]);
 const decode = (text) => text.replaceAll("&amp;", "&").replaceAll("&quot;", '"');
 
 test("download guidance preserves backup and retired-format warnings before JavaScript loads", () => {

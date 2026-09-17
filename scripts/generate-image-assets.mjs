@@ -221,6 +221,15 @@ const pruneGeneratedFiles = async (directory, keepFiles) => {
 
 const writeGeneratedImageIndex = async (manifest) => {
   const seoIndex = Object.fromEntries(Object.entries(manifest).map(([source, entry]) => [source, [entry.width, entry.aspectRatio ?? 0, entry.hash ?? ""]]));
+  // Social crawlers consume the original PNG, not responsive WebP variants.
+  // Fingerprint it with the same mechanism used for article share images.
+  const ogPath = "/assets/openstudio/branding/og-image.png";
+  const ogFile = path.join(repoRoot, "public", ogPath.slice(1));
+  const og = await sharp(ogFile).metadata();
+  if (og.width !== 1200 || og.height !== 630 || og.format !== "png") {
+    throw new Error("Generate the 1200 × 630 OG PNG before generating image metadata.");
+  }
+  seoIndex[ogPath] = [og.width, og.width / og.height, await hashFile(ogFile)];
   const widths = Object.fromEntries(Object.entries(manifest).map(([source, entry]) => [source, entry.variants.map(({ width }) => width)]));
   await fs.writeFile(generatedSeoIndexPath, "// Generated image dimensions and content hashes.\nexport const generatedImageSeoIndex = " + JSON.stringify(seoIndex) + " as const;\n");
   await fs.writeFile(path.join(repoRoot, "src/lib/generatedResponsiveWidths.ts"), "// Generated from the image manifest; only widths that exist on disk.\nexport const generatedResponsiveWidths = " + JSON.stringify(widths) + " as const;\n");

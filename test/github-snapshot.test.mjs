@@ -48,18 +48,25 @@ test("repository snapshots validate nested data, URLs and old cache compatibilit
 test("invalid repository responses do not poison cached requests and can be retried", async () => {
   const server = await createServer({ logLevel: "silent", server: { middlewareMode: true } });
   const originalFetch = globalThis.fetch;
+  const originalNow = Date.now;
+  let now = originalNow();
+  Date.now = () => now;
   try {
     const { getGithubRepoSnapshot, githubFallbackSnapshot } = await server.ssrLoadModule("/src/lib/github.ts");
     let requests = 0;
     globalThis.fetch = async () => new Response(JSON.stringify(++requests === 1 ? { stats: null } : published));
     await assert.rejects(getGithubRepoSnapshot());
     assert.deepEqual(githubFallbackSnapshot, published, "the known build snapshot stays intact");
+    await assert.rejects(getGithubRepoSnapshot());
+    assert.equal(requests, 1, "failure cooldown prevents immediate retry storms");
+    now += 30_001;
     const [first, second] = await Promise.all([getGithubRepoSnapshot(), getGithubRepoSnapshot()]);
     assert.deepEqual(first, published);
     assert.equal(first, second);
     assert.equal(requests, 2, "successful concurrent requests share one validated result");
   } finally {
     globalThis.fetch = originalFetch;
+    Date.now = originalNow;
     await server.close();
   }
 });

@@ -17,7 +17,8 @@ export interface GithubContributorSummary {
   login: string;
   avatarUrl: string;
   profileUrl: string;
-  contributions: number;
+  /** Present only when the source supplies a commit count. Never infer one for co-authors. */
+  contributions?: number;
 }
 
 export interface GithubReleaseAssetSummary {
@@ -149,7 +150,7 @@ const contributor = (value: unknown): GithubContributorSummary => {
     login: text(entry.login, "contributor.login"),
     avatarUrl: url(entry.avatarUrl, "contributor.avatarUrl", true),
     profileUrl: url(entry.profileUrl, "contributor.profileUrl"),
-    contributions: count(entry.contributions, "contributor.contributions"),
+    ...(entry.contributions === undefined ? {} : { contributions: count(entry.contributions, "contributor.contributions") }),
   };
 };
 

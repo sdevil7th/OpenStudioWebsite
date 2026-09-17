@@ -54,7 +54,7 @@ test(
     try {
       const context = await browser.newContext({ reducedMotion: "reduce" });
       await context.route("https://**/*", (route) => route.abort());
-      await context.route("**/.netlify/functions/github-release", (route) =>
+      await context.route("**/github/latest-release.json", (route) =>
         route.fulfill({ contentType: "application/json", body: JSON.stringify(future) }),
       );
       await context.addInitScript(() =>
@@ -64,6 +64,10 @@ test(
         ),
       );
       const page = await context.newPage();
+      const functionCalls = [];
+      page.on("request", (request) => {
+        if (new URL(request.url()).pathname.startsWith("/.netlify/functions/")) functionCalls.push(request.url());
+      });
       await page.goto(server.resolvedUrls.local[0] + "download");
       await page.waitForFunction(() => window.__openstudioAppReady && window.__openstudioIntroHidden);
       await page.getByText("9.8.7", { exact: true }).waitFor();
@@ -76,6 +80,7 @@ test(
         );
         assert.equal(await card.locator("span[title]").count(), 0);
       }
+      assert.deepEqual(functionCalls, [], "the download page must not invoke functions for release data");
       await context.close();
     } finally {
       await browser.close();

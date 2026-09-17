@@ -49,3 +49,5 @@ public/assets/openstudio/generated/
 /public/github/
 /src/data/generatedGithubSnapshot.ts
 /src/data/generatedLatestRelease.ts
+
+/shared/generatedDownloadCatalog.ts
