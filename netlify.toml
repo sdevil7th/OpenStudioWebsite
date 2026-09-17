@@ -1,5 +1,6 @@
 [build]
-  command = "npx playwright install --with-deps chromium && npm run build"
+  # Netlify builds cannot elevate to root to install OS packages.
+  command = "npx playwright install chromium && npm run build"
   publish = "dist"
 
 [build.environment]
