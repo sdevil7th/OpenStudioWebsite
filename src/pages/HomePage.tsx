@@ -27,6 +27,7 @@ import { SITE_PATHS, docPath } from "@/constants/routes";
 import { formatBytes, formatCount, formatDate } from "@/lib/format";
 import { ArrowLink, Cta, DownloadCta, Eyebrow, Frame, GradIcon, Kicker } from "@/components/ui/primitives";
 import { LiveStage, type StageSelection } from "@/features/daw-preview/stage/LiveStage";
+import HeroAuraBackdrop from "@/components/HeroAuraBackdrop";
 import LiveSession from "@/features/daw-preview/LiveSession";
 import ArrangementStage from "@/features/daw-preview/stages/ArrangementStage";
 import MixerStage from "@/features/daw-preview/stages/MixerStage";
@@ -383,16 +384,7 @@ const HomePage = () => {
 
       {/* Hero */}
       <section className="sp-hero-aura">
-        <div aria-hidden="true" className="sp-hero-aura__bg">
-          <iframe
-            allowFullScreen
-            className="sp-hero-aura__frame"
-            loading="lazy"
-            src="https://aura.promad.design/embed/pastel-abstract-background-soft-glowing-hd-web-designs?hideText=true&hideIcons=true&input=off&theme=light"
-            tabIndex={-1}
-            title="Pastel Abstract Background – Soft Glowing HD Web Designs"
-          />
-        </div>
+        <HeroAuraBackdrop />
         <div className="sp-container sp-hero-aura__content">
           <div className="sp-hero-stack">
             <div data-sp-reveal="hero">

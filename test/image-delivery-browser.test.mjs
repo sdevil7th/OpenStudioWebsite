@@ -18,7 +18,7 @@ test("image requests follow card widths at standard and high pixel densities", {
           const context = await browser.newContext({ viewport: { width, height: 900 }, deviceScaleFactor: dpr, reducedMotion: "reduce" });
           try {
             await context.route("https://**/*", (route) => route.abort());
-            await context.addInitScript(() => localStorage.setItem(
+            await context.addInitScript(() => window.top === window && localStorage.setItem(
               "openstudio.analytics-consent.v1", JSON.stringify({ choice: "rejected", time: Date.now() }),
             ));
             const page = await context.newPage();
