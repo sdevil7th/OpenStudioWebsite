@@ -80,8 +80,8 @@ const afterPaint = (callback: () => void) => {
 /**
  * Full-bleed aura scene behind the home hero, kept out of the page's performance budget.
  *
- * The host paints the scene's palette instantly and is what prerendering, no-JavaScript
- * and reduced-motion visitors see. The live embed is requested only after the page has
+ * The host is plain white and is what prerendering, no-JavaScript and reduced-motion
+ * visitors see. The live embed is requested only after the page has
  * rendered and the visitor has interacted (or a long quiet period has passed), and only
  * while the hero is on screen in a visible tab. It fades in once its scene has settled,
  * and fades out to `visibility: hidden` whenever the hero leaves the viewport or the tab

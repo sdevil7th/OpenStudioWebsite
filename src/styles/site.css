@@ -286,16 +286,13 @@
   background: var(--sp-paper);
 }
 
-/* the scene's palette paints instantly; the live embed fades in over it once settled */
+/* plain white until the live embed fades in over it once settled */
 .sp-hero-aura__bg {
   position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-color: #9800ff;
-  background-image:
-    radial-gradient(circle at 22% 28%, #9800ff 0%, transparent 55%),
-    radial-gradient(circle at 78% 22%, #e7000b 0%, transparent 55%);
+  background: #fff;
 }
 
 /* hidden (not just transparent) whenever the scene is unsettled, offscreen or in a hidden
