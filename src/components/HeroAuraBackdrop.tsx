@@ -6,8 +6,9 @@ const AURA_SRC = `https://aura.promad.design/embed/${AURA_SCENE}?theme=light`;
 
 // Measured against the embed: after its `load` event the scene shows a dark ground, then
 // a vivid saturated stage from ~0.8s, and only reaches the soft pastel state ~2.0-2.4s in,
-// settling fully by ~3.5s. The palette placeholder stays up until then.
-const SCENE_SETTLE_MS = 3000;
+// settling fully by ~3.5s. The loader-matched placeholder stays up until then, and the
+// slow fade that follows starts only once the scene is already at rest.
+const SCENE_SETTLE_MS = 3500;
 // Cap on waiting for the page's own load and first paint before arming the trigger.
 const PAINT_WAIT_CAP_MS = 4000;
 // The scene is requested on the visitor's first interaction, so it never enters a page
@@ -80,8 +81,8 @@ const afterPaint = (callback: () => void) => {
 /**
  * Full-bleed aura scene behind the home hero, kept out of the page's performance budget.
  *
- * The host is plain white and is what prerendering, no-JavaScript and reduced-motion
- * visitors see. The live embed is requested only after the page has
+ * The host repeats the intro loader's surface, so the reveal is continuous, and is what
+ * prerendering, no-JavaScript and reduced-motion visitors see. The live embed is requested only after the page has
  * rendered and the visitor has interacted (or a long quiet period has passed), and only
  * while the hero is on screen in a visible tab. It fades in once its scene has settled,
  * and fades out to `visibility: hidden` whenever the hero leaves the viewport or the tab
