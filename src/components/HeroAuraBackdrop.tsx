@@ -1,71 +1,75 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+import { ResponsiveImage } from "@/components/ResponsiveImage";
+import { createAuraPainter, AURA_WIDTH, AURA_HEIGHT } from "@/features/hero-aura/renderer";
+import { AURA_REST_FRAME } from "@/features/hero-aura/generatedRestFrame";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
-const AURA_SRC =
-  "https://aura.promad.design/embed/pastel-abstract-background-soft-glowing-hd-web-designs?hideText=true&hideIcons=true&input=off&theme=light";
-
-// Measured against the embed: after its `load` event the scene shows a dark ground, then
-// a vivid saturated stage from ~0.8s, and only reaches the soft pastel state ~2.0-2.4s in,
-// settling fully by ~3.5s. Waiting 3s past `load` reveals the pastel state, not the vivid one.
-const SCENE_SETTLE_MS = 3000;
-// Upper bound on how long the intro loader may wait for the backdrop (the loader's own
-// global fallback stays the hard ceiling).
-const MAX_HOLD_MS = 6500;
-
-let holdCounter = 0;
-
-/** Full-bleed aura embed behind the home hero. Holds the intro loader until it has painted. */
+/** Local light curtains, with the renderer's exact first frame as the fallback. */
 const HeroAuraBackdrop = () => {
-  const frameRef = useRef<HTMLIFrameElement>(null);
-  const [ready, setReady] = useState(false);
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const reducedMotion = usePrefersReducedMotion();
 
-  useLayoutEffect(() => {
-    const frame = frameRef.current;
-    if (!frame) return;
+  useEffect(() => {
+    const backdrop = backdropRef.current;
+    const canvas = canvasRef.current;
+    if (!backdrop || !canvas || reducedMotion || !("IntersectionObserver" in window)) return;
+    const paint = createAuraPainter(canvas);
+    if (!paint) return;
+    paint(0);
+    backdrop.dataset.ready = "true";
 
-    const token = `hero-aura-${(holdCounter += 1)}`;
-    let released = false;
-    let settleTimer = 0;
-
-    window.dispatchEvent(new CustomEvent("openstudio:intro-hold", { detail: { token, maxMs: MAX_HOLD_MS } }));
-
-    const release = () => {
-      if (released) return;
-      released = true;
-      window.clearTimeout(settleTimer);
-      setReady(true);
-      window.dispatchEvent(new CustomEvent("openstudio:intro-release", { detail: { token } }));
+    let intersecting = false;
+    let frame: number | null = null;
+    let previous = 0;
+    let elapsed = 0;
+    const tick = (now: number) => {
+      if (now - previous >= 1000 / 30) {
+        elapsed += Math.min(now - previous, 100) / 1000;
+        previous = now;
+        paint(elapsed);
+      }
+      frame = requestAnimationFrame(tick);
     };
-    const handleLoad = () => {
-      window.clearTimeout(settleTimer);
-      settleTimer = window.setTimeout(release, SCENE_SETTLE_MS);
-    };
-
-    frame.addEventListener("load", handleLoad);
-    frame.addEventListener("error", release);
-    const capTimer = window.setTimeout(release, MAX_HOLD_MS);
-
-    return () => {
-      frame.removeEventListener("load", handleLoad);
-      frame.removeEventListener("error", release);
-      window.clearTimeout(capTimer);
-      window.clearTimeout(settleTimer);
-      if (!released) {
-        released = true;
-        window.dispatchEvent(new CustomEvent("openstudio:intro-release", { detail: { token } }));
+    const updatePlayback = () => {
+      const playing = intersecting && document.visibilityState === "visible";
+      backdrop.dataset.playing = String(playing);
+      if (playing && frame === null) {
+        previous = performance.now();
+        frame = requestAnimationFrame(tick);
+      } else if (!playing && frame !== null) {
+        cancelAnimationFrame(frame);
+        frame = null;
       }
     };
-  }, []);
+    const observer = new IntersectionObserver(([entry]) => {
+      intersecting = entry.isIntersecting;
+      updatePlayback();
+    });
+    observer.observe(backdrop);
+    document.addEventListener("visibilitychange", updatePlayback);
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", updatePlayback);
+      if (frame !== null) cancelAnimationFrame(frame);
+      delete backdrop.dataset.ready;
+      delete backdrop.dataset.playing;
+    };
+  }, [reducedMotion]);
 
   return (
-    <div aria-hidden="true" className="sp-hero-aura__bg" data-ready={ready ? "true" : "false"}>
-      <iframe
-        allowFullScreen
-        className="sp-hero-aura__frame"
-        ref={frameRef}
-        src={AURA_SRC}
-        tabIndex={-1}
-        title="Pastel Abstract Background – Soft Glowing HD Web Designs"
+    <div aria-hidden="true" className="sp-hero-aura__bg" ref={backdropRef}>
+      <ResponsiveImage
+        src={AURA_REST_FRAME}
+        alt=""
+        width={AURA_WIDTH}
+        height={AURA_HEIGHT}
+        loading="eager"
+        sizes="100vw"
+        className="sp-hero-aura__rest"
       />
+      <canvas ref={canvasRef} className="sp-hero-aura__canvas" />
     </div>
   );
 };

@@ -421,11 +421,6 @@
         let routeReady = Boolean(window.__openstudioAppReady);
         let cssReady = false;
         let hidden = false;
-        // Page content (the home hero's aura backdrop) can hold the intro until it has
-        // painted. Every hold releases itself after its own cap so a blocked embed never
-        // strands the loader beyond the global fallback.
-        const introHolds = new Map();
-        const maxHoldMs = 6500;
 
         window.__openstudioLoaderReady = true;
         window.__openstudioAppCssReady = false;
@@ -470,24 +465,8 @@
           }, revealMs);
         }
 
-        function releaseHold(token) {
-          const timer = introHolds.get(token);
-          if (timer === undefined) return;
-          window.clearTimeout(timer);
-          introHolds.delete(token);
-          finishWhenReady();
-        }
-
-        window.addEventListener("openstudio:intro-hold", (event) => {
-          const token = event.detail?.token;
-          if (hidden || !token || introHolds.has(token)) return;
-          const cap = Math.min(maxHoldMs, Number(event.detail?.maxMs) || maxHoldMs);
-          introHolds.set(token, window.setTimeout(() => releaseHold(token), cap));
-        });
-        window.addEventListener("openstudio:intro-release", (event) => releaseHold(event.detail?.token));
-
         function finishWhenReady() {
-          if (hidden || !routeReady || !cssReady || introHolds.size > 0) return;
+          if (hidden || !routeReady || !cssReady) return;
 
           const elapsed = performance.now() - startedAt;
           if (elapsed < entranceMs) {
@@ -520,8 +499,6 @@
             window.__openstudioRestoreStaticRoute?.();
           }
           routeReady = true;
-          introHolds.forEach((timer) => window.clearTimeout(timer));
-          introHolds.clear();
           finishWhenReady();
         }, fallbackMs);
       })();
