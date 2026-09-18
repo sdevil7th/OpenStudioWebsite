@@ -3,11 +3,13 @@ import { useLayoutEffect, useRef, useState } from "react";
 const AURA_SRC =
   "https://aura.promad.design/embed/pastel-abstract-background-soft-glowing-hd-web-designs?hideText=true&hideIcons=true&input=off&theme=light";
 
-// The embed reports `load` within a few hundred milliseconds, then its own scene ramps
-// from black to the pastel glow over roughly the next two seconds.
-const SCENE_SETTLE_MS = 1800;
-// Upper bound on how long the intro loader may wait for the backdrop.
-const MAX_HOLD_MS = 4500;
+// Measured against the embed: after its `load` event the scene shows a dark ground, then
+// a vivid saturated stage from ~0.8s, and only reaches the soft pastel state ~2.0-2.4s in,
+// settling fully by ~3.5s. Waiting 3s past `load` reveals the pastel state, not the vivid one.
+const SCENE_SETTLE_MS = 3000;
+// Upper bound on how long the intro loader may wait for the backdrop (the loader's own
+// global fallback stays the hard ceiling).
+const MAX_HOLD_MS = 6500;
 
 let holdCounter = 0;
 
