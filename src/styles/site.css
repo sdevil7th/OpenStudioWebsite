@@ -286,30 +286,31 @@
   background: var(--sp-paper);
 }
 
+/* the scene's palette paints instantly; the live embed fades in over it once settled */
 .sp-hero-aura__bg {
   position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
+  background-color: #9800ff;
+  background-image:
+    radial-gradient(circle at 22% 28%, #9800ff 0%, transparent 55%),
+    radial-gradient(circle at 78% 22%, #e7000b 0%, transparent 55%);
+}
+
+.sp-hero-aura__frame {
   opacity: 0;
-  transition: opacity 900ms ease;
+  transition: opacity 800ms ease;
 }
 
-.sp-hero-aura__bg[data-ready="true"] {
+.sp-hero-aura__bg[data-ready="true"] .sp-hero-aura__frame {
   opacity: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sp-hero-aura__bg {
-    transition: none;
-  }
 }
 
 .sp-hero-aura__frame {
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 800px;
   border: 0;
 }
 
