@@ -277,6 +277,67 @@
   border-radius: 12px;
 }
 
+/* home: the aura embed sits behind the hero as a full-bleed, non-interactive background */
+.sp-hero-aura {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  /* the embed paints black until its scene is up, so the page ground stays underneath */
+  background: var(--sp-paper);
+}
+
+/* the intro loader's surface (same base, same mint and pink glows, held still: animating
+   them under the hero halved the desktop frame rate) stays under the hero until the live
+   embed has settled and faded in over it */
+.sp-hero-aura__bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 30% 65%, rgba(0, 234, 210, 0.32), transparent 48%),
+    radial-gradient(ellipse at 72% 30%, rgba(241, 63, 154, 0.24), transparent 46%),
+    #fcfcff;
+}
+
+/* hidden (not just transparent) whenever the scene is unsettled, offscreen or in a hidden
+   tab, so the embed stops compositing; visibility flips after the fade-out completes */
+.sp-hero-aura__frame {
+  position: relative;
+  z-index: 1;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 2400ms ease-in-out,
+    visibility 0s linear 2400ms;
+}
+
+.sp-hero-aura__bg[data-ready="true"][data-playing="true"] .sp-hero-aura__frame {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 2400ms ease-in-out,
+    visibility 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-hero-aura__frame {
+    transition: none;
+  }
+}
+
+.sp-hero-aura__frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.sp-hero-aura__content {
+  position: relative;
+}
+
 /* home: the hero is one centred column — title, live session, then the copy */
 .sp-hero-stack {
   display: flex;
