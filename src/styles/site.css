@@ -286,41 +286,19 @@
   background: var(--sp-paper);
 }
 
-/* the intro loader's surface (same base, same drifting mint and pink glows) stays under
-   the hero until the live embed has settled and faded in over it */
+/* the intro loader's surface (same base, same mint and pink glows, held still: animating
+   them under the hero halved the desktop frame rate) stays under the hero until the live
+   embed has settled and faded in over it */
 .sp-hero-aura__bg {
   position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
   overflow: hidden;
-  background: #fcfcff;
-}
-
-.sp-hero-aura__bg::before,
-.sp-hero-aura__bg::after {
-  content: "";
-  position: absolute;
-  inset: -45%;
-  will-change: transform;
-  animation: sp_hero_aura_mint 9s ease-in-out infinite alternate;
-  background: radial-gradient(ellipse at 30% 65%, rgba(0, 234, 210, 0.32), transparent 48%);
-}
-
-.sp-hero-aura__bg::after {
-  background: radial-gradient(ellipse at 72% 30%, rgba(241, 63, 154, 0.24), transparent 46%);
-  animation-name: sp_hero_aura_pink;
-  animation-duration: 11s;
-}
-
-@keyframes sp_hero_aura_mint {
-  from { transform: translate(-8%, 5%) rotate(-12deg) scale(1); }
-  to { transform: translate(12%, -10%) rotate(28deg) scale(1.12); }
-}
-
-@keyframes sp_hero_aura_pink {
-  from { transform: translate(8%, -6%) rotate(10deg) scale(1.12); }
-  to { transform: translate(-12%, 12%) rotate(-24deg) scale(0.94); }
+  background:
+    radial-gradient(ellipse at 30% 65%, rgba(0, 234, 210, 0.32), transparent 48%),
+    radial-gradient(ellipse at 72% 30%, rgba(241, 63, 154, 0.24), transparent 46%),
+    #fcfcff;
 }
 
 /* hidden (not just transparent) whenever the scene is unsettled, offscreen or in a hidden
@@ -344,11 +322,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sp-hero-aura__bg::before,
-  .sp-hero-aura__bg::after {
-    animation: none;
-  }
-
   .sp-hero-aura__frame {
     transition: none;
   }
