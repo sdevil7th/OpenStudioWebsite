@@ -86,6 +86,7 @@ token as both `GITHUB_TOKEN` and `GH_TOKEN` for these separate fetch paths.
 
 ```bash
 npm ci
+npx playwright install chromium
 npm run dev
 ```
 
@@ -98,7 +99,7 @@ npm run build
 npm run preview
 ```
 
-`npm run build` fetches current GitHub data, generates branding, the social PNG, responsive images and blog HTML, stages and validates release inputs, generates the download routing catalog, runs strict TypeScript checking, builds the client and prerenders all canonical pages. Run `npm run lint` and `npm test` for the remaining CI checks. Both OG generation and browser tests require `npx playwright install chromium` before the first build. GitHub Actions uses `--with-deps` to install Linux system packages too; Netlify uses the browser-only installation because its build user cannot elevate to root.
+`npm run build` fetches current GitHub data, generates branding, the social PNG, responsive images and blog HTML, stages and validates release inputs, generates the download routing catalog, runs strict TypeScript checking, builds the client and prerenders all canonical pages. Run `npm run lint` and `npm test` for the remaining CI checks. The hero background also regenerates its matching static frame during dev/build; see [the light-curtain implementation](docs/hero-background.md). Both artwork generation and browser tests require `npx playwright install chromium` before the first build. GitHub Actions uses `--with-deps` to install Linux system packages too; Netlify uses the browser-only installation because its build user cannot elevate to root.
 The TypeScript build covers client code, configuration, all shared TypeScript
 modules and all Netlify functions. Network and cached repository snapshots must
 pass the shared runtime parser before use; malformed browser refreshes preserve

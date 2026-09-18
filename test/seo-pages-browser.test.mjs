@@ -91,7 +91,7 @@ test("all sitemap pages expose matching SEO before and after JavaScript", { time
   const runtimeContext = await browser.newContext({ reducedMotion: "reduce" });
   try {
     for (const context of [staticContext, runtimeContext]) await context.route("https://**/*", route => route.abort());
-    await runtimeContext.addInitScript(() => localStorage.setItem("openstudio.analytics-consent.v1", JSON.stringify({choice: "rejected", time: Date.now()})));
+    await runtimeContext.addInitScript(() => window.top === window && localStorage.setItem("openstudio.analytics-consent.v1", JSON.stringify({choice: "rejected", time: Date.now()})));
     const staticPage = await staticContext.newPage();
     const runtimePage = await runtimeContext.newPage();
     const errors = [];
