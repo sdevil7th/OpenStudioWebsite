@@ -298,13 +298,28 @@
     radial-gradient(circle at 78% 22%, #e7000b 0%, transparent 55%);
 }
 
+/* hidden (not just transparent) whenever the scene is unsettled, offscreen or in a hidden
+   tab, so the embed stops compositing; visibility flips after the fade-out completes */
 .sp-hero-aura__frame {
   opacity: 0;
-  transition: opacity 800ms ease;
+  visibility: hidden;
+  transition:
+    opacity 800ms ease,
+    visibility 0s linear 800ms;
 }
 
-.sp-hero-aura__bg[data-ready="true"] .sp-hero-aura__frame {
+.sp-hero-aura__bg[data-ready="true"][data-playing="true"] .sp-hero-aura__frame {
   opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 800ms ease,
+    visibility 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-hero-aura__frame {
+    transition: none;
+  }
 }
 
 .sp-hero-aura__frame {

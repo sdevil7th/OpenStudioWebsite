@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 const AURA_SCENE = "pastel-abstract-background-soft-glowing-hd-web-designs";
 const AURA_SRC = `https://aura.promad.design/embed/${AURA_SCENE}?theme=light`;
@@ -7,12 +8,16 @@ const AURA_SRC = `https://aura.promad.design/embed/${AURA_SCENE}?theme=light`;
 // a vivid saturated stage from ~0.8s, and only reaches the soft pastel state ~2.0-2.4s in,
 // settling fully by ~3.5s. The palette placeholder stays up until then.
 const SCENE_SETTLE_MS = 3000;
-// Cap on waiting for the page's own load and first paint before the scene is requested.
+// Cap on waiting for the page's own load and first paint before arming the trigger.
 const PAINT_WAIT_CAP_MS = 4000;
+// The scene is requested on the visitor's first interaction, so it never enters a page
+// speed measurement. A visitor who only reads still gets it after this quiet period.
+const QUIET_FALLBACK_MS = 10_000;
+const INTERACTION_EVENTS = ["pointermove", "pointerdown", "touchstart", "wheel", "scroll", "keydown"] as const;
 
 /**
  * Runs `callback` once the page has loaded and painted (a first-contentful-paint entry),
- * then two frames and an idle slot, so the embed's requests never enter this page's
+ * then two frames and an idle slot, so nothing here competes with the page's own
  * critical path. A timer caps the wait.
  */
 const afterPaint = (callback: () => void) => {
@@ -73,25 +78,79 @@ const afterPaint = (callback: () => void) => {
 };
 
 /**
- * Full-bleed aura scene behind the home hero. The host paints the scene's palette
- * instantly; the live embed is requested only after the page has rendered and fades in
- * once its scene has settled. Reduced-motion visitors keep the static palette.
+ * Full-bleed aura scene behind the home hero, kept out of the page's performance budget.
+ *
+ * The host paints the scene's palette instantly and is what prerendering, no-JavaScript
+ * and reduced-motion visitors see. The live embed is requested only after the page has
+ * rendered and the visitor has interacted (or a long quiet period has passed), and only
+ * while the hero is on screen in a visible tab. It fades in once its scene has settled,
+ * and fades out to `visibility: hidden` whenever the hero leaves the viewport or the tab
+ * is hidden, so the embed stops compositing when nobody can see it.
  */
 const HeroAuraBackdrop = () => {
+  const hostRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = usePrefersReducedMotion();
+  const [triggered, setTriggered] = useState(false);
+  const [active, setActive] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [ready, setReady] = useState(false);
 
+  // Hero on screen and the document visible.
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    return afterPaint(() => setMounted(true));
+    const host = hostRef.current;
+    if (!host || !("IntersectionObserver" in window)) return;
+    let intersecting = false;
+    const update = () => setActive(intersecting && document.visibilityState === "visible");
+    const observer = new IntersectionObserver(([entry]) => {
+      intersecting = entry.isIntersecting;
+      update();
+    });
+    observer.observe(host);
+    document.addEventListener("visibilitychange", update);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", update);
+    };
   }, []);
 
+  // Page painted, then first interaction or the quiet fallback.
+  useEffect(() => {
+    if (reducedMotion || triggered) return;
+    let fallbackTimer = 0;
+    const fire = () => {
+      window.clearTimeout(fallbackTimer);
+      INTERACTION_EVENTS.forEach((name) => window.removeEventListener(name, fire));
+      setTriggered(true);
+    };
+    const cancelPaint = afterPaint(() => {
+      INTERACTION_EVENTS.forEach((name) => window.addEventListener(name, fire, { passive: true }));
+      fallbackTimer = window.setTimeout(fire, QUIET_FALLBACK_MS);
+    });
+    return () => {
+      cancelPaint();
+      window.clearTimeout(fallbackTimer);
+      INTERACTION_EVENTS.forEach((name) => window.removeEventListener(name, fire));
+    };
+  }, [reducedMotion, triggered]);
+
+  useEffect(() => {
+    if (triggered && active && !reducedMotion) setMounted(true);
+  }, [triggered, active, reducedMotion]);
+
+  const showFrame = mounted && !reducedMotion;
+
   return (
-    <div aria-hidden="true" className="sp-hero-aura__bg" data-aura-scene={AURA_SCENE} data-ready={ready ? "true" : "false"}>
-      {mounted ? (
+    <div
+      aria-hidden="true"
+      className="sp-hero-aura__bg"
+      data-aura-scene={AURA_SCENE}
+      data-playing={showFrame && active ? "true" : "false"}
+      data-ready={showFrame && ready ? "true" : "false"}
+      ref={hostRef}
+    >
+      {showFrame ? (
         <iframe
           className="sp-hero-aura__frame"
-          loading="lazy"
           onLoad={(event) => {
             const frame = event.currentTarget;
             window.setTimeout(() => {
