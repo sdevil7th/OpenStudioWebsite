@@ -382,38 +382,50 @@ const HomePage = () => {
       />
 
       {/* Hero */}
-      <div className="sp-container">
-        <div className="sp-hero-stack">
-          <div data-sp-reveal="hero">
-            <h1 className="sp-h1 sp-h1--hero">
-              <span className="sp-hero-stack__line">Record, edit, mix, and generate.</span>{" "}
-              <span className="sp-hero-stack__line">One free DAW.</span>
-            </h1>
-            <Eyebrow icon={ShieldCheck}>Free · Open source · AGPLv3</Eyebrow>
-          </div>
-          <Frame hero className="sp-home-session" reveal="rise">
-            <ErrorBoundary
-              fallback={<div className="grid h-full place-items-center text-sm text-slate-300">Illustration unavailable</div>}
-            >
-              <LiveSession />
-            </ErrorBoundary>
-          </Frame>
-          <div className="sp-hero-stack__copy" data-sp-reveal="hero">
-            <div className="flex items-center justify-center gap-[16px] flex-wrap mb-[12px]">
-              <DownloadCta />
-              <ArrowLink to={SITE_PATHS.features} tone="plain">
-                See all features
-              </ArrowLink>
+      <section className="sp-hero-aura">
+        <div aria-hidden="true" className="sp-hero-aura__bg">
+          <iframe
+            allowFullScreen
+            className="sp-hero-aura__frame"
+            loading="lazy"
+            src="https://aura.promad.design/embed/pastel-abstract-background-soft-glowing-hd-web-designs?hideText=true&hideIcons=true&input=off&theme=light"
+            tabIndex={-1}
+            title="Pastel Abstract Background – Soft Glowing HD Web Designs"
+          />
+        </div>
+        <div className="sp-container sp-hero-aura__content">
+          <div className="sp-hero-stack">
+            <div data-sp-reveal="hero">
+              <h1 className="sp-h1 sp-h1--hero">
+                <span className="sp-hero-stack__line">Record, edit, mix, and generate.</span>{" "}
+                <span className="sp-hero-stack__line">One free DAW.</span>
+              </h1>
+              <Eyebrow icon={ShieldCheck}>Free · Open source · AGPLv3</Eyebrow>
             </div>
-            <div className="sp-mono leading-[1.5] mb-[22px]">{heroMeta}</div>
-            <p className="sp-lede text-[17px] leading-[1.6] max-w-[640px] mb-[16px]">
-              Multitrack recording, MIDI, a full mixer, VST3/CLAP/LV2 hosting, graphical pitch editing, local AI
-              generation and stem separation, and a Neural Amp Modeler guitar rig. All of it is in the base app, on
-              Windows, macOS, and Linux.
-            </p>
+            <Frame hero className="sp-home-session" reveal="rise">
+              <ErrorBoundary
+                fallback={<div className="grid h-full place-items-center text-sm text-slate-300">Illustration unavailable</div>}
+              >
+                <LiveSession />
+              </ErrorBoundary>
+            </Frame>
+            <div className="sp-hero-stack__copy" data-sp-reveal="hero">
+              <div className="flex items-center justify-center gap-[16px] flex-wrap mb-[12px]">
+                <DownloadCta />
+                <ArrowLink to={SITE_PATHS.features} tone="plain">
+                  See all features
+                </ArrowLink>
+              </div>
+              <div className="sp-mono leading-[1.5] mb-[22px]">{heroMeta}</div>
+              <p className="sp-lede text-[17px] leading-[1.6] max-w-[640px] mb-[16px]">
+                Multitrack recording, MIDI, a full mixer, VST3/CLAP/LV2 hosting, graphical pitch editing, local AI
+                generation and stem separation, and a Neural Amp Modeler guitar rig. All of it is in the base app, on
+                Windows, macOS, and Linux.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Showcase (dark) */}
       <section className="sp-dark-panel" data-sp-reveal="band">
