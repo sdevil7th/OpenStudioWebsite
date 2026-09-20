@@ -1,18 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { AURA_ORIGIN, observeAuraReadiness } from "@/features/hero-aura/readiness";
 
 const AURA_SCENE = "pastel-abstract-background-soft-glowing-hd-web-designs";
-const AURA_SRC = `https://aura.promad.design/embed/${AURA_SCENE}?theme=light`;
-
-// Measured against the embed: after its `load` event the scene shows a dark ground, then
-// a vivid saturated stage from ~0.8s, and only reaches the soft pastel state ~2.0-2.4s in,
-// settling fully by ~3.5s. The loader-matched placeholder stays up until then, and the
-// slow fade that follows starts only once the scene is already at rest.
-const SCENE_SETTLE_MS = 3500;
+const AURA_SRC = `${AURA_ORIGIN}/embed/${AURA_SCENE}?theme=light`;
 // Cap on waiting for the page's own load and first paint before arming the trigger.
 const PAINT_WAIT_CAP_MS = 4000;
-// The scene is requested on the visitor's first interaction, so it never enters a page
-// speed measurement. A visitor who only reads still gets it after this quiet period.
+// Defer decorative work until interaction or the quiet fallback. Performance
+// measurements must also cover the active scene, not just this initial delay.
 const QUIET_FALLBACK_MS = 10_000;
 const INTERACTION_EVENTS = ["pointermove", "pointerdown", "touchstart", "wheel", "scroll", "keydown"] as const;
 
@@ -79,7 +74,7 @@ const afterPaint = (callback: () => void) => {
 };
 
 /**
- * Full-bleed aura scene behind the home hero, kept out of the page's performance budget.
+ * Full-bleed original Aura scene behind the home hero.
  *
  * The host repeats the intro loader's surface, so the reveal is continuous, and is what
  * prerendering, no-JavaScript and reduced-motion visitors see. The live embed is requested only after the page has
@@ -94,7 +89,6 @@ const HeroAuraBackdrop = () => {
   const [triggered, setTriggered] = useState(false);
   const [active, setActive] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [ready, setReady] = useState(false);
 
   // Hero on screen and the document visible.
   useEffect(() => {
@@ -146,24 +140,36 @@ const HeroAuraBackdrop = () => {
       className="sp-hero-aura__bg"
       data-aura-scene={AURA_SCENE}
       data-playing={showFrame && active ? "true" : "false"}
-      data-ready={showFrame && ready ? "true" : "false"}
       ref={hostRef}
     >
-      {showFrame ? (
-        <iframe
-          className="sp-hero-aura__frame"
-          onLoad={(event) => {
-            const frame = event.currentTarget;
-            window.setTimeout(() => {
-              if (frame.isConnected) setReady(true);
-            }, SCENE_SETTLE_MS);
-          }}
-          src={AURA_SRC}
-          tabIndex={-1}
-          title="Pastel Abstract Background – Soft Glowing HD Web Designs"
-        />
-      ) : null}
+      {showFrame ? <AuraFrame active={active} /> : null}
     </div>
+  );
+};
+
+// Own readiness alongside the iframe: removing it for reduced motion also
+// discards readiness. Scrolling offscreen keeps this same instance mounted.
+const AuraFrame = ({ active }: { active: boolean }) => {
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame || !active || ready || failed) return;
+    return observeAuraReadiness(frame, () => setReady(true), () => setFailed(true));
+  }, [active, ready, failed]);
+
+  if (failed) return null;
+  return (
+    <iframe
+      ref={frameRef}
+      className="sp-hero-aura__frame"
+      data-ready={ready ? "true" : "false"}
+      src={AURA_SRC}
+      tabIndex={-1}
+      title="Pastel Abstract Background – Soft Glowing HD Web Designs"
+    />
   );
 };
 

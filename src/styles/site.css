@@ -301,8 +301,9 @@
     #fcfcff;
 }
 
-/* hidden (not just transparent) whenever the scene is unsettled, offscreen or in a hidden
-   tab, so the embed stops compositing; visibility flips after the fade-out completes */
+/* Hide inactive frames after the fade. An active startup frame must remain
+   renderable at zero opacity: visibility:hidden can suspend its animation frames,
+   preventing both the renderer and its readiness capture from ever completing. */
 .sp-hero-aura__frame {
   position: relative;
   z-index: 1;
@@ -313,12 +314,15 @@
     visibility 0s linear 2400ms;
 }
 
-.sp-hero-aura__bg[data-ready="true"][data-playing="true"] .sp-hero-aura__frame {
-  opacity: 1;
+.sp-hero-aura__bg[data-playing="true"] .sp-hero-aura__frame {
   visibility: visible;
   transition:
     opacity 2400ms ease-in-out,
     visibility 0s;
+}
+
+.sp-hero-aura__bg[data-playing="true"] .sp-hero-aura__frame[data-ready="true"] {
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
