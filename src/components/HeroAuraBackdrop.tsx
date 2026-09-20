@@ -28,8 +28,12 @@ const HeroAuraBackdrop = () => {
     if (!host || !("IntersectionObserver" in window)) return;
     let intersecting = false;
     const update = () => setActive(intersecting && document.visibilityState === "visible");
-    const observer = new IntersectionObserver(([entry]) => {
-      intersecting = entry.isIntersecting;
+    const observer = new IntersectionObserver((entries) => {
+      // A busy main thread can batch the hidden initial layout and its reveal.
+      // Consume every record so an earlier hidden state cannot strand startup.
+      for (const entry of entries) {
+        if (entry.target === host) intersecting = entry.isIntersecting;
+      }
       update();
     });
     observer.observe(host);

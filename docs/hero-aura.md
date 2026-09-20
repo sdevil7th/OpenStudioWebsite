@@ -35,6 +35,9 @@ Neither is revealed. Replies containing malformed, oversized, transparent or dar
 images also leave the fallback in place. A 30-second foreground probe timeout
 removes an unresponsive iframe. Unsupported/changed provider behaviour therefore
 keeps the fallback instead of revealing a browser error or black background.
+The timeout does not automatically retry; a new iframe instance is needed.
+Pixel readiness does not establish a healthy frame rate. There is currently no
+automatic fallback for slow software rendering after the frame has been verified.
 
 After verification, the frame fades in over 650 ms using `ease-in-out`. The same
 duration applies to fade-out and viewport re-entry. The settling period is a
@@ -55,7 +58,11 @@ to the viewport. It does not run indefinitely while offscreen.
 Scrolling away retains the same iframe and its ready state; returning reveals the
 same scene without a reload or repeated startup checks. The host tracks viewport
 intersection and document visibility and hides the frame when inactive. The
-current provider also observes intersection and reduced motion internally.
+observer consumes all queued visibility records in order: under CPU throttling,
+the hidden initial layout and its visible replacement can arrive in one batch.
+Reading only the first record strands startup until another viewport change.
+The browser regression suite explicitly reproduces this batch.
+The current provider also observes intersection and reduced motion internally.
 Chromium checks verify actual animation callbacks stop offscreen and resume on
 return, not merely that the host's `data-playing` attribute changes. CSS visibility
 alone is not a cross-browser pause API, so other engines require live verification.

@@ -27,6 +27,44 @@ addEventListener('message', async event => {
 });
 </script>`;
 
+test("Aura starts when one visibility batch contains hidden then visible records", { timeout: 20_000 }, async () => {
+  const server = await preview({ logLevel: "error", preview: { host: "127.0.0.1", port: 0, strictPort: true } });
+  const browser = await chromium.launch();
+  try {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    await context.route("https://**/*", route => route.abort());
+    await context.route(embed, route => route.fulfill({ contentType: "text/html", body: fixture }));
+    await context.addInitScript(() => {
+      if (window.top !== window) return;
+      localStorage.setItem("openstudio.analytics-consent.v1", JSON.stringify({ choice: "rejected", time: Date.now() }));
+      const NativeObserver = window.IntersectionObserver;
+      window.IntersectionObserver = class extends NativeObserver {
+        constructor(callback, options) {
+          super((entries, observer) => {
+            const latest = entries.at(-1);
+            if (latest?.target.classList.contains("sp-hero-aura__bg")) {
+              // A hidden first layout and the revealed layout can be queued
+              // together while the main thread is busy. Keep their order.
+              window.__auraBatchedVisibility = latest.isIntersecting;
+              callback([{ target: latest.target, isIntersecting: !latest.isIntersecting }, latest], observer);
+            } else callback(entries, observer);
+          }, options);
+        }
+      };
+    });
+    const page = await context.newPage();
+    await page.goto(server.resolvedUrls.local[0]);
+    await page.waitForFunction(() => window.__openstudioAppReady && window.__openstudioIntroHidden && window.__auraBatchedVisibility);
+    await page.locator(selector).waitFor({ state: "attached", timeout: 4000 });
+    assert.equal(await page.locator(".sp-hero-aura__bg").getAttribute("data-playing"), "true");
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForFunction(() => document.querySelector(".sp-hero-aura__bg").dataset.playing === "false");
+  } finally {
+    await browser.close();
+    await new Promise(resolve => server.httpServer.close(resolve));
+  }
+});
+
 test("Aura only reveals a verified frame and preserves its viewport lifecycle", { timeout: 150_000 }, async (t) => {
   const server = await preview({ logLevel: "error", preview: { host: "127.0.0.1", port: 0, strictPort: true } });
   const browser = await chromium.launch();
