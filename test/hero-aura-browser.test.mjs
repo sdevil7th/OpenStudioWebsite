@@ -44,10 +44,8 @@ test("Aura only reveals a verified frame and preserves its viewport lifecycle", 
     return { context, page };
   };
   const activate = async page => {
-    // The idle gate can arm after the initial reveal.
-    await page.waitForTimeout(600);
-    await page.mouse.move(100, 100);
-    await page.locator(selector).waitFor({ state: "attached" });
+    // No input is sent: the scene must start once the page is ready.
+    await page.locator(selector).waitFor({ state: "attached", timeout: 4000 });
     const frame = await (await page.locator(selector).elementHandle()).contentFrame();
     await frame.waitForFunction(() => typeof window.allowed === "boolean");
     return frame;

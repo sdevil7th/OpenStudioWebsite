@@ -5,8 +5,16 @@ embed at `aura.promad.design`, with `theme=light`. No renderer settings, effects
 colours, resolution or frame rate are overridden by the website.
 
 The page renders its existing light fallback before JavaScript. Loading the iframe
-is deferred until interaction or the quiet fallback, and only starts with a visible
-hero in a visible document. Initial reduced motion does not mount the iframe.
+starts automatically after the route-ready and intro-hidden signals, two animation
+frames and an idle opportunity, with a visible hero in a visible document. There
+is no interaction requirement or fixed quiet-period delay. The idle callback has
+a two-second maximum scheduling wait; browsers without that API start after the
+paint frames. Initial reduced motion does not mount the iframe.
+
+The readiness signals describe the rendered page, not every lazy image, optional
+animation engine or third-party network request. On client navigation the mounted
+hero gets its own paint frames even when the initial readiness flags are already
+set. Unmounting or enabling reduced motion cancels pending startup work.
 
 ## Readiness and failure
 
@@ -32,8 +40,8 @@ After verification, the frame fades in over 650 ms using `ease-in-out`. The same
 duration applies to fade-out and viewport re-entry. The settling period is a
 presentation buffer, not proof of readiness; both successful frame checks remain
 required. These shorter timings remove 4.25 seconds of deliberate waiting compared
-with the previous 3.5-second settle and 2.4-second fade. They do not change the
-interaction/10-second quiet startup gate, network time or renderer settings.
+with the previous 3.5-second settle and 2.4-second fade. Network time and renderer
+settings are unchanged. The former interaction/10-second gate has been removed.
 
 Captures use quarter-size output only for the startup check, never for the visible
 animation. The PNG passes between frames inside the browser; the host does not
@@ -63,9 +71,9 @@ slow, dark, unresponsive and successful scenes, stale readiness after preference
 changes, and iframe identity across scrolling. Run `npm run build`, `npm run lint`,
 `npm test` and `npm run verify:perf`.
 
-The initial-load performance gate ends before the deferred iframe starts. Inspect
-the live scene after activation as well; passing that gate does not demonstrate
-low ongoing CPU use. Preserve the approved scene when comparing visuals, including
+The initial-load performance gate can now include the automatically started iframe.
+Inspect the live scene after activation as well; passing the short gate does not
+demonstrate low ongoing CPU use. Preserve the approved scene when comparing visuals, including
 phone, tablet, both sides of the 900 px navigation breakpoint, and desktop, and
 test delayed uncached navigation and reduced motion. Never make CI depend on live
 third-party availability.
