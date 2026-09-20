@@ -310,14 +310,14 @@
   opacity: 0;
   visibility: hidden;
   transition:
-    opacity 2400ms ease-in-out,
-    visibility 0s linear 2400ms;
+    opacity 650ms ease-in-out,
+    visibility 0s linear 650ms;
 }
 
 .sp-hero-aura__bg[data-playing="true"] .sp-hero-aura__frame {
   visibility: visible;
   transition:
-    opacity 2400ms ease-in-out,
+    opacity 650ms ease-in-out,
     visibility 0s;
 }
 

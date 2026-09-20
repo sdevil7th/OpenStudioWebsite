@@ -20,13 +20,20 @@ request ID. This API was inspected and exercised against the live embed on
 standard or a provider-guaranteed readiness contract.
 
 Readiness requires an actual PNG with the opaque, near-white upper centre of this
-specific light scene, followed by another successful check after the original
-3.5-second settling period. The current capture implementation returns black if
+specific light scene, followed by another successful check after a
+1-second settling period. The current capture implementation returns black if
 the lazy canvas is absent/unpainted, and an error if the scene container is absent.
 Neither is revealed. Replies containing malformed, oversized, transparent or dark
 images also leave the fallback in place. A 30-second foreground probe timeout
 removes an unresponsive iframe. Unsupported/changed provider behaviour therefore
 keeps the fallback instead of revealing a browser error or black background.
+
+After verification, the frame fades in over 650 ms using `ease-in-out`. The same
+duration applies to fade-out and viewport re-entry. The settling period is a
+presentation buffer, not proof of readiness; both successful frame checks remain
+required. These shorter timings remove 4.25 seconds of deliberate waiting compared
+with the previous 3.5-second settle and 2.4-second fade. They do not change the
+interaction/10-second quiet startup gate, network time or renderer settings.
 
 Captures use quarter-size output only for the startup check, never for the visible
 animation. The PNG passes between frames inside the browser; the host does not

@@ -1,6 +1,6 @@
 export const AURA_ORIGIN = "https://aura.promad.design";
 
-const SETTLE_MS = 3500;
+const SETTLE_MS = 1000;
 const RESPONSE_TIMEOUT_MS = 4000;
 const LOAD_TIMEOUT_MS = 30_000;
 
