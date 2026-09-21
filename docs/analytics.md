@@ -5,6 +5,15 @@ acceptance. They are not part of the desktop app. Source:
 `src/lib/analytics.ts`, `src/lib/analyticsConsent.ts`, and
 `src/components/PrivacyChoices.tsx`. Policy text lives in `src/data/legal.ts`.
 
+The same choice panel is prerendered into `#openstudio-privacy`, outside the
+temporarily hidden route root. A small pre-paint script uses the shared
+`consentRecord.ts` validator to hide it for an unexpired saved choice. This
+script never loads analytics or grants consent. The client portal replaces the
+inert static panel before paint and keeps router links, focus and choice handlers
+inside the existing app. Without JavaScript, or when initial application loading
+fails, the static panel stays hidden so unusable controls cannot cover legal text.
+The original loader still covers initial non-legal navigation until it finishes.
+
 ## Build configuration
 
 Set these in the hosting provider's **build** environment; Vite embeds them at

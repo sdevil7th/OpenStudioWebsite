@@ -3,7 +3,7 @@
 // Every `useDAWStore` selector is a prop, and the FX chain panel, context menu,
 // native-bridge clip reset, scoped-action executor and grouped wheel handlers
 // are dropped. Markup and Tailwind classes are otherwise kept as-is.
-import { memo } from "react";
+import { createContext, memo, useContext, useMemo } from "react";
 import { ChevronDown, Power } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DawButton } from "./DawButton";
@@ -94,7 +94,23 @@ export interface ChannelStripLiteProps {
   sendCount?: number;
 }
 
-export const ChannelStripLite = memo(function ChannelStripLite({
+const MeterContext = createContext({ level: 0, clipping: false });
+
+const ChannelMeter = ({ isMaster, name }: { isMaster: boolean; name: string }) => {
+  const { level, clipping } = useContext(MeterContext);
+  return isMaster ? <MasterPeakMeterCluster level={level} clipping={clipping} /> : (
+    <PeakMeter level={level} ariaLabel={`${name} meter: audio output`} stereo={true}
+      clipping={clipping} scaleMode="extended" showThresholdLine={true} />
+  );
+};
+
+// Meter values update independently of the much larger control/label subtree.
+export const ChannelStripLite = memo(function ChannelStripLite({ level, clipping = false, ...controls }: ChannelStripLiteProps) {
+  const meter = useMemo(() => ({ level, clipping }), [level, clipping]);
+  return <MeterContext.Provider value={meter}><ChannelStripControls {...controls} /></MeterContext.Provider>;
+});
+
+const ChannelStripControls = memo(function ChannelStripControls({
   name,
   trackIndex,
   color,
@@ -108,13 +124,11 @@ export const ChannelStripLite = memo(function ChannelStripLite({
   armed = false,
   isSelected = false,
   isMaster = false,
-  level,
-  clipping = false,
   mono = false,
   automationRead = true,
   automationWrite = false,
   sendCount = 0,
-}: ChannelStripLiteProps) {
+}: Omit<ChannelStripLiteProps, "level" | "clipping">) {
   const panDisplay = pan === 0 ? "C" : pan > 0 ? `R${Math.round(Math.abs(pan * 100))}` : `L${Math.round(Math.abs(pan * 100))}`;
   const dbMarks = isMaster ? DB_MARKS : DB_MARKS.filter((m) => [12, 0, -12, -48, -60].includes(m.db));
 
@@ -273,18 +287,7 @@ export const ChannelStripLite = memo(function ChannelStripLite({
       {/* Meter + Fader Section */}
       <div className="flex-1 flex gap-0.5 px-1 py-0.5 min-h-0 overflow-hidden">
         <div className="shrink-0 h-full">
-          {isMaster ? (
-            <MasterPeakMeterCluster level={level} clipping={clipping} />
-          ) : (
-            <PeakMeter
-              level={level}
-              ariaLabel={`${name} meter: audio output`}
-              stereo={true}
-              clipping={clipping}
-              scaleMode="extended"
-              showThresholdLine={true}
-            />
-          )}
+          <ChannelMeter isMaster={isMaster} name={name} />
         </div>
 
         <div className={`relative ${CHANNEL_STRIP_DB_LABEL_WIDTH_CLASS} shrink-0 h-full`}>

@@ -58,6 +58,7 @@ export const useStageTimeline = <TState,>(
 
   useEffect(() => {
     if (!animate) {
+      if (scope.current) scope.current.dataset.stagePlaying = "false";
       setState(spec.static());
       return;
     }
@@ -90,6 +91,8 @@ export const useStageTimeline = <TState,>(
 
     const syncPlayback = () => {
       const shouldPlay = pageVisible && isStageAllowed(entry);
+      const playing = String(shouldPlay && Boolean(timeline));
+      if (element.dataset.stagePlaying !== playing) element.dataset.stagePlaying = playing;
       if (!timeline) {
         if (shouldPlay) prepareTimeline();
         return;
@@ -129,8 +132,9 @@ export const useStageTimeline = <TState,>(
       "IntersectionObserver" in window
         ? new IntersectionObserver(
             (entries) => {
-              const visible = entries.find((item) => item.target === element);
-              if (visible) updateStageRatio(entry, visible.isIntersecting ? Math.max(visible.intersectionRatio, 0.01) : 0);
+              for (const visible of entries) {
+                if (visible.target === element) updateStageRatio(entry, visible.isIntersecting ? Math.max(visible.intersectionRatio, 0.01) : 0);
+              }
             },
             { threshold: [0, 0.05, 0.25, 0.5, 0.75, 1] },
           )
@@ -166,6 +170,7 @@ export const useStageTimeline = <TState,>(
       document.removeEventListener("visibilitychange", onVisibility);
       unregister();
       timeline?.kill();
+      element.dataset.stagePlaying = "false";
     };
   }, [animate, scope, spec, startDelay, fps, priority]);
 
