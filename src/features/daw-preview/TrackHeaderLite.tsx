@@ -5,7 +5,7 @@
 // dropped. The control row wraps exactly like upstream's TCP (a flex-wrap
 // row that the lane height clips), at a 20 px density so two rows fit the
 // 48 px lanes of a 640 px stage.
-import { memo } from "react";
+import { createContext, memo, useContext } from "react";
 import { Power, StickyNote, Volume2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DawButton } from "./DawButton";
@@ -103,7 +103,28 @@ export interface TrackHeaderLiteProps {
 /** Meter gradient thresholds from upstream getMeterColor(). */
 const meterColor = (dbNorm: number) => (dbNorm > 0.92 ? "#ef4444" : dbNorm > 0.85 ? "#facc15" : "#16a34a");
 
-export const TrackHeaderLite = memo(function TrackHeaderLite({
+const ActivityContext = createContext(0);
+const TrackActivity = ({ type }: { type: TrackType }) => {
+  const level = useContext(ActivityContext);
+  const dbNorm = level > 0.001 ? Math.max(0, (20 * Math.log10(level) + 60) / 72) : 0;
+  return (
+    <div className="w-2 pt-1 bg-neutral-900 flex flex-col-reverse border-l border-neutral-800 shrink-0 mr-1" data-meter-source={type === "audio" ? "audio_output" : "midi_input"}>
+      <div
+        className="w-full"
+        style={{
+          height: `${Math.min(100, dbNorm * 100)}%`,
+          background: type === "audio" ? meterColor(dbNorm) : "linear-gradient(to top, #22d3ee, #a5f3fc)",
+        }}
+      />
+    </div>
+  );
+};
+
+export const TrackHeaderLite = memo(function TrackHeaderLite({ level = 0, ...controls }: TrackHeaderLiteProps) {
+  return <ActivityContext.Provider value={level}><TrackControls {...controls} /></ActivityContext.Provider>;
+});
+
+const TrackControls = memo(function TrackControls({
   name,
   color,
   type = "audio",
@@ -117,11 +138,9 @@ export const TrackHeaderLite = memo(function TrackHeaderLite({
   soloed = false,
   armed = false,
   selected = false,
-  level = 0,
   height,
   entering = false,
-}: TrackHeaderLiteProps) {
-  const dbNorm = level > 0.001 ? Math.max(0, (20 * Math.log10(level) + 60) / 72) : 0;
+}: Omit<TrackHeaderLiteProps, "level">) {
   const twoRows = height >= TWO_ROW_LANE_HEIGHT;
   const typeLabel = type === "audio" ? "Audio" : type === "midi" ? "MIDI" : "Instrument";
 
@@ -189,15 +208,7 @@ export const TrackHeaderLite = memo(function TrackHeaderLite({
         {/* Right side: vertical activity meter. Upstream pulses this while an
             armed track has signal and eases it over 75 ms; the stage feeds it
             every frame, so both read as flicker and are left out. */}
-        <div className="w-2 pt-1 bg-neutral-900 flex flex-col-reverse border-l border-neutral-800 shrink-0 mr-1" data-meter-source={type === "audio" ? "audio_output" : "midi_input"}>
-          <div
-            className="w-full"
-            style={{
-              height: `${Math.min(100, dbNorm * 100)}%`,
-              background: type === "audio" ? meterColor(dbNorm) : "linear-gradient(to top, #22d3ee, #a5f3fc)",
-            }}
-          />
-        </div>
+        <TrackActivity type={type} />
       </div>
     </div>
   );

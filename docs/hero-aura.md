@@ -1,0 +1,86 @@
+# Home hero Aura lifecycle
+
+The hero retains the original `pastel-abstract-background-soft-glowing-hd-web-designs`
+embed at `aura.promad.design`, with `theme=light`. No renderer settings, effects,
+colours, resolution or frame rate are overridden by the website.
+
+The page renders its existing light fallback before JavaScript. Loading the iframe
+starts automatically after the route-ready and intro-hidden signals, two animation
+frames and an idle opportunity, with a visible hero in a visible document. There
+is no interaction requirement or fixed quiet-period delay. The idle callback has
+a two-second maximum scheduling wait; browsers without that API start after the
+paint frames. Initial reduced motion does not mount the iframe.
+
+The readiness signals describe the rendered page, not every lazy image, optional
+animation engine or third-party network request. On client navigation the mounted
+hero gets its own paint frames even when the initial readiness flags are already
+set. Unmounting or enabling reduced motion cancels pending startup work.
+
+## Readiness and failure
+
+An iframe's load event cannot confirm that the asynchronous scene request or lazy
+renderer succeeded, and is not used to trigger readiness. Active startup frames
+remain renderable at zero opacity: `visibility:hidden` can suspend frame callbacks
+in a visible browser and deadlock readiness. The host uses the provider's existing `promad-aura:capture`
+message API and validates replies against the exact origin, iframe window and
+request ID. This API was inspected and exercised against the live embed on
+20 September 2026. It is an external, unversioned integration; it is not a web
+standard or a provider-guaranteed readiness contract.
+
+Readiness requires an actual PNG with the opaque, near-white upper centre of this
+specific light scene, followed by another successful check after a
+1-second settling period. The current capture implementation returns black if
+the lazy canvas is absent/unpainted, and an error if the scene container is absent.
+Neither is revealed. Replies containing malformed, oversized, transparent or dark
+images also leave the fallback in place. A 30-second foreground probe timeout
+removes an unresponsive iframe. Unsupported/changed provider behaviour therefore
+keeps the fallback instead of revealing a browser error or black background.
+The timeout does not automatically retry; a new iframe instance is needed.
+Pixel readiness does not establish a healthy frame rate. There is currently no
+automatic fallback for slow software rendering after the frame has been verified.
+
+After verification, the frame fades in over 650 ms using `ease-in-out`. The same
+duration applies to fade-out and viewport re-entry. The settling period is a
+presentation buffer, not proof of readiness; both successful frame checks remain
+required. These shorter timings remove 4.25 seconds of deliberate waiting compared
+with the previous 3.5-second settle and 2.4-second fade. Network time and renderer
+settings are unchanged. The former interaction/10-second gate has been removed.
+
+Captures use quarter-size output only for the startup check, never for the visible
+animation. The PNG passes between frames inside the browser; the host does not
+upload it or invoke a Netlify function. This adds the provider's capture helper download and a small amount of
+startup work. Probes stop after readiness, while offscreen, in a hidden tab, on
+reduced motion, and on unmount. The timeout restarts if an unfinished scene returns
+to the viewport. It does not run indefinitely while offscreen.
+
+## Pause and resume
+
+Scrolling away retains the same iframe and its ready state; returning reveals the
+same scene without a reload or repeated startup checks. The host tracks viewport
+intersection and document visibility and hides the frame when inactive. The
+observer consumes all queued visibility records in order: under CPU throttling,
+the hidden initial layout and its visible replacement can arrive in one batch.
+Reading only the first record strands startup until another viewport change.
+The browser regression suite explicitly reproduces this batch.
+The current provider also observes intersection and reduced motion internally.
+Chromium checks verify actual animation callbacks stop offscreen and resume on
+return, not merely that the host's `data-playing` attribute changes. CSS visibility
+alone is not a cross-browser pause API, so other engines require live verification.
+
+Changing the OS reduced-motion preference removes the iframe. Re-enabling motion
+creates a new component instance with fresh readiness and cancelled old probes.
+This accessibility preference is separate from ordinary viewport pause/resume.
+
+## Verification
+
+`test/hero-aura-browser.test.mjs` exercises the cross-origin protocol with controlled
+slow, dark, unresponsive and successful scenes, stale readiness after preference
+changes, and iframe identity across scrolling. Run `npm run build`, `npm run lint`,
+`npm test` and `npm run verify:perf`.
+
+The initial-load performance gate can now include the automatically started iframe.
+Inspect the live scene after activation as well; passing the short gate does not
+demonstrate low ongoing CPU use. Preserve the approved scene when comparing visuals, including
+phone, tablet, both sides of the 900 px navigation breakpoint, and desktop, and
+test delayed uncached navigation and reduced motion. Never make CI depend on live
+third-party availability.

@@ -58,7 +58,7 @@ test("production loader artwork and AI layouts", { timeout: 120_000 }, async (t)
     const newContext = async (options) => {
       const context = await browser.newContext(options);
       await context.route("https://**/*", (route) => route.abort());
-      await context.addInitScript(() => localStorage.setItem(
+      await context.addInitScript(() => window.top === window && localStorage.setItem(
         "openstudio.analytics-consent.v1", JSON.stringify({ choice: "rejected", time: Date.now() }),
       ));
       return context;

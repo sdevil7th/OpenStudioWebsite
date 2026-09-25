@@ -17,6 +17,7 @@ What the script changes on the way in:
 
 | File | Change |
 |---|---|
+| `PeakMeter.tsx` | drawing is unchanged; the local meter scheduler gates frame callbacks by canvas intersection, stage playback, tab visibility and reduced motion, retaining the canvas and peak-hold time while paused |
 | `NAMRackControlAssets.ts` | `new URL(../assets/…, import.meta.url)` → `/assets/openstudio/nam/controls/…` public paths; frame size 192 → 96 px |
 | `NAMRackKnob.tsx` | store-bound imports (`services/NativeBridge`, `utils/builtInParamValue`, `utils/parameterWheel`) → `./stubs/*` |
 | `stubs/builtInParamValue.ts` | same import rewrite |

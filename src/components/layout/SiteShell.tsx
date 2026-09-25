@@ -1,7 +1,7 @@
 import { useCallback, useContext, useState, type ReactNode } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { StaticRenderContext } from "@/lib/staticRender";
-import PrivacyChoices from "@/components/PrivacyChoices";
+import PrivacyChoicesPortal from "@/components/PrivacyChoicesPortal";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { IconGradientDefs } from "@/components/ui/primitives";
 import { useHashScroll } from "@/hooks/useHashScroll";
@@ -34,7 +34,7 @@ const SiteShell = () => {
           </ErrorBoundary>
         </main>
         <SiteFooter lead={footerLead} />
-        {staticRender ? null : <PrivacyChoices />}
+        {staticRender ? null : <PrivacyChoicesPortal />}
       </div>
     </FooterLeadContext.Provider>
   );

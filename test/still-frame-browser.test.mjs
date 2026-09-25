@@ -22,7 +22,7 @@ test("illustrations keep the same rendered frame while the animation engine load
             await pending;
             await route.continue().catch(() => undefined);
           });
-          await context.addInitScript(() => localStorage.setItem(
+          await context.addInitScript(() => window.top === window && localStorage.setItem(
             "openstudio.analytics-consent.v1", JSON.stringify({ choice: "rejected", time: Date.now() }),
           ));
           const page = await context.newPage();

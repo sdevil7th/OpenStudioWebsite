@@ -25,6 +25,17 @@ their bandwidth without fixing the scene change.
 
 ## Current implementation
 
+- Meter canvases use `stage/meterPlayback.ts` in addition to the GSAP gate.
+  Each canvas must intersect the viewport and the document must be visible;
+  continuous drawing also requires an active stage and normal motion. Pauses
+  retain the canvas, RMS smoothing and peak-hold time. Visible static/reduced-motion
+  meters receive a rest-frame paint, including after resizing, without a loop.
+  The upstream drawing code and 20 fps limit are unchanged; the integration is a
+  reproducible patch in `scripts/vendor-openstudio-ui.mjs`.
+- Track activity and mixer meters update through local contexts so unchanged
+  labels/controls skip React rendering. Clip artwork has a separate memoized
+  boundary whose props exclude playhead time and continuously changing levels.
+  Choreography, styles and the 30 fps timeline commit rate are unchanged.
 - Each lazy route imports the renderers it uses. Home, Features, AI and NAM Rack
   render their real controls and scene in the rest state. There is no temporary
   screenshot, bitmap crossfade or second scene to replace it.
