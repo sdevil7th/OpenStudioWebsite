@@ -62,10 +62,12 @@ observer consumes all queued visibility records in order: under CPU throttling,
 the hidden initial layout and its visible replacement can arrive in one batch.
 Reading only the first record strands startup until another viewport change.
 The browser regression suite explicitly reproduces this batch.
-The current provider also observes intersection and reduced motion internally.
-Chromium checks verify actual animation callbacks stop offscreen and resume on
-return, not merely that the host's `data-playing` attribute changes. CSS visibility
-alone is not a cross-browser pause API, so other engines require live verification.
+The provider also observes intersection and reduced motion internally. On
+30 September 2026 its OffscreenCanvas worker stopped drawing offscreen but kept
+requesting animation callbacks. Those are separate guarantees: a hidden host or
+an idle iframe main thread does not prove that a worker has stopped. CSS visibility
+alone is not a cross-browser pause API. The live check below measures worker
+callbacks and paint calls independently and verifies resume with the same iframe.
 
 Changing the OS reduced-motion preference removes the iframe. Re-enabling motion
 creates a new component instance with fresh readiness and cancelled old probes.
@@ -84,3 +86,82 @@ demonstrate low ongoing CPU use. Preserve the approved scene when comparing visu
 phone, tablet, both sides of the 900 px navigation breakpoint, and desktop, and
 test delayed uncached navigation and reduced motion. Never make CI depend on live
 third-party availability.
+
+## Rendering cost and frame rates
+
+The live Aura iframe and original scene remain intact. A 60 fps background is not
+an acceptance criterion; the goal is less rendering work with usable page controls
+and readable animation. The embed interface inspected on 30 September 2026 has
+theme/input/capture options and a capture message protocol, but no verified
+frame-rate setting. React's internal `forceFrameRate` symbol in the bundle is not
+an embed API. Do not invent an `fps` query parameter, send unsupported messages,
+or repeatedly hide/reload the iframe to simulate a cap. A provider-side frame cap
+requires a supported Aura interface or a provider change.
+
+The website reduces its competing work instead: the hero DAW commits at most
+20 ordinary state snapshots per second (down from 30), with real-time GSAP
+choreography and forced boundary updates unchanged. Meter schedulers sleep between
+their approximately 20 Hz paints rather than running a callback every display
+refresh just to return from the meter's draw throttle. Offscreen/hidden meters
+cancel both pending timers and frame callbacks; reduced motion and resize still
+paint a rest frame. These changes do not set Aura's frame rate.
+
+## Live worker check
+
+Build once, then run the opt-in check (Chromium and internet access required):
+
+```sh
+npm run verify:aura-live -- --json output/review/aura-desktop.json
+npm run verify:aura-live -- --mobile --json output/review/aura-mobile.json
+npm run verify:aura-live -- --headed --json output/review/aura-tabs.json
+npm run verify:aura-live -- --url https://deploy-preview-24--openstudiowebsite.netlify.app/ --json output/review/aura-preview.json
+```
+
+Without `--url`, the command starts and closes its own production preview. It
+excludes Netlify's review toolbar, rejects optional analytics, waits for scene
+readiness, and samples visible, offscreen and resumed work. JSON records parent
+callback counts and task/script/layout time, plus each Aura worker's callback
+counts, callback duration and Canvas2D paint calls. Parent-task CPU slowdown is
+2x desktop / 4x mobile; cross-origin workers do not necessarily inherit it. There
+is no FPS threshold. Compare repeated runs with matching browser/device settings;
+do not equate parent callback counts with displayed frames or sum parent task time
+and script time (script time is included in task time).
+
+The script requests normal focus behavior on both tabs, attempts a real tab
+switch and checks `document.visibilityState`. Automation can keep both tabs
+visible, including in headed Chromium: that produces an explicit `unverified`
+result, not a fabricated success. `--headed` allows a visible-browser attempt but
+does not guarantee a visibility transition. If it remains unverified, native
+browser verification is still required. Changing only the parent's visibility
+property would not hide its cross-origin child and is not a valid substitute. A new provider renderer
+without the observed worker causes this check to fail until its instrumentation
+is updated. It is intentionally separate from deterministic offline CI tests.
+
+## 30 September 2026 measurements
+
+Compared the PR's `a19b045` code with these scheduling changes, using the same
+local production build setup and live Aura provider. Averages below use three
+active samples per run (initial, resumed and foreground), normalized to three
+seconds. These are lab observations, not field metrics or an FPS requirement.
+
+| Parent-page work per three seconds | PR baseline | Updated |
+| --- | ---: | ---: |
+| Desktop animation callbacks | 1,442 | 505 |
+| Desktop main-thread task time | 616 ms | 445 ms |
+| Mobile-profile animation callbacks | 1,436 | 500 |
+| Mobile-profile main-thread task time | 1,521 ms | 960 ms |
+
+A second updated desktop run reproduced the reduction. The live worker kept
+drawing while visible and stopped painting offscreen; its idle callback loop
+remained. One mobile attempt timed out waiting for provider readiness and its
+retry passed; a successful local build does not guarantee third-party availability.
+Real background-tab worker behavior remains unverified: both headed and headless
+automation kept the document visible. Offscreen results do not establish that
+separate behavior. Build, lint, all 223 tests and the ten-case loading matrix
+passed. Visual checks covered 390, 768, 900, 901 and 1440 px, including initial
+loading, reduced motion and delayed uncached navigation.
+The baseline and updated reports are under ignored
+`output/review/aura-performance/`, including `comparison.json`. The existing
+ten-case loading matrix retained its original budgets. Full Chromium is used
+by the worker check; do not compare its absolute rendering rates with measurements
+from Chromium's legacy headless shell or claim a provider frame-rate change.
