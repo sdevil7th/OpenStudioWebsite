@@ -137,11 +137,22 @@ that correction. The real-provider verifier must pass before marking it resolved
 
 ## 1 October 2026 PR #24 verification
 
-The production command `npm run verify:analytics -- --url https://openstudio.org.in`
-still failed the exactly-one-page-view check: the initial `/privacy` view was
+The first production run of `npm run verify:analytics -- --url https://openstudio.org.in`
+failed the exactly-one-page-view check: the initial `/privacy` view was
 followed by two views for each `/docs`, `/download` and Back-to-`/docs` navigation.
-Provider uploads were intercepted by the verifier. The local consent/parser and
-privacy-portal regressions passed, but those tests cannot clear this external
-check. Confirm that the website stream's Enhanced measurement history page views
-are disabled, then rerun the command before marking the analytics issue resolved.
-Evidence is in ignored `output/review/pr24-merge-readiness/analytics-live.log`.
+The OpenStudio Website stream's measurement ID was matched against the production
+JavaScript bundle. **Page changes based on browser history events** was enabled;
+it was turned off, saved and confirmed off in the reopened settings. Other
+Enhanced Measurement options remain enabled. This account correction takes effect
+without deploying application code.
+
+Fresh desktop and mobile runs of the commands above then **passed**: each produced
+exactly four page views (`/privacy`, `/docs`, `/download`, Back-to-`/docs`) and three
+installer click events, with correct referrers and engagement attribution. Both
+confirmed no provider requests before consent and real Clarity upload generation.
+Provider uploads were intercepted, so these checks did not add synthetic traffic
+to reports. The duplicate history page-view issue is resolved for these live
+client checks; dashboard ingestion is outside their scope.
+
+Evidence is in ignored `output/review/pr24-merge-readiness/analytics-live.log`
+(before), `analytics-fixed-desktop.log` and `analytics-fixed-mobile.log` (after).

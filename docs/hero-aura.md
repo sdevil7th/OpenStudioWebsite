@@ -222,5 +222,7 @@ The final reviewed implementation passed build, lint, all 222 tests and the
 ten-case loading matrix with unchanged budgets. Visual checks covered 390, 768,
 900, 901 and 1440 px, normal initial loading, delayed uncached navigation and
 reduced motion. The new privacy text was also inspected with JavaScript disabled.
-The live analytics check has a separate outstanding account/configuration issue
-recorded in [analytics verification](analytics.md#1-october-2026-pr-24-verification).
+The separate GA4 account configuration issue was corrected on 1 October 2026:
+automatic history page views were disabled, and the production live verifier
+passed on desktop and mobile. See
+[analytics verification](analytics.md#1-october-2026-pr-24-verification).
