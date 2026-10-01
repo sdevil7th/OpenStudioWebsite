@@ -134,3 +134,14 @@ that mixed `/privacy` metadata with `/docs` as its URL. Code now preserves page
 context and regression coverage includes the mismatch. Disabling history page
 views is a separate GA account change; a code deployment alone does not complete
 that correction. The real-provider verifier must pass before marking it resolved.
+
+## 1 October 2026 PR #24 verification
+
+The production command `npm run verify:analytics -- --url https://openstudio.org.in`
+still failed the exactly-one-page-view check: the initial `/privacy` view was
+followed by two views for each `/docs`, `/download` and Back-to-`/docs` navigation.
+Provider uploads were intercepted by the verifier. The local consent/parser and
+privacy-portal regressions passed, but those tests cannot clear this external
+check. Confirm that the website stream's Enhanced measurement history page views
+are disabled, then rerun the command before marking the analytics issue resolved.
+Evidence is in ignored `output/review/pr24-merge-readiness/analytics-live.log`.

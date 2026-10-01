@@ -94,6 +94,10 @@ test("Aura only reveals a verified frame and preserves its viewport lifecycle", 
       const { context, page } = await open();
       try {
         const frame = await activate(page);
+        assert.equal(await page.locator(selector).getAttribute("sandbox"), "allow-scripts allow-same-origin");
+        assert.equal(await frame.evaluate(() => document.referrer), "", "the decoration receives no parent referrer");
+        assert.equal(await frame.evaluate(() => window.open("https://example.com")), null,
+          "the decorative iframe cannot open popups");
         assert.deepEqual(await page.locator(selector).evaluate(e=>({visibility:getComputedStyle(e).visibility,opacity:getComputedStyle(e).opacity})),
           {visibility:"visible",opacity:"0"}, "startup stays renderable but transparent until a frame is verified");
         await frame.waitForFunction(() => window.firstRequest !== null);

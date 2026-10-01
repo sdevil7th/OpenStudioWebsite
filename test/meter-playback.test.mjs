@@ -9,8 +9,8 @@ const source = ts.transpileModule(readFileSync(new URL("../src/features/daw-prev
 }).outputText;
 
 function harness() {
-  let time = 0, id = 0, callbacks = 0;
-  const timers = new Map(), frames = new Map(), observers = {};
+  let time = 0, id = 0;
+  const frames = new Map(), observers = {};
   const document = Object.assign(new EventTarget(), { visibilityState: "visible" });
   const motion = Object.assign(new EventTarget(), { matches: false });
   const stage = { dataset: { stagePlaying: "true" } };
@@ -22,8 +22,6 @@ function harness() {
   };
   const window = {
     matchMedia: () => motion,
-    setTimeout: (callback, delay) => { const key = ++id; timers.set(key, { callback, due: time + delay }); return key; },
-    clearTimeout: key => timers.delete(key),
     IntersectionObserver: true,
   };
   const exports = {};
@@ -37,35 +35,24 @@ function harness() {
   const dispose = exports.startMeterPlayback(canvas, t => draws.push(t));
   const visible = value => observers.intersection([{ target: canvas, isIntersecting: value }]);
   return {
-    draws, dispose, document, motion, timers, frames, stage, observers, visible,
-    get callbacks() { return callbacks; },
+    draws, dispose, document, motion, frames, stage, observers, visible,
     advance(ms, hz = 240) {
       const end = time + ms;
       while (time < end) {
         time = Math.min(end, time + 1000 / hz);
-        for (const [key, timer] of [...timers]) if (timer.due <= time) { timers.delete(key); timer.callback(); }
-        for (const [key, callback] of [...frames]) { frames.delete(key); callbacks++; callback(time); }
+        for (const [key, callback] of [...frames]) { frames.delete(key); callback(time); }
       }
     },
   };
 }
-
-test("meter scheduler sleeps between paints even on a 240 Hz display", () => {
-  const h = harness();
-  h.visible(true); h.advance(1000);
-  assert.ok(h.draws.length >= 17 && h.draws.length <= 21, `got ${h.draws.length} paints`);
-  assert.equal(h.callbacks, h.draws.length, "no per-refresh callbacks that only fail the draw throttle");
-  h.dispose();
-  assert.equal(h.frames.size + h.timers.size, 0);
-});
 
 test("pausing cancels pending wake-ups and excludes hidden time from peak decay", () => {
   const h = harness(); h.visible(true); h.advance(100);
   const count = h.draws.length, last = h.draws.at(-1);
   h.visible(false); h.advance(5000);
   assert.equal(h.draws.length, count);
-  assert.equal(h.frames.size + h.timers.size, 0);
-  h.visible(true); h.advance(5);
+  assert.equal(h.frames.size, 0);
+  h.visible(true); h.advance(1000 / 240);
   assert.equal(h.draws.at(-1), last + 50, "resume doesn't include the hidden five seconds");
   h.document.visibilityState = "hidden"; h.document.dispatchEvent(new Event("visibilitychange"));
   h.advance(1000);
@@ -80,7 +67,7 @@ test("reduced motion and a stopped stage paint one rest frame, including resize"
     else { h.stage.dataset.stagePlaying = "false"; h.observers.stage(); }
     const before = h.draws.length; h.advance(1000);
     assert.equal(h.draws.length, before + 1);
-    assert.equal(h.frames.size + h.timers.size, 0);
+    assert.equal(h.frames.size, 0);
     h.observers.resize(); h.advance(100);
     assert.equal(h.draws.length, before + 2);
     h.dispose(); h.advance(1000);

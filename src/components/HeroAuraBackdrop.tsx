@@ -89,6 +89,8 @@ const AuraFrame = ({ active }: { active: boolean }) => {
       className="sp-hero-aura__frame"
       data-ready={ready ? "true" : "false"}
       src={AURA_SRC}
+      sandbox="allow-scripts allow-same-origin"
+      referrerPolicy="no-referrer"
       tabIndex={-1}
       title="Pastel Abstract Background – Soft Glowing HD Web Designs"
     />

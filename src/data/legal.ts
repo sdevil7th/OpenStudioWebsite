@@ -38,10 +38,10 @@ export const privacyDocument: LegalDocument = {
     description:
       "How OpenStudio handles local audio and projects, TONE3000 login, optional AI downloads, website analytics, privacy choices and deletion requests.",
     path: "/privacy",
-    lastModified: "2026-09-10",
+    lastModified: "2026-10-01",
   },
   facts: [
-    { label: "Last updated", value: "September 10, 2026" },
+    { label: "Last updated", value: "October 1, 2026" },
     { label: "Maintainer", value: "Sourav Das" },
     { label: "Desktop analytics", value: "No Google Analytics or Microsoft Clarity integration" },
     { label: "Privacy contact", value: projectEmails.support },
@@ -81,6 +81,13 @@ export const privacyDocument: LegalDocument = {
       paragraphs: [
         "Update checks and downloads contact the relevant distribution provider, such as openstudio.org.in, GitHub or Microsoft Store. These services receive IP addresses, requested URLs and other normal HTTP connection information. The purpose is to deliver version information and software, not to upload your audio or project contents. Update controls depend on the installed distribution and your operating system settings.",
         "The website is hosted using Netlify and links to GitHub release assets. Hosting and download providers may keep request logs, including IP addresses, browser/user-agent information, referrers, requested pages and timestamps, to deliver content, diagnose failures and protect infrastructure. Those essential requests occur even when website analytics are rejected.",
+      ],
+    },
+    {
+      title: "Homepage animation and third-party resources",
+      paragraphs: [
+        "The homepage loads a decorative animation from Aura at aura.promad.design after the page is ready and the hero is visible. This happens automatically, including when website analytics are rejected. With reduced motion enabled before the page loads, the animation is not requested; enabling reduced motion later removes it.",
+        "The embedded scene can request its assets from Aura, Supabase and Google Fonts. Those services receive ordinary connection information, including your IP address and browser information, to deliver their resources. The website sends no parent-page referrer with the iframe request. Rejecting analytics controls our Google Analytics and Microsoft Clarity integrations; it does not prevent these decoration requests. The third-party services have their own data-handling practices.",
       ],
     },
     {

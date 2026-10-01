@@ -4,6 +4,13 @@ The hero retains the original `pastel-abstract-background-soft-glowing-hd-web-de
 embed at `aura.promad.design`, with `theme=light`. No renderer settings, effects,
 colours, resolution or frame rate are overridden by the website.
 
+The cross-origin iframe is sandboxed with only `allow-scripts allow-same-origin`,
+which permits the renderer, worker and origin-checked readiness messages without
+allowing popups, forms, downloads or top-level navigation. Its `no-referrer` policy
+omits the parent referrer from the embed request. This does not block the provider's
+own resource requests or storage. The shared privacy policy describes the observed
+Aura, Supabase and Google Fonts requests, including after analytics rejection.
+
 The page renders its existing light fallback before JavaScript. Loading the iframe
 starts automatically after the route-ready and intro-hidden signals, two animation
 frames and an idle opportunity, with a visible hero in a visible document. There
@@ -100,11 +107,11 @@ requires a supported Aura interface or a provider change.
 
 The website reduces its competing work instead: the hero DAW commits at most
 20 ordinary state snapshots per second (down from 30), with real-time GSAP
-choreography and forced boundary updates unchanged. Meter schedulers sleep between
-their approximately 20 Hz paints rather than running a callback every display
-refresh just to return from the meter's draw throttle. Offscreen/hidden meters
-cancel both pending timers and frame callbacks; reduced motion and resize still
-paint a rest frame. These changes do not set Aura's frame rate.
+choreography and forced boundary updates unchanged. Meters retain the upstream
+approximately 20 Hz draw throttle, gated by canvas visibility, stage playback and
+document visibility. Reduced motion and resize still paint a rest frame. These
+changes do not set Aura's frame rate. The experimental sleeping meter scheduler
+was removed after the 1 October comparison below found no independent CPU saving.
 
 ## Live worker check
 
@@ -114,7 +121,7 @@ Build once, then run the opt-in check (Chromium and internet access required):
 npm run verify:aura-live -- --json output/review/aura-desktop.json
 npm run verify:aura-live -- --mobile --json output/review/aura-mobile.json
 npm run verify:aura-live -- --headed --json output/review/aura-tabs.json
-npm run verify:aura-live -- --url https://deploy-preview-24--openstudiowebsite.netlify.app/ --json output/review/aura-preview.json
+npm run verify:aura-live -- --url https://deploy-preview-24--openstudiodev.netlify.app/ --json output/review/aura-preview.json
 ```
 
 Without `--url`, the command starts and closes its own production preview. It
@@ -139,7 +146,8 @@ is updated. It is intentionally separate from deterministic offline CI tests.
 
 ## 30 September 2026 measurements
 
-Compared the PR's `a19b045` code with these scheduling changes, using the same
+Compared the PR's `a19b045` code with the then-experimental timer and 20 fps
+scheduling changes, using the same
 local production build setup and live Aura provider. Averages below use three
 active samples per run (initial, resumed and foreground), normalized to three
 seconds. These are lab observations, not field metrics or an FPS requirement.
@@ -165,3 +173,54 @@ The baseline and updated reports are under ignored
 ten-case loading matrix retained its original budgets. Full Chromium is used
 by the worker check; do not compare its absolute rendering rates with measurements
 from Chromium's legacy headless shell or claim a provider frame-rate change.
+
+## 1 October 2026 review and isolated comparison
+
+PR #24 uses `supro/aura-header` against `develop`. The original
+`openstudiowebsite` preview stopped at `a19b045`; the active Netlify checks publish
+to `deploy-preview-24--openstudiodev.netlify.app`. Check the deployment's commit
+before comparing results. The PR retains the Aura iframe.
+
+Four production client builds isolated the two scheduling changes against
+`a19b045`: baseline, sleeping meters only, 20 fps DAW snapshots only, and both.
+All four used the same remaining source, including the sandbox and referrer
+policy. Full Chromium 147.0.7727.15 ran fresh contexts sequentially, in forward
+and reverse orders, with 2x parent CPU slowdown at 1440 × 900. Each 16.1-second
+sample covered a complete 16-second DAW loop after live scene readiness. No other
+build or browser test ran during measurement.
+
+| Desktop variant (two runs each) | Parent task time / second | Parent callbacks / second |
+| --- | ---: | ---: |
+| Baseline | 151.5 ms | 480.2 |
+| Sleeping meters only | 155.8 ms | 167.5 |
+| 20 fps DAW only | 130.9 ms | 480.2 |
+| Both | 129.1 ms | 167.8 |
+
+The meter timer alone removed callbacks but did not reduce measured CPU time.
+It also reduced meter paint cadence. The small additional saving when combined
+with the DAW cap did not justify its extra timer lifecycle, so that experiment was
+removed. The original frame-based meter scheduler and upstream draw throttle
+remain, including offscreen/stage/hidden-document gates. Regression tests retain
+coverage for pause, elapsed-time preservation, reduced motion, resize and cleanup.
+
+The retained 20 fps DAW cap reduced desktop parent task time by about 14% in this
+comparison. All successful variants measured approximately 60 fps parent cadence;
+that is an observation, not a requirement or a claim about presented GPU frames.
+These figures do not establish faster loading, field INP or battery savings.
+Mobile evidence at 390 × 844 / 4x CPU was less conclusive: only one of two attempts
+for each changed variant reached readiness; both baseline attempts succeeded.
+One successful DAW-only sample showed lower task time, but that is insufficient
+for a stable mobile improvement estimate. The live provider remains a dependency
+with a tested static fallback on failure.
+
+The ignored `output/review/pr24-merge-readiness/` directory contains the variant
+build/measurement scripts, raw results and `variants-summary.json`. These dated
+measurements supersede using callback reductions alone as evidence of an overall
+performance improvement. Real hidden-tab worker behavior remains unverified.
+
+The final reviewed implementation passed build, lint, all 222 tests and the
+ten-case loading matrix with unchanged budgets. Visual checks covered 390, 768,
+900, 901 and 1440 px, normal initial loading, delayed uncached navigation and
+reduced motion. The new privacy text was also inspected with JavaScript disabled.
+The live analytics check has a separate outstanding account/configuration issue
+recorded in [analytics verification](analytics.md#1-october-2026-pr-24-verification).
