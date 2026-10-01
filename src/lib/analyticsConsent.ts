@@ -1,7 +1,8 @@
+import { CONSENT_KEY, CONSENT_MAX_AGE_MS, parseConsentRecord } from "./consentRecord";
 export const CONSENT_EVENT = "openstudio:analytics-consent";
 export const PRIVACY_CHOICES_EVENT = "openstudio:privacy-choices";
-const KEY = "openstudio.analytics-consent.v1";
-const MAX_AGE_MS = 180 * 24 * 60 * 60 * 1000;
+const KEY = CONSENT_KEY;
+const MAX_AGE_MS = CONSENT_MAX_AGE_MS;
 // Browsers overflow longer timeout delays, so renew the timer for distant expiry.
 const MAX_TIMEOUT_MS = 2 ** 31 - 1;
 export type AnalyticsConsent = "accepted" | "rejected" | null;
@@ -11,16 +12,7 @@ function readStoredConsent(): { choice: Exclude<AnalyticsConsent, null>; time: n
   if (typeof window === "undefined") return null;
 
   try {
-    const record = JSON.parse(window.localStorage.getItem(KEY) ?? "null");
-    if (
-      record &&
-      (record.choice === "accepted" || record.choice === "rejected") &&
-      Number.isFinite(record.time) &&
-      Date.now() >= record.time &&
-      Date.now() - record.time < MAX_AGE_MS
-    ) {
-      return record;
-    }
+    return parseConsentRecord(window.localStorage.getItem(KEY), Date.now(), MAX_AGE_MS);
   } catch {
     // Only an explicit choice made in this page can enable analytics without storage.
   }

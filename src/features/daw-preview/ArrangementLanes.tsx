@@ -151,37 +151,9 @@ export const ArrangementLanes = memo(function ArrangementLanes({
               data-lane={lane.name}
               style={{ height: laneHeight, background: index % 2 === 0 ? "#1a1a1a" : "#171717" }}
             >
-              {lane.clips.map((clip) => {
-                const metrics = rowMetrics(clip.kind === "midi" ? "midi" : kind, laneHeight);
-                const clipWidth = Math.max(0, clip.duration * pixelsPerSecond);
-                if (clipWidth < 1) return null;
-                const common = {
-                  color: lane.color,
-                  duration: clip.duration,
-                  height: metrics.clipHeight,
-                  muted: lane.muted,
-                  name: clip.label,
-                  offset: clip.offset,
-                  pixelsPerSecond,
-                  recording: clip.recording,
-                  seed: clip.seed ?? index + 1,
-                  tempo,
-                  width: clipWidth,
-                };
-                return (
-                  <div
-                    key={clip.label}
-                    className="absolute z-[1] transition-opacity duration-300"
-                    style={{ left: clip.start * pixelsPerSecond, top: metrics.clipInsetY, width: clipWidth, height: metrics.clipHeight, opacity: silenced && transport === "playing" ? 0.45 : 1 }}
-                  >
-                    {clip.kind === "midi" ? (
-                      <MidiClipLite {...common} profile={(clip.profile as MidiProfile) ?? "keys"} selected={clip.selected} />
-                    ) : (
-                      <AudioClipLite {...common} profile={(clip.profile as AudioProfile) ?? "mix"} />
-                    )}
-                  </div>
-                );
-              })}
+              <LaneClips clips={lane.clips} color={lane.color} muted={lane.muted} kind={kind}
+                seed={index + 1} laneHeight={laneHeight} pixelsPerSecond={pixelsPerSecond} tempo={tempo}
+                silenced={silenced && transport === "playing"} />
             </div>
           );
         })}
@@ -190,5 +162,47 @@ export const ArrangementLanes = memo(function ArrangementLanes({
         <PlayheadLine height={height} x={playheadX} />
       </div>
     </div>
+  );
+});
+
+// Time and meter levels change every frame; the clip artwork usually does not.
+const LaneClips = memo(function LaneClips({ clips, color, muted, kind, seed, laneHeight, pixelsPerSecond, tempo, silenced }: {
+  clips: readonly LaneClip[]; color: string; muted?: boolean; kind: "audio" | "midi";
+  seed: number; laneHeight: number; pixelsPerSecond: number; tempo: number; silenced: boolean;
+}) {
+  return (
+    <>
+      {clips.map((clip) => {
+        const metrics = rowMetrics(clip.kind === "midi" ? "midi" : kind, laneHeight);
+        const clipWidth = Math.max(0, clip.duration * pixelsPerSecond);
+        if (clipWidth < 1) return null;
+        const common = {
+          color,
+          duration: clip.duration,
+          height: metrics.clipHeight,
+          muted,
+          name: clip.label,
+          offset: clip.offset,
+          pixelsPerSecond,
+          recording: clip.recording,
+          seed: clip.seed ?? seed,
+          tempo,
+          width: clipWidth,
+        };
+        return (
+          <div
+            key={clip.label}
+            className="absolute z-[1] transition-opacity duration-300"
+            style={{ left: clip.start * pixelsPerSecond, top: metrics.clipInsetY, width: clipWidth, height: metrics.clipHeight, opacity: silenced ? 0.45 : 1 }}
+          >
+            {clip.kind === "midi" ? (
+              <MidiClipLite {...common} profile={(clip.profile as MidiProfile) ?? "keys"} selected={clip.selected} />
+            ) : (
+              <AudioClipLite {...common} profile={(clip.profile as AudioProfile) ?? "mix"} />
+            )}
+          </div>
+        );
+      })}
+    </>
   );
 });
