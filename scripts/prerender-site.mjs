@@ -186,7 +186,7 @@ export async function generateStaticSeo({ root = repoRoot } = {}) {
     const { downloadCatalog } = await vite.ssrLoadModule("/shared/generatedDownloadCatalog.ts");
     const { downloadRedirectRules } = await vite.ssrLoadModule("/shared/download-routing.ts");
     redirects.unshift(...downloadRedirectRules(downloadCatalog));
-    await fs.writeFile(path.join(dist, ".vite/download-routing.json"), `${JSON.stringify({ ...downloadCatalog.app, fallback: downloadCatalog.fallback })}\n`);
+    await fs.writeFile(path.join(dist, ".vite/download-routing.json"), `${JSON.stringify({ ...downloadCatalog.app, linuxDeb: downloadCatalog.linuxDeb, fallback: downloadCatalog.fallback })}\n`);
     await fs.writeFile(path.join(dist, "_redirects"), `${redirects.join("\n")}\n`);
     const parsedRedirects = await parseAllRedirects({ redirectsFiles: [path.join(dist, "_redirects")], netlifyConfigPath: path.join(root, "netlify.toml") });
     if (parsedRedirects.errors.length) {

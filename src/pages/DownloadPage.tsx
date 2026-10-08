@@ -38,15 +38,22 @@ const PLATFORM_COPY: Record<PlatformId, Omit<PlatformCopy, "icon">> = {
     ],
   },
   linux: {
-    requires: "AppImage · x86-64 · tested on Ubuntu 22.04+",
+    requires: "DEB · x86-64 · Ubuntu 22.04+ (including 24.04) / Ubuntu-based Mint",
     steps: [
-      "Download the AppImage.",
-      <>
-        Run <code className="sp-code text-[12px]">chmod +x OpenStudio-*.AppImage</code>.
-      </>,
-      "Launch it, and select JACK or ALSA in audio settings.",
+      "Open the .deb with Ubuntu App Center or Software, or Linux Mint’s package installer.",
+      "Install the package, then launch OpenStudio from the application menu.",
+      "Select JACK or ALSA in audio settings.",
     ],
   },
+};
+
+const APPIMAGE_COPY: Omit<PlatformCopy, "icon"> = {
+  requires: "AppImage · x86-64 · compatible Linux host required",
+  steps: [
+    "Download the AppImage.",
+    <>Run <code className="sp-code text-[12px]">chmod +x OpenStudio-*.AppImage</code>.</>,
+    "Launch it, and select JACK or ALSA in audio settings.",
+  ],
 };
 
 const Spec = ({ label, children }: { label: string; children: ReactNode }) => (
@@ -119,8 +126,9 @@ const DownloadPage = () => {
       <div className="sp-container pt-[40px]">
         <div className="sp-grid-3" data-sp-reveal="stagger">
           {platforms.map((entry) => {
-            const copy = PLATFORM_COPY[entry.id];
             const artifact = artifactFor(entry.id);
+            const isLinuxDeb = entry.id === "linux" && artifact?.fileName?.toLowerCase().endsWith(".deb");
+            const copy = entry.id === "linux" && !isLinuxDeb ? APPIMAGE_COPY : PLATFORM_COPY[entry.id];
             const isDetected = entry.id === detected;
             const size = formatBytes(artifact?.size);
             const digest = abbreviateDigest(artifact?.sha256);
@@ -162,6 +170,14 @@ const DownloadPage = () => {
                 >
                   Download for {entry.label}
                 </Cta>
+                {isLinuxDeb && release.linuxAppImage?.directUrl ? (
+                  <div className="mt-[16px] flex flex-col gap-[8px] [font:400_12px/1.55_'Space_Grotesk',_sans-serif] text-[var(--sp-body)]">
+                    <a className="sp-text-link inline-flex min-h-[24px] self-start items-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sp-accent)]" href={release.linuxAppImage.directUrl} rel="noreferrer">
+                      Optional AppImage download
+                    </a>
+                    <p className="m-0">For compatible hosts; requires executable permission and host GTK/WebKit and FFmpeg libraries. Use the .deb on Ubuntu and Linux Mint.</p>
+                  </div>
+                ) : null}
               </div>
             );
           })}
@@ -172,8 +188,9 @@ const DownloadPage = () => {
       <div className="sp-container pt-[38px]" data-sp-reveal="rise" id="before-you-install">
         <WarnCallout label="Before you install">
           Builds are unsigned. On Windows, SmartScreen may warn on first run. On macOS, right-click OpenStudio and
-          choose <strong>Open</strong>, then allow it in System Settings → Privacy &amp; Security if prompted. The Linux
-          AppImage needs <code className="sp-code">chmod +x</code>. Code signing costs money the project currently
+          choose <strong>Open</strong>, then allow it in System Settings → Privacy &amp; Security if prompted. For Linux,
+          open the .deb in your package installer. If it opens Archive Manager, choose <strong>Open With</strong> and select
+          the package installer. The optional AppImage needs <code className="sp-code">chmod +x</code>. Code signing costs money the project currently
           spends elsewhere. If you want certainty, verify the checksum above.
           <span className="block mt-3">{downloadUpgradeNote}</span>
         </WarnCallout>

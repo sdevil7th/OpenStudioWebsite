@@ -17,7 +17,7 @@ export interface PlatformInfo {
 export const PLATFORMS: Record<PlatformId, PlatformInfo> = {
   windows: { id: "windows", label: "Windows", icon: Monitor, href: DOWNLOAD_PATHS.windowsLatest, artifactType: "Installer (.exe)" },
   macos: { id: "macos", label: "macOS", icon: Apple, href: DOWNLOAD_PATHS.macosLatest, artifactType: "Disk image (.dmg)" },
-  linux: { id: "linux", label: "Linux", icon: Terminal, href: DOWNLOAD_PATHS.linuxLatest, artifactType: "AppImage" },
+  linux: { id: "linux", label: "Linux", icon: Terminal, href: DOWNLOAD_PATHS.linuxDebLatest, artifactType: "DEB package (.deb)" },
 };
 
 export const PLATFORM_ORDER: PlatformId[] = ["windows", "macos", "linux"];

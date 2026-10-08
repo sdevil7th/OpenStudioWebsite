@@ -1,9 +1,9 @@
-import { SHOTS } from "@/data/siteContent";
+import { REPO, SHOTS } from "@/data/siteContent";
 import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-16",
+  updated: "2026-10-08",
   appReference: { commit: "7f59cff", channel: "development" },
   blocks: [
     {
@@ -29,9 +29,13 @@ const doc: DocContent = {
         ],
         [
           "Linux",
-          "Make the AppImage executable with `chmod +x OpenStudio-*.AppImage` and launch it. MP3/OGG export and other FFmpeg-backed features use a system `ffmpeg` on your PATH.",
+          "On x86-64 Ubuntu 22.04+ (including 24.04) or Ubuntu-based Linux Mint, download the .deb. Open it with **Ubuntu App Center or Software**, or **Linux Mint’s package installer**, install it, then launch OpenStudio from the application menu. If Archive Manager opens, use **Open With** to select the package installer.",
         ],
       ],
+    },
+    {
+      type: "p",
+      text: `Linux package guidance is checked against the published [v0.1.05 release](${REPO.releases}/tag/v0.1.05), app commit \`649012c\`. The optional AppImage remains available for compatible hosts: make it executable with \`chmod +x OpenStudio-*.AppImage\` and launch the AppImage itself. It needs host GTK/WebKit and FFmpeg libraries. Native desktop installation through every Ubuntu/Mint graphical package installer is not part of the automated qualification.`,
     },
     {
       type: "callout",

@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { DOWNLOAD_PATHS } from "@/constants/site";
 import type { GithubReleaseSummary } from "@/data/marketing";
 import { generatedLatestRelease } from "@/data/generatedLatestRelease";
-import { selectReleaseAsset } from "../../shared/release-assets";
+import { selectLinuxReleaseAsset, selectReleaseAsset } from "../../shared/release-assets";
 import { stripVersionPrefix } from "@/lib/format";
 import { PLATFORMS, PLATFORM_ORDER, type PlatformId } from "./usePlatform";
 
 export interface PlatformArtifact {
-  /** Stable redirect endpoint — the public contract shipped app builds also use. */
+  /** Stable website installer endpoint; Linux DEB is separate from the AppImage updater. */
   href: string;
   fileName: string | null;
   size: number | null;
@@ -23,6 +23,7 @@ export interface ReleaseInfo {
   publishedAt: string | null;
   notesUrl: string | null;
   platforms: Record<PlatformId, PlatformArtifact>;
+  linuxAppImage: PlatformArtifact | null;
   /** Where the numbers came from, so pages can hedge when only the fallback is available. */
   source: "manifest" | "github" | "build";
 }
@@ -44,6 +45,7 @@ const emptyArtifact = (id: PlatformId): PlatformArtifact => ({
 });
 
 export const fromGithubRelease = (release: GithubReleaseSummary, source: ReleaseInfo["source"]): ReleaseInfo => {
+  const appImage = selectLinuxReleaseAsset(release.assets, "appimage");
   const platforms = Object.fromEntries(
     PLATFORM_ORDER.map((id) => {
       const best = selectReleaseAsset(release.assets, id);
@@ -52,6 +54,7 @@ export const fromGithubRelease = (release: GithubReleaseSummary, source: Release
         id,
         {
           ...emptyArtifact(id),
+          ...(id === "linux" && best?.name.toLowerCase().endsWith(".appimage") ? { href: DOWNLOAD_PATHS.linuxLatest } : {}),
           fileName: best?.name ?? null,
           size: best?.size ?? null,
           directUrl: best?.downloadUrl ?? null,
@@ -66,6 +69,13 @@ export const fromGithubRelease = (release: GithubReleaseSummary, source: Release
     publishedAt: release.publishedAt,
     notesUrl: release.htmlUrl,
     platforms,
+    linuxAppImage: appImage ? {
+      href: DOWNLOAD_PATHS.linuxLatest,
+      fileName: appImage.name,
+      size: appImage.size,
+      sha256: null,
+      directUrl: appImage.downloadUrl,
+    } : null,
     source,
   };
 };
@@ -92,6 +102,8 @@ export const fromManifest = (value: unknown): ReleaseInfo | null => {
         id,
         {
           ...emptyArtifact(id),
+          ...(id === "linux" && typeof entry?.fileName === "string" && entry.fileName.toLowerCase().endsWith(".appimage")
+            ? { href: DOWNLOAD_PATHS.linuxLatest } : {}),
           fileName: typeof entry?.fileName === "string" ? entry.fileName : null,
           size: Number.isFinite(size) && size > 0 ? size : null,
           sha256: typeof entry?.sha256 === "string" && /^[a-f0-9]{64}$/i.test(entry.sha256) ? entry.sha256 : null,
@@ -107,6 +119,8 @@ export const fromManifest = (value: unknown): ReleaseInfo | null => {
     publishedAt: typeof manifest.publishedAt === "string" ? manifest.publishedAt : null,
     notesUrl: typeof manifest.fullReleaseNotesUrl === "string" ? manifest.fullReleaseNotesUrl : null,
     platforms,
+    linuxAppImage: platforms.linux.fileName?.toLowerCase().endsWith(".appimage")
+      ? { ...platforms.linux, href: DOWNLOAD_PATHS.linuxLatest } : null,
     source: "manifest",
   };
 };
@@ -166,18 +180,16 @@ export function parseGithubRelease(value: unknown): GithubReleaseSummary | null 
 /** Manifest checksums are usable only for the same GitHub version and the same artifact. */
 export function withManifestChecksums(github: ReleaseInfo, manifest: ReleaseInfo | null): ReleaseInfo {
   if (!manifest || manifest.version !== github.version) return github;
+  const withChecksum = (asset: PlatformArtifact, published: PlatformArtifact): PlatformArtifact => ({
+    ...asset,
+    sha256: asset.directUrl === published.directUrl && asset.fileName === published.fileName && asset.size === published.size
+      ? published.sha256 : null,
+  });
   return {
     ...github,
+    linuxAppImage: github.linuxAppImage ? withChecksum(github.linuxAppImage, manifest.platforms.linux) : null,
     platforms: Object.fromEntries(
-      PLATFORM_ORDER.map((id) => {
-        const asset = github.platforms[id];
-        const published = manifest.platforms[id];
-        const sameAsset =
-          asset.directUrl === published.directUrl &&
-          asset.fileName === published.fileName &&
-          asset.size === published.size;
-        return [id, { ...asset, sha256: sameAsset ? published.sha256 : null }];
-      }),
+      PLATFORM_ORDER.map((id) => [id, withChecksum(github.platforms[id], manifest.platforms[id])]),
     ) as Record<PlatformId, PlatformArtifact>,
   };
 }

@@ -3,7 +3,7 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-10-05",
+  updated: "2026-10-08",
   appReference: { commit: "52cbd7c", channel: "development" },
   blocks: [
     { type: "callout", tone: "note", label: "Development checkout: Native window behavior", text: "Unreleased September 29 working-tree changes after app commit 52cbd7c use OS title bars for the main app and the implemented mixer, MIDI and built-in plugin editor windows. Startup refreshes no longer change outer window bounds; saved detached bounds stay on the relevant monitor when available. The graphical pitch editor also has a native detached window: Detach, Focus and Dock keep the existing clip session and committed history. Closing and reopening the same clip retains committed edits. WebView2 applies to Windows; macOS uses WKWebView and Linux uses WebKitGTK. Windows Debug geometry/lifecycle checks do not establish packaged Release or cross-platform results. First-launch readiness, physical drag/snap, DPI transitions and close/reopen still need qualification on each target platform." },
@@ -29,9 +29,23 @@ const doc: DocContent = {
       items: [
         "Windows: when SmartScreen appears, choose **More info** → **Run anyway**.",
         "macOS: right-click the app, choose **Open**, then allow it under **System Settings → Privacy & Security** if asked.",
-        "Linux: run `chmod +x OpenStudio-*.AppImage` before launching.",
-        "Launch the Linux AppImage itself, rather than an extracted `usr/bin/OpenStudio` binary, so its bundled assets and startup environment are available.",
+        "Ubuntu or Ubuntu-based Linux Mint: open the .deb with **Ubuntu App Center or Software**, or **Linux Mint’s package installer**, install it, then launch OpenStudio from the application menu.",
+        "Optional AppImage: run `chmod +x OpenStudio-*.AppImage` before launching. It requires compatible host GTK/WebKit and FFmpeg libraries.",
+        "For the optional AppImage, launch the AppImage itself, rather than an extracted `usr/bin/OpenStudio` binary, so its bundled assets and startup environment are available.",
         `Verify the SHA-256 on the [download page](${SITE_PATHS.download}) to check file integrity.`,
+      ],
+    },
+    { type: "h3", text: "The DEB opens Archive Manager or does not install" },
+    {
+      type: "p",
+      text: `These native Linux installation instructions refer to published [v0.1.05](${REPO.releases}/tag/v0.1.05), app commit \`649012c\`, built for x86-64 Ubuntu 22.04+ (including 24.04) and Ubuntu-based Mint. Automated qualification installed the DEB through the package manager on Ubuntu 22.04; it does not establish every graphical installer or clean desktop environment.`,
+    },
+    {
+      type: "ol",
+      items: [
+        "Use **Open With** and select **Ubuntu App Center or Software**, or **Linux Mint’s package installer**. Archive Manager extracts files; it does not install the package.",
+        "If the graphical installer cannot upgrade the package, close OpenStudio and install the downloaded .deb with the distribution’s package manager.",
+        "Read any dependency error before retrying. The package is for x86-64; it is not an ARM installer. Do not run OpenStudio as root.",
       ],
     },
     { type: "h3", text: "AI Tools are missing, or a generation dialog says the runtime is absent" },

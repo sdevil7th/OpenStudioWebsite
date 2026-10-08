@@ -16,6 +16,7 @@ This repo is now the only public publisher for:
 - `/download/windows/latest`
 - `/download/macos/latest`
 - `/download/linux/latest`
+- `/download/linux/deb/latest` (native website installer; the existing Linux endpoint retains AppImage)
 - `/download/ai-runtime/windows/latest`
 - `/download/ai-runtime/macos/latest`
 - `/download/ai-runtime/macos/arm64/latest`
@@ -43,7 +44,7 @@ The Studio Paper redesign is the sole website. Source folders describe their res
 - `src/components/ResponsiveImage.tsx`: browser-selected image variants with original-image fallback; no image GraphQL service.
 - `src/styles/site.css`: shared design tokens, typography, responsive component styles and animation effects in Tailwind's component layer. Ordinary page layouts use Tailwind utilities; runtime artwork geometry remains inline.
 - `src/prerender.tsx` and `scripts/prerender-site.mjs`: render the actual page components into static HTML, route-specific head metadata, sitemap and exact hosting rewrites.
-- `shared/` and `netlify/functions/`: release/runtime contracts and stable download endpoints.
+- `shared/`, `netlify/functions/` and `netlify/edge-functions/`: release/runtime contracts and stable download endpoints.
 - `shared/github-snapshot.ts`: the repository snapshot types and nested JSON parser shared by build generation, build-time generation and browser refreshes.
 
 See [repository instructions](AGENTS.md), [source structure and cleanup verification](docs/source-structure.md), [guide authoring](src/features/docs/README.md), and [migration plan and verification](docs/redesign-migration.md) for maintenance rules and regression checks.
@@ -362,7 +363,8 @@ Desktop-side secret outside this repo:
 
 Canonical pages are emitted into `dist/_redirects` at build time. `/v2/*` redirects to the corresponding canonical route, `/blogs/*` to `/blog/*`, `/github` to `/community`, and `/contact` to `/community#contact`. Unknown routes receive `404.html` with HTTP 404 and `noindex`. Local production preview applies the same page rewrites and aliases, serves the GitHub-derived build payloads, and exercises app/runtime download routing against the same bundled catalog. It does not emulate Netlify rate-limit enforcement. See [API abuse protection](docs/api-abuse-protection.md) for the static/CDN architecture, Free-plan limits and bounded verification procedure.
 
-- `/download/windows/latest`, `/download/macos/latest`, and `/download/linux/latest` are generated at build time from validated `/releases/stable/latest.json`, with the fetched GitHub release snapshot providing the fallback for absent platform entries. Requests receive CDN redirects without invoking a function.
+- `/download/windows/latest`, `/download/macos/latest`, and `/download/linux/latest` are generated at build time from validated `/releases/stable/latest.json`, with the fetched GitHub release snapshot providing the fallback for absent platform entries. Requests receive CDN redirects without invoking a function. The existing Linux endpoint, app manifest and appcast retain their AppImage meaning for installed clients.
+- Website Linux buttons prefer the published `.deb` for Ubuntu 22.04+ (including 24.04) and Ubuntu-based Linux Mint, with a separate optional AppImage link. `/download/linux/deb/latest` is a CDN redirect to the `.deb` in the same release as the stable manifest; if that release has no DEB, it opens the release list instead. Earlier releases without a DEB retain their AppImage website choice. Open a DEB with Ubuntu App Center or Software, or Linux Mint’s package installer; if Archive Manager opens, use Open With to select the package installer.
 - `/download/ai-runtime/windows/latest` resolves to `platforms.windows.base.url` when the new Windows manifest shape is present, otherwise it falls back to the legacy flat `platforms.windows.url` entry when available.
 - Windows backend install-plan metadata is preserved verbatim in the published JSON at `/releases/ai-runtime/latest.json` and `/releases/ai-runtime/stable/latest.json`.
 - `/download/ai-runtime/windows/latest` does not treat `platforms.windows.backends.cuda` or `platforms.windows.backends.directml` as downloadable URLs when those entries only contain `installPlan`.
@@ -370,7 +372,7 @@ Canonical pages are emitted into `dist/_redirects` at build time. `/v2/*` redire
 - `/download/ai-runtime/macos/latest` remains a best-effort convenience redirect. It still supports the legacy flat macOS manifest entry, and for the new nested shape it will honor `?arch=arm64` or `?arch=x64` when present, otherwise it only redirects when it can infer the architecture safely.
 - `/download/ai-runtime/linux/x64/latest` and `/download/ai-runtime/linux/arm64/latest` resolve from the published AI runtime manifest and should be preferred when the caller knows the target architecture.
 - `/download/ai-runtime/linux/latest` supports the legacy flat Linux manifest entry and otherwise falls back to `x64`, then `arm64`, when no architecture is provided.
-- Netlify never hosts the `.exe`, `.dmg`, `.AppImage`, or AI runtime archive files.
+- Netlify never hosts the `.exe`, `.dmg`, `.deb`, `.AppImage`, or AI runtime archive files.
 
 ## Website Publish Workflow
 
