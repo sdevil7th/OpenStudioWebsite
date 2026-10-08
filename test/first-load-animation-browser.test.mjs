@@ -41,7 +41,7 @@ test("illustrations start after slow first loads and uncached navigation", { tim
           await gate;
           await route.continue().catch(() => undefined);
         });
-        await context.addInitScript(() => localStorage.setItem(
+        await context.addInitScript(() => window.top === window && localStorage.setItem(
           "openstudio.analytics-consent.v1", JSON.stringify({ choice: "rejected", time: Date.now() }),
         ));
         if (entry.lateVisibility) await context.addInitScript(() => {

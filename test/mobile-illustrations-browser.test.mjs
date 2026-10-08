@@ -41,7 +41,7 @@ test("phone illustrations animate at every size and pause outside the viewport",
       });
       try {
         await context.route("https://**/*", (route) => route.abort());
-        await context.addInitScript(() => localStorage.setItem(
+        await context.addInitScript(() => window.top === window && localStorage.setItem(
           "openstudio.analytics-consent.v1", JSON.stringify({ choice: "rejected", time: Date.now() }),
         ));
         const page = await context.newPage();

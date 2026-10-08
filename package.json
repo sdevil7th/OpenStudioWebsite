@@ -26,6 +26,7 @@
     "verify:mobile-perf": "node scripts/verify-mobile-load-perf.mjs",
     "verify:perf": "node scripts/verify-mobile-load-perf.mjs --matrix --settle-ms 2000",
     "verify:analytics": "node scripts/verify-analytics.mjs",
+    "verify:aura-live": "node scripts/verify-hero-aura.mjs",
     "test:mobile-perf-gate": "node --test test/mobile-load-perf-gate.test.mjs",
     "generate-og": "node scripts/generate-og.mjs && npm run generate-image-assets",
     "typecheck": "tsc -p tsconfig.app.json && tsc -p tsconfig.node.json",

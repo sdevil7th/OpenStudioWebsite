@@ -115,6 +115,7 @@ Run `npm run build` before `npm test` in a clean checkout; tests consume the gen
 - The suite also includes unit, source-contract and build tests. A reported total is not an E2E-only count. Desktop app tests live in the separate app repository.
 - Browsers currently run in Chromium. The eight-width visual comparison recorded in the audit is a manual review artifact, not an automated screenshot-regression suite. Firefox/WebKit coverage and CI screenshot baselines are follow-up improvements.
 - Loading performance is an explicit `npm run verify:perf` check; the current CI workflow does not run that matrix automatically.
+- `npm run verify:aura-live` separately checks the live hero iframe's worker drawing, offscreen pause/resume and rendering cost. It uses real provider resources and is not an offline CI test. See [the Aura lifecycle guide](docs/hero-aura.md) for JSON reports and real background-tab verification.
 
 ## Search indexing and sharing
 

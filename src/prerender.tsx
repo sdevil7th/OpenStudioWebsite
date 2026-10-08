@@ -2,6 +2,8 @@ import { type ComponentType, type ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import SiteShell from "@/components/layout/SiteShell";
+import PrivacyChoices from "@/components/PrivacyChoices";
+import { CONSENT_KEY, CONSENT_MAX_AGE_MS, parseConsentRecord } from "./lib/consentRecord";
 import { DOCS, loadDocContent } from "@/features/docs";
 import { blogPosts } from "./data/blogs";
 import { loadBlogPostContent } from "./data/blogContent";
@@ -91,5 +93,17 @@ export async function renderRoute(pathname: string) {
   renderToStaticMarkup(tree());
   const html = renderToStaticMarkup(tree());
   if (!state.seo) throw new Error(`Missing SEO: ${pathname}`);
-  return { html, seo: state.seo, updated: state.docContent?.updated };
+  const privacyHtml = renderToStaticMarkup(<MemoryRouter><PrivacyChoices /></MemoryRouter>);
+  // The parser is shared with runtime consent. This only controls visibility;
+  // it cannot initialize analytics or grant permission.
+  const privacyBootstrap = `(() => {
+    let chosen = false;
+    try { chosen = Boolean((${parseConsentRecord.toString()})(localStorage.getItem(${JSON.stringify(CONSENT_KEY)}), Date.now(), ${CONSENT_MAX_AGE_MS})); } catch {}
+    const host = document.getElementById("openstudio-privacy");
+    if (host) host.hidden = chosen;
+    window.addEventListener("openstudio:static-route-restored", () => {
+      if (host?.querySelector("[data-privacy-prerender]")) host.hidden = true;
+    }, { once: true });
+  })();`;
+  return { html, privacyHtml, privacyBootstrap, seo: state.seo, updated: state.docContent?.updated };
 }

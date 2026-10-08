@@ -3,9 +3,10 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-16",
-  appReference: { commit: "7f59cff", channel: "development" },
+  updated: "2026-10-08",
+  appReference: { commit: "b482852", channel: "development" },
   blocks: [
+    { type: "p", text: "Development PCM exports support 18-, 20- and 22-bit effective precision inside standard 24-bit files, with unused low bits zero. Primary, secondary and queued outputs preserve the choice. Quantization remains after final conversion even with Dither off; recording precision, float output and lossy quality are unchanged." },
     {
       type: "p",
       text: "Rendering runs your project offline through the same playback and FX engine you hear during playback, and writes the result to disk. This page covers the Render dialog top to bottom, the queue and delivery tools, and the project-level export and cleanup commands. Shortcuts are from the default OpenStudio keyboard profile; `Ctrl` is `Cmd` on macOS.",
@@ -14,7 +15,11 @@ const doc: DocContent = {
     { type: "h2", id: "render-dialog", text: "The Render dialog" },
     {
       type: "p",
-      text: "Open it with **File → Render…** or `Ctrl+Alt+R`. Work down the dialog: pick a source, set the bounds, choose where the file goes and what it is called, pick a format, then decide on processing and what happens afterwards. **Add to Queue** defers the job instead of rendering now.",
+      text: "The October 6 development checkout gives hosted plugins an advancing offline playhead at the export sample rate, with tempo changes and integrated quarter-note position. Track Freeze uses the same project-time behavior, and neither moves the live playhead. Hosted state, prepare and reset callbacks are dispatched to the actual UI thread, as required by VST3, while audio rendering stays on its worker. Normal playback also integrates tempo changes for musical position. Live Preview/Punch and prepared AutoJoin holds are restored before export. These unshipped corrections do not establish every plugin's cold-start or sound-quality parity; the installed authorized AmpliTube first-export discrepancy remains under qualification.",
+    },
+    {
+      type: "p",
+      text: "Open it with **File → Render…** or `Ctrl+Alt+R` (macOS: `Cmd+Ctrl+R`). Work down the dialog: pick a source, set the bounds, choose where the file goes and what it is called, pick a format, then decide on processing and what happens afterwards. **Add to Queue** defers the job instead of rendering now.",
     },
     {
       type: "shot",
@@ -81,9 +86,9 @@ const doc: DocContent = {
       type: "table",
       head: ["Format", "Notes"],
       rows: [
-        ["WAV", "Uncompressed, with bit-depth selection"],
-        ["AIFF", "Uncompressed, with bit-depth selection"],
-        ["FLAC", "Lossless compressed, with bit-depth selection"],
+        ["WAV", "Uncompressed, with bit-depth selection; development also offers 18/20/22-bit precision in a 24-bit file"],
+        ["AIFF", "Uncompressed, with bit-depth selection; development also offers 18/20/22-bit precision in a 24-bit file"],
+        ["FLAC", "Lossless compressed: 16/24-bit integer; development also offers 18/20/22-bit precision in a 24-bit file"],
         ["MP3", "FFmpeg-encoded at the selected bitrate"],
         ["OGG Vorbis", "FFmpeg-encoded at the selected quality"],
       ],
@@ -105,7 +110,7 @@ const doc: DocContent = {
       head: ["Option", "What it does"],
       rows: [
         ["Normalize", "Peak-normalizes the output to 0 dBFS"],
-        ["Dither", "Applies TPDF or first-order noise-shaped dither before integer bit-depth output"],
+        ["Dither", "Development checkout: flat TPDF, first/second-order shaped TPDF or lower-noise RPDF, applied once after mono conversion and final resampling. Shaping raises high-frequency noise; RPDF noise varies with the signal. Integer output only, including 18/20/22-bit effective precision in a 24-bit container; queue jobs retain the selected mode. These original quantizers are not proprietary IDR."],
         [
           "Secondary output",
           "Runs a second pass in another format after each primary file, with its own bit depth or codec quality",
