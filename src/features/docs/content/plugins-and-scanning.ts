@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-16",
-  appReference: { commit: "7f59cff", channel: "development" },
+  updated: "2026-10-08",
+  appReference: { commit: "b482852", channel: "development" },
   blocks: [
     {
       type: "p",
@@ -103,7 +103,7 @@ const doc: DocContent = {
       type: "ul",
       items: [
         "**FX Bypass** on the track header bypasses the whole chain without removing anything. The FX button turns from green (active) to red (bypassed). Individual plugins bypass from inside the FX Chain panel.",
-        "Drag effects within a track or input chain to reorder them; signal flows top to bottom.",
+        "Drag a loaded FX row's grip handle onto another row in a track, input or master chain to reorder it; signal flows top to bottom. The order changes in native audio processing as well as the list. Focus the grip and press Up or Down to move an effect one position with the keyboard. Dropping outside or cancelling retains the order. Undo and Redo restore the processing order and envelopes remain attached to their plugin. Track/input MIDI Learn references follow reorder; removal Undo restores the saved mappings.",
         "**File → Open Project (Safe Mode)…** (`Ctrl+Shift+O`) skips loading saved instruments and FX. Use a copy for diagnosis and avoid overwriting the original project from this mode.",
       ],
     },
@@ -111,7 +111,7 @@ const doc: DocContent = {
       type: "callout",
       tone: "note",
       label: "Master FX order",
-      text: "Reordering by drag is supported for track and input chains. Master FX reordering is not supported in the current UI.",
+      text: "The October 8 development checkout at b482852 uses grip handles for track, input and master chain reordering. Master envelopes follow persistent plugin identities through reorder, Undo and Redo. This describes development behavior, not a shipped-release claim.",
     },
 
     { type: "h2", id: "bridges-ara-sidechain", text: "32-bit bridge, ARA2, and sidechain" },
