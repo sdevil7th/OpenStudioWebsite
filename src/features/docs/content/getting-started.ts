@@ -29,7 +29,7 @@ const doc: DocContent = {
         ],
         [
           "Linux",
-          "On x86-64 Ubuntu 22.04+ or Ubuntu-based Linux Mint, download the .deb. Open it with **Ubuntu App Center or Software**, or **Linux Mint’s package installer**, install it, then launch OpenStudio from the application menu. If Archive Manager opens, use **Open With** to select the package installer.",
+          "On x86-64 Ubuntu 22.04+ (including 24.04) or Ubuntu-based Linux Mint, download the .deb. Open it with **Ubuntu App Center or Software**, or **Linux Mint’s package installer**, install it, then launch OpenStudio from the application menu. If Archive Manager opens, use **Open With** to select the package installer.",
         ],
       ],
     },

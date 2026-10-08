@@ -38,7 +38,7 @@ const PLATFORM_COPY: Record<PlatformId, Omit<PlatformCopy, "icon">> = {
     ],
   },
   linux: {
-    requires: "DEB · x86-64 · Ubuntu 22.04+ / Ubuntu-based Mint",
+    requires: "DEB · x86-64 · Ubuntu 22.04+ (including 24.04) / Ubuntu-based Mint",
     steps: [
       "Open the .deb with Ubuntu App Center or Software, or Linux Mint’s package installer.",
       "Install the package, then launch OpenStudio from the application menu.",

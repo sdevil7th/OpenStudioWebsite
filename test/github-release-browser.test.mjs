@@ -135,6 +135,7 @@ test("Linux native installer and optional AppImage remain usable across screen s
       const optional = card.getByRole("link", { name: "Optional AppImage download", exact: true });
       assert.equal(await optional.getAttribute("href"), appImage.downloadUrl);
       assert.match(await card.innerText(), /Ubuntu App Center or Software, or Linux Mint’s package installer/);
+      assert.match(await card.innerText(), /Ubuntu 22\.04\+ \(including 24\.04\)/);
       assert.match(await card.innerText(), /Use the \.deb on Ubuntu and Linux Mint/);
       await optional.focus();
       assert.equal(await optional.evaluate(element => element === document.activeElement && element.matches(":focus-visible")), true);
@@ -168,6 +169,7 @@ test("Linux native installer and optional AppImage remain usable across screen s
       assert.match(text, /Ubuntu App Center or Software/);
       assert.match(text, /Linux Mint’s package installer/);
       assert.match(text, /optional AppImage/i);
+      assert.match(text, /Ubuntu 22\.04\+ \(including 24\.04\)/);
     }
     await context.close();
   } finally {

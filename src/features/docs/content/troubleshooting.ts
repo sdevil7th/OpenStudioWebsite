@@ -38,7 +38,7 @@ const doc: DocContent = {
     { type: "h3", text: "The DEB opens Archive Manager or does not install" },
     {
       type: "p",
-      text: `These native Linux installation instructions refer to published [v0.1.05](${REPO.releases}/tag/v0.1.05), app commit \`649012c\`, built for x86-64 Ubuntu 22.04+ and Ubuntu-based Mint. Automated qualification installed the DEB through the package manager on Ubuntu 22.04; it does not establish every graphical installer or clean desktop environment.`,
+      text: `These native Linux installation instructions refer to published [v0.1.05](${REPO.releases}/tag/v0.1.05), app commit \`649012c\`, built for x86-64 Ubuntu 22.04+ (including 24.04) and Ubuntu-based Mint. Automated qualification installed the DEB through the package manager on Ubuntu 22.04; it does not establish every graphical installer or clean desktop environment.`,
     },
     {
       type: "ol",

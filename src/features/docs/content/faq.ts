@@ -31,7 +31,7 @@ const doc: DocContent = {
       items: [
         "Windows 10 or later, 64-bit, as an installer that also handles WebView2 and the VC++ redistributable.",
         "macOS 12 Monterey or later, as a DMG.",
-        "x86-64 Linux: a native .deb for Ubuntu 22.04+ and Ubuntu-based Linux Mint, plus an optional AppImage for compatible hosts. The current Linux release builds on Ubuntu 22.04.",
+        "x86-64 Linux: a native .deb for Ubuntu 22.04+ (including 24.04) and Ubuntu-based Linux Mint, plus an optional AppImage for compatible hosts. Ubuntu 22.04 is the minimum/build baseline, not a restriction to that Ubuntu version.",
       ],
     },
     {
