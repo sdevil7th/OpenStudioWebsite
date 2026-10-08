@@ -4,8 +4,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-10-05",
-  appReference: { commit: "52cbd7c", channel: "development" },
+  updated: "2026-10-08",
+  appReference: { commit: "5dc19acd1b7fecb24341baefd9c3aea1a4e5478f", channel: "development" },
   blocks: [
     {
       type: "p",
@@ -77,7 +77,7 @@ const doc: DocContent = {
         ],
         [
           "macOS",
-          "An Apple Silicon (arm64) runtime. The manifest contract also carries an x64 entry, but the GitHub release notes state that Intel Macs run the base app while AI Tools are unavailable. macOS does not provision ONNX Runtime, so audio-to-MIDI is unavailable there as well.",
+          "The downloadable managed runtime requires Apple Silicon (arm64) and macOS 14 or later because of its bundled numerical-library wheels. The base app targets macOS 12 or later; the managed archive is not qualified for macOS 12/13. Intel Macs can run the base app, while AI Tools remain unavailable. Audio-to-MIDI is unavailable in the macOS app build.",
         ],
         [
           "Linux",
