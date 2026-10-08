@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-16",
-  appReference: { commit: "7f59cff", channel: "development" },
+  updated: "2026-10-05",
+  appReference: { commit: "52cbd7c", channel: "development" },
   blocks: [
     {
       type: "p",
@@ -16,7 +16,7 @@ const doc: DocContent = {
       type: "ol",
       items: [
         "Click the **BPM** field in the transport bar and type a tempo, or tap `T` in time with the song. Set the **Time Signature** beside it if the song is not in 4/4.",
-        "Click the metronome icon so you have a click to play to. The gear next to it sets the sound, accent pattern, and volume.",
+        "The metronome icon enables the click during playback/recording. The gear opens Metronome Settings for sounds, accents and volume. In the unreleased October 5 working tree after app commit 52cbd7c, **Play click only / Stop click only** also has `Ctrl+Shift+Space` (macOS: `Cmd+Shift+Space`) in all 19 built-in keyboard profiles, with the dialog open or closed. It changes standalone practice without changing transport or Enable. Expand **Click sounds** for four built-ins or a prepared custom sample; select **Electronic (original)** to restore the original tone. **Practice timer** offers Countdown or Stopwatch.",
         "Press `Ctrl+S` and choose a folder. Recorded WAV files go into `OpenStudio/Audio` inside your Documents folder and are referenced by the project; saving does not copy them beside the `.osproj`. Keep those files with your backups.",
       ],
     },
@@ -60,7 +60,7 @@ const doc: DocContent = {
       type: "ol",
       items: [
         "Press `Ctrl+Shift+I` for an instrument track. The Plugin Browser opens; pick a VST3 drum instrument (click **Scan** first if the list is empty).",
-        "To play it in: choose your controller in the track header's MIDI input dropdown, arm, enable monitoring, press `Ctrl+R`, and play. No controller? `Alt+B` opens the on-screen keyboard.",
+        "To play it in: choose your controller in the track header's MIDI input dropdown, arm, enable monitoring, press `Ctrl+R`, and play. No controller? `Alt+B` (macOS: `Ctrl+B`) opens the on-screen keyboard.",
         "To draw it: select the instrument track, choose **Insert → Empty MIDI Clip**, then double-click the clip to open the Piano Roll, choose the **Draw** tool, and click in the grid. Row is pitch, column is time; drag to set length.",
         "For a step-entered pattern, enable **Step Input** in the Piano Roll toolbar, pick a step size, and press `C` through `B` to insert notes.",
         "Tighten timing with **MIDI → Quantize Notes…**; `Q` reapplies the same settings later. Drag bars in the velocity lane to set how hard each hit plays.",
@@ -76,7 +76,7 @@ const doc: DocContent = {
     { type: "h2", id: "tidy-the-take", text: "Tidy the take" },
     {
       type: "p",
-      text: "Three edits cover most first sessions. All are non-destructive and undoable with `Ctrl+Z`; `Ctrl+Alt+Z` opens the undo history.",
+      text: "Three edits cover most first sessions. All are non-destructive and undoable with `Ctrl+Z`; `Ctrl+Alt+Z` (macOS: `Cmd+Ctrl+Z`) opens the undo history.",
     },
     {
       type: "ol",
@@ -113,7 +113,7 @@ const doc: DocContent = {
     {
       type: "ol",
       items: [
-        "Press `Ctrl+Alt+R` or open **File → Render…**.",
+        "Press `Ctrl+Alt+R` (macOS: `Cmd+Ctrl+R`) or open **File → Render…**.",
         "Set **Source** to **Master mix** and **Bounds** to **Entire project**.",
         "Choose a folder and a file name; `$project` and `$date` are replaced at render time.",
         "Pick **WAV** and a bit depth. Add a **Tail** in milliseconds if the reverb rings past the last clip.",

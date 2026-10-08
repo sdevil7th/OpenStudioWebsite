@@ -3,15 +3,22 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-16",
-  appReference: { commit: "7f59cff", channel: "development" },
+  updated: "2026-10-05",
+  appReference: { commit: "52cbd7c", channel: "development" },
   blocks: [
+    { type: "callout", tone: "note", label: "Development checkout: Native window behavior", text: "Unreleased September 29 working-tree changes after app commit 52cbd7c use OS title bars for the main app and the implemented mixer, MIDI and built-in plugin editor windows. Startup refreshes no longer change outer window bounds; saved detached bounds stay on the relevant monitor when available. The graphical pitch editor also has a native detached window: Detach, Focus and Dock keep the existing clip session and committed history. Closing and reopening the same clip retains committed edits. WebView2 applies to Windows; macOS uses WKWebView and Linux uses WebKitGTK. Windows Debug geometry/lifecycle checks do not establish packaged Release or cross-platform results. First-launch readiness, physical drag/snap, DPI transitions and close/reopen still need qualification on each target platform." },
     {
       type: "p",
       text: `Find the symptom, work through the list in order. Shortcuts are the OpenStudio default keyboard profile (\`Ctrl\` is \`Cmd\` on macOS). Background for each group is in [Audio setup](${SITE_PATHS.docs}/audio-setup), [Plugins & scanning](${SITE_PATHS.docs}/plugins-and-scanning), and [Keyboard shortcuts](${SITE_PATHS.docs}/keyboard-shortcuts). If nothing fits, search the [issue tracker](${REPO.issues}) before opening a new one.`,
     },
 
     { type: "h2", id: "install-and-launch", text: "Install and first launch" },
+    {
+      type: "callout",
+      tone: "note",
+      label: "Development checkout: startup recovery",
+      text: "Unshipped working-tree changes reviewed on top of app commit `52cbd7c` improve packaged AppImage asset lookup and require the Linux release check to launch the finished AppImage. On Windows, an unusable inherited `WEBVIEW2_BROWSER_EXECUTABLE_FOLDER` override can be ignored when the installed Evergreen runtime works. Startup diagnostics now record WebView2 loader and environment results; **Repair Dependencies** waits for the bundled installers, checks their exit codes, and checks browser availability again. These paths still need validation on the affected Linux and Windows 10 machines.",
+    },
     { type: "h3", text: "The OS warns or blocks first launch" },
     {
       type: "p",
@@ -23,6 +30,7 @@ const doc: DocContent = {
         "Windows: when SmartScreen appears, choose **More info** → **Run anyway**.",
         "macOS: right-click the app, choose **Open**, then allow it under **System Settings → Privacy & Security** if asked.",
         "Linux: run `chmod +x OpenStudio-*.AppImage` before launching.",
+        "Launch the Linux AppImage itself, rather than an extracted `usr/bin/OpenStudio` binary, so its bundled assets and startup environment are available.",
         `Verify the SHA-256 on the [download page](${SITE_PATHS.download}) to check file integrity.`,
       ],
     },
@@ -205,7 +213,7 @@ const doc: DocContent = {
       type: "ol",
       items: [
         "Click the timeline or a panel so the main window has focus.",
-        "If a text field is focused, shortcuts are suspended. Press `Esc`.",
+        "Ordinary typing, native text-editing keys and input-method composition belong to text fields. Global modifier shortcuts can still work there. Native plug-in editors may consume their own keys; return focus to the main window to use host shortcuts.",
         "Open **Help → Keyboard, Mouse & Trackpad** for the effective map. `F1` opens the Help Reference, not the key map.",
         "Check the selected profile, any platform override, and whether the action is intentionally unassigned.",
         "Check the action's scope. Timeline, Piano Roll, Pitch Editor, Mixer, automation, browser, plug-in, track-control, and modal bindings only fire in their own context.",

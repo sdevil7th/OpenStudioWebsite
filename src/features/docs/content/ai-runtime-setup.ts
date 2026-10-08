@@ -4,8 +4,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-16",
-  appReference: { commit: "681fec8", channel: "development" },
+  updated: "2026-10-08",
+  appReference: { commit: "5dc19acd1b7fecb24341baefd9c3aea1a4e5478f", channel: "development" },
   blocks: [
     {
       type: "p",
@@ -44,6 +44,12 @@ const doc: DocContent = {
 
     { type: "h2", id: "install", text: "Installing from inside the app" },
     {
+      type: "callout",
+      tone: "note",
+      label: "Development checkout: Windows backend fallback",
+      text: "Unshipped working-tree changes reviewed on top of app commit `52cbd7c` prepare a separate DirectML runtime when CUDA setup falls back on Windows. The installer selects it only after the final stem-separation check, leaving the previous runtime selected if setup fails. **Reset** removes both the base and fallback runtimes. The reported Windows access-denied case still needs a real-machine retest.",
+    },
+    {
       type: "ol",
       items: [
         "Click the **AI Tools** button in the main toolbar, beside the Settings gear, or click **Install AI Tools** inside the Stem Separation dialog. A generation or stem workflow that finds its runtime missing also points you to **AI Tools Setup**.",
@@ -71,7 +77,7 @@ const doc: DocContent = {
         ],
         [
           "macOS",
-          "An Apple Silicon (arm64) runtime. The manifest contract also carries an x64 entry, but the GitHub release notes state that Intel Macs run the base app while AI Tools are unavailable. macOS does not provision ONNX Runtime, so audio-to-MIDI is unavailable there as well.",
+          "The downloadable managed runtime requires Apple Silicon (arm64) and macOS 14 or later because of its bundled numerical-library wheels. The base app targets macOS 12 or later; the managed archive is not qualified for macOS 12/13. Intel Macs can run the base app, while AI Tools remain unavailable. Audio-to-MIDI is unavailable in the macOS app build.",
         ],
         [
           "Linux",
@@ -111,7 +117,7 @@ const doc: DocContent = {
         [
           "**Text to Music**",
           "Generates a fresh clip with ACE-Step from a style or arrangement prompt, optional lyrics, BPM, duration, time signature, language, key and scale, seed, and generation controls.",
-          "An AI track: **Insert** menu, the Command Palette, or `Ctrl+Alt+T`",
+          "An AI track: **Insert** menu, the Command Palette, or `Ctrl+Alt+T` (macOS: `Cmd+Ctrl+T`)",
         ],
         [
           "**Lyrics + Style**",

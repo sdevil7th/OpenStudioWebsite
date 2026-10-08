@@ -5,6 +5,15 @@ acceptance. They are not part of the desktop app. Source:
 `src/lib/analytics.ts`, `src/lib/analyticsConsent.ts`, and
 `src/components/PrivacyChoices.tsx`. Policy text lives in `src/data/legal.ts`.
 
+The same choice panel is prerendered into `#openstudio-privacy`, outside the
+temporarily hidden route root. A small pre-paint script uses the shared
+`consentRecord.ts` validator to hide it for an unexpired saved choice. This
+script never loads analytics or grants consent. The client portal replaces the
+inert static panel before paint and keeps router links, focus and choice handlers
+inside the existing app. Without JavaScript, or when initial application loading
+fails, the static panel stays hidden so unusable controls cannot cover legal text.
+The original loader still covers initial non-legal navigation until it finishes.
+
 ## Build configuration
 
 Set these in the hosting provider's **build** environment; Vite embeds them at
@@ -125,3 +134,25 @@ that mixed `/privacy` metadata with `/docs` as its URL. Code now preserves page
 context and regression coverage includes the mismatch. Disabling history page
 views is a separate GA account change; a code deployment alone does not complete
 that correction. The real-provider verifier must pass before marking it resolved.
+
+## 1 October 2026 PR #24 verification
+
+The first production run of `npm run verify:analytics -- --url https://openstudio.org.in`
+failed the exactly-one-page-view check: the initial `/privacy` view was
+followed by two views for each `/docs`, `/download` and Back-to-`/docs` navigation.
+The OpenStudio Website stream's measurement ID was matched against the production
+JavaScript bundle. **Page changes based on browser history events** was enabled;
+it was turned off, saved and confirmed off in the reopened settings. Other
+Enhanced Measurement options remain enabled. This account correction takes effect
+without deploying application code.
+
+Fresh desktop and mobile runs of the commands above then **passed**: each produced
+exactly four page views (`/privacy`, `/docs`, `/download`, Back-to-`/docs`) and three
+installer click events, with correct referrers and engagement attribution. Both
+confirmed no provider requests before consent and real Clarity upload generation.
+Provider uploads were intercepted, so these checks did not add synthetic traffic
+to reports. The duplicate history page-view issue is resolved for these live
+client checks; dashboard ingestion is outside their scope.
+
+Evidence is in ignored `output/review/pr24-merge-readiness/analytics-live.log`
+(before), `analytics-fixed-desktop.log` and `analytics-fixed-mobile.log` (after).

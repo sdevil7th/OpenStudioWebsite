@@ -1,6 +1,7 @@
 // Source: OpenStudio frontend/src/components/PeakMeter.tsx @ d2056151222fefcede123ef614ec38c6893cbfd5
 // Vendored by scripts/vendor-openstudio-ui.mjs — do not edit by hand, re-run the script.
 import { useEffect, useRef, useCallback } from "react";
+import { startMeterPlayback } from "../stage/meterPlayback";
 import {
   getMeterSegmentColor,
   getPeakIndicatorColor,
@@ -94,7 +95,6 @@ export function PeakMeter({
   // Peak hold with 3 dB/sec decay
   const peakHoldLevelRef = useRef(0);
   const peakHoldTimerRef = useRef(0); // timestamp when peak was captured
-  const animFrameRef = useRef<number | null>(null);
   const lastDrawTimeRef = useRef(0);
 
   // RMS simulation via exponential smoothing of squared peak values
@@ -163,13 +163,12 @@ export function PeakMeter({
   useEffect(() => {
     const draw = (timestamp: number) => {
       const canvas = canvasRef.current;
-      if (!canvas) { animFrameRef.current = requestAnimationFrame(draw); return; }
+      if (!canvas) { return; }
       const ctx = canvas.getContext("2d");
-      if (!ctx) { animFrameRef.current = requestAnimationFrame(draw); return; }
+      if (!ctx) { return; }
 
       // Throttle to ~20fps; backend meter events arrive around 10Hz.
       if (timestamp - lastDrawTimeRef.current < 50) {
-        animFrameRef.current = requestAnimationFrame(draw);
         return;
       }
       lastDrawTimeRef.current = timestamp;
@@ -191,7 +190,7 @@ export function PeakMeter({
       const shouldShowRulingLines = showRulingLinesRef.current;
       const currentColorScheme = colorSchemeRef.current;
       const ch = height || containerHeightRef.current;
-      if (ch <= 0) { animFrameRef.current = requestAnimationFrame(draw); return; }
+      if (ch <= 0) { return; }
 
       // Sync canvas pixel resolution only when it actually changed
       if (canvas.height !== ch) {
@@ -384,15 +383,11 @@ export function PeakMeter({
         ctx.fillRect(0, 0, width, 3);
       }
 
-      animFrameRef.current = requestAnimationFrame(draw);
     };
 
-    animFrameRef.current = requestAnimationFrame(draw);
-    return () => {
-      if (animFrameRef.current !== null) {
-        cancelAnimationFrame(animFrameRef.current);
-      }
-    };
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    return startMeterPlayback(canvas, draw, lastDrawTimeRef.current);
   }, [height]);
 
   return (

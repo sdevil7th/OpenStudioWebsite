@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-16",
-  appReference: { commit: "7f59cff", channel: "development" },
+  updated: "2026-10-08",
+  appReference: { commit: "b482852", channel: "development" },
   blocks: [
     {
       type: "p",
@@ -45,13 +45,19 @@ const doc: DocContent = {
     {
       type: "ol",
       items: [
-        "Connect TONE3000 from the rack. Sign-in opens the TONE3000 authorize page in your default browser, where you can also sign up. The app never asks you to paste a token.",
+        "Open the capture or IR library from its signal block, then choose **Browse** beside the T3K logo or **Connect TONE3000**. Signed-out users choose **Continue** in the community introduction. Sign in and select a tone in the default browser; its pack opens back in the rack.",
         "Search. Results are tone packs, each reporting how many captures it contains.",
         "Open **View Captures** on a pack to list its children with name, NAM architecture, and a topology badge.",
         "Select the exact child. Selecting only changes the pending choice; the rack still sounds the same.",
         "Click **Audition** to download that child and route it through your live input. Audition another to compare. **Stop** or Cancel restores everything loaded before, cabinet and mix values included.",
         "Click **Use** to commit it. The capture is recalled with the project.",
       ],
+    },
+    {
+      type: "callout",
+      tone: "note",
+      label: "TONE3000 design update — development checkout",
+      text: "Reviewed October 8, 2026 against OpenStudio development commit b482852; this is not a shipped-release claim. The library shows the official logo, signed-in avatar and username, creator avatars, artwork, format, and creator description. The account avatar uses initials when no image is available. A compact **Browse** button followed by the T3K logo stays in the responsive header, with **Browse TONE3000** as its accessible name. Compact controls leave more height for the scrolling list; creator, license, instrument and character filters still apply to loaded results. In compact views, open **Selected · details & actions** for the selected tone and capture controls; loading captures opens it automatically. Narrow hosts let you scroll horizontally through all six library tabs. **Favorites**, **Created**, and **Downloaded** are online account collections; **Installed**, **Local Favorites**, and result stars remain local. Loaded tones retain source attribution and artwork when available. A real authenticated Select round trip and TONE3000 review remain release acceptance checks.",
     },
     {
       type: "table",

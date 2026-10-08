@@ -20,6 +20,14 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
 });
 
 const blogPostSeoOverrides = {
+  "building-openstudio-free-plugins": {
+    dateModified: "2026-10-08",
+    seoDescription:
+      "Inside OpenStudio's unreleased free plugin suite: reference research, contextual editors, DSP, saved-state compatibility and honest testing limits.",
+    imageAlt:
+      "Original OpenStudio engineering illustration showing an EQ curve, delay repeats and a reverb tail above a research-to-verification workflow.",
+    imageFit: "contain",
+  },
   "minimax-stable-audio-diffusers-openstudio": {
     author: "OpenStudio team",
     dateModified: "2026-09-16",

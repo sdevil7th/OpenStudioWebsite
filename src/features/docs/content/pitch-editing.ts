@@ -3,18 +3,23 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-16",
-  appReference: { commit: "7f59cff", channel: "development" },
+  updated: "2026-10-04",
+  appReference: { commit: "52cbd7c", channel: "development" },
   blocks: [
     {
       type: "p",
       text: `OpenStudio has two ways to fix pitch. The graphical **Pitch Editor** analyses a monophonic audio clip, shows its notes, and lets you reshape them before an offline correction is rendered back into the clip. The built-in real-time pitch corrector is an FX-chain effect for live or immediate corrective work. This page covers both and was checked against the app’s editor and correction code. The [upstream feature list](${REPO.implementedFeatures}) provides additional background.`,
     },
 
+    {
+      type: "p",
+      text: "The detached-window behavior described here is development work from September 29 on app commit 52cbd7c plus uncommitted changes. It is not a claim about the current downloadable release or untested platforms.",
+    },
+    { type: "p", text: "In the October 4 development checkout, the Pitch Correct plugin opens this existing Edit Pitch session for a chosen eligible audio clip. It checks for active realtime correction along the playback route without silently bypassing effects. The compatible realtime processor offers Legacy Humanize and opt-in Sustained notes; graphical Apply remains a separate operation." },
     { type: "h2", id: "what-it-is", text: "What the Pitch Editor is" },
     {
       type: "p",
-      text: "Open the Pitch Editor for a selected audio clip. It lives inside the main window rather than in a detached view. The clip is analysed with a monophonic YIN pitch tracker and segmented into notes. Each note appears as a blob on a piano grid, with the detected pitch contour drawn through it, so you can see at a glance which notes sit on a grid line and which drift sharp or flat. The view zooms and scrolls so a long phrase and a single note are both workable.",
+      text: "Open the Pitch Editor for a selected audio clip. Use **Detach** to open its native window, **Focus** to bring it forward, or **Dock** to return it to the main window. Notes, selection, history and pitch zoom survive docking. Closing the native window retains committed edits for reopening the same clip. Pitch scrolling and zoom are independent of the arrangement, and committed edits share the project Undo history. The clip is analysed with a monophonic YIN pitch tracker and segmented into notes. Each note appears as a blob on a piano grid, with the detected pitch contour drawn through it, so you can see at a glance which notes sit on a grid line and which drift sharp or flat. The view zooms and scrolls so a long phrase and a single note are both workable.",
     },
     {
       type: "shot",

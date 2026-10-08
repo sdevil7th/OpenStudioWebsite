@@ -3,9 +3,10 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-16",
-  appReference: { commit: "7f59cff", channel: "development" },
+  updated: "2026-10-05",
+  appReference: { commit: "52cbd7c", channel: "development" },
   blocks: [
+    { type: "callout", tone: "note", label: "Development checkout: MIDI file import", text: "Unreleased September 29 working-tree additions after app commit 52cbd7c: File > Import > MIDI... opens a native .mid/.midi chooser with multi-selection. The OpenStudio-profile default is Ctrl+Alt+I (Cmd+Ctrl+I on macOS); other profiles/custom bindings differ. A single file uses a compatible selected MIDI/instrument track or creates a track. Multiple files create separate tracks at the cursor position captured when the chooser opened. Source MIDI tracks currently combine into one clip per file; project tempo is not replaced." },
     {
       type: "p",
       text: "MIDI and Instrument tracks share the timeline with audio tracks, MIDI clips move and split like audio clips, and the piano roll opens from any MIDI clip. This page covers getting a controller in, recording, and the piano roll. Shortcuts are from the default OpenStudio keyboard profile; `Ctrl` is `Cmd` on macOS.",
@@ -55,7 +56,7 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: "The 88-key on-screen keyboard toggles with `Alt+B` or **View → Show Virtual MIDI Keyboard**. Clicking its keys sends notes to the selected MIDI or Instrument track, so you can sketch a part without a controller.",
+      text: "The 88-key on-screen keyboard toggles with `Alt+B` (macOS: `Ctrl+B`) or **View → Show Virtual MIDI Keyboard**. Clicking its keys sends notes to the selected MIDI or Instrument track, so you can sketch a part without a controller.",
     },
     {
       type: "callout",

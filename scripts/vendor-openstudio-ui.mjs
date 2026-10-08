@@ -31,7 +31,15 @@ const ATLAS_COLUMNS = 11;
 /** @type {{ from: string; to: string; patches?: [string, string][] }[]} */
 const FILES = [
   { from: "components/meterConfig.ts", to: "meterConfig.ts" },
-  { from: "components/PeakMeter.tsx", to: "PeakMeter.tsx" },
+  { from: "components/PeakMeter.tsx", to: "PeakMeter.tsx", patches: [
+    ['import { useEffect, useRef, useCallback } from "react";', 'import { useEffect, useRef, useCallback } from "react";\nimport { startMeterPlayback } from "../stage/meterPlayback";'],
+    ['  const animFrameRef = useRef<number | null>(null);\n', ''],
+    ['{ animFrameRef.current = requestAnimationFrame(draw); return; }', '{ return; }'],
+    ['        animFrameRef.current = requestAnimationFrame(draw);\n', ''],
+    ['      animFrameRef.current = requestAnimationFrame(draw);\n', ''],
+    ['    animFrameRef.current = requestAnimationFrame(draw);\n', ''],
+    ['    return () => {\n      if (animFrameRef.current !== null) {\n        cancelAnimationFrame(animFrameRef.current);\n      }\n    };', '    const canvas = canvasRef.current;\n    if (!canvas) return;\n    return startMeterPlayback(canvas, draw, lastDrawTimeRef.current);'],
+  ] },
   { from: "components/MasterPeakMeterCluster.tsx", to: "MasterPeakMeterCluster.tsx" },
   {
     from: "components/NAMRackControlAssets.ts",

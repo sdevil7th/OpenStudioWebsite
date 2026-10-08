@@ -3,9 +3,14 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-16",
-  appReference: { commit: "7f59cff", channel: "development" },
+  updated: "2026-10-05",
+  appReference: { commit: "52cbd7c", channel: "development" },
   blocks: [
+    { type: "callout", tone: "note", label: "Development checkout: Click-only metronome shortcut", text: "Unreleased October 5 working-tree addition after app commit 52cbd7c: Ctrl+Shift+Space on Windows/Linux or Cmd+Shift+Space on macOS mirrors Play click only / Stop click only, with Metronome Settings open or closed. All 19 built-in keyboard profiles include it; custom overrides can reassign or disable it. The shortcut changes standalone practice only, leaving transport, recording and Enable unchanged. If Enable is on, the click can still follow playback or recording after Stop click only. Plain Space retains transport start/stop." },
+    { type: "callout", tone: "note", label: "Development checkout: Metronome click sounds", text: "Unreleased October 5 working-tree changes after app commit 52cbd7c: Click sounds in Metronome Settings starts collapsed. Regular and Accent independently offer Electronic (original), Woodblock, 808-style cowbell and Mechanical tick, or a custom WAV/AIFF/FLAC/Ogg. The cowbell is an electronic drum-machine sound with a stronger same-pitch accent; use a custom sample for an acoustic cowbell. Play click only auditions the pair. Custom imports inspect the first two seconds, remove DC, select the strongest mono channel, align the first sharp attack peak, match peak level and fade to at most 100 ms. Silent, clipped, invalid, slow-attack and detectable multiple-hit samples are rejected while keeping the previous choice. Automatic detection is limited; audition complex or noisy sources. Prepared copies are saved locally and selections survive project save/load. Include those prepared files when transferring projects; missing copies warn and fall back to the original sound. Regenerate existing rendered click tracks after changing sounds." },
+    { type: "callout", tone: "note", label: "Development checkout: Playhead at high zoom", text: "Unreleased October 5 working-tree fix after app commit 52cbd7c: the ruler marker and vertical playhead line use the same current zoom and scroll values and refresh after zoom or resize, including while transport is stopped. This corrects an intermittent disappearance when the playhead remains inside the visible time range at high zoom." },
+    { type: "callout", tone: "note", label: "Development checkout: Clip click and drag", text: "Unreleased October 5 working-tree fix after app commit 52cbd7c: clicking a recorded, imported, or MIDI clip preserves its exact placement and trim boundaries, including off-grid clips. Pointer movement below four screen pixels counts as a click. Snapping begins when a drag activates; a click creates no move, trim, copy, or undo entry. The shared timeline handler also uses the main canvas origin when the internal ruler is visible, and Escape cancels an active clip drag before deselection handling." },
+    { type: "callout", tone: "note", label: "Development checkout: Import and timed practice", text: "Unreleased September 29 working-tree additions after app commit 52cbd7c: File > Import > Audio... (Ctrl+I) and MIDI... (Ctrl+Alt+I) open filtered native multi-file choosers. Insert > Media file... accepts either. One file uses a compatible selected track; otherwise imports create tracks at the captured edit cursor. Multiple files use separate tracks and one undo entry per file; MIDI currently merges source tracks into one clip per file. Source audio remains referenced in place. These are OpenStudio-profile defaults (Audio: Cmd+I and MIDI: Cmd+Ctrl+I on macOS); other profiles/custom bindings differ. Metronome Settings now offers Countdown in seconds or Stopwatch at project tempo, Pause/Resume and Reset. Closing the dialog keeps practice running; Play/Record or device loss interrupts it. The timer never stops recording." },
     {
       type: "p",
       text: `Audio recording from input to comped take, then the timeline tools in the order you are likely to reach for them. MIDI has [its own page](${SITE_PATHS.docs}/midi-and-piano-roll). Shortcuts are the OpenStudio default keyboard profile; \`Primary\` (and the \`Ctrl\` below) is \`Ctrl\` on Windows and Linux and \`Cmd\` on macOS.`,
@@ -110,7 +115,7 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: "All of it is undoable with `Ctrl+Z` and redoable with `Ctrl+Shift+Z`. **View → Undo History** (`Ctrl+Alt+Z`) lists every operation; click one to jump back to it.",
+      text: "All of it is undoable with `Ctrl+Z` and redoable with `Ctrl+Shift+Z`. **View → Undo History** (`Ctrl+Alt+Z`; macOS: `Cmd+Ctrl+Z`) lists every operation; click one to jump back to it.",
     },
 
     { type: "h2", id: "time-selection-razor-ripple", text: "Time selection, razor, and ripple" },

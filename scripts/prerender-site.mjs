@@ -112,6 +112,11 @@ export function buildRouteHtml(template, route, { manifest, imageIndex = {} }) {
   }
   const content = route.html.replace(/(data-sp-reveal="[^"]+")/g, '$1 data-sp-in="true"');
   html = html.replace(/<div id="root"><\/div>/, `<div id="root"><div data-static-route-content>${content}</div></div>`);
+  if (route.privacyHtml && route.privacyBootstrap) {
+    html = html.replace('id="openstudio-privacy" class="sp-root min-h-0 bg-transparent" hidden inert></div>',
+      `id="openstudio-privacy" class="sp-root min-h-0 bg-transparent" hidden inert><div data-privacy-prerender>${route.privacyHtml}</div></div>`)
+      .replace('<!-- privacy-bootstrap -->', `<script>${route.privacyBootstrap}</script>`);
+  }
   if (/^\/(privacy|security|terms)$/.test(route.path)) {
     html = html
       .replace('<html lang="en">', '<html lang="en" data-openstudio-immediate-content>')

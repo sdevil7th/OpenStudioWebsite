@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3360" height="1764" viewBox="0 0 1680 882">
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="#243d35" stroke-opacity=".055"/></pattern>
+    <linearGradient id="panel" x2="0" y2="1"><stop stop-color="#213b34"/><stop offset="1" stop-color="#122923"/></linearGradient>
+    <linearGradient id="decay" x2="1" y2="0"><stop stop-color="#bbe5c7" stop-opacity=".65"/><stop offset="1" stop-color="#bbe5c7" stop-opacity="0"/></linearGradient>
+  </defs>
+  <path fill="#f1eee6" d="M0 0h1680v882H0z"/>
+  <path fill="url(#grid)" d="M0 0h1680v882H0z"/>
+  <g font-family="Arial, sans-serif" fill="#18372e">
+    <text x="92" y="96" font-size="22" font-weight="700" letter-spacing="4">OPENSTUDIO / ENGINEERING</text>
+    <text x="86" y="237" font-size="104" font-weight="700" letter-spacing="-5">Inside the</text>
+    <text x="86" y="345" font-size="104" font-weight="700" letter-spacing="-5">built-in suite.</text>
+    <text x="94" y="416" font-size="28" fill="#536960">From reference research to working controls.</text>
+    <text x="1293" y="96" font-size="20" letter-spacing="2">DEVELOPMENT NOTES</text>
+  </g>
+  <g transform="translate(975 182)" fill="none" stroke="#375e50" stroke-width="3">
+    <circle cx="275" cy="93" r="116" stroke-opacity=".16"/>
+    <circle cx="275" cy="93" r="83" stroke-opacity=".25"/>
+    <path d="M0 94h109c32 0 29-70 61-70s31 139 63 139S267-8 299-8s31 202 63 202 29-100 61-100h164"/>
+    <circle cx="110" cy="94" r="7" fill="#375e50"/><circle cx="424" cy="94" r="7" fill="#375e50"/>
+  </g>
+  <g transform="translate(92 490)">
+    <rect width="474" height="258" rx="18" fill="url(#panel)"/>
+    <g stroke="#8ab99e" stroke-opacity=".16"><path d="M30 91h414M30 131h414M30 171h414M88 76v115M166 76v115M244 76v115M322 76v115M400 76v115"/></g>
+    <path d="M30 157c90 0 82-67 137-67s59 68 111 68 63-29 99-29h67" fill="none" stroke="#b6e5c5" stroke-width="4"/>
+    <circle cx="167" cy="90" r="8" fill="#b6e5c5"/><circle cx="343" cy="140" r="8" fill="#b6e5c5"/>
+    <g font-family="Arial, sans-serif"><text x="28" y="45" fill="#f4f0df" font-size="23" font-weight="700">SHAPE</text><text x="28" y="230" fill="#a7c2b3" font-size="18">A control that explains its response.</text></g>
+  </g>
+  <g transform="translate(602 490)">
+    <rect width="474" height="258" rx="18" fill="url(#panel)"/>
+    <path d="M31 184h412" stroke="#8ab99e" stroke-opacity=".25"/>
+    <g fill="#ead69a"><rect x="42" y="78" width="21" height="106" rx="3"/><rect x="107" y="100" width="21" height="84" rx="3" opacity=".85"/><rect x="172" y="120" width="21" height="64" rx="3" opacity=".7"/><rect x="237" y="137" width="21" height="47" rx="3" opacity=".55"/><rect x="302" y="151" width="21" height="33" rx="3" opacity=".4"/><rect x="367" y="161" width="21" height="23" rx="3" opacity=".3"/></g>
+    <path d="M52 68h65m0 0-8-5m8 5-8 5" stroke="#ead69a" fill="none" stroke-width="2"/>
+    <g font-family="Arial, sans-serif"><text x="28" y="45" fill="#f4f0df" font-size="23" font-weight="700">TIME</text><text x="28" y="230" fill="#a7c2b3" font-size="18">A rhythm you can see and set.</text></g>
+  </g>
+  <g transform="translate(1112 490)">
+    <rect width="474" height="258" rx="18" fill="url(#panel)"/>
+    <path d="M30 184 53 75C123 95 120 130 194 142s113 39 250 42Z" fill="url(#decay)"/>
+    <path d="M30 184 53 75C123 95 120 130 194 142s113 39 250 42" fill="none" stroke="#b6e5c5" stroke-width="3"/>
+    <g stroke="#a9dcc0" stroke-width="2" opacity=".45"><path d="M64 95v89m16-77v77m16-65v65m16-57v57m16-48v48m16-43v43m16-38v38m16-36v36m16-33v33m16-28v28m16-24v24m16-19v19m16-16v16m16-12v12m16-10v10"/></g>
+    <g font-family="Arial, sans-serif"><text x="28" y="45" fill="#f4f0df" font-size="23" font-weight="700">SPACE</text><text x="28" y="230" fill="#a7c2b3" font-size="18">A tail the host knows how to keep.</text></g>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="19" fill="#536960">
+    <text x="92" y="822">RESEARCH</text><path d="M220 816h73m-8-5 8 5-8 5" fill="none" stroke="#536960"/>
+    <text x="316" y="822">INTERACTION</text><path d="M474 816h73m-8-5 8 5-8 5" fill="none" stroke="#536960"/>
+    <text x="570" y="822">PROCESSING</text><path d="M724 816h73m-8-5 8 5-8 5" fill="none" stroke="#536960"/>
+    <text x="820" y="822">VERIFICATION</text><text x="1351" y="822">04 OCTOBER 2026</text>
+  </g>
+</svg>

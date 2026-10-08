@@ -3,14 +3,18 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-16",
-  appReference: { commit: "7f59cff", channel: "development" },
+  updated: "2026-09-29",
+  appReference: { commit: "52cbd7c", channel: "development" },
   blocks: [
     {
       type: "p",
       text: `Everything on this page lives in one dialog: **View → Audio Settings…**, also reachable from the gear icon in the main toolbar. Get the driver, sample rate, and buffer size right once and most latency and crackle problems never appear. Shortcuts follow the OpenStudio default keyboard profile.`,
     },
 
+    {
+      type: "p",
+      text: "In the September 29 development checkout (52cbd7c plus uncommitted changes), an audio-device interruption stops and finalizes the current take. Check the input device and channels before starting another take; recording does not silently continue through a replacement device. Sustained microphone and platform qualification remain separate from this safeguard.",
+    },
     { type: "h2", id: "interfaces-and-drivers", text: "Interfaces and drivers" },
     {
       type: "p",
@@ -47,7 +51,18 @@ const doc: DocContent = {
       text: "ASIO is an optional dependency: OpenStudio launches without it and falls back to the system paths, so a missing vendor driver never stops the app from starting.",
     },
 
+    {
+      type: "p",
+      text: "For USB or webcam microphones, select Windows WASAPI or macOS CoreAudio, choose the microphone as Input Device, and select its mono channel on an armed audio track. Grant operating-system microphone permission. A vendor ASIO driver exposes that interface's inputs; an unrelated USB microphone does not become an Audient ASIO input. Mixing a WASAPI input with an ASIO output is not supported by selecting one backend. macOS aggregate devices are configured in Audio MIDI Setup. Verify a real recording with the chosen device pair.",
+    },
+
     { type: "h2", id: "choosing-settings", text: "Choosing the settings" },
+    {
+      type: "callout",
+      tone: "note",
+      label: "Development checkout: dependent audio settings",
+      text: "The September 29 working-tree changes after app commit 52cbd7c refresh device options inside Audio Settings and select the new device's reported defaults. Inactive ASIO drivers report rates, preferred buffer and supported sizes without starting an audio stream; 8/16-sample options appear when reported. Unavailable inspection shows an error. Apply verifies rate-dependent constraints and refreshes accepted values without closing; OK applies and closes; Cancel discards the draft. On the right of the File/Edit menu row, a compact rate/buffer display describes the running device. These changes are unreleased; hardware and platform qualification remains incomplete.",
+    },
     {
       type: "ol",
       items: [
