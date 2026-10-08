@@ -50,6 +50,8 @@ export function previewRoutes(): Plugin {
       }
       const catalog: DownloadCatalog = {
         app: { windows: destination("windows"), macos: destination("macos"), linux: destination("linux") },
+        linuxDeb: destinations && typeof destinations === "object" && "linuxDeb" in destinations
+          ? destination("linuxDeb") : undefined,
         fallback: destination("fallback"),
         runtime: parseAiRuntimeManifest(JSON.parse(await fs.readFile(path.join(dist, "releases/ai-runtime/stable/latest.json"), "utf8"))),
       };

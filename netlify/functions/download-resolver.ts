@@ -19,12 +19,13 @@ export const config: Config = {
     "/.netlify/functions/download-latest-windows",
     "/.netlify/functions/download-latest-macos",
     "/.netlify/functions/download-latest-linux",
-    "/.netlify/functions/download-latest-ai-runtime-windows",
+    // Route these exact legacy names through URLPattern matching. Production
+    // returned its static 404 for their literal routes despite a valid bundle.
+    "/.netlify/functions/:legacy(github-repo|download-latest-ai-runtime-windows)",
     "/.netlify/functions/download-latest-ai-runtime-macos-arm64",
     "/.netlify/functions/download-latest-ai-runtime-macos-x64",
     "/.netlify/functions/download-latest-ai-runtime-linux-arm64",
     "/.netlify/functions/download-latest-ai-runtime-linux-x64",
-    "/.netlify/functions/github-repo",
     "/.netlify/functions/github-release",
   ],
   rateLimit: { windowLimit: 60, windowSize: 60, aggregateBy: ["ip", "domain"] },

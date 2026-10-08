@@ -3,6 +3,8 @@ import { resolveAiRuntimeDownloadUrl } from "./ai-runtime-manifest";
 
 export interface DownloadCatalog {
   app: Record<AiRuntimePlatform, string>;
+  /** Optional native installer; existing Linux app/updater routes retain AppImage. */
+  linuxDeb?: string;
   runtime: AiRuntimeManifest;
   fallback: string;
 }
@@ -29,6 +31,7 @@ export function fixedDownloadRoutes(catalog: DownloadCatalog): Map<string, strin
     routes.set(`/download/${platform}/latest`, catalog.app[platform]);
     routes.set(`/.netlify/functions/download-latest-${platform}`, catalog.app[platform]);
   }
+  routes.set("/download/linux/deb/latest", catalog.linuxDeb ?? catalog.fallback);
   const windows = resolveAiRuntimeDownloadUrl(catalog.runtime, "windows") ?? catalog.fallback;
   routes.set("/download/ai-runtime/windows/latest", windows);
   routes.set("/.netlify/functions/download-latest-ai-runtime-windows", windows);

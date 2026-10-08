@@ -52,6 +52,11 @@ The handler's 405 alone is not quota protection: it still runs code for allowed
 requests. Header-dependent redirects use `Cache-Control: no-store` so an ARM
 response cannot be replayed to an Intel client.
 
+The `github-repo` and Windows AI runtime aliases use a finite URLPattern alternative
+on the same resolver after the deployed literal routes returned 404. It covers
+only those two existing names, retaining one function and one rate-limit rule.
+Confirm both URLs on the deploy preview before publishing the routing change.
+
 Netlify Free supports two code-defined rules; this uses one function rule. The
 advanced dashboard rule editor is an Enterprise feature. Enforcement occurs before
 function execution, but can lag by up to ten seconds. Per-IP rules do not impose

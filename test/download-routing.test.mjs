@@ -5,27 +5,55 @@ import os from "node:os";
 import { test } from "node:test";
 import { createServer, preview } from "vite";
 import { parseAllRedirects } from "@netlify/redirect-parser";
+import { chromium } from "playwright";
 
 test("download compatibility, architecture precedence and bounded offline load", async () => {
   const vite = await createServer({ logLevel: "silent", server: { middlewareMode: true } });
   const originalFetch = globalThis.fetch;
+  let browser;
   try {
     const { resolveDownload, fixedDownloadRoutes, isDynamicDownload, githubAliases } = await vite.ssrLoadModule("/shared/download-routing.ts");
     const { downloadCatalog } = await vite.ssrLoadModule("/shared/generatedDownloadCatalog.ts");
     const { default: handler, config } = await vite.ssrLoadModule("/netlify/functions/download-resolver.ts");
+    const published = JSON.parse(await readFile("public/github/latest-release.json", "utf8"));
+    const manifest = JSON.parse(await readFile("public/releases/stable/latest.json", "utf8"));
+    const deb = published.assets.find(({ name }) => name.toLowerCase().endsWith(".deb"));
+    assert.equal(downloadCatalog.app.linux, manifest.platforms.linux.url, "Linux updater routes must retain the signed AppImage target");
+    assert.match(downloadCatalog.app.linux, /\.AppImage$/);
+    if (published.tagName === `v${manifest.version}`) assert.equal(downloadCatalog.linuxDeb, deb?.downloadUrl);
     assert.deepEqual(await readdir("netlify/functions"), ["download-resolver.ts"]);
     assert.deepEqual(config.rateLimit, { windowLimit: 60, windowSize: 60, aggregateBy: ["ip", "domain"] });
     assert.ok(!config.path.includes("/.netlify/functions/download-resolver"));
-    for (const path of config.path) assert.ok(isDynamicDownload(path) || fixedDownloadRoutes(downloadCatalog).has(path) || githubAliases[path], path);
-    for (const path of [...fixedDownloadRoutes(downloadCatalog).keys(), ...Object.keys(githubAliases)].filter((path) => path.startsWith("/.netlify/"))) {
-      assert.ok(config.path.includes(path), `${path} must be protected by the same rule`);
-    }
+    const protectedPaths = [...new Set([
+      "/download/ai-runtime/macos/latest", "/download/ai-runtime/linux/latest",
+      "/.netlify/functions/download-latest-ai-runtime-macos", "/.netlify/functions/download-latest-ai-runtime-linux",
+      "/.netlify/functions/download-latest", ...["windows", "macos", "linux"].map((platform) => `/.netlify/functions/download-latest/${platform}`),
+      ...[...fixedDownloadRoutes(downloadCatalog).keys()].filter((path) => path.startsWith("/.netlify/")),
+      ...Object.keys(githubAliases),
+    ])];
+    const unknownPaths = [
+      "/.netlify/functions/download-resolver", "/.netlify/functions/unknown",
+      "/.netlify/functions/github-repo-extra", "/.netlify/functions/github-repo/extra",
+      "/.netlify/functions/download-latest-ai-runtime-windows-extra",
+      "/.netlify/functions/download-latest-ai-runtime-windows/extra",
+    ];
+    // Chromium provides the same URLPattern syntax used by Netlify, including
+    // named alternatives; Node 22 does not expose this API globally.
+    browser = await chromium.launch();
+    const page = await browser.newPage();
+    const matches = await page.evaluate(({ patterns, paths }) => paths.map((path) =>
+      patterns.some((pattern) => new URLPattern({ pathname: pattern }).test({ pathname: path }))),
+    { patterns: config.path, paths: [...protectedPaths, ...unknownPaths] });
+    assert.deepEqual(matches, [...protectedPaths.map(() => true), ...unknownPaths.map(() => false)]);
+    for (const path of protectedPaths) assert.ok(isDynamicDownload(path) || fixedDownloadRoutes(downloadCatalog).has(path) || githubAliases[path], path);
     let upstreamCalls = 0;
     globalThis.fetch = async () => { upstreamCalls++; throw new Error("Runtime network requests are forbidden"); };
     for (const [path, document] of Object.entries(githubAliases)) {
-      const response = handler(new Request(`https://example.test${path}`));
-      assert.equal(response.status, 302);
-      assert.equal(response.headers.get("location"), document);
+      for (const method of ["GET", "HEAD"]) {
+        const response = handler(new Request(`https://example.test${path}`, { method }));
+        assert.equal(response.status, 302);
+        assert.equal(response.headers.get("location"), document);
+      }
     }
     for (const [path, target] of fixedDownloadRoutes(downloadCatalog)) {
       for (const method of ["GET", "HEAD"]) {
@@ -35,6 +63,9 @@ test("download compatibility, architecture precedence and bounded offline load",
         assert.equal(await response.text(), "");
       }
     }
+    const noDebCatalog = { ...downloadCatalog, linuxDeb: undefined };
+    assert.equal(resolveDownload(new Request("https://example.test/download/linux/deb/latest"), noDebCatalog)
+      .headers.get("location"), downloadCatalog.fallback, "A missing DEB must not silently return an AppImage");
     // Synthetic URLs are confined to test data; exercise both modern and legacy schemas.
     const asset = (name) => ({ fileName: name, url: `https://example.test/${name}`, sha256: "a".repeat(64), size: 1 });
     const catalog = structuredClone(downloadCatalog);
@@ -63,7 +94,7 @@ test("download compatibility, architecture precedence and bounded offline load",
       }
     }
     assert.equal(handler(new Request(`${generic}?platform=invalid`)).status, 400);
-    assert.equal(handler(new Request("https://example.test/.netlify/functions/download-resolver")).status, 404);
+    for (const path of unknownPaths) assert.equal(handler(new Request(`https://example.test${path}`)).status, 404);
     for (const method of ["POST", "PUT", "PATCH", "DELETE", "OPTIONS"]) {
       const response = handler(new Request(`${generic}?platform=windows`, { method }));
       assert.equal(response.status, 405);
@@ -79,6 +110,7 @@ test("download compatibility, architecture precedence and bounded offline load",
     assert.equal(upstreamCalls, 0, "5,000 handler calls must produce zero network requests");
   } finally {
     globalThis.fetch = originalFetch;
+    if (browser) await browser.close();
     await vite.close();
   }
 });
@@ -97,6 +129,7 @@ test("preview uses built redirects and release inputs independently of the worki
       windows: "https://example.test/Built-Windows.exe?Token=CaseSensitive",
       macos: "https://example.test/Built-MacOS.dmg",
       linux: "https://example.test/Built-Linux.AppImage",
+      linuxDeb: "https://example.test/Built-Linux.deb",
       fallback: "https://example.test/Built-Releases",
     };
     await Promise.all([
@@ -115,6 +148,9 @@ test("preview uses built redirects and release inputs independently of the worki
       ["/DOWNLOAD/Windows/LATEST/", "https://example.test/CDN-Windows.exe?Token=Unchanged"],
       ["/.netlify/functions/download-latest/WINDOWS/?platform=macos", built.windows],
       ["/.netlify/functions/download-latest-windows", built.windows],
+      ["/download/linux/deb/latest", built.linuxDeb],
+      ["/download/linux/latest", built.linux],
+      ["/.netlify/functions/download-latest-linux", built.linux],
       ["/.netlify/functions/download-latest?platform=MACOS", built.macos],
       ["/download/AI-RUNTIME/MacOS/latest/?arch=ARM64", asset("ARM64.zip").url],
       ["/.netlify/functions/download-latest-ai-runtime-macos?arch=x64", asset("X64.zip").url],
@@ -157,7 +193,7 @@ test("Netlify accepts built CDN rules; fixed downloads and old GitHub URLs remai
   const rules = await readFile("dist/_redirects", "utf8");
   const parsed = await parseAllRedirects({ redirectsFiles: ["dist/_redirects"], netlifyConfigPath: "netlify.toml" });
   assert.deepEqual(parsed.errors, []);
-  assert.equal(parsed.redirects.filter((rule) => rule.status === 302).length, 8);
+  assert.equal(parsed.redirects.filter((rule) => rule.status === 302).length, 9);
   assert.ok(!rules.includes("/.netlify/"));
   const vite = await createServer({ logLevel: "silent", server: { middlewareMode: true } });
   const server = await preview({ logLevel: "silent", preview: { host: "127.0.0.1", port: 0 } });

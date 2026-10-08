@@ -3,7 +3,7 @@ export type DesktopPlatform = "windows" | "macos" | "linux";
 const EXTENSIONS: Record<DesktopPlatform, readonly string[]> = {
   windows: [".exe", ".msi"],
   macos: [".dmg", ".pkg"],
-  linux: [".appimage", ".deb", ".rpm"],
+  linux: [".deb", ".appimage", ".rpm"],
 };
 
 /** Prefer native installers; platform words alone must never select metadata or checksums. */
@@ -25,4 +25,12 @@ export function selectReleaseAsset<T extends { name: string }>(
     })
     .filter(({ score }) => score > 0)
     .sort((a, b) => b.score - a.score)[0]?.asset;
+}
+
+/** Keep native installation choices separate from the AppImage updater package. */
+export function selectLinuxReleaseAsset<T extends { name: string }>(
+  assets: readonly T[],
+  format: "deb" | "appimage",
+): T | undefined {
+  return selectReleaseAsset(assets.filter(({ name }) => name.toLowerCase().endsWith(`.${format}`)), "linux");
 }

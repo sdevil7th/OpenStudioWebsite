@@ -3,7 +3,7 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-16",
+  updated: "2026-10-08",
   appReference: { commit: "7f59cff", channel: "development" },
   blocks: [
     {
@@ -31,8 +31,12 @@ const doc: DocContent = {
       items: [
         "Windows 10 or later, 64-bit, as an installer that also handles WebView2 and the VC++ redistributable.",
         "macOS 12 Monterey or later, as a DMG.",
-        "x86-64 Linux as an AppImage; the release pipeline builds on Ubuntu 24.04.",
+        "x86-64 Linux: a native .deb for Ubuntu 22.04+ and Ubuntu-based Linux Mint, plus an optional AppImage for compatible hosts. The current Linux release builds on Ubuntu 22.04.",
       ],
+    },
+    {
+      type: "p",
+      text: `For the published [v0.1.05 Linux package](${REPO.releases}/tag/v0.1.05), app commit \`649012c\`, open the .deb with **Ubuntu App Center or Software**, or **Linux Mint’s package installer**. If Archive Manager opens, use **Open With** to select the package installer. The optional AppImage remains a separate choice; installed-app update feeds keep their AppImage package format.`,
     },
     {
       type: "p",
@@ -42,7 +46,7 @@ const doc: DocContent = {
     { type: "h2", id: "why-does-the-installer-warn", text: "Why does the installer warn me?" },
     {
       type: "p",
-      text: "Signing and notarization depend on the build. SmartScreen on Windows or Gatekeeper on macOS may warn or block first launch. On Windows choose **More info** → **Run anyway**; on macOS right-click the app, choose **Open**, and allow it under **System Settings → Privacy & Security** if asked. Most Linux distributions run the AppImage without extra steps.",
+      text: "Signing and notarization depend on the build. SmartScreen on Windows or Gatekeeper on macOS may warn or block first launch. On Windows choose **More info** → **Run anyway**; on macOS right-click the app, choose **Open**, and allow it under **System Settings → Privacy & Security** if asked. On Ubuntu or Linux Mint, install the .deb with the package installer. The optional AppImage needs executable permission and compatible host libraries.",
     },
     {
       type: "p",
