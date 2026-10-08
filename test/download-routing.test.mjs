@@ -14,7 +14,8 @@ test("download compatibility, architecture precedence and bounded offline load",
   try {
     const { resolveDownload, fixedDownloadRoutes, isDynamicDownload, githubAliases } = await vite.ssrLoadModule("/shared/download-routing.ts");
     const { downloadCatalog } = await vite.ssrLoadModule("/shared/generatedDownloadCatalog.ts");
-    const { default: handler, config } = await vite.ssrLoadModule("/netlify/functions/download-resolver.ts");
+    const { default: nodeHandler, config } = await vite.ssrLoadModule("/netlify/functions/download-resolver.ts");
+    const { default: handler, config: edgeConfig } = await vite.ssrLoadModule("/netlify/edge-functions/download-compatibility.ts");
     const published = JSON.parse(await readFile("public/github/latest-release.json", "utf8"));
     const manifest = JSON.parse(await readFile("public/releases/stable/latest.json", "utf8"));
     const deb = published.assets.find(({ name }) => name.toLowerCase().endsWith(".deb"));
@@ -22,10 +23,11 @@ test("download compatibility, architecture precedence and bounded offline load",
     assert.match(downloadCatalog.app.linux, /\.AppImage$/);
     if (published.tagName === `v${manifest.version}`) assert.equal(downloadCatalog.linuxDeb, deb?.downloadUrl);
     assert.deepEqual(await readdir("netlify/functions"), ["download-resolver.ts"]);
+    assert.deepEqual(await readdir("netlify/edge-functions"), ["download-compatibility.ts"]);
     assert.deepEqual(config.rateLimit, { windowLimit: 60, windowSize: 60, aggregateBy: ["ip", "domain"] });
-    assert.ok(!config.path.includes("/.netlify/functions/download-resolver"));
+    assert.deepEqual(edgeConfig.rateLimit, config.rateLimit);
+    assert.deepEqual(config.path, ["/download/ai-runtime/macos/latest", "/download/ai-runtime/linux/latest"]);
     const protectedPaths = [...new Set([
-      "/download/ai-runtime/macos/latest", "/download/ai-runtime/linux/latest",
       "/.netlify/functions/download-latest-ai-runtime-macos", "/.netlify/functions/download-latest-ai-runtime-linux",
       "/.netlify/functions/download-latest", ...["windows", "macos", "linux"].map((platform) => `/.netlify/functions/download-latest/${platform}`),
       ...[...fixedDownloadRoutes(downloadCatalog).keys()].filter((path) => path.startsWith("/.netlify/")),
@@ -37,14 +39,16 @@ test("download compatibility, architecture precedence and bounded offline load",
       "/.netlify/functions/download-latest-ai-runtime-windows-extra",
       "/.netlify/functions/download-latest-ai-runtime-windows/extra",
     ];
-    // Chromium provides the same URLPattern syntax used by Netlify, including
-    // named alternatives; Node 22 does not expose this API globally.
+    // Validate the actual declared ownership: exact retained aliases run at the
+    // Edge, canonical dynamic paths run in Node, and unknown paths run neither.
+    // Node 22 does not expose URLPattern globally.
     browser = await chromium.launch();
     const page = await browser.newPage();
     const matches = await page.evaluate(({ patterns, paths }) => paths.map((path) =>
       patterns.some((pattern) => new URLPattern({ pathname: pattern }).test({ pathname: path }))),
-    { patterns: config.path, paths: [...protectedPaths, ...unknownPaths] });
-    assert.deepEqual(matches, [...protectedPaths.map(() => true), ...unknownPaths.map(() => false)]);
+    { patterns: edgeConfig.path, paths: [...protectedPaths, ...unknownPaths, ...config.path] });
+    assert.deepEqual(matches, [...protectedPaths.map(() => true), ...unknownPaths.map(() => false), ...config.path.map(() => false)]);
+    assert.equal(edgeConfig.path.length, protectedPaths.length, "Edge declarations must not expand beyond retained aliases");
     for (const path of protectedPaths) assert.ok(isDynamicDownload(path) || fixedDownloadRoutes(downloadCatalog).has(path) || githubAliases[path], path);
     let upstreamCalls = 0;
     globalThis.fetch = async () => { upstreamCalls++; throw new Error("Runtime network requests are forbidden"); };
@@ -57,7 +61,8 @@ test("download compatibility, architecture precedence and bounded offline load",
     }
     for (const [path, target] of fixedDownloadRoutes(downloadCatalog)) {
       for (const method of ["GET", "HEAD"]) {
-        const response = resolveDownload(new Request(`https://example.test${path}?cacheBust=1`, { method }), downloadCatalog);
+        const request = new Request(`https://example.test${path}?cacheBust=1`, { method });
+        const response = path.startsWith("/.netlify/") ? handler(request) : resolveDownload(request, downloadCatalog);
         assert.equal(response.status, 302);
         assert.equal(response.headers.get("location"), target);
         assert.equal(await response.text(), "");
@@ -99,6 +104,9 @@ test("download compatibility, architecture precedence and bounded offline load",
       const response = handler(new Request(`${generic}?platform=windows`, { method }));
       assert.equal(response.status, 405);
       assert.equal(response.headers.get("allow"), "GET, HEAD");
+      const nodeResponse = nodeHandler(new Request("https://example.test/download/ai-runtime/macos/latest?arch=arm64", { method }));
+      assert.equal(nodeResponse.status, 405);
+      assert.equal(nodeResponse.headers.get("allow"), "GET, HEAD");
     }
     // Bounded stress test: invoke locally, including random queries and unsupported methods.
     for (let batch = 0; batch < 100; batch++) {

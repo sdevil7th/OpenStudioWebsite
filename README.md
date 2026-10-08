@@ -44,7 +44,7 @@ The Studio Paper redesign is the sole website. Source folders describe their res
 - `src/components/ResponsiveImage.tsx`: browser-selected image variants with original-image fallback; no image GraphQL service.
 - `src/styles/site.css`: shared design tokens, typography, responsive component styles and animation effects in Tailwind's component layer. Ordinary page layouts use Tailwind utilities; runtime artwork geometry remains inline.
 - `src/prerender.tsx` and `scripts/prerender-site.mjs`: render the actual page components into static HTML, route-specific head metadata, sitemap and exact hosting rewrites.
-- `shared/` and `netlify/functions/`: release/runtime contracts and stable download endpoints.
+- `shared/`, `netlify/functions/` and `netlify/edge-functions/`: release/runtime contracts and stable download endpoints.
 - `shared/github-snapshot.ts`: the repository snapshot types and nested JSON parser shared by build generation, build-time generation and browser refreshes.
 
 See [repository instructions](AGENTS.md), [source structure and cleanup verification](docs/source-structure.md), [guide authoring](src/features/docs/README.md), and [migration plan and verification](docs/redesign-migration.md) for maintenance rules and regression checks.

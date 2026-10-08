@@ -27,7 +27,9 @@
     Cache-Control = "public, max-age=31536000, immutable"
 
 # Download redirects are generated from validated manifests in dist/_redirects.
-# Dynamic compatibility routes and their rate limit are in download-resolver.ts.
+# Canonical dynamic runtime routes use the Node download-resolver.ts function.
+# Retained function aliases use the Edge download-compatibility.ts resolver.
+# Both use native rate limits.
 
 [[redirects]]
   from = "/home"

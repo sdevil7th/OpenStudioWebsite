@@ -133,4 +133,6 @@ jobs:
 
       - name: Deploy to Netlify
         shell: bash
-        run: npx netlify-cli deploy --dir dist --functions netlify/functions --site "$NETLIFY_SITE_ID" --prod
+        # The website was built above; CLI still bundles Edge functions and uploads
+        # them together with dist and Node functions in this atomic deployment.
+        run: npx netlify-cli deploy --no-build --dir dist --functions netlify/functions --site "$NETLIFY_SITE_ID" --prod

@@ -1,5 +1,5 @@
-import type { AiRuntimeManifest, AiRuntimePlatform } from "./ai-runtime-manifest";
-import { resolveAiRuntimeDownloadUrl } from "./ai-runtime-manifest";
+import type { AiRuntimeManifest, AiRuntimePlatform } from "./ai-runtime-manifest.ts";
+import { resolveAiRuntimeDownloadUrl } from "./ai-runtime-manifest.ts";
 
 export interface DownloadCatalog {
   app: Record<AiRuntimePlatform, string>;

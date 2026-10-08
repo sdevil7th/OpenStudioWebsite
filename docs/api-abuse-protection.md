@@ -1,6 +1,6 @@
 # Protecting Netlify function usage
 
-Implementation reviewed on 2026-09-17. This is protection against unnecessary
+Implementation reviewed on 2026-10-08. This is protection against unnecessary
 compute and repeated requests, not a guarantee against distributed denial of service.
 
 ## Request paths
@@ -8,9 +8,9 @@ compute and repeated requests, not a guarantee against distributed denial of ser
 | Surface | Delivery | Runtime upstream requests |
 | --- | --- | --- |
 | Repository and release JSON | Static `/github/repository.json` and `/github/latest-release.json` | 0 |
-| Old raw `/.netlify/functions/*` URLs | Same protected resolver; old GitHub URLs redirect to static JSON | 0 |
+| Retained raw `/.netlify/functions/*` aliases | One protected Edge compatibility resolver; old GitHub URLs redirect to static JSON | 0 |
 | App downloads, Windows runtime, explicit runtime architectures | Build-generated CDN 302 redirects to GitHub | 0 |
-| macOS/Linux runtime architecture detection and old app `?platform=` URL | One `download-resolver` function, using bundled manifests | 0 |
+| Canonical macOS/Linux runtime architecture detection | One `download-resolver` Node function, using bundled manifests | 0 |
 | Appcasts and release manifests | Existing static documents, unchanged | 0 |
 
 `scripts/generate-download-routing.mjs` runs after staging and validation, before
@@ -19,12 +19,15 @@ uses the same catalog to emit `dist/_redirects`. Never hand-edit either output.
 Prerendering also saves app destinations in `dist/.vite/download-routing.json`.
 Local production preview reads the built redirects, this snapshot and the runtime
 manifest in `dist`; running development data generation afterward does not alter
-the preview's downloads. Rebuild to update them. Legacy download paths accept
-mixed-case platform names and trailing slashes in the resolver, dev and preview.
+the preview's downloads. Rebuild to update them. The resolver and local dev/preview
+bridges accept mixed-case platform names and trailing slashes. Hosted declarations
+retain the exact existing lowercase alias paths.
 Published manifests remain the first source for stable download destinations;
 the fetched GitHub snapshot supplies the existing app-platform fallback.
-The release-publish workflow must deploy functions as well as `dist`, keeping the
-bundled resolver and static redirects in the same atomic deployment.
+The release-publish workflow deploys `dist` and the Node functions together.
+Netlify CLI also bundles `netlify/edge-functions` before uploading the same atomic
+deployment, including when `--no-build` reuses the already validated website build.
+Keep both resolvers and static redirects in that deployment.
 
 GitHub statistics and release snapshots refresh on website builds, not per visitor.
 The desktop release dispatch should trigger a website deployment, as described in
@@ -38,12 +41,16 @@ fallbacks remain available. This improves client behavior; bots can bypass it.
 
 ## Native rate limit
 
-`netlify/functions/download-resolver.ts` configures 60 requests per 60 seconds,
-aggregated by IP and domain. Its explicit paths include the public dynamic URLs
-and all retained raw function aliases. Netlify disables its implicit `/.netlify/functions/download-resolver`
-URL when custom paths are configured. Netlify rejects `/.netlify/*` as a CDN
-redirect source, so old raw function aliases run through this same protected function. Public fixed `/download/*`
-URLs are static rules. The old GitHub aliases return cacheable 302s to the
+`netlify/functions/download-resolver.ts` protects the two canonical dynamic
+runtime URLs. `netlify/edge-functions/download-compatibility.ts` protects the
+16 exact retained raw function aliases, including the old app `?platform=` URL.
+Each resolver has a native limit of 60 requests per 60 seconds, aggregated by IP
+and domain. The Edge resolver runs before dispatch in Netlify's reserved functions
+namespace and shares the same pure resolver and validated catalog. It has no
+all-site wildcard, does not overlap the Node routes, and makes no upstream fetches.
+Netlify disables the implicit `/.netlify/functions/download-resolver` URL when
+custom paths are configured. Netlify rejects `/.netlify/*` as a CDN redirect
+source. Public fixed `/download/*` URLs are static rules. The old GitHub aliases return cacheable 302s to the
 static JSON documents; standard fetch clients follow them automatically. Unknown
 paths never invoke the resolver. Non-GET/HEAD requests to the resolver return 405 without reading bodies or contacting upstream services.
 
@@ -52,12 +59,14 @@ The handler's 405 alone is not quota protection: it still runs code for allowed
 requests. Header-dependent redirects use `Cache-Control: no-store` so an ARM
 response cannot be replayed to an Intel client.
 
-The `github-repo` and Windows AI runtime aliases use a finite URLPattern alternative
-on the same resolver after the deployed literal routes returned 404. It covers
-only those two existing names, retaining one function and one rate-limit rule.
-Confirm both URLs on the deploy preview before publishing the routing change.
+Deployed Node custom paths in the reserved namespace returned static 404s for some
+aliases despite a valid local bundle. A finite custom-path alternative did not
+repair this reliably on deploy previews. Moving compatibility handling before
+Node namespace dispatch is a workaround based on Netlify's documented request
+order; its routing must be confirmed on the real deploy preview before publication.
 
-Netlify Free supports two code-defined rules; this uses one function rule. The
+Netlify Free supports two code-defined rules; this uses one Node rule and one Edge
+rule. Their counters are independent. The
 advanced dashboard rule editor is an Enterprise feature. Enforcement occurs before
 function execution, but can lag by up to ten seconds. Per-IP rules do not impose
 a global spending or invocation cap. Shared-IP users share a limit; different
@@ -80,14 +89,15 @@ To inspect Netlify's actual bundle metadata without deploying:
 npx @netlify/zip-it-and-ship-it netlify/functions output/review/function-bundle --manifest output/review/function-manifest.json
 ```
 
-Expect one function, the explicit compatibility routes and a `trafficRules` entry
+Expect one Node function, the two canonical dynamic routes and a `trafficRules` entry
 with `windowLimit: 60`, `windowSize: 60`, and IP/domain aggregation. Store local
 logs in ignored `output/review/`.
 
 After deployment:
 
-1. Check deploy post-processing logs for acceptance of the rate-limit rule. Confirm
-   only `download-resolver` is deployed; old functions must not remain exposed.
+1. Check deploy post-processing logs for acceptance of both rate-limit rules.
+   Confirm the Node `download-resolver` and Edge `download-compatibility` are
+   deployed, with no per-alias Node functions or all-site Edge wildcard.
 2. Smoke-test static JSON, the legacy JSON redirects and all download URLs with redirects disabled
    (do not download installers). Check manifest versions against redirect targets.
 3. On a deploy preview, make a capped single-IP test of 61 HEAD requests to a dynamic
