@@ -35,7 +35,8 @@ their bandwidth without fixing the scene change.
 - Track activity and mixer meters update through local contexts so unchanged
   labels/controls skip React rendering. Clip artwork has a separate memoized
   boundary whose props exclude playhead time and continuously changing levels.
-  Choreography, styles and the 30 fps timeline commit rate are unchanged.
+  Choreography and styles are unchanged. The hero session commits at 20 fps;
+  other stages retain their existing timeline rates. See [the Aura lifecycle guide](hero-aura.md).
 - Each lazy route imports the renderers it uses. Home, Features, AI and NAM Rack
   render their real controls and scene in the rest state. There is no temporary
   screenshot, bitmap crossfade or second scene to replace it.
