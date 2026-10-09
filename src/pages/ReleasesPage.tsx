@@ -159,21 +159,27 @@ const ReleasesPage = () => {
 
       <div className="sp-container pt-[26px]">
         <div className="sp-releases-layout">
-          <aside className="[border-right:1px_solid_var(--sp-hairline)] pr-[22px]" data-sp-reveal="rise">
-            <div className="sp-kicker">Versions</div>
-            <div className="flex flex-col gap-[10px]">
-              {desktop.map((release, index) => (
-                <a
-                  key={release.id}
-                  className="sp-mono flex items-center justify-between gap-[8px] text-[12px]"
-                  href={`#${release.tagName}`}
-                  style={{ color: index === 0 ? "var(--sp-accent)" : undefined }}
-                >
-                  <span>{release.tagName}</span>
-                  {index === 0 ? <CurrentBadge /> : null}
-                </a>
-              ))}
-            </div>
+          <aside className="[border-right:1px_solid_var(--sp-hairline)] pr-[22px]">
+            <nav
+              aria-label="Release versions"
+              className="sticky top-[84px] max-h-[calc(100svh-100px)] overflow-y-auto [scrollbar-width:thin]"
+              data-sp-reveal="rise"
+            >
+              <div className="sp-kicker">Versions</div>
+              <div className="flex flex-col gap-[10px]">
+                {desktop.map((release, index) => (
+                  <a
+                    key={release.id}
+                    className="sp-mono flex items-center justify-between gap-[8px] text-[12px]"
+                    href={`#${release.tagName}`}
+                    style={{ color: index === 0 ? "var(--sp-accent)" : undefined }}
+                  >
+                    <span>{release.tagName}</span>
+                    {index === 0 ? <CurrentBadge /> : null}
+                  </a>
+                ))}
+              </div>
+            </nav>
           </aside>
           <div className="max-[900px]:pl-0 pl-[30px] flex flex-col gap-[26px]">
             {desktop.map((release, index) => {
