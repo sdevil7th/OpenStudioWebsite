@@ -3,9 +3,10 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-10-05",
-  appReference: { commit: "52cbd7c", channel: "development" },
+  updated: "2026-10-24",
+  appReference: { commit: "1b5ba4b70df39665a4d61cdcd6d6dd6eb64b0861", channel: "development" },
   blocks: [
+    { type: "callout", tone: "note", label: "Development checkout: session editing updates", text: "Unreleased development changes reviewed October 24, 2026 at app commit 1b5ba4b7 add single-key R for Record (Ctrl/Cmd+R and numpad * retained), 1/Home for absolute project start and +/=/− for time zoom. Plain horizontal ruler drags set the project/loop range; Shift-drag sets or extends the separate edit time selection. Plain vertical drags zoom out upward and in downward, with explicit profile/custom actions taking priority. Ctrl/Cmd+D duplicates clips as one arrangement with their spacing intact; Ctrl/Cmd-drag copies the entire clip selection with a 50% opaque preview, or complete selected track rows when started from a track header, including collapsed children when copying a folder. Piano Roll Ctrl/Cmd-drag holds pitch and Shift-drag holds time. NAM Rack's Octaver Fuzz adds independently switched fuzz and three voices. These are development changes, not a shipped-release claim; other profiles/custom bindings can differ." },
     {
       type: "p",
       text: `One continuous session: a guitar part through the NAM Rack, a MIDI drum part, two edits, a quick mix, and a rendered file. It assumes you have finished [Getting started](${SITE_PATHS.docs}/getting-started) and can hear playback. Shortcuts are the OpenStudio default keyboard profile; \`Ctrl\` means \`Cmd\` on macOS.`,
@@ -35,8 +36,12 @@ const doc: DocContent = {
         "Check the topology badge. **RAW / AMP ONLY** needs a cabinet IR in the Cab stage; **CAB EMBEDDED** is a full rig and bypasses it.",
         "Set the input trim, then open the tuner and tune. It listens to the dry input and adds no latency.",
         "Click the record-arm circle and turn on **Monitor**. Aim for input peaks around −12 to −6 dB.",
-        "Press `Ctrl+R`, play, and press `Space` to stop. The take lands as a clip at the playhead.",
+        "Press `R`, play, and press Record again or `Space` to finish. `Ctrl+R` and numpad `*` also record; `1` or `Home` returns to absolute project start. The take lands as a clip at the playhead.",
       ],
+    },
+    {
+      type: "p",
+      text: "If live monitoring crackles, check the actual driver buffer in Settings and increase it before judging the guitar tone. Two armed NAM Racks share the same audio-callback deadline. In the unreleased October 18 development changes, settings report a rejected request or a driver opening at a different sample rate or buffer size, then attempt to restore the previous configuration. The selected value alone does not prove what the driver accepted. Changing only rate or buffer preserves an explicitly disabled input or output. If the ASIO control panel cannot restart the device, Settings shows the actual closed state and an error; reselect the same driver and Apply to try recovery. The driver label also works for input-only operation. A larger buffer adds monitoring latency and still needs testing with your exact interface and Rack settings.",
     },
     {
       type: "shot",
@@ -60,7 +65,7 @@ const doc: DocContent = {
       type: "ol",
       items: [
         "Press `Ctrl+Shift+I` for an instrument track. The Plugin Browser opens; pick a VST3 drum instrument (click **Scan** first if the list is empty).",
-        "To play it in: choose your controller in the track header's MIDI input dropdown, arm, enable monitoring, press `Ctrl+R`, and play. No controller? `Alt+B` (macOS: `Ctrl+B`) opens the on-screen keyboard.",
+        "To play it in: choose your controller in the track header's MIDI input dropdown, arm, enable monitoring, press `R`, and play. No controller? `Alt+B` (macOS: `Ctrl+B`) opens the on-screen keyboard.",
         "To draw it: select the instrument track, choose **Insert → Empty MIDI Clip**, then double-click the clip to open the Piano Roll, choose the **Draw** tool, and click in the grid. Row is pitch, column is time; drag to set length.",
         "For a step-entered pattern, enable **Step Input** in the Piano Roll toolbar, pick a step size, and press `C` through `B` to insert notes.",
         "Tighten timing with **MIDI → Quantize Notes…**; `Q` reapplies the same settings later. Drag bars in the velocity lane to set how hard each hit plays.",

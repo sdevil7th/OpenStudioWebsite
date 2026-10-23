@@ -456,7 +456,6 @@
   align-items: center;
   justify-content: space-between;
   height: 66px;
-  gap: 20px;
 }
 
 .sp-nav__links {
@@ -487,7 +486,6 @@
 .sp-nav__actions {
   display: flex;
   align-items: center;
-  gap: 13px;
   flex: none;
 }
 
@@ -522,12 +520,6 @@
 
   :where(.sp-root) .sp-nav__menu-toggle {
     display: inline-flex;
-  }
-}
-
-@media (max-width: 640px) {
-  .sp-nav__meta {
-    display: none;
   }
 }
 

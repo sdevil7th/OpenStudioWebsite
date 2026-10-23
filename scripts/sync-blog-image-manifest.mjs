@@ -20,6 +20,14 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
 });
 
 const blogPostSeoOverrides = {
+  "tuning-openstudio-free-effects": {
+    dateModified: "2026-10-24",
+    seoDescription:
+      "Development notes on OpenStudio's free effects: fuzz gain staging, clearer plugin editors, reverb processing and the limits of tiny audio buffers.",
+    imageAlt:
+      "OpenStudio Hall reverb editor in a browser fixture, showing machine selection, shaping controls and an unrendered response panel.",
+    imageFit: "contain",
+  },
   "building-openstudio-free-plugins": {
     dateModified: "2026-10-08",
     seoDescription:

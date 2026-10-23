@@ -3,9 +3,10 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-10-08",
-  appReference: { commit: "7f59cff", channel: "development" },
+  updated: "2026-10-24",
+  appReference: { commit: "1b5ba4b70df39665a4d61cdcd6d6dd6eb64b0861", channel: "development" },
   blocks: [
+    { type: "callout", tone: "note", label: "Development checkout: first-session keys", text: "Unreleased development changes reviewed October 24, 2026 at app commit 1b5ba4b7 make R the OpenStudio default Record key; Ctrl/Cmd+R and numpad * remain aliases. Press Record again to finish. 1 or Home seeks to the absolute beginning and reveals it. + or = zooms in, - zooms out, with numpad + / - and the existing Ctrl/Cmd zoom aliases. Ctrl/Cmd+Shift+R arms/disarms selected tracks in track controls or the mixer, and selects Range in the Piano Roll outside step input. Bare keys still type normally in text fields. Vendor profiles and explicit custom bindings retain their maps. These additions are not shipped-release claims." },
     {
       type: "p",
       text: "OpenStudio is a desktop DAW with a JUCE C++ audio engine and a React front end. This page takes you from the download to a saved project with one track on it. Budget about ten minutes.",
@@ -104,7 +105,7 @@ const doc: DocContent = {
         "Pick the input on the track header and choose stereo or mono.",
         "Click the record-arm circle. Toggle **Monitor** to hear the live input through the track's FX chain.",
         "Add **OpenStudio NAM Rack** to the FX chain if you are recording guitar or bass, so you hear the tone while you play.",
-        "Press `Ctrl+R` to record and `Space` to stop. The take lands as a clip on the timeline.",
+        "Press `R` to record and Record again or `Space` to finish. `Ctrl+R` and numpad `*` are aliases. The take lands as a clip on the timeline.",
         "Save with `Ctrl+S`. Projects use the `.osproj` extension. Back up older sessions and keep the older app for projects that need conversion.",
       ],
     },

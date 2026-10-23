@@ -31,15 +31,20 @@ test("NAM Rack content contract records independently auditable app provenance",
   });
 });
 
-test("NAM Rack copy matches the app-derived five-pedal pre-effect chain", () => {
+test("NAM Rack copy retains the five-pedal chain across historical and development names", () => {
   assert.equal(contract.preEffects.length, 5);
 
   contract.preEffects.forEach(({ label, parameterId }) => {
     assert.match(label, /\S/);
     assert.match(parameterId, /Enabled$/);
     assert.match(blog, new RegExp(`\\*\\*${escapeRegExp(label)}\\*\\*`));
-    assert.match(features, new RegExp(escapeRegExp(label), "i"));
+    // The historical contract/blog retain their captured name; the development
+    // guide uses the current combined pedal name with the same octave stage ID.
+    const guideLabel = parameterId === "octaverEnabled" ? "Octaver Fuzz" : label;
+    assert.match(features, new RegExp(escapeRegExp(guideLabel), "i"));
   });
+
+  assert.match(features, /Development checkout: Octaver Fuzz/);
 
   assert.match(blog, /Pedals page now shows Compressor, Stereo Poly Octaver, PRE EQ, Precision Drive, and Distortion/);
 
