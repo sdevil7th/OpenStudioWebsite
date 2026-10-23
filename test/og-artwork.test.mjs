@@ -24,7 +24,7 @@ test("production build environments can render the private OG tool", { timeout: 
   });
   const rendered = await readFile(target);
   const published = await readFile(new URL("../dist/assets/openstudio/branding/og-image.png", import.meta.url));
-  assert.deepEqual(rendered, published, "production environment renders the same artwork as the published build");
+  assert.ok(rendered.equals(published), "production environment renders the same artwork bytes as the published build");
   const image = await sharp(rendered).metadata();
   assert.equal(image.width, 1200);
   assert.equal(image.height, 630);
@@ -35,6 +35,16 @@ test("OG capture waits for delayed artwork and rejects missing images/fonts", { 
   const pixel = await sharp({ create: { width: 1, height: 1, channels: 3, background: "#14b48c" } }).png().toBuffer();
   const markup = '<div id="og-card" style="width:1200px;height:630px;background:magenta"><img src="http://artwork.test/shot.png" style="width:100%;height:100%"></div>';
   try {
+    await t.test("an id-less route loader cannot cover the captured card", async () => {
+      const page = await browser.newPage({ viewport: { width: 1200, height: 630 } });
+      await page.setContent('<div id="og-card" style="width:1200px;height:630px;background:rgb(20,180,140)"></div><div data-openstudio-loader style="position:fixed;inset:0;z-index:9999;background:magenta"></div>');
+      await page.evaluate(() => setTimeout(() => document.querySelector("[data-openstudio-loader]").remove(), 600));
+      const png = await captureOgCard(page);
+      assert.equal(await page.locator("[data-openstudio-loader]").count(), 0);
+      const color = await sharp(png).extract({ left: 100, top: 100, width: 1, height: 1 }).raw().toBuffer();
+      assert.deepEqual([...color], [20, 180, 140]);
+      await page.close();
+    });
     await t.test("delayed image is decoded before the PNG is captured", async () => {
       const page = await browser.newPage({ viewport: { width: 1200, height: 630 } });
       await page.route("**/shot.png", async route => {

@@ -18,7 +18,7 @@ const BLOG_WIDTHS = [...STANDARD_WIDTHS, 3200, 3360];
 const HIGH_RESOLUTION_BLOG_MASTERS = new Set([
   "/assets/blogs/building-openstudio-nam-rack.webp",
 ]);
-const REFERENCE_ROOTS = ["src", "index.html"];
+const REFERENCE_ROOTS = ["src", "blogs", "index.html"];
 const OPENSTUDIO_SOURCE_DIRS = ["screenshots"];
 
 const toPosix = (value) => value.split(path.sep).join("/");
@@ -129,7 +129,7 @@ const collectReferenceFiles = async (targetPath) => {
       continue;
     }
 
-    if (entry.isFile() && /\.(css|html|ts|tsx)$/i.test(entry.name)) {
+    if (entry.isFile() && /\.(css|html|md|ts|tsx)$/i.test(entry.name)) {
       files.push(entryPath);
     }
   }

@@ -3,9 +3,10 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-10-05",
-  appReference: { commit: "52cbd7c", channel: "development" },
+  updated: "2026-10-24",
+  appReference: { commit: "1b5ba4b70df39665a4d61cdcd6d6dd6eb64b0861", channel: "development" },
   blocks: [
+    { type: "callout", tone: "note", label: "Development checkout: MIDI drag constraints and Record", text: "Unreleased development changes reviewed October 24, 2026 at app commit 1b5ba4b7: Ctrl/Cmd-dragging selected note bodies keeps their exact pitches and changes only time; it still bypasses grid snapping. Shift-dragging keeps exact original start times and changes only pitch. Both preserve durations, velocities and group spacing, with one Undo step. Shift-click still toggles a note in the selection; the body gesture distinguishes clicks from drags after five screen pixels. Edge resizing retains its behavior. Alt/Option copy plus movement commits as one undoable operation. Record now uses R, Ctrl/Cmd+R or numpad * in the OpenStudio keyboard profile; Ctrl/Cmd+Shift+R selects the Piano Roll Range tool when step input is disabled. These are unshipped development changes; other profiles/custom bindings can differ." },
     { type: "callout", tone: "note", label: "Development checkout: MIDI file import", text: "Unreleased September 29 working-tree additions after app commit 52cbd7c: File > Import > MIDI... opens a native .mid/.midi chooser with multi-selection. The OpenStudio-profile default is Ctrl+Alt+I (Cmd+Ctrl+I on macOS); other profiles/custom bindings differ. A single file uses a compatible selected MIDI/instrument track or creates a track. Multiple files create separate tracks at the cursor position captured when the chooser opened. Source MIDI tracks currently combine into one clip per file; project tempo is not replaced." },
     {
       type: "p",
@@ -31,7 +32,7 @@ const doc: DocContent = {
         "Select your MIDI input device on the track header.",
         "Arm the track for recording.",
         "Enable monitoring so you hear the instrument while you play.",
-        "Press `Ctrl+R` and play. Press `Space` to stop.",
+        "Press `R` and play; `Ctrl+R` and numpad `*` also record. Press Record again or `Space` to finish.",
         "A MIDI clip with the recorded notes and CC data appears on the timeline.",
       ],
     },
@@ -100,8 +101,8 @@ const doc: DocContent = {
       type: "ul",
       items: [
         "**Draw**: click in the grid to place a note at that row and column; drag while placing to set its length.",
-        "**Select**: click a note, `Ctrl+Click` to add or remove from the selection, or drag on empty space to rubber-band. `Ctrl+A` (**MIDI → Select All Notes**) selects everything.",
-        "**Move** by dragging selected notes to a new pitch or time. **Resize** by dragging the right edge.",
+        "**Select**: click a note, `Shift+Click` to add or remove from the selection, or drag on empty space to rubber-band. `Ctrl+A` (**MIDI → Select All Notes**) selects everything.",
+        "**Move** by dragging selected note bodies to a new pitch or time. Hold `Ctrl` for time-only movement with exact pitches held and snap bypassed; hold `Shift` for pitch-only movement with exact start times held. Pitch locking does not re-snap notes into the displayed scale. **Resize** by dragging a note edge.",
         "**Delete** with `Delete`, or click notes with the **Erase** tool.",
         "Split, glue, mute, audition, range selection, and a note inspector are also available.",
       ],

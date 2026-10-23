@@ -3,12 +3,13 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-10-05",
-  appReference: { commit: "52cbd7c", channel: "development" },
+  updated: "2026-10-24",
+  appReference: { commit: "1b5ba4b70df39665a4d61cdcd6d6dd6eb64b0861", channel: "development" },
   blocks: [
+    { type: "callout", tone: "note", label: "Development checkout: transport and drag defaults", text: "Unreleased development changes reviewed October 24, 2026 at app commit 1b5ba4b7: the OpenStudio defaults below add single-key Record, absolute-start navigation, bare-key time zoom and constrained MIDI drags. Timeline copying now carries the entire selection. These changes are not a shipped-release claim. Other DAW profiles and explicit custom bindings retain their mappings; check the effective bindings in Keyboard, Mouse & Trackpad." },
     {
       type: "p",
-      text: "Cubase automation update: the unshipped working tree reviewed on top of app commit `7f59cff` maps `F6` to the envelope panel, `Alt/Option+R` to all-track Read and `Alt/Option+W` to all-track Write. These are Cubase-profile bindings; the default OpenStudio tables below are unchanged. Write also enables Read, and switching Write off leaves Read on. Master R/W is controlled separately.",
+      text: "Cubase automation update: the unshipped working tree reviewed on top of app commit `7f59cff` maps `F6` to the envelope panel, `Alt/Option+R` to all-track Read and `Alt/Option+W` to all-track Write. These are Cubase-profile bindings; they do not override the OpenStudio tables below. Write also enables Read, and switching Write off leaves Read on. Master R/W is controlled separately.",
     },
     {
       type: "p",
@@ -18,7 +19,7 @@ const doc: DocContent = {
     { type: "h2", id: "how-to-read-this-page", text: "How to read this page" },
     {
       type: "p",
-      text: "The keyboard tables show the **OpenStudio** profile active on a fresh install, with separate Windows/Linux and macOS columns checked against the development checkout on October 5. The app's portable keyboard `Ctrl` maps to Cmd on macOS, and its legacy keyboard `Alt` maps to physical Ctrl on macOS. Mouse gestures use `Primary` for Ctrl/Cmd and `Alt/Option` for physical Alt/Option.",
+      text: "The keyboard tables show the **OpenStudio** profile active on a fresh install, with separate Windows/Linux and macOS columns checked against the development checkout on October 13. The app's portable keyboard `Ctrl` maps to Cmd on macOS, and its legacy keyboard `Alt` maps to physical Ctrl on macOS. Mouse gestures use `Primary` for Ctrl/Cmd and `Alt/Option` for physical Alt/Option.",
     },
     {
       type: "p",
@@ -34,7 +35,7 @@ const doc: DocContent = {
     { type: "h2", id: "default-profile", text: "Default keyboard profile" },
     {
       type: "p",
-      text: "The first-session set is small: `Space`, `Ctrl+R`, `Ctrl+T`, `Ctrl+M`, `S`, `B`, `Delete`, `Ctrl+S`, `F1`, and `Ctrl+Shift+P`. Everything else in the tables is there when you want it, and `Ctrl+Shift+P` opens the Command Palette, which finds any action by name whether or not it has a key.",
+      text: "The first-session set is small: `Space`, `R`, `1`, `+`/`-`, `Ctrl+T`, `Ctrl+M`, `S`, `B`, `Delete`, `Ctrl+S`, `F1`, and `Ctrl+Shift+P`. Everything else in the tables is there when you want it, and `Ctrl+Shift+P` opens the Command Palette, which finds any action by name whether or not it has a key.",
     },
 
     { type: "h3", text: "Transport" },
@@ -44,8 +45,9 @@ const doc: DocContent = {
       rows: [
         ["Play / Stop", "`Space`", "`Space`"],
         ["Stop", "No separate default", "No separate default"],
-        ["Record", "`Ctrl+R`", "`Cmd+R`"],
-        ["Go to Start", "`Home`", "`Home`"],
+        ["Record / Finish Recording", "`R`, `Ctrl+R`, numpad `*`", "`R`, `Cmd+R`, numpad `*`"],
+        ["Go to Absolute Start", "`1`, `Home`", "`1`, `Home`"],
+        ["Arm / Disarm Selected Tracks (track controls / mixer)", "`Ctrl+Shift+R`", "`Cmd+Shift+R`"],
         ["Toggle Loop", "`L`", "`L`"],
         ["Toggle Metronome Enable", "`K`", "`K`"],
         ["Start / Stop Click-Only Metronome", "`Ctrl+Shift+Space`", "`Cmd+Shift+Space`"],
@@ -147,8 +149,8 @@ const doc: DocContent = {
         ["Help Reference", "`F1`", "`F1`"],
         ["Keyboard, Mouse & Trackpad", "Help menu", "Help menu"],
         ["Zoom to Time Selection", "`Ctrl+Shift+E`", "`Cmd+Shift+E`"],
-        ["Zoom In", "`Ctrl++`", "`Cmd++`"],
-        ["Zoom Out", "`Ctrl+-`", "`Cmd+-`"],
+        ["Zoom In", "`+`, `=`, numpad `+`; `Ctrl++` retained", "`+`, `=`, numpad `+`; `Cmd++` retained"],
+        ["Zoom Out", "`-`, numpad `-`; `Ctrl+-` retained", "`-`, numpad `-`; `Cmd+-` retained"],
         ["Zoom to Fit", "`Ctrl+0`", "`Cmd+0`"],
         ["Save Screenset 1", "`Ctrl+Shift+1`", "`Cmd+Shift+1`"],
         ["Save Screenset 2", "`Ctrl+Shift+2`", "`Cmd+Shift+2`"],
@@ -199,6 +201,8 @@ const doc: DocContent = {
         ["Reverse MIDI Notes", "via menu or command palette", "via menu or command palette"],
         ["Invert MIDI Note Pitches", "via menu or command palette", "via menu or command palette"],
         ["Select All Notes", "`Ctrl+A`", "`Cmd+A`"],
+        ["Piano Roll Range Tool", "`Ctrl+Shift+R`", "`Cmd+Shift+R`"],
+        ["Pitch Editor Select Tool", "`V`", "`V`"],
         ["MIDI Panic", "`Ctrl+Alt+P`", "`Cmd+Ctrl+P`"],
       ],
     },
@@ -237,13 +241,20 @@ const doc: DocContent = {
         ["Adjust / fine-adjust fade handle", "Drag / Primary+Drag"],
         ["Symmetric fade / cycle fade shape", "Shift+Drag / Alt/Option+Click handle"],
         ["Seek from ruler", "Click ruler"],
-        ["Set loop / time selection / zoom range", "Primary+Drag / Shift+Drag / Alt/Option+Drag ruler"],
+        ["Project/loop range from ruler", "Plain horizontal drag or Primary+Drag"],
+        ["Edit time selection from ruler", "Shift+Drag sets or extends the selection"],
+        ["Time zoom from ruler", "Plain vertical drag: up zooms out; down zooms in"],
+        ["Fit zoom range", "Alt/Option+Drag ruler"],
+        ["Copy selected clips", "Primary+Drag a selected clip; full selection follows at 50% opacity"],
+        ["Copy selected track rows", "Primary+Drag a track header; copies settings, FX and content, including collapsed folder children"],
+        ["Move MIDI notes in time only", "Primary+Drag note body; pitch is held and snap is bypassed"],
+        ["Move MIDI notes in pitch only", "Shift+Drag note body; exact start times are held"],
         ["Context menu", "Right-click"],
       ],
     },
     {
       type: "p",
-      text: "Time selections come from `Primary+Drag` on the timeline background or `Shift+Drag` on the ruler. Razor edits come from `Alt/Option+Drag` on the background and show as semi-transparent areas. Preferences shows the current mouse behaviour and the exact modifier overrides in force.",
+      text: "In the OpenStudio mouse profile, `Primary+Drag` on the timeline background creates an edit time selection; `Shift+Drag` on the ruler sets or extends it. Plain horizontal ruler drag sets the separate project/loop range without changing that edit selection. With the default Seek mapping, a plain ruler drag locks direction after a small threshold: vertical movement changes time zoom, with up showing more time and down showing less, while track height stays unchanged. Explicit profile/custom actions keep their selection, loop or zoom-range roles; disabled mappings remain inactive. Razor edits come from `Alt/Option+Drag` on the background. Keyboard, Mouse & Trackpad shows the effective profile and overrides.",
     },
 
     { type: "h2", id: "input-profiles", text: "Input profiles" },

@@ -37,6 +37,42 @@ test("redesigned navigation, fragments, decorative stages and chunk failures", {
       });
       return ctx;
     };
+    await t.test("header brand and actions remain readable without overlap at narrow and navigation breakpoints", async () => {
+      const ctx = await context();
+      try {
+        const page = await ctx.newPage();
+        await page.goto(base + "blog/tuning-openstudio-free-effects");
+        await ready(page);
+        await page.evaluate(() => document.fonts.ready);
+        for (const width of [320, 360, 390, 900, 901, 1024, 1440]) {
+          await page.setViewportSize({ width, height: 900 });
+          const geometry = await page.locator(".sp-nav__inner").evaluate((header) => {
+            const controls = [...header.querySelectorAll("a, button")]
+              .map((element) => ({ element, rect: element.getBoundingClientRect() }))
+              .filter(({ rect }) => rect.width > 0);
+            const problems = [];
+            for (const { element, rect } of controls) {
+              if (rect.left < 0 || rect.right > innerWidth || element.scrollWidth > element.clientWidth + 1)
+                problems.push(`clipped: ${element.textContent}`);
+              for (const node of element.childNodes) {
+                if (node.nodeType !== Node.TEXT_NODE || !node.textContent.trim()) continue;
+                const range = document.createRange();
+                range.selectNodeContents(node);
+                if (range.getClientRects().length > 1) problems.push(`wrapped: ${node.textContent}`);
+              }
+            }
+            for (let index = 1; index < controls.length; index++) {
+              if (controls[index - 1].rect.right > controls[index].rect.left)
+                problems.push(`overlap: ${controls[index].element.textContent}`);
+            }
+            return { problems, logoWidth: header.querySelector("img").getBoundingClientRect().width };
+          });
+          assert.deepEqual(geometry, { problems: [], logoWidth: 26 }, `${width}px header`);
+        }
+      } finally {
+        await ctx.close();
+      }
+    });
     await t.test("mobile menu closes on Escape, navigation and desktop resize", async () => {
       const ctx = await context({ viewport: { width: 390, height: 844 } });
       try {
