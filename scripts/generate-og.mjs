@@ -12,7 +12,9 @@ const output = path.join(root, "public/assets/openstudio/branding/og-image.png")
 export async function captureOgCard(page) {
   const card = page.locator("#og-card");
   await card.waitFor({ state: "visible" });
-  await page.locator("#openstudio-instant-loader").waitFor({ state: "hidden" });
+  // Route fallbacks clone the same artwork without the initial loader's id.
+  // An element screenshot includes body-level overlays covering the card.
+  await page.waitForFunction(() => !document.querySelector("[data-openstudio-loader]"), null, { timeout: 30_000 });
   // Bound readiness waits so a stalled asset fails the build instead of hanging it.
   await page.waitForFunction(() => document.fonts.status === "loaded" &&
     [...document.querySelectorAll("#og-card img")].every(image => image.complete));

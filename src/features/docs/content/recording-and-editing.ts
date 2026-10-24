@@ -3,9 +3,10 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-10-05",
-  appReference: { commit: "52cbd7c", channel: "development" },
+  updated: "2026-10-24",
+  appReference: { commit: "1b5ba4b70df39665a4d61cdcd6d6dd6eb64b0861", channel: "development" },
   blocks: [
+    { type: "callout", tone: "note", label: "Development checkout: Record, ruler and group copying", text: "Unreleased development changes reviewed October 24, 2026 at app commit 1b5ba4b7: OpenStudio defaults use R for Record, with Ctrl/Cmd+R and numpad * retained as aliases. Press Record again to finish. The same transport command covers armed audio, MIDI and instrument tracks and the selected record/loop mode. 1 or Home seeks to absolute project time zero and reveals the beginning. Plain horizontal ruler dragging sets the project/loop range; Shift-drag sets or extends the separate edit selection. Plain vertical ruler dragging changes time zoom (up out, down in), subject to explicit profile/custom actions. Group duplication and drag-copy preserve the whole selected arrangement. These additions are development behavior, not a shipped-release claim; vendor profiles and custom bindings can differ." },
     { type: "callout", tone: "note", label: "Development checkout: Click-only metronome shortcut", text: "Unreleased October 5 working-tree addition after app commit 52cbd7c: Ctrl+Shift+Space on Windows/Linux or Cmd+Shift+Space on macOS mirrors Play click only / Stop click only, with Metronome Settings open or closed. All 19 built-in keyboard profiles include it; custom overrides can reassign or disable it. The shortcut changes standalone practice only, leaving transport, recording and Enable unchanged. If Enable is on, the click can still follow playback or recording after Stop click only. Plain Space retains transport start/stop." },
     { type: "callout", tone: "note", label: "Development checkout: Metronome click sounds", text: "Unreleased October 5 working-tree changes after app commit 52cbd7c: Click sounds in Metronome Settings starts collapsed. Regular and Accent independently offer Electronic (original), Woodblock, 808-style cowbell and Mechanical tick, or a custom WAV/AIFF/FLAC/Ogg. The cowbell is an electronic drum-machine sound with a stronger same-pitch accent; use a custom sample for an acoustic cowbell. Play click only auditions the pair. Custom imports inspect the first two seconds, remove DC, select the strongest mono channel, align the first sharp attack peak, match peak level and fade to at most 100 ms. Silent, clipped, invalid, slow-attack and detectable multiple-hit samples are rejected while keeping the previous choice. Automatic detection is limited; audition complex or noisy sources. Prepared copies are saved locally and selections survive project save/load. Include those prepared files when transferring projects; missing copies warn and fall back to the original sound. Regenerate existing rendered click tracks after changing sounds." },
     { type: "callout", tone: "note", label: "Development checkout: Playhead at high zoom", text: "Unreleased October 5 working-tree fix after app commit 52cbd7c: the ruler marker and vertical playhead line use the same current zoom and scroll values and refresh after zoom or resize, including while transport is stopped. This corrects an intermittent disappearance when the playhead remains inside the visible time range at high zoom." },
@@ -22,7 +23,7 @@ const doc: DocContent = {
       items: [
         "Confirm the device in **View → Audio Settings…**. Its channels are what the track input dropdown offers.",
         "On each track, pick the input in the track header and choose **Stereo** (a channel pair) or **Mono** (one channel).",
-        "Click the red **Record Arm** circle. The transport's Record button stays disabled until at least one track is armed; arm several to record them together.",
+        "Click the red **Record Arm** circle, or press `Ctrl+Shift+R` with track controls or the mixer focused to arm/disarm selected tracks. The transport's Record button stays disabled until at least one track is armed; arm several to record them together.",
         "Toggle **Monitor** to hear the live input through the track's input FX and track FX, at a delay set by your buffer size.",
       ],
     },
@@ -35,9 +36,9 @@ const doc: DocContent = {
     {
       type: "ol",
       items: [
-        "Position the playhead where recording should begin.",
-        "Press `Ctrl+R` or the transport **Record** button. The status reads `[Recording]`.",
-        "Press `Space` or **Stop** to finish; there is no separate stop key in the default profile.",
+        "Position the playhead where recording should begin; `1` or `Home` goes to absolute time zero, independent of the time selection.",
+        "Press `R`, `Ctrl+R`, numpad `*`, or the transport **Record** button. The status reads `[Recording]`.",
+        "Press Record again, `Space`, or **Stop** to finish; there is no separate stop key in the default profile.",
         "The new clip appears on the armed track. Audio is written as WAV into `OpenStudio/Audio` inside your Documents folder and referenced by the project.",
       ],
     },
@@ -86,9 +87,13 @@ const doc: DocContent = {
       items: [
         "Click a clip to select it; `Primary`+click adds or removes one. Drag on empty space to marquee-select. `Ctrl+Shift+A` selects every clip, `Esc` clears.",
         "Click a track header to select the track; `Ctrl+Click` multi-selects, `Shift+Click` selects a range, `Ctrl+A` selects all tracks.",
-        "`Primary`+drag on the timeline background, or `Shift`+drag on the ruler, makes a time selection. It drives render bounds and the operations below, and can be copied to the loop range.",
+        "`Primary`+drag on the timeline background creates an edit time selection; `Shift`+drag on the ruler sets or extends it. It drives selection-based render bounds and editing operations and can be copied to the loop range. Plain horizontal ruler dragging changes the separate project/loop range and leaves the edit selection unchanged.",
         "Drag a clip to move it in time or to another track. Hold `Alt`/`Option` to bypass snap for one drag, `Primary` to copy instead of move, `Shift` to lock to the first axis you cross.",
         "`Ctrl+X`, `Ctrl+C`, and `Ctrl+V` cut, copy, and paste at the playhead. Multi-clip pastes keep their relative track positions.",
+        "`Ctrl+D` duplicates the selected clips using one offset: the latest selected end minus the earliest selected start. The copied group follows the original while retaining clip spacing across tracks, including selections with unequal durations.",
+        "Hold `Primary` and drag a selected clip to copy the entire clip selection across tracks. A 50% opaque preview follows the pointer while the originals stay in place. Dropping creates one undoable copy operation; cancelling creates none. If new compatible destination tracks are needed, preview and committed copies use the same appended span, preserving source row order and gaps.",
+        "Hold `Primary` while dragging a selected track header to copy complete selected track rows, including settings, FX and audio/MIDI content. Copying a folder includes its complete subtree, even when children are collapsed. A normal header drag reorders rows.",
+        "Plain vertical dragging from the ruler changes horizontal time zoom: up zooms out and down zooms in. The direction locks after a small threshold. `+` or `=` zooms in and `-` zooms out, including numpad `+`/`-`; `Ctrl++`/`Ctrl+-` remain aliases. Track height is unchanged. Explicit ruler actions in the active mouse profile or custom overrides take priority: selection, loop-range and zoom-range gestures retain their roles, and disabled mappings remain inactive.",
       ],
     },
     {

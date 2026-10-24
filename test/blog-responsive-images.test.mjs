@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { normalizeBlogMarkdown, renderBlogArticleHtml } from '../scripts/blog-markdown-renderer.mjs';
 import { selectVariantWidths } from '../scripts/generate-image-assets.mjs';
 import { generatedImagePath, intrinsicImageDimensions, withVersionQuery } from '../shared/asset-image-plan.ts';
@@ -33,4 +33,16 @@ test('blog rendering normalizes source line endings and preserves responsive ima
  assert.ok(html.includes('srcSet=')||html.includes('srcset='));
  assert.ok(html.includes('/assets/openstudio/generated/blogs/demo-webp-640.webp'));
  assert.ok(html.includes('width="640"'));
+});
+
+test('authored inline blog images receive variants without generated article references',()=>{
+ const manifest=JSON.parse(readFileSync(new URL('../public/assets/openstudio/generated/image-manifest.json',import.meta.url),'utf8'));
+ const blogRoot=new URL('../blogs/',import.meta.url);
+ for(const name of readdirSync(blogRoot).filter(name=>name.endsWith('.md')&&name!=='README.md')){
+  const markdown=readFileSync(new URL(name,blogRoot),'utf8');
+  for(const match of markdown.matchAll(/!\[[^\]]*\]\((\/assets\/(?:blogs|openstudio)\/[^)\s]+)\)/g)){
+   const source=match[1].split(/[?#]/)[0];
+   assert.ok(manifest[source]?.variants?.length,`${name}: missing responsive variants for ${source}`);
+  }
+ }
 });

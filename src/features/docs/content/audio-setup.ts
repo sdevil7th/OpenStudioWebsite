@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-09-29",
-  appReference: { commit: "52cbd7c", channel: "development" },
+  updated: "2026-10-24",
+  appReference: { commit: "1b5ba4b70df39665a4d61cdcd6d6dd6eb64b0861", channel: "development" },
   blocks: [
     {
       type: "p",
@@ -61,7 +61,15 @@ const doc: DocContent = {
       type: "callout",
       tone: "note",
       label: "Development checkout: dependent audio settings",
-      text: "The September 29 working-tree changes after app commit 52cbd7c refresh device options inside Audio Settings and select the new device's reported defaults. Inactive ASIO drivers report rates, preferred buffer and supported sizes without starting an audio stream; 8/16-sample options appear when reported. Unavailable inspection shows an error. Apply verifies rate-dependent constraints and refreshes accepted values without closing; OK applies and closes; Cancel discards the draft. On the right of the File/Edit menu row, a compact rate/buffer display describes the running device. These changes are unreleased; hardware and platform qualification remains incomplete.",
+      text: "Reviewed October 24, 2026 against app commit 1b5ba4b7. Audio Settings refreshes device options and selects a new device's reported defaults. Inactive ASIO drivers report rates, preferred buffer and supported sizes without starting an audio stream; 8/16-sample options appear when reported. Unavailable inspection shows an error. Apply verifies rate-dependent constraints and refreshes accepted values without closing; OK closes when the requested values are accepted; Cancel discards the draft. On the right of the File/Edit menu row, a compact rate/buffer display describes the running device. These changes are unreleased; hardware and platform qualification remains incomplete.",
+    },
+    {
+      type: "p",
+      text: "In the October 23 development checkout, **Active audio** shows the running rate and buffer while **Pending** shows your unapplied choices. For example, choosing 64 samples can leave Active audio at 44,100 Hz / 8 samples until you choose Apply or OK. A supported rate or buffer edit stays pending during discovery on the same device. Check the active values after applying, then test the complete project. If no device is open, the dialog reports that instead of showing zero-valued active settings. This does not qualify a particular buffer as crackle-free.",
+    },
+    {
+      type: "p",
+      text: "A failed query leaves your chosen rate and buffer visible as pending. Use **Retry** or change the selection before applying. If the native driver opens different values from those requested, OpenStudio reports the mismatch and attempts to restore the previous setup; the running-device display reports the actual recovery state. The dialog also handles an apply result that reports success with different accepted values: **OK** stays open, a message shows requested versus accepted values, and the controls show the active settings for review. For example, requesting 16 samples and receiving 8 is made explicit. This feedback does not force driver support or establish that an Audient or other ASIO hardware issue is fixed; verify your interface before recording.",
     },
     {
       type: "ol",

@@ -43,9 +43,9 @@ const SiteHeader = () => {
         }
       }}
     >
-      <div className="sp-container sp-nav__inner">
+      <div className="sp-container sp-nav__inner gap-5 max-[360px]:gap-2">
         <div className="flex items-center gap-[34px] min-w-0">
-          <Link className="flex items-center gap-[9px]" to={SITE_PATHS.home}>
+          <Link className="flex shrink-0 items-center gap-[9px]" to={SITE_PATHS.home}>
             <img className="w-[26px] h-[26px] block" alt={SITE_NAME} src={OPENSTUDIO_MARK} />
             <span className="[font:700_16px/1_'Space_Grotesk',_sans-serif] tracking-[-0.02em]">{SITE_NAME}</span>
           </Link>
@@ -61,9 +61,9 @@ const SiteHeader = () => {
             ))}
           </nav>
         </div>
-        <div className="sp-nav__actions">
-          {meta ? <span className="sp-mono sp-nav__meta">{meta}</span> : null}
-          <Link className="sp-btn sp-btn--sm sp-nav__download" to={SITE_PATHS.download}>
+        <div className="sp-nav__actions gap-[13px] max-[360px]:gap-2">
+          {meta ? <span className="sp-mono sp-nav__meta max-[1100px]:hidden">{meta}</span> : null}
+          <Link className="sp-btn sp-btn--sm sp-nav__download max-[360px]:px-2" to={SITE_PATHS.download}>
             <Download aria-hidden="true" size={16} strokeWidth={1.8} />
             <span className="sp-btn__label sp-nav__label--long">
               {platformInfo ? `Download for ${platformInfo.label}` : "Download"}
