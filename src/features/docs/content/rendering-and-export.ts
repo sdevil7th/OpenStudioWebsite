@@ -3,9 +3,11 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-10-08",
-  appReference: { commit: "b482852", channel: "development" },
+  updated: "2026-11-04",
+  appReference: { commit: "d64ea6ae80273133bd17b7e9a30af9a464c714e5", channel: "development" },
   blocks: [
+    {"type": "callout", "tone": "note", "label": "Development checkout: selected MIDI export", "text": "November 4 development behavior: select MIDI clips and right-click one of them, then choose Export Selected MIDI Clips (N)..., or use the identically named Command Palette action. This writes one standard MIDI file with a separate track per source track, preserving visible trims/loops, relative gaps, channels and the selected tempo-map interval. The earliest selected clip begins at file time zero; muted clips/notes are omitted. The selection and tempo map are captured before the Save dialog. A blue time selection does not crop this export. Export This MIDI Clip... is the explicit single-clip alternative; joining is unnecessary."},
+    { type: "callout", tone: "note", label: "Development checkout: Offline source reads and MIDI timing", text: "Unreleased October 28 working-tree changes after app commit e8f9a65a: offline audio rendering uses complete worker-thread source reads instead of concealing streaming-cache misses, including long sources that exceed the full-decode budget. Source failures stop export with an error. Clip gain envelopes, fade curves, active state and track playback offsets are preserved by the render snapshot. Nondefault track trim, phase, width or channel EQ use the full processing path. MIDI export writes project tempo changes and meter; clip exports rebase timing to the clip start. These changes require current-source validation and audition; they do not establish that every plugin or hardware configuration produces identical audio." },
     { type: "p", text: "Development PCM exports support 18-, 20- and 22-bit effective precision inside standard 24-bit files, with unused low bits zero. Primary, secondary and queued outputs preserve the choice. Quantization remains after final conversion even with Dither off; recording precision, float output and lossy quality are unchanged." },
     {
       type: "p",
