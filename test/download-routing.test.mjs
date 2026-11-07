@@ -5,6 +5,7 @@ import os from "node:os";
 import { test } from "node:test";
 import { createServer, preview } from "vite";
 import { parseAllRedirects } from "@netlify/redirect-parser";
+import { parse as parseToml } from "smol-toml";
 import { chromium } from "playwright";
 
 test("download compatibility, architecture precedence and bounded offline load", async () => {
@@ -119,6 +120,42 @@ test("download compatibility, architecture precedence and bounded offline load",
   } finally {
     globalThis.fetch = originalFetch;
     if (browser) await browser.close();
+    await vite.close();
+  }
+});
+
+test("resume requests on every fixed public shortcut get an empty redirect before the CDN serves a byte range", async () => {
+  const config = parseToml(await readFile("netlify.toml", "utf8"));
+  const declaration = config.edge_functions.find(rule => rule.function === "download-compatibility" && rule.header?.range);
+  assert.deepEqual({ ...declaration.header }, { range: true });
+  const paths = new RegExp(declaration.pattern);
+  const vite = await createServer({ configFile: false, logLevel: "silent", server: { middlewareMode: true, hmr: false } });
+  try {
+    const { fixedDownloadRoutes } = await vite.ssrLoadModule("/shared/download-routing.ts");
+    const { downloadCatalog } = await vite.ssrLoadModule("/shared/generatedDownloadCatalog.ts");
+    const { default: redirect } = await vite.ssrLoadModule("/netlify/edge-functions/download-compatibility.ts");
+    const fixed = [...fixedDownloadRoutes(downloadCatalog)].filter(([route]) => route.startsWith("/download/"));
+    for (const [route, url] of fixed) {
+      for (const path of [route, route + "/"]) {
+        assert.ok(paths.test(path), path);
+        for (const method of ["GET", "HEAD"]) {
+          const request = new Request("https://example.test" + path, {
+            method, headers: { Range: "bytes=65536-", "If-Range": '"file-etag"' },
+          });
+          const response = redirect(request);
+          assert.equal(response.status, 302);
+          assert.equal(response.headers.get("location"), url);
+          assert.equal(response.headers.get("cache-control"), "no-store");
+          assert.equal(response.headers.get("content-range"), null);
+          assert.equal(response.body, null);
+        }
+      }
+    }
+    for (const path of ["/download", "/download/windows/latest/more", "/download/ai-runtime/linux/latest",
+      "/download/ai-runtime/macos/latest", "/download/ai-runtime/linux/other/latest", "/appcast/windows-stable.xml"]) {
+      assert.equal(paths.test(path), false, path);
+    }
+  } finally {
     await vite.close();
   }
 });

@@ -26,10 +26,13 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Download redirects are generated from validated manifests in dist/_redirects.
-# Canonical dynamic runtime routes use the Node download-resolver.ts function.
-# Retained function aliases use the Edge download-compatibility.ts resolver.
-# Both use native rate limits.
+# A cached static redirect has a text body that Netlify can slice into a 206.
+# For resume requests, return an empty 302 before those CDN rules run. GitHub
+# handles the original Range and If-Range headers on the actual file.
+[[edge_functions]]
+  function = "download-compatibility"
+  pattern = "^/download/(windows|macos|linux|linux/deb|ai-runtime/(windows|(macos|linux)/(arm64|x64)))/latest/?$"
+  header = { range = true }
 
 [[redirects]]
   from = "/home"

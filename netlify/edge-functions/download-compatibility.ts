@@ -4,8 +4,8 @@ import { resolveDownload } from "../../shared/download-routing.ts";
 
 export default (request: Request) => resolveDownload(request, downloadCatalog);
 
-// Edge routing runs before dispatch in Netlify's reserved functions namespace.
-// Restrict this compatibility resolver to the retained public aliases.
+// These aliases always need the resolver. netlify.toml also binds it to the
+// fixed public shortcuts only when the request carries a Range header.
 export const config: Config = {
   path: [
     "/.netlify/functions/github-repo",

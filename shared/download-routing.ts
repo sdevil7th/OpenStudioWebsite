@@ -67,7 +67,7 @@ export function resolveDownload(request: Request, catalog: DownloadCatalog): Res
     } });
   }
   const fixed = fixedDownloadRoutes(catalog).get(path);
-  if (fixed) return new Response(null, { status: 302, headers: { Location: fixed } });
+  if (fixed) return new Response(null, { status: 302, headers: { Location: fixed, "Cache-Control": "no-store" } });
   if (!isDynamicDownload(path)) return new Response(null, { status: 404 });
   let target: string;
   if (path.includes("ai-runtime")) {
