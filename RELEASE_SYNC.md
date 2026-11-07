@@ -27,6 +27,10 @@ All dev/build starts run `sync-github-data` for the site's GitHub-derived labels
 
 ## Desktop release
 
+For 0.1.09, merge the reviewed website guides through the website's `develop` and `main` branches. Keep public version labels generated from the published app release. The Windows download card also links to the existing Microsoft Store product. Add the Ubuntu App Center link only after the public `openstudio` entry serves the expected amd64 stable revision. Microsoft certification, Snap review and website deployment can finish at different times.
+
+Immediately before the release deployment, the workflow checks the built GitHub snapshot, signed-feed version and release URL against the dispatch and the current published desktop tag. A replay of a superseded dispatch must leave production on the newer release.
+
 1. Push the app source. A source push alone does not publish new installers or runtimes.
 2. If runtime inputs changed, publish and validate the separate AI runtime release
    first, then set the desktop release's runtime tag/version to that published pair.

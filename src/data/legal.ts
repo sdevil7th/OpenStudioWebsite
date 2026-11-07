@@ -38,10 +38,10 @@ export const privacyDocument: LegalDocument = {
     description:
       "How OpenStudio handles local audio and projects, TONE3000 login, optional AI downloads, website analytics, privacy choices and deletion requests.",
     path: "/privacy",
-    lastModified: "2026-10-01",
+    lastModified: "2026-11-07",
   },
   facts: [
-    { label: "Last updated", value: "October 1, 2026" },
+    { label: "Last updated", value: "November 7, 2026" },
     { label: "Maintainer", value: "Sourav Das" },
     { label: "Desktop analytics", value: "No Google Analytics or Microsoft Clarity integration" },
     { label: "Privacy contact", value: projectEmails.support },
@@ -101,6 +101,7 @@ export const privacyDocument: LegalDocument = {
     {
       title: "Local diagnostics and information you send us",
       paragraphs: [
+        "In builds that include OpenStudio Support, the companion runs only when you open it. After closing the DAW, you can inspect an export or collect existing evidence into a local archive. You choose what to share and how to send it.",
         "The app can write local startup logs, error reports, recovery records and crash diagnostics. These may contain application and operating-system versions, device/plugin names, file paths, error details and, in crash dumps, portions of process memory. The built-in crash-reporting workflow saves these reports on your device and does not automatically upload them to the maintainer. Review diagnostic files before choosing to share them.",
         `If you email ${projectEmails.support}, contact the maintainer or post a GitHub issue, we receive the details you choose to provide, such as your email address, message and attachments, and use them to respond and investigate. GitHub issues are public: do not include private recordings, passwords, tokens or other confidential data.`,
       ],

@@ -5,7 +5,7 @@ import type { DocContent } from "../types";
 
 const doc: DocContent = {
   updated: "2026-11-07",
-  appReference: { commit: "1069786f2a55fdcf451b7d5b2327a73fe124fb83", channel: "development" },
+  appReference: { commit: "4d468a471ffda9838e6e8c984433bba7d7f886b8", channel: "development" },
   blocks: [
     {
       type: "p",
@@ -47,7 +47,7 @@ const doc: DocContent = {
       type: "callout",
       tone: "note",
       label: "Development candidate: repair stem separation",
-      text: "The unpublished 0.1.09 candidate adds **Repair Stem Separation** in **AI Tools Setup**. Use it when an older installed runtime fails; it preserves downloaded models and selects the replacement only after validation. Setup can prepare a separate Windows fallback runtime, but the BS-RoFormer model cannot execute through DirectML's unsupported complex STFT operations. Automatic separation uses CPU for that configuration; a DirectML installation does not imply GPU execution. **Reset AI Tools** is a separate, broader reset action.",
+      text: "In the 0.1.09 candidate, the first Windows or Linux launch after an update offers to check installed stem tools. **Open DAW** skips the offer for that version. **Check and repair** runs after all DAW sessions close. If a recording starts while the offer is open, it continues and the repair request is saved. To request repair later, choose **AI Tools Setup → Repair Stem Separation**, save your projects, close OpenStudio and reopen it. Repair keeps the downloaded models and activates the replacement after validation. The BS-RoFormer model uses CPU on the unsupported Windows DirectML path.",
     },
     {
       type: "ol",

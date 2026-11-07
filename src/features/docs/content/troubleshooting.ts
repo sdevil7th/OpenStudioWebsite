@@ -4,7 +4,7 @@ import type { DocContent } from "../types";
 
 const doc: DocContent = {
   updated: "2026-11-07",
-  appReference: { commit: "1069786f2a55fdcf451b7d5b2327a73fe124fb83", channel: "development" },
+  appReference: { commit: "4d468a471ffda9838e6e8c984433bba7d7f886b8", channel: "development" },
   blocks: [
     { type: "callout", tone: "note", label: "Development checkout: Native window behavior", text: "Unreleased September 29 working-tree changes after app commit 52cbd7c use OS title bars for the main app and the implemented mixer, MIDI and built-in plugin editor windows. Startup refreshes no longer change outer window bounds; saved detached bounds stay on the relevant monitor when available. The graphical pitch editor also has a native detached window: Detach, Focus and Dock keep the existing clip session and committed history. Closing and reopening the same clip retains committed edits. WebView2 applies to Windows; macOS uses WKWebView and Linux uses WebKitGTK. Windows Debug geometry/lifecycle checks do not establish packaged Release or cross-platform results. First-launch readiness, physical drag/snap, DPI transitions and close/reopen still need qualification on each target platform." },
     {
@@ -228,7 +228,7 @@ const doc: DocContent = {
       items: [
         "In the unpublished 0.1.09 candidate, read the error and **Processing details** in **Separate Stems**. Try **Processing device → CPU only** to isolate a GPU-specific failure. Automatic mode already uses CPU when this model cannot run on the available backend, including the unsupported DirectML path.",
         "For long inputs, consider **Process in 30-second sections to reduce memory use**, which may change section boundaries, or the supported Windows/Linux **Use rolling output buffers** path, which needs temporary disk space. Automatic mode can select rolling buffers when RAM is limited.",
-        "For an outdated runtime, open **AI Tools Setup → Repair Stem Separation**. It preserves downloaded models and activates the replacement after validation. **Release idle AI memory** can retire an idle generation worker; it cannot interrupt an active job.",
+        "For an outdated runtime, use **AI Tools Setup → Repair Stem Separation**, save your work, close every OpenStudio session and reopen the app. Windows and Linux also offer this check after an update. **Open DAW** skips it for that version. Repair retains your downloaded models and waits until recording sessions close.",
         `See [AI Tools setup](${SITE_PATHS.docs}/ai-runtime-setup#stem-memory) for supported configurations and precision tradeoffs. These controls may be absent in older releases. Ordinary failures appear in the dialog; full per-run logs and memory sampling require an explicitly launched qualification run.`,
       ],
     },
