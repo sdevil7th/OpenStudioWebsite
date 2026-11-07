@@ -26,6 +26,12 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# Keep both route declarations here: a TOML route for a function replaces its
+# inline path list. The historical aliases have no header condition.
+[[edge_functions]]
+  function = "download-compatibility"
+  pattern = "^/[.]netlify/functions/(github-(repo|release)|download-latest(/(windows|macos|linux)|-(windows|macos|linux)|-ai-runtime-(windows|(macos|linux)(-(arm64|x64))?))?)/?$"
+
 # A cached static redirect has a text body that Netlify can slice into a 206.
 # For resume requests, return an empty 302 before those CDN rules run. GitHub
 # handles the original Range and If-Range headers on the actual file.

@@ -6,12 +6,10 @@ import { test } from "node:test";
 import { createServer, preview } from "vite";
 import { parseAllRedirects } from "@netlify/redirect-parser";
 import { parse as parseToml } from "smol-toml";
-import { chromium } from "playwright";
 
 test("download compatibility, architecture precedence and bounded offline load", async () => {
   const vite = await createServer({ logLevel: "silent", server: { middlewareMode: true } });
   const originalFetch = globalThis.fetch;
-  let browser;
   try {
     const { resolveDownload, fixedDownloadRoutes, isDynamicDownload, githubAliases } = await vite.ssrLoadModule("/shared/download-routing.ts");
     const { downloadCatalog } = await vite.ssrLoadModule("/shared/generatedDownloadCatalog.ts");
@@ -40,16 +38,11 @@ test("download compatibility, architecture precedence and bounded offline load",
       "/.netlify/functions/download-latest-ai-runtime-windows-extra",
       "/.netlify/functions/download-latest-ai-runtime-windows/extra",
     ];
-    // Validate the actual declared ownership: exact retained aliases run at the
-    // Edge, canonical dynamic paths run in Node, and unknown paths run neither.
-    // Node 22 does not expose URLPattern globally.
-    browser = await chromium.launch();
-    const page = await browser.newPage();
-    const matches = await page.evaluate(({ patterns, paths }) => paths.map((path) =>
-      patterns.some((pattern) => new URLPattern({ pathname: pattern }).test({ pathname: path }))),
-    { patterns: edgeConfig.path, paths: [...protectedPaths, ...unknownPaths, ...config.path] });
+    const netlify = parseToml(await readFile("netlify.toml", "utf8"));
+    const alias = netlify.edge_functions.find(rule => rule.function === "download-compatibility" && !rule.header);
+    const aliasPaths = new RegExp(alias.pattern);
+    const matches = [...protectedPaths, ...unknownPaths, ...config.path].map(path => aliasPaths.test(path));
     assert.deepEqual(matches, [...protectedPaths.map(() => true), ...unknownPaths.map(() => false), ...config.path.map(() => false)]);
-    assert.equal(edgeConfig.path.length, protectedPaths.length, "Edge declarations must not expand beyond retained aliases");
     for (const path of protectedPaths) assert.ok(isDynamicDownload(path) || fixedDownloadRoutes(downloadCatalog).has(path) || githubAliases[path], path);
     let upstreamCalls = 0;
     globalThis.fetch = async () => { upstreamCalls++; throw new Error("Runtime network requests are forbidden"); };
@@ -119,7 +112,6 @@ test("download compatibility, architecture precedence and bounded offline load",
     assert.equal(upstreamCalls, 0, "5,000 handler calls must produce zero network requests");
   } finally {
     globalThis.fetch = originalFetch;
-    if (browser) await browser.close();
     await vite.close();
   }
 });
