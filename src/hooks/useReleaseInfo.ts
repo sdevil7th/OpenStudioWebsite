@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { DOWNLOAD_PATHS } from "@/constants/site";
 import type { GithubReleaseSummary } from "@/data/marketing";
 import { generatedLatestRelease } from "@/data/generatedLatestRelease";
-import { selectLinuxReleaseAsset, selectReleaseAsset } from "../../shared/release-assets";
+import { selectLinuxReleaseAsset, selectLinuxSupportBundle, selectReleaseAsset } from "../../shared/release-assets";
 import { stripVersionPrefix } from "@/lib/format";
 import { PLATFORMS, PLATFORM_ORDER, type PlatformId } from "./usePlatform";
 
@@ -24,6 +24,7 @@ export interface ReleaseInfo {
   notesUrl: string | null;
   platforms: Record<PlatformId, PlatformArtifact>;
   linuxAppImage: PlatformArtifact | null;
+  linuxSupportBundleUrl: string | null;
   /** Where the numbers came from, so pages can hedge when only the fallback is available. */
   source: "manifest" | "github" | "build";
 }
@@ -69,6 +70,7 @@ export const fromGithubRelease = (release: GithubReleaseSummary, source: Release
     publishedAt: release.publishedAt,
     notesUrl: release.htmlUrl,
     platforms,
+    linuxSupportBundleUrl: selectLinuxSupportBundle(release)?.downloadUrl ?? null,
     linuxAppImage: appImage ? {
       href: DOWNLOAD_PATHS.linuxLatest,
       fileName: appImage.name,
@@ -119,6 +121,7 @@ export const fromManifest = (value: unknown): ReleaseInfo | null => {
     publishedAt: typeof manifest.publishedAt === "string" ? manifest.publishedAt : null,
     notesUrl: typeof manifest.fullReleaseNotesUrl === "string" ? manifest.fullReleaseNotesUrl : null,
     platforms,
+    linuxSupportBundleUrl: null,
     linuxAppImage: platforms.linux.fileName?.toLowerCase().endsWith(".appimage")
       ? { ...platforms.linux, href: DOWNLOAD_PATHS.linuxLatest } : null,
     source: "manifest",

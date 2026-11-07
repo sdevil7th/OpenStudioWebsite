@@ -3,10 +3,12 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-10-08",
-  appReference: { commit: "b482852", channel: "development" },
+  updated: "2026-11-07",
+  appReference: { commit: "262e84e29778afa240804b130720aeb4e0d2af25", channel: "development" },
   blocks: [
-    { type: "p", text: "Development PCM exports support 18-, 20- and 22-bit effective precision inside standard 24-bit files, with unused low bits zero. Primary, secondary and queued outputs preserve the choice. Quantization remains after final conversion even with Dither off; recording precision, float output and lossy quality are unchanged." },
+    {"type": "callout", "tone": "note", "label": "Selected MIDI export", "text": "In OpenStudio 0.1.09, select MIDI clips and right-click one of them, then choose Export Selected MIDI Clips (N)..., or use the identically named Command Palette action. This writes one standard MIDI file with a separate track per source track, preserving visible trims/loops, relative gaps, channels and the selected tempo-map interval. The earliest selected clip begins at file time zero; muted clips/notes are omitted. The selection and tempo map are captured before the Save dialog. A blue time selection does not crop this export. Export This MIDI Clip... is the explicit single-clip alternative; joining is unnecessary."},
+    { type: "callout", tone: "note", label: "Offline source reads and MIDI timing", text: "OpenStudio 0.1.09 renders audio using complete worker-thread source reads instead of concealing streaming-cache misses, including long sources that exceed the full-decode budget. Source failures stop export with an error. Clip gain envelopes, fade curves, active state and track playback offsets are preserved by the render snapshot. Nondefault track trim, phase, width or channel EQ use the full processing path. MIDI export writes project tempo changes and meter; clip exports rebase timing to the clip start. Listen to the export to check plugin output and the intended mix." },
+    { type: "p", text: "OpenStudio 0.1.09 PCM exports support 18-, 20- and 22-bit effective precision inside standard 24-bit files, with unused low bits zero. Primary, secondary and queued outputs preserve the choice. Quantization remains after final conversion even with Dither off; recording precision, float output and lossy quality are unchanged." },
     {
       type: "p",
       text: "Rendering runs your project offline through the same playback and FX engine you hear during playback, and writes the result to disk. This page covers the Render dialog top to bottom, the queue and delivery tools, and the project-level export and cleanup commands. Shortcuts are from the default OpenStudio keyboard profile; `Ctrl` is `Cmd` on macOS.",
@@ -90,14 +92,14 @@ const doc: DocContent = {
         ["AIFF", "Uncompressed, with bit-depth selection; development also offers 18/20/22-bit precision in a 24-bit file"],
         ["FLAC", "Lossless compressed: 16/24-bit integer; development also offers 18/20/22-bit precision in a 24-bit file"],
         ["MP3", "FFmpeg-encoded at the selected bitrate"],
-        ["OGG Vorbis", "FFmpeg-encoded at the selected quality"],
+        ["OGG Vorbis", "0.1.09 uses the built-in Vorbis encoder with quality settings 0–10. Older builds use FFmpeg."],
       ],
     },
     {
       type: "callout",
       tone: "note",
       label: "FFmpeg",
-      text: "MP3 and OGG use FFmpeg as a separate process. On Windows an audited FFmpeg runtime is bundled with the installer. On macOS and Linux OpenStudio uses a system `ffmpeg` on your `PATH`; if it is missing only the FFmpeg-backed operation fails, and WAV, AIFF, and FLAC still render.",
+      text: "MP3 encoding and final sample-rate conversion still use FFmpeg as a separate process. On Windows an audited runtime is bundled with the installer; macOS and Linux use a system `ffmpeg` on your `PATH`. OpenStudio 0.1.09 encodes OGG with its built-in Vorbis codec, so OGG encoding no longer requires FFmpeg's optional Vorbis encoder. This does not remove FFmpeg requirements from other stages or from older builds. Failed or cancelled OGG exports cannot replace an existing output file.",
     },
     {
       type: "p",
@@ -122,7 +124,7 @@ const doc: DocContent = {
       type: "callout",
       tone: "warn",
       label: "Placeholders in the current build",
-      text: "**Resample Quality** remains disabled because backend support is pending. Metadata entry and Online render are not offered by the current Render dialog.",
+      text: "OpenStudio 0.1.09 removes the inactive **Resample Quality** dropdown. Project-rate source copies and the render output sample rate are separate controls. Metadata entry and Online render are not offered by the current Render dialog.",
     },
     {
       type: "p",
@@ -184,7 +186,16 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: `MP3/OGG export, video extraction, and other FFmpeg conversions need the bundled Windows runtime or a system \`ffmpeg\` on macOS and Linux. If a render comes out silent, check the bounds cover the clips, the source is what you meant, and no track or clip is muted; the full checklist is in [Troubleshooting](${SITE_PATHS.docs}/troubleshooting).`,
+      text: `MP3 encoding, final sample-rate conversion, video extraction and other FFmpeg conversions need the bundled Windows runtime or a system \`ffmpeg\` on macOS and Linux. Older builds also use it for OGG encoding. If a render comes out silent, check the bounds cover the clips, the source is what you meant, and no track or clip is muted; the full checklist is in [Troubleshooting](${SITE_PATHS.docs}/troubleshooting).`,
+    },
+    { type: "h2", id: "inspect-export", text: "Inspect an incomplete export" },
+    {
+      type: "p",
+      text: "Close the DAW, then open **OpenStudio Support**. Choose **Inspect audio export** to check the file’s duration, format and decoded samples. If you have a render route report, select it to compare the planned tracks and duration. Listen to the mix to confirm that each intended part is audible.",
+    },
+    {
+      type: "p",
+      text: "Choose **Inspect MIDI export** to check the file’s tracks, note events and timing. You can also select a saved project that matches the export to compare expected events. Support runs only when you open it. Review its report and choose what to share.",
     },
   ],
 };

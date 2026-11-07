@@ -3,9 +3,10 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-10-08",
-  appReference: { commit: "b482852", channel: "development" },
+  updated: "2026-11-08",
+  appReference: { commit: "ecb2a1f70fb084f43ecb71ff70054ba2e5e0f8a2", channel: "development" },
   blocks: [
+    { type: "callout", tone: "note", label: "Numeric levels and mixer size in 0.1.09", text: "Click a track or master dB readout to enter a numeric level; Enter or leaving the field commits, Escape cancels, and -inf sets silence. A committed change uses the same volume automation/group and Undo path as the fader. Drag the grip in the mixer header to resize it. The Mixer title, grip, pop-out and close buttons share one row, with separate hit areas. Pointer resizing releases focus and temporary shortcut ownership after drop, Escape, cancellation or blur; it preserves the previous Timeline or Piano Roll context. Tab intentionally focuses the grip for arrows/Home/End. The silence setting now uses exact zero gain in static, automation and offline paths. Its preferred height is retained and clamped so the timeline remains usable." },
     { type: "callout", tone: "note", label: "Development checkout: Solo Safe", text: "Unreleased September 29 working-tree additions after app commit 52cbd7c: right-click a track Solo button, use its context menu, or run Toggle Solo Safe on Selected Tracks. A slashed Solo indicator marks a track that remains audible when other tracks are soloed. Solo Safe does not activate global solo and explicit Mute still wins. Enable it on required buses/returns as well; it does not make other source tracks audible. The setting supports Undo/Redo, project save/load, detached mixer synchronization and master rendering. Isolated stems retain their existing isolation policy." },
     {
       type: "p",

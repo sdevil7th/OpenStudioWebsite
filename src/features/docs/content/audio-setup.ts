@@ -3,9 +3,10 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-10-24",
-  appReference: { commit: "1b5ba4b70df39665a4d61cdcd6d6dd6eb64b0861", channel: "development" },
+  updated: "2026-11-08",
+  appReference: { commit: "ecb2a1f70fb084f43ecb71ff70054ba2e5e0f8a2", channel: "development" },
   blocks: [
+    { type: "callout", tone: "note", label: "Project-rate source copies in 0.1.09", text: "Imported audio keeps its source sample rate by default. File > Project Settings > Audio import sample rate can instead prepare cached band-limited project-rate float WAV copies within the import's Undo step. A clip's Create [project rate] kHz Project-Rate Copy command also offers progress, Cancel and source Undo/Redo. Originals and clip timing/gain/fades remain intact; cancelled or unavailable optional import conversion uses the original and reports that choice. Playback rate conversion uses cubic interpolation, while export uses its chosen output rate. These paths do not promise bit-identical samples or subjective audio acceptance." },
     {
       type: "p",
       text: `Everything on this page lives in one dialog: **View → Audio Settings…**, also reachable from the gear icon in the main toolbar. Get the driver, sample rate, and buffer size right once and most latency and crackle problems never appear. Shortcuts follow the OpenStudio default keyboard profile.`,
@@ -84,7 +85,7 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: "The audio device sample rate controls recording and playback. Imported files can keep their original rate; playback converts them in real time using linear interpolation. Offline rendering can target a different rate from the render dialog.",
+      text: "The audio device sample rate controls recording and playback. Imported files keep their original rate by default; the development project-rate copy policy is described above. Playback converts source rates in real time. Offline rendering can target a different rate from the render dialog.",
     },
 
     { type: "h2", id: "buffer-size-and-latency", text: "Buffer size and latency" },

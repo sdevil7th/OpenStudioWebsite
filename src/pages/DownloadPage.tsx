@@ -21,10 +21,8 @@ const PLATFORM_COPY: Record<PlatformId, Omit<PlatformCopy, "icon">> = {
     requires: "macOS 12 or later · Apple silicon & Intel",
     steps: [
       "Open the .dmg and drag OpenStudio to Applications.",
-      <>
-        Right-click the app and choose <strong>Open</strong> (builds are unsigned).
-      </>,
-      "Allow it in System Settings → Privacy & Security if prompted.",
+      "Open OpenStudio from Applications and follow the macOS prompts.",
+      "Check the release notes for the signing and notarization status of your download.",
     ],
   },
   windows: {
@@ -78,7 +76,7 @@ const DownloadPage = () => {
   return (
     <>
       <PageSeo
-        description="Download the current OpenStudio build free for Windows, macOS, or Linux. Installers, checksums, system requirements, and honest notes on unsigned builds."
+        description="Download OpenStudio for Windows, macOS or Linux. Find installers, checksums, system requirements and installation instructions."
         path={SITE_PATHS.download}
         title="Download OpenStudio: Free DAW for Windows, macOS & Linux"
       />
@@ -117,7 +115,7 @@ const DownloadPage = () => {
         </div>
         <div className="sp-mono">
           {detected ? `Detected ${primary.label}. ` : "Pick your platform. "}
-          Every button downloads the release shown above from GitHub · SHA-256 checksums below · release metadata at{" "}
+          Direct downloads use the GitHub release shown above · SHA-256 checksums below · release metadata at{" "}
           <a href="/releases/latest.json">/releases/latest.json</a>
         </div>
       </div>
@@ -170,6 +168,14 @@ const DownloadPage = () => {
                 >
                   Download for {entry.label}
                 </Cta>
+                {entry.id === "windows" && (
+                  <div className="mt-[16px] text-[12px] text-[var(--sp-body)]">
+                    <a className="sp-text-link inline-flex min-h-[24px] items-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sp-accent)]" href="https://apps.microsoft.com/detail/9N3MQ442VXGW">
+                      Get OpenStudio from Microsoft Store
+                    </a>
+                    <p className="m-0">Store updates arrive after Microsoft certification.</p>
+                  </div>
+                )}
                 {isLinuxDeb && release.linuxAppImage?.directUrl ? (
                   <div className="mt-[16px] flex flex-col gap-[8px] [font:400_12px/1.55_'Space_Grotesk',_sans-serif] text-[var(--sp-body)]">
                     <a className="sp-text-link inline-flex min-h-[24px] self-start items-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sp-accent)]" href={release.linuxAppImage.directUrl} rel="noreferrer">
@@ -178,6 +184,14 @@ const DownloadPage = () => {
                     <p className="m-0">For compatible hosts; requires executable permission and host GTK/WebKit and FFmpeg libraries. Use the .deb on Ubuntu and Linux Mint.</p>
                   </div>
                 ) : null}
+                {entry.id === "linux" && release?.linuxSupportBundleUrl && (
+                  <div className="mt-[16px] text-[12px] text-[var(--sp-body)]">
+                    <a className="sp-text-link inline-flex min-h-[24px] items-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sp-accent)]" href={release.linuxSupportBundleUrl}>
+                      AppImages with OpenStudio Support
+                    </a>
+                    <p className="m-0">Extract the archive for both launchers. Open Support separately after closing the DAW.</p>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -187,11 +201,10 @@ const DownloadPage = () => {
       {/* Before you install */}
       <div className="sp-container pt-[38px]" data-sp-reveal="rise" id="before-you-install">
         <WarnCallout label="Before you install">
-          Builds are unsigned. On Windows, SmartScreen may warn on first run. On macOS, right-click OpenStudio and
-          choose <strong>Open</strong>, then allow it in System Settings → Privacy &amp; Security if prompted. For Linux,
+          For direct downloads, check the release notes for signing details and compare the file’s SHA-256 with the
+          published checksums. Windows or macOS may show a first-launch warning. For Linux,
           open the .deb in your package installer. If it opens Archive Manager, choose <strong>Open With</strong> and select
-          the package installer. The optional AppImage needs <code className="sp-code">chmod +x</code>. Code signing costs money the project currently
-          spends elsewhere. If you want certainty, verify the checksum above.
+          the package installer. The optional AppImage needs <code className="sp-code">chmod +x</code>.
           <span className="block mt-3">{downloadUpgradeNote}</span>
         </WarnCallout>
       </div>

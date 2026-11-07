@@ -18,8 +18,10 @@ export const releaseAssetPaths = {
 
 export const selectDesktopRelease = (releases) => {
   // Runtime/FFmpeg releases share the repository. They are never app releases.
-  const release = releases.find((item) => !item.draft && !item.prerelease
-    && /^v\d+\.\d+\.\d+$/.test(item.tag_name));
+  const release = releases
+    .filter((item) => !item.draft && !item.prerelease && /^v\d+\.\d+\.\d+$/.test(item.tag_name)
+      && Number.isFinite(Date.parse(item.published_at)))
+    .sort((a, b) => Date.parse(b.published_at) - Date.parse(a.published_at))[0];
   if (!release) throw new Error("No published stable desktop release found.");
   return release;
 };

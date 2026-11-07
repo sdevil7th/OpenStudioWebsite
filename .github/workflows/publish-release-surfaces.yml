@@ -7,6 +7,9 @@ on:
 
 jobs:
   publish:
+    concurrency:
+      group: openstudio-production-release-surfaces
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -130,6 +133,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ env.GH_TOKEN }}
         run: npm run build
+
+      - name: Verify the built download page data and update feed match this dispatch
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api --paginate --slurp "repos/$OPENSTUDIO_DESKTOP_REPO/releases?per_page=100" > "$RUNNER_TEMP/desktop-releases.json"
+          node scripts/verify-release-dispatch.mjs dist "$RELEASE_TAG" "$OPENSTUDIO_DESKTOP_REPO" "$RUNNER_TEMP/desktop-releases.json"
 
       - name: Deploy to Netlify
         shell: bash

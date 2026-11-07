@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-10-08",
-  appReference: { commit: "7f59cff", channel: "development" },
+  updated: "2026-11-07",
+  appReference: { commit: "1069786f2a55fdcf451b7d5b2327a73fe124fb83", channel: "development" },
   blocks: [
     {
       type: "p",
@@ -108,13 +108,13 @@ const doc: DocContent = {
     { type: "h2", id: "what-export-formats", text: "What can I export?" },
     {
       type: "p",
-      text: "WAV, AIFF, and FLAC with selectable bit depth; MP3 and OGG Vorbis through FFmpeg; MIDI; and DDP. Master, per-track stems, region ranges, and a render queue are available. FFmpeg is bundled on Windows; on macOS and Linux, MP3 and OGG export need a system `ffmpeg` on your `PATH`.",
+      text: "WAV, AIFF, and FLAC with selectable bit depth; MP3; OGG Vorbis; MIDI; and DDP. Master, per-track stems, region ranges, and a render queue are available. OpenStudio 0.1.09 uses a built-in OGG encoder; older builds use FFmpeg. MP3 encoding and final sample-rate conversion still require FFmpeg, bundled on Windows or a system `ffmpeg` on macOS and Linux. See the Rendering & export guide for the version-specific details.",
     },
     {
       type: "callout",
       tone: "warn",
       label: "Placeholder controls",
-      text: `Selected-item rendering is supported for selected audio clips. Resample Quality remains disabled; Metadata entry and Online render are not offered in the current dialog. Details in [Rendering & export](${SITE_PATHS.docs}/rendering-and-export).`,
+      text: `Selected-item rendering is supported for selected audio clips. OpenStudio 0.1.09 removes the inactive Resample Quality dropdown; Metadata entry and Online render are not offered in the current dialog. Details in [Rendering & export](${SITE_PATHS.docs}/rendering-and-export).`,
     },
 
     { type: "h2", id: "does-it-phone-home", text: "Does it phone home?" },

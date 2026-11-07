@@ -20,6 +20,15 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
 });
 
 const blogPostSeoOverrides = {
+  "a-diwali-gift-for-openstudio": {
+    author: "OpenStudio team",
+    dateModified: "2026-11-07",
+    seoDescription:
+      "A Diwali preview of OpenStudio 0.1.09: recording and editing improvements, smarter local AI memory, stem separation fixes and offline Support.",
+    imageAlt:
+      "Paper-cut illustration of Diwali diyas lighting a music studio, with a glowing waveform above piano keys, headphones and sheet music.",
+    keywords: ["OpenStudio", "Diwali", "open-source DAW", "recording", "stem separation", "local AI music"],
+  },
   "tuning-openstudio-free-effects": {
     dateModified: "2026-10-24",
     seoDescription:

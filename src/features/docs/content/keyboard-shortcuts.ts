@@ -3,9 +3,12 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-10-24",
-  appReference: { commit: "1b5ba4b70df39665a4d61cdcd6d6dd6eb64b0861", channel: "development" },
+  updated: "2026-11-08",
+  appReference: { commit: "ecb2a1f70fb084f43ecb71ff70054ba2e5e0f8a2", channel: "development" },
   blocks: [
+    {"type": "callout", "tone": "note", "label": "Selection and resize context in 0.1.09", "text": "Ctrl+click (Cmd+click on macOS) clips, then right-click a selected clip to find Join Selected MIDI Clips with its effective binding (Ctrl+J in the OpenStudio Windows timeline profile) and selection count. Invalid selections show why Join is unavailable. Export Selected MIDI Clips... is also exposed there and in the action catalog; assign a shortcut in Keyboard, Mouse & Trackpad if desired. Pointer resizing the mixer no longer keeps its grip focused or steals the previous Timeline/Piano Roll shortcut context after release, cancellation or blur. Tab still intentionally focuses the grip for arrow/Home/End resizing. The blue editing range now identifies itself as Time selection and offers clear/select-clips/loop actions."},
+    { type: "p", text: "OpenStudio 0.1.09 includes **View → Zoom to Full Project**, which fits timeline clips and the current recording extent within the zoom limits; very long recordings can still require horizontal scrolling. Wide views thin bar labels and displayed grid lines without changing snap resolution. The menu command works after using track or mixer controls. Ctrl/Cmd+0 retains its timeline keyboard scope; profile overrides still apply." },
+    { type: "callout", tone: "note", label: "Timeline clip commands in 0.1.09", text: "In the OpenStudio default keyboard profile and timeline scope, Ctrl/Cmd+J joins selected same-track MIDI clips; Shift+X crossfades selected overlapping audio clips without merging them. X remains the Mute Tool. Edit Selected Crossfade and Detect Tempo are discoverable in clip context menus and the action catalog. Vendor profiles do not inherit these new bindings automatically; custom mappings and active focus scope determine the effective shortcut." },
     { type: "callout", tone: "note", label: "Development checkout: transport and drag defaults", text: "Unreleased development changes reviewed October 24, 2026 at app commit 1b5ba4b7: the OpenStudio defaults below add single-key Record, absolute-start navigation, bare-key time zoom and constrained MIDI drags. Timeline copying now carries the entire selection. These changes are not a shipped-release claim. Other DAW profiles and explicit custom bindings retain their mappings; check the effective bindings in Keyboard, Mouse & Trackpad." },
     {
       type: "p",
@@ -108,6 +111,23 @@ const doc: DocContent = {
       ],
     },
 
+    { type: "h3", text: "Timeline clip commands (0.1.09)" },
+    {
+      type: "table",
+      head: ["Action", "Windows / Linux", "macOS"],
+      rows: [
+        ["Join Selected MIDI Clips", "`Ctrl+J`", "`Cmd+J`"],
+        ["Crossfade Selected Audio Clips", "`Shift+X`", "`Shift+X`"],
+        ["Edit Selected Crossfade...", "Unassigned; context menu or Command Palette", "Unassigned; context menu or Command Palette"],
+        ["Detect Selected Clip Tempo...", "Unassigned; context menu or Command Palette", "Unassigned; context menu or Command Palette"],
+        ["Export Selected MIDI Clips...", "Unassigned; context menu or Command Palette", "Unassigned; context menu or Command Palette"],
+      ],
+    },
+    {
+      type: "p",
+      text: "These defaults apply to the OpenStudio profile in timeline scope. Join requires compatible same-track MIDI clips; Crossfade requires overlapping audio clips. The menu shows the effective binding, selection count and disabled reason. Vendor profiles and custom mappings can differ. Assign unbound actions in **Keyboard, Mouse & Trackpad**; `X` remains the Mute Tool.",
+    },
+
     { type: "h3", text: "Tools" },
     {
       type: "table",
@@ -151,7 +171,7 @@ const doc: DocContent = {
         ["Zoom to Time Selection", "`Ctrl+Shift+E`", "`Cmd+Shift+E`"],
         ["Zoom In", "`+`, `=`, numpad `+`; `Ctrl++` retained", "`+`, `=`, numpad `+`; `Cmd++` retained"],
         ["Zoom Out", "`-`, numpad `-`; `Ctrl+-` retained", "`-`, numpad `-`; `Cmd+-` retained"],
-        ["Zoom to Fit", "`Ctrl+0`", "`Cmd+0`"],
+        ["Zoom to Full Project", "`Ctrl+0`", "`Cmd+0`"],
         ["Save Screenset 1", "`Ctrl+Shift+1`", "`Cmd+Shift+1`"],
         ["Save Screenset 2", "`Ctrl+Shift+2`", "`Cmd+Shift+2`"],
         ["Save Screenset 3", "`Ctrl+Shift+3`", "`Cmd+Shift+3`"],

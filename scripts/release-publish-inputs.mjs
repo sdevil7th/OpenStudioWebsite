@@ -1,4 +1,6 @@
 import fs from "node:fs/promises";
+import { createPublicKey, verify } from "node:crypto";
+import { isDeepStrictEqual } from "node:util";
 import path from "node:path";
 import { XMLParser, XMLValidator } from "fast-xml-parser";
 import { AI_RUNTIME_METADATA_PATHS, validateAiRuntimeMetadata } from "./ai-runtime-metadata.mjs";
@@ -56,6 +58,29 @@ const normalizeJsonValue = (value) => {
 };
 
 const normalizeJsonText = (value) => JSON.stringify(normalizeJsonValue(value));
+
+// Public verification key embedded in the desktop app's Source/UpdatePublicKey.h.
+const updaterPublicKey = createPublicKey({
+  format: "jwk",
+  key: { kty: "OKP", crv: "Ed25519",
+    x: Buffer.from("c72142c334524fd0368377739e3fe79caa9a297342aa604324502c57939fa841", "hex").toString("base64url") },
+});
+
+export function verifySignedAppManifest(envelope) {
+  const { signedPayload, signature, ...visibleFields } = envelope;
+  if (typeof signedPayload !== "string" || typeof signature !== "string") {
+    throw new Error("The desktop updater manifest requires a signed payload and signature.");
+  }
+  const payload = Buffer.from(signedPayload, "base64");
+  const signatureBytes = Buffer.from(signature, "base64");
+  if (!payload.length || signatureBytes.length !== 64 || payload.toString("base64") !== signedPayload
+    || signatureBytes.toString("base64") !== signature || !verify(null, payload, updaterPublicKey, signatureBytes)) {
+    throw new Error("The desktop updater manifest signature is invalid.");
+  }
+  if (!isDeepStrictEqual(JSON.parse(payload.toString("utf8")), visibleFields)) {
+    throw new Error("Visible updater metadata differs from the signed payload used by installed apps.");
+  }
+}
 
 const ensureAbsoluteHttpUrl = (value, label) => {
   let url;
@@ -346,7 +371,7 @@ export const ensureCleanGeneratedReleaseTargets = async (targetRoot) => {
 
 export const validateReleasePublishInputsTree = async (
   rootDir,
-  { requireMetadata = isReleaseMetadataRequired() } = {},
+  { requireMetadata = isReleaseMetadataRequired(), verifyAppSignature = false } = {},
 ) => {
   const existingPaths = [];
 
@@ -389,6 +414,7 @@ export const validateReleasePublishInputsTree = async (
       `Release metadata mismatch under '${rootDir}'. '${APP_RELEASE_METADATA_PATHS[0]}' and '${APP_RELEASE_METADATA_PATHS[1]}' must match for publish.`,
     );
   }
+  if (verifyAppSignature) verifySignedAppManifest(appStableManifest);
 
   const aiRuntimeByPath = new Map();
   for (const relativePath of AI_RUNTIME_METADATA_PATHS) {
