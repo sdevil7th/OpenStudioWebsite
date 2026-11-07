@@ -5,16 +5,18 @@ import { chromium } from "playwright";
 import { createServer, preview } from "vite";
 
 const published = JSON.parse(readFileSync(new URL("../public/github/latest-release.json", import.meta.url), "utf8"));
+const supportName = "OpenStudio-9.8.7-linux-x86_64-with-support.tar.gz";
+const supportUrl = `https://github.com/sdevil7th/OpenStudio/releases/download/v9.8.7/${supportName}`;
 const future = {
   ...published,
   tagName: "v9.8.7",
   name: "OpenStudio 9.8.7",
   htmlUrl: "https://github.com/sdevil7th/OpenStudio/releases/tag/v9.8.7",
-  assets: published.assets.map((asset, index) => ({
+  assets: [...published.assets.filter(asset => !asset.name.endsWith("-with-support.tar.gz")).map((asset, index) => ({
     ...asset,
     size: (index + 1) * 10 * 1024 * 1024,
     downloadUrl: asset.downloadUrl.replace(published.tagName, "v9.8.7"),
-  })),
+  })), { name: supportName, size: 1234, downloadUrl: supportUrl, downloadCount: 0 }],
 };
 
 test("release JSON validation and checksum matching reject incompatible metadata", async () => {
@@ -29,6 +31,13 @@ test("release JSON validation and checksum matching reject incompatible metadata
       null,
     );
     const release = fromGithubRelease(parseGithubRelease(future), "github");
+    assert.equal(release.linuxSupportBundleUrl, supportUrl);
+    for (const assets of [
+      future.assets.filter(asset => asset.name !== supportName),
+      [{ ...future.assets.at(-1), downloadUrl: supportUrl.replace("v9.8.7/", "v9.8.6/") }],
+    ]) {
+      assert.equal(fromGithubRelease({ ...future, assets }, "github").linuxSupportBundleUrl, null);
+    }
     const windows = release.platforms.windows;
     const manifest = fromManifest({
       version: "9.8.7",
@@ -90,6 +99,15 @@ test(
       await page.goto(server.resolvedUrls.local[0] + "download");
       await page.waitForFunction(() => window.__openstudioAppReady && window.__openstudioIntroHidden);
       await page.getByText("9.8.7", { exact: true }).waitFor();
+      const bundle = page.locator("#linux").getByRole("link", { name: "AppImages with OpenStudio Support" });
+      assert.equal(await bundle.getAttribute("href"), supportUrl);
+      for (const width of [390, 1440]) {
+        await page.setViewportSize({ width, height: 900 });
+        await bundle.focus();
+        const box = await bundle.boundingBox();
+        assert.ok(box && box.x >= 0 && box.x + box.width <= width && box.height >= 24);
+        assert.equal(await bundle.evaluate(el => el === document.activeElement && el.matches(":focus-visible")), true);
+      }
       for (const [platform, extension] of [["windows", ".exe"], ["macos", ".dmg"], ["linux", ".deb"]]) {
         const asset = future.assets.find(({ name }) => name.toLowerCase().endsWith(extension)) ??
           future.assets.find(({ name }) => name.toLowerCase().endsWith(".appimage"));

@@ -17,8 +17,9 @@ for (let index = 0; index < args.length; index += 1) {
 }
 
 try {
+  const required = isReleaseMetadataRequired();
   const result = await validateReleasePublishInputsTree(path.resolve(repoRoot, root), {
-    requireMetadata: isReleaseMetadataRequired(),
+    requireMetadata: required, verifyAppSignature: required,
   });
 
   if (result.found) {

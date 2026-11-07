@@ -3,10 +3,10 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-11-04",
-  appReference: { commit: "d64ea6ae80273133bd17b7e9a30af9a464c714e5", channel: "development" },
+  updated: "2026-11-08",
+  appReference: { commit: "ecb2a1f70fb084f43ecb71ff70054ba2e5e0f8a2", channel: "development" },
   blocks: [
-    { type: "callout", tone: "note", label: "Development checkout: Project-rate source copies", text: "Unreleased October 28 working-tree changes after app commit e8f9a65a: imported audio keeps its source sample rate by default. File > Project Settings > Audio import sample rate can instead prepare cached band-limited project-rate float WAV copies within the import's Undo step. A clip's Create [project rate] kHz Project-Rate Copy command also offers progress, Cancel and source Undo/Redo. Originals and clip timing/gain/fades remain intact; cancelled or unavailable optional import conversion uses the original and reports that choice. Playback rate conversion uses cubic interpolation, while export uses its chosen output rate. These paths do not promise bit-identical samples or subjective audio acceptance." },
+    { type: "callout", tone: "note", label: "Project-rate source copies in 0.1.09", text: "Imported audio keeps its source sample rate by default. File > Project Settings > Audio import sample rate can instead prepare cached band-limited project-rate float WAV copies within the import's Undo step. A clip's Create [project rate] kHz Project-Rate Copy command also offers progress, Cancel and source Undo/Redo. Originals and clip timing/gain/fades remain intact; cancelled or unavailable optional import conversion uses the original and reports that choice. Playback rate conversion uses cubic interpolation, while export uses its chosen output rate. These paths do not promise bit-identical samples or subjective audio acceptance." },
     {
       type: "p",
       text: `Everything on this page lives in one dialog: **View → Audio Settings…**, also reachable from the gear icon in the main toolbar. Get the driver, sample rate, and buffer size right once and most latency and crackle problems never appear. Shortcuts follow the OpenStudio default keyboard profile.`,

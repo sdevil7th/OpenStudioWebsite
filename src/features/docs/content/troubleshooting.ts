@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-11-07",
-  appReference: { commit: "4d468a471ffda9838e6e8c984433bba7d7f886b8", channel: "development" },
+  updated: "2026-11-08",
+  appReference: { commit: "ecb2a1f70fb084f43ecb71ff70054ba2e5e0f8a2", channel: "development" },
   blocks: [
     { type: "callout", tone: "note", label: "Development checkout: Native window behavior", text: "Unreleased September 29 working-tree changes after app commit 52cbd7c use OS title bars for the main app and the implemented mixer, MIDI and built-in plugin editor windows. Startup refreshes no longer change outer window bounds; saved detached bounds stay on the relevant monitor when available. The graphical pitch editor also has a native detached window: Detach, Focus and Dock keep the existing clip session and committed history. Closing and reopening the same clip retains committed edits. WebView2 applies to Windows; macOS uses WKWebView and Linux uses WebKitGTK. Windows Debug geometry/lifecycle checks do not establish packaged Release or cross-platform results. First-launch readiness, physical drag/snap, DPI transitions and close/reopen still need qualification on each target platform." },
     {
@@ -247,9 +247,9 @@ const doc: DocContent = {
       type: "kv",
       rows: [
         ["Windows", "Open **OpenStudio Support** from Start; portable folders include `OpenStudioSupport.exe`."],
-        ["macOS", "Copy both **OpenStudio.app** and **OpenStudio Support.app** from the candidate DMG into the same Applications folder. Open Support in Finder."],
+        ["macOS", "Copy both **OpenStudio.app** and **OpenStudio Support.app** from the 0.1.09 DMG into the same Applications folder. Open Support in Finder."],
         ["Linux DEB / RPM", "Open **OpenStudio Support** from the desktop application menu."],
-        ["Linux AppImage", "Extract the candidate `with-support.tar.gz` download and open its separate **OpenStudioSupport-…AppImage** after closing the DAW AppImage."],
+        ["Linux AppImage", "On the [download page](/download#linux), choose **AppImages with OpenStudio Support** when available. Extract the archive and open **OpenStudioSupport-…AppImage** after closing the DAW."],
       ],
     },
     {

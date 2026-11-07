@@ -29,7 +29,11 @@ All dev/build starts run `sync-github-data` for the site's GitHub-derived labels
 
 For 0.1.09, merge the reviewed website guides through the website's `develop` and `main` branches. Keep public version labels generated from the published app release. The Windows download card also links to the existing Microsoft Store product. Add the Ubuntu App Center link only after the public `openstudio` entry serves the expected amd64 stable revision. Microsoft certification, Snap review and website deployment can finish at different times.
 
-Immediately before the release deployment, the workflow checks the built GitHub snapshot, signed-feed version and release URL against the dispatch and the current published desktop tag. A replay of a superseded dispatch must leave production on the newer release.
+Wait for the website's `main` build to finish and verify its live feeds before issuing the desktop tag. Production builds verify the desktop manifest with the public Ed25519 key in the app's `Source/UpdatePublicKey.h` and compare the visible metadata with the signed payload. Coordinate any change to this public key with the desktop updater. Immediately before deployment, the workflow also checks the built download links, sizes and version against GitHub's most recently published stable desktop release. A replay of a superseded dispatch stops before deployment.
+
+For 0.1.09, an outstanding Canonical review defers only Snap delivery. The desktop repository's `OPENSTUDIO_SNAP_ENABLED=false` setting allows its tagged GitHub installers, website feeds and Microsoft Store submission to proceed. Keep `OPENSTUDIO_STORE_ENABLED=true`. The Windows Store and direct Linux downloads are independent of Ubuntu App Center. Show the AppImage bundle only if that exact published tag includes it.
+
+After Canonical grants classic confinement, record the decision post in `OPENSTUDIO_SNAP_CLASSIC_APPROVAL_URL`. If approval precedes the tag, re-enable Snap before tagging for the combined workflow. If the desktop release has already shipped, qualify or verify the Snap for that same published app commit, then submit it and verify its stable revision and listing separately. Re-enable Snap for subsequent tags. Keep the original desktop tag and leave the public Snap link off until stable is verified.
 
 1. Push the app source. A source push alone does not publish new installers or runtimes.
 2. If runtime inputs changed, publish and validate the separate AI runtime release

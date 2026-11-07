@@ -40,16 +40,9 @@ try {
     );
   }
   if (!snapshot.latestRelease) throw new Error("GitHub has no published stable desktop release.");
-  const { selectLinuxReleaseAsset, selectReleaseAsset } = await server.ssrLoadModule("/shared/release-assets.ts");
+  const { websiteReleaseAssets } = await server.ssrLoadModule("/shared/release-assets.ts");
   const latest = snapshot.latestRelease;
-  const assets = ["windows", "macos", "linux"]
-    .map((platform) => platform === "linux"
-      ? selectLinuxReleaseAsset(latest.assets, "appimage") ?? selectReleaseAsset(latest.assets, platform)
-      : selectReleaseAsset(latest.assets, platform))
-    .filter(Boolean);
-  // Keep the old AppImage entry/order while exposing the native website installer.
-  const deb = selectLinuxReleaseAsset(latest.assets, "deb");
-  if (deb && !assets.includes(deb)) assets.push(deb);
+  const assets = websiteReleaseAssets(latest);
   const { body: _body, ...summary } = latest;
   const lightweightRelease = { ...summary, assets };
   await fs.writeFile(path.join(output, "repository.json"), JSON.stringify(snapshot));

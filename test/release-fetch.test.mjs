@@ -4,7 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { fetchReleasePublishInputs, releaseAssetPaths, selectDesktopRelease } from "../scripts/fetch-release-publish-inputs.mjs";
-import { stageReleasePublishInputs } from "../scripts/release-publish-inputs.mjs";
+import { verifyReleaseDispatch } from "../scripts/verify-release-dispatch.mjs";
+import { stageReleasePublishInputs, verifySignedAppManifest } from "../scripts/release-publish-inputs.mjs";
 import { parseAiRuntimeManifest, resolveAiRuntimeDownloadUrl } from "../shared/ai-runtime-manifest.ts";
 
 const fixtureRoot = new URL("./fixtures/release-v0.1.01/", import.meta.url);
@@ -17,17 +18,47 @@ const makeSource = async () => {
     files.set(url, data);
     assets.push({ name, size: data.length, browser_download_url: url });
   }
-  const release = { tag_name: "v0.1.01", draft: false, prerelease: false, assets };
+  const release = { tag_name: "v0.1.01", draft: false, prerelease: false, published_at: "2026-10-01T12:00:00Z", assets };
   return { release, files };
 };
 
 test("release discovery ignores newer runtime, draft and preview releases", () => {
-  const desktop = { tag_name: "v0.1.01" };
+  const desktop = { tag_name: "v0.1.01", published_at: "2026-10-01T12:00:00Z" };
   assert.equal(selectDesktopRelease([
     { tag_name: "ai-runtime-v9.9.9" }, { tag_name: "ffmpeg-runtime-v9.9.9" },
     { tag_name: "v9.9.9", draft: true }, { tag_name: "v9.9.8", prerelease: true }, desktop,
   ]), desktop);
   assert.throws(() => selectDesktopRelease([{ tag_name: "ai-runtime-v9.9.9" }]));
+  const latest = { tag_name: "v0.1.09", published_at: "2026-11-09T06:00:00Z" };
+  assert.equal(selectDesktopRelease([desktop, { ...latest, tag_name: "v0.1.10", published_at: null }, latest]), latest);
+});
+
+test("the production updater verifier accepts the published signature and rejects missing, forged and inconsistent envelopes", async () => {
+  const manifest = JSON.parse(await fs.readFile(new URL("../public/releases/stable/latest.json", import.meta.url), "utf8"));
+  verifySignedAppManifest(manifest);
+  assert.throws(() => verifySignedAppManifest({ ...manifest, signature: undefined }), /requires a signed payload/);
+  assert.throws(() => verifySignedAppManifest({ ...manifest, signature: Buffer.alloc(64).toString("base64") }), /signature is invalid/);
+  assert.throws(() => verifySignedAppManifest({ ...manifest, signedPayload: Buffer.from("{}").toString("base64") }), /signature is invalid/);
+  assert.throws(() => verifySignedAppManifest({ ...manifest, notes: "Changed outside the signature" }), /differs from the signed payload/);
+});
+
+test("dispatch verifies the published tag, exact download links and sizes, including the optional Support bundle", () => {
+  const repo = "sdevil7th/OpenStudio", tag = "v0.1.09";
+  const htmlUrl = `https://github.com/${repo}/releases/tag/${tag}`;
+  const assets = ["OpenStudio-Setup-x64.exe", "OpenStudio-0.1.09-linux-x86_64-with-support.tar.gz"]
+    .map(name => ({ name, size: 123, downloadUrl: `https://github.com/${repo}/releases/download/${tag}/${name}` }));
+  const release = { tag_name: tag, published_at: "2026-11-09T06:00:00Z", html_url: htmlUrl,
+    assets: assets.map(a => ({ name: a.name, size: a.size, browser_download_url: a.downloadUrl })) };
+  const snapshot = { tagName: tag, htmlUrl, assets };
+  const manifest = { version: "0.1.09", releasePageUrl: htmlUrl };
+  const old = { ...release, tag_name: "v0.1.08", published_at: "2026-10-25T06:00:00Z" };
+  const verify = (built, feed = manifest) => verifyReleaseDispatch(tag, repo, [old, release], built, feed);
+  verify(snapshot);
+  assert.throws(() => verify({ ...snapshot, assets: assets.slice(0, 1) }), /download links/);
+  assert.throws(() => verify({ ...snapshot, assets: [assets[0], { ...assets[1], size: 456 }] }), /download links/);
+  assert.throws(() => verify({ ...snapshot, assets: [assets[0], { ...assets[1], downloadUrl: assets[0].downloadUrl }] }), /download links/);
+  assert.throws(() => verify(snapshot, { ...manifest, version: "0.1.08" }), /updater feed/);
+  assert.throws(() => verifyReleaseDispatch(old.tag_name, repo, [old, release], snapshot, manifest), /stale/);
 });
 
 test("website-only build fetches, validates and stages the existing published feeds verbatim", async () => {

@@ -138,12 +138,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          jq -e --arg tag "$RELEASE_TAG" '.tagName == $tag' dist/github/latest-release.json
-          jq -e --arg version "${RELEASE_TAG#v}" --arg url "https://github.com/$OPENSTUDIO_DESKTOP_REPO/releases/tag/$RELEASE_TAG" \
-            '.version == $version and .releasePageUrl == $url' dist/releases/stable/latest.json
-          latest=$(gh api --paginate --slurp "repos/$OPENSTUDIO_DESKTOP_REPO/releases?per_page=100" | \
-            jq -er 'add | map(select((.draft or .prerelease | not) and (.tag_name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$")))) | first.tag_name')
-          [[ "$latest" == "$RELEASE_TAG" ]] || { echo "Dispatch $RELEASE_TAG is stale; the published app is $latest."; exit 1; }
+          gh api --paginate --slurp "repos/$OPENSTUDIO_DESKTOP_REPO/releases?per_page=100" > "$RUNNER_TEMP/desktop-releases.json"
+          node scripts/verify-release-dispatch.mjs dist "$RELEASE_TAG" "$OPENSTUDIO_DESKTOP_REPO" "$RUNNER_TEMP/desktop-releases.json"
 
       - name: Deploy to Netlify
         shell: bash
