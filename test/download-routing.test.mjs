@@ -5,12 +5,11 @@ import os from "node:os";
 import { test } from "node:test";
 import { createServer, preview } from "vite";
 import { parseAllRedirects } from "@netlify/redirect-parser";
-import { chromium } from "playwright";
+import { parse as parseToml } from "smol-toml";
 
 test("download compatibility, architecture precedence and bounded offline load", async () => {
   const vite = await createServer({ logLevel: "silent", server: { middlewareMode: true } });
   const originalFetch = globalThis.fetch;
-  let browser;
   try {
     const { resolveDownload, fixedDownloadRoutes, isDynamicDownload, githubAliases } = await vite.ssrLoadModule("/shared/download-routing.ts");
     const { downloadCatalog } = await vite.ssrLoadModule("/shared/generatedDownloadCatalog.ts");
@@ -39,16 +38,11 @@ test("download compatibility, architecture precedence and bounded offline load",
       "/.netlify/functions/download-latest-ai-runtime-windows-extra",
       "/.netlify/functions/download-latest-ai-runtime-windows/extra",
     ];
-    // Validate the actual declared ownership: exact retained aliases run at the
-    // Edge, canonical dynamic paths run in Node, and unknown paths run neither.
-    // Node 22 does not expose URLPattern globally.
-    browser = await chromium.launch();
-    const page = await browser.newPage();
-    const matches = await page.evaluate(({ patterns, paths }) => paths.map((path) =>
-      patterns.some((pattern) => new URLPattern({ pathname: pattern }).test({ pathname: path }))),
-    { patterns: edgeConfig.path, paths: [...protectedPaths, ...unknownPaths, ...config.path] });
+    const netlify = parseToml(await readFile("netlify.toml", "utf8"));
+    const alias = netlify.edge_functions.find(rule => rule.function === "download-compatibility" && !rule.header);
+    const aliasPaths = new RegExp(alias.pattern);
+    const matches = [...protectedPaths, ...unknownPaths, ...config.path].map(path => aliasPaths.test(path));
     assert.deepEqual(matches, [...protectedPaths.map(() => true), ...unknownPaths.map(() => false), ...config.path.map(() => false)]);
-    assert.equal(edgeConfig.path.length, protectedPaths.length, "Edge declarations must not expand beyond retained aliases");
     for (const path of protectedPaths) assert.ok(isDynamicDownload(path) || fixedDownloadRoutes(downloadCatalog).has(path) || githubAliases[path], path);
     let upstreamCalls = 0;
     globalThis.fetch = async () => { upstreamCalls++; throw new Error("Runtime network requests are forbidden"); };
@@ -118,7 +112,42 @@ test("download compatibility, architecture precedence and bounded offline load",
     assert.equal(upstreamCalls, 0, "5,000 handler calls must produce zero network requests");
   } finally {
     globalThis.fetch = originalFetch;
-    if (browser) await browser.close();
+    await vite.close();
+  }
+});
+
+test("resume requests on every fixed public shortcut get an empty redirect before the CDN serves a byte range", async () => {
+  const config = parseToml(await readFile("netlify.toml", "utf8"));
+  const declaration = config.edge_functions.find(rule => rule.function === "download-compatibility" && rule.header?.range);
+  assert.deepEqual({ ...declaration.header }, { range: true });
+  const paths = new RegExp(declaration.pattern);
+  const vite = await createServer({ configFile: false, logLevel: "silent", server: { middlewareMode: true, hmr: false } });
+  try {
+    const { fixedDownloadRoutes } = await vite.ssrLoadModule("/shared/download-routing.ts");
+    const { downloadCatalog } = await vite.ssrLoadModule("/shared/generatedDownloadCatalog.ts");
+    const { default: redirect } = await vite.ssrLoadModule("/netlify/edge-functions/download-compatibility.ts");
+    const fixed = [...fixedDownloadRoutes(downloadCatalog)].filter(([route]) => route.startsWith("/download/"));
+    for (const [route, url] of fixed) {
+      for (const path of [route, route + "/"]) {
+        assert.ok(paths.test(path), path);
+        for (const method of ["GET", "HEAD"]) {
+          const request = new Request("https://example.test" + path, {
+            method, headers: { Range: "bytes=65536-", "If-Range": '"file-etag"' },
+          });
+          const response = redirect(request);
+          assert.equal(response.status, 302);
+          assert.equal(response.headers.get("location"), url);
+          assert.equal(response.headers.get("cache-control"), "no-store");
+          assert.equal(response.headers.get("content-range"), null);
+          assert.equal(response.body, null);
+        }
+      }
+    }
+    for (const path of ["/download", "/download/windows/latest/more", "/download/ai-runtime/linux/latest",
+      "/download/ai-runtime/macos/latest", "/download/ai-runtime/linux/other/latest", "/appcast/windows-stable.xml"]) {
+      assert.equal(paths.test(path), false, path);
+    }
+  } finally {
     await vite.close();
   }
 });

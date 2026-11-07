@@ -9,7 +9,7 @@ compute and repeated requests, not a guarantee against distributed denial of ser
 | --- | --- | --- |
 | Repository and release JSON | Static `/github/repository.json` and `/github/latest-release.json` | 0 |
 | Retained raw `/.netlify/functions/*` aliases | One protected Edge compatibility resolver; old GitHub URLs redirect to static JSON | 0 |
-| App downloads, Windows runtime, explicit runtime architectures | Build-generated CDN 302 redirects to GitHub | 0 |
+| App downloads, Windows runtime, explicit runtime architectures | Build-generated CDN 302 redirects; requests with `Range` receive a bodyless 302 from the existing Edge resolver | 0 |
 | Canonical macOS/Linux runtime architecture detection | One `download-resolver` Node function, using bundled manifests | 0 |
 | Appcasts and release manifests | Existing static documents, unchanged | 0 |
 
@@ -44,13 +44,17 @@ fallbacks remain available. This improves client behavior; bots can bypass it.
 `netlify/functions/download-resolver.ts` protects the two canonical dynamic
 runtime URLs. `netlify/edge-functions/download-compatibility.ts` protects the
 16 exact retained raw function aliases, including the old app `?platform=` URL.
+The same Edge function handles requests with a `Range` header on the nine fixed
+public shortcuts. Netlify can return a slice of its static redirect text as a
+`206`; the function returns an empty, non-cacheable `302` so downloaders follow
+the redirect and resume at GitHub. Requests without `Range` use the static rules.
 Each resolver has a native limit of 60 requests per 60 seconds, aggregated by IP
 and domain. The Edge resolver runs before dispatch in Netlify's reserved functions
 namespace and shares the same pure resolver and validated catalog. It has no
 all-site wildcard, does not overlap the Node routes, and makes no upstream fetches.
 Netlify disables the implicit `/.netlify/functions/download-resolver` URL when
 custom paths are configured. Netlify rejects `/.netlify/*` as a CDN redirect
-source. Public fixed `/download/*` URLs are static rules. The old GitHub aliases return cacheable 302s to the
+source. The old GitHub aliases return cacheable 302s to the
 static JSON documents; standard fetch clients follow them automatically. Unknown
 paths never invoke the resolver. Non-GET/HEAD requests to the resolver return 405 without reading bodies or contacting upstream services.
 
@@ -98,8 +102,12 @@ After deployment:
 1. Check deploy post-processing logs for acceptance of both rate-limit rules.
    Confirm the Node `download-resolver` and Edge `download-compatibility` are
    deployed, with no per-alias Node functions or all-site Edge wildcard.
-2. Smoke-test static JSON, the legacy JSON redirects and all download URLs with redirects disabled
-   (do not download installers). Check manifest versions against redirect targets.
+2. Check static JSON, the legacy JSON redirects and all download URLs with redirects disabled.
+   For each fixed shortcut send a GET with `Range: bytes=65536-65567`: expect a
+   bodyless 302 to the published destination. Repeat after warming the ordinary CDN
+   redirect. Following the redirect for an available binary must return the same
+   32 bytes and Content-Range as requesting that range directly from GitHub.
+   Check manifest versions against redirect targets.
 3. On a deploy preview, make a capped single-IP test of 61 HEAD requests to a dynamic
    URL over about 30 seconds, allow 10 seconds for enforcement, then make at most
    three probes. Expect 429; stop immediately on 429 or service errors. Do not
