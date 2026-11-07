@@ -1,6 +1,7 @@
 import type { BlogPostSummary } from "./blogs";
 
 export const CATEGORY_BY_SLUG: Record<string, string> = {
+  "a-diwali-gift-for-openstudio": "Community",
   "minimax-stable-audio-diffusers-openstudio": "AI",
   "build-guitar-tones-with-openstudio-nam-rack": "NAM Rack",
   "building-openstudio-nam-rack": "Engineering",

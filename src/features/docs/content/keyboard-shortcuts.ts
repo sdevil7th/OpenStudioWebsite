@@ -3,11 +3,11 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-11-04",
-  appReference: { commit: "d64ea6ae80273133bd17b7e9a30af9a464c714e5", channel: "development" },
+  updated: "2026-11-07",
+  appReference: { commit: "1069786f2a55fdcf451b7d5b2327a73fe124fb83", channel: "development" },
   blocks: [
     {"type": "callout", "tone": "note", "label": "Development checkout: selection and resize context", "text": "November 4 development behavior: Ctrl+click (Cmd+click on macOS) clips, then right-click a selected clip to find Join Selected MIDI Clips with its effective binding (Ctrl+J in the OpenStudio Windows timeline profile) and selection count. Invalid selections show why Join is unavailable. Export Selected MIDI Clips... is also exposed there and in the action catalog; assign a shortcut in Keyboard, Mouse & Trackpad if desired. Pointer resizing the mixer no longer keeps its grip focused or steals the previous Timeline/Piano Roll shortcut context after release, cancellation or blur. Tab still intentionally focuses the grip for arrow/Home/End resizing. The blue editing range now identifies itself as Time selection and offers clear/select-clips/loop actions."},
-    { type: "p", text: "Development checkout review, November 2, 2026, on top of app commit e8f9a65a: **View → Zoom to Full Project** fits the timeline clips and current recording extent within the zoom limits; very long recordings can still require horizontal scrolling. Wide views thin bar labels and displayed grid lines without changing snap resolution. The menu command works after using track or mixer controls. Ctrl/Cmd+0 retains its timeline keyboard scope; profile overrides still apply. These corrections are in the unshipped working tree." },
+    { type: "p", text: "The unpublished 0.1.09 candidate includes **View → Zoom to Full Project**, which fits timeline clips and the current recording extent within the zoom limits; very long recordings can still require horizontal scrolling. Wide views thin bar labels and displayed grid lines without changing snap resolution. The menu command works after using track or mixer controls. Ctrl/Cmd+0 retains its timeline keyboard scope; profile overrides still apply." },
     { type: "callout", tone: "note", label: "Development checkout: Timeline clip commands", text: "Development features included in the referenced app commit: in the OpenStudio default keyboard profile and timeline scope, Ctrl/Cmd+J joins selected same-track MIDI clips; Shift+X crossfades selected overlapping audio clips without merging them. X remains the Mute Tool. Edit Selected Crossfade and Detect Tempo are discoverable in clip context menus and the action catalog. Vendor profiles do not inherit these new bindings automatically; custom mappings and active focus scope determine the effective shortcut." },
     { type: "callout", tone: "note", label: "Development checkout: transport and drag defaults", text: "Unreleased development changes reviewed October 24, 2026 at app commit 1b5ba4b7: the OpenStudio defaults below add single-key Record, absolute-start navigation, bare-key time zoom and constrained MIDI drags. Timeline copying now carries the entire selection. These changes are not a shipped-release claim. Other DAW profiles and explicit custom bindings retain their mappings; check the effective bindings in Keyboard, Mouse & Trackpad." },
     {
@@ -109,6 +109,23 @@ const doc: DocContent = {
         ["Nudge Left (Fine)", "`Ctrl+Left`", "`Cmd+Left`"],
         ["Nudge Right (Fine)", "`Ctrl+Right`", "`Cmd+Right`"],
       ],
+    },
+
+    { type: "h3", text: "Timeline clip commands (unpublished 0.1.09 candidate)" },
+    {
+      type: "table",
+      head: ["Action", "Windows / Linux", "macOS"],
+      rows: [
+        ["Join Selected MIDI Clips", "`Ctrl+J`", "`Cmd+J`"],
+        ["Crossfade Selected Audio Clips", "`Shift+X`", "`Shift+X`"],
+        ["Edit Selected Crossfade...", "Unassigned; context menu or Command Palette", "Unassigned; context menu or Command Palette"],
+        ["Detect Selected Clip Tempo...", "Unassigned; context menu or Command Palette", "Unassigned; context menu or Command Palette"],
+        ["Export Selected MIDI Clips...", "Unassigned; context menu or Command Palette", "Unassigned; context menu or Command Palette"],
+      ],
+    },
+    {
+      type: "p",
+      text: "These defaults apply to the OpenStudio profile in timeline scope. Join requires compatible same-track MIDI clips; Crossfade requires overlapping audio clips. The menu shows the effective binding, selection count and disabled reason. Vendor profiles and custom mappings can differ. Assign unbound actions in **Keyboard, Mouse & Trackpad**; `X` remains the Mute Tool.",
     },
 
     { type: "h3", text: "Tools" },

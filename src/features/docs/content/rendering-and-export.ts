@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-11-04",
-  appReference: { commit: "d64ea6ae80273133bd17b7e9a30af9a464c714e5", channel: "development" },
+  updated: "2026-11-07",
+  appReference: { commit: "1069786f2a55fdcf451b7d5b2327a73fe124fb83", channel: "development" },
   blocks: [
     {"type": "callout", "tone": "note", "label": "Development checkout: selected MIDI export", "text": "November 4 development behavior: select MIDI clips and right-click one of them, then choose Export Selected MIDI Clips (N)..., or use the identically named Command Palette action. This writes one standard MIDI file with a separate track per source track, preserving visible trims/loops, relative gaps, channels and the selected tempo-map interval. The earliest selected clip begins at file time zero; muted clips/notes are omitted. The selection and tempo map are captured before the Save dialog. A blue time selection does not crop this export. Export This MIDI Clip... is the explicit single-clip alternative; joining is unnecessary."},
     { type: "callout", tone: "note", label: "Development checkout: Offline source reads and MIDI timing", text: "Unreleased October 28 working-tree changes after app commit e8f9a65a: offline audio rendering uses complete worker-thread source reads instead of concealing streaming-cache misses, including long sources that exceed the full-decode budget. Source failures stop export with an error. Clip gain envelopes, fade curves, active state and track playback offsets are preserved by the render snapshot. Nondefault track trim, phase, width or channel EQ use the full processing path. MIDI export writes project tempo changes and meter; clip exports rebase timing to the clip start. These changes require current-source validation and audition; they do not establish that every plugin or hardware configuration produces identical audio." },
@@ -92,14 +92,14 @@ const doc: DocContent = {
         ["AIFF", "Uncompressed, with bit-depth selection; development also offers 18/20/22-bit precision in a 24-bit file"],
         ["FLAC", "Lossless compressed: 16/24-bit integer; development also offers 18/20/22-bit precision in a 24-bit file"],
         ["MP3", "FFmpeg-encoded at the selected bitrate"],
-        ["OGG Vorbis", "FFmpeg-encoded at the selected quality"],
+        ["OGG Vorbis", "Unpublished 0.1.09 candidate: built-in Vorbis encoder, quality 0–10. Older builds use FFmpeg."],
       ],
     },
     {
       type: "callout",
       tone: "note",
       label: "FFmpeg",
-      text: "MP3 and OGG use FFmpeg as a separate process. On Windows an audited FFmpeg runtime is bundled with the installer. On macOS and Linux OpenStudio uses a system `ffmpeg` on your `PATH`; if it is missing only the FFmpeg-backed operation fails, and WAV, AIFF, and FLAC still render.",
+      text: "MP3 encoding and final sample-rate conversion still use FFmpeg as a separate process. On Windows an audited runtime is bundled with the installer; macOS and Linux use a system `ffmpeg` on your `PATH`. The unpublished 0.1.09 candidate encodes OGG with its built-in Vorbis codec, so OGG encoding no longer requires FFmpeg's optional Vorbis encoder. This does not remove FFmpeg requirements from other stages or from older builds. Failed or cancelled OGG exports cannot replace an existing output file.",
     },
     {
       type: "p",
@@ -124,7 +124,7 @@ const doc: DocContent = {
       type: "callout",
       tone: "warn",
       label: "Placeholders in the current build",
-      text: "**Resample Quality** remains disabled because backend support is pending. Metadata entry and Online render are not offered by the current Render dialog.",
+      text: "The unpublished 0.1.09 candidate removes the inactive **Resample Quality** dropdown. Project-rate source copies and the render output sample rate are separate controls. Metadata entry and Online render are not offered by the current Render dialog.",
     },
     {
       type: "p",
@@ -186,7 +186,7 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: `MP3/OGG export, video extraction, and other FFmpeg conversions need the bundled Windows runtime or a system \`ffmpeg\` on macOS and Linux. If a render comes out silent, check the bounds cover the clips, the source is what you meant, and no track or clip is muted; the full checklist is in [Troubleshooting](${SITE_PATHS.docs}/troubleshooting).`,
+      text: `MP3 encoding, final sample-rate conversion, video extraction and other FFmpeg conversions need the bundled Windows runtime or a system \`ffmpeg\` on macOS and Linux. Older builds also use it for OGG encoding. If a render comes out silent, check the bounds cover the clips, the source is what you meant, and no track or clip is muted; the full checklist is in [Troubleshooting](${SITE_PATHS.docs}/troubleshooting).`,
     },
   ],
 };

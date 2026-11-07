@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-10-08",
-  appReference: { commit: "52cbd7c", channel: "development" },
+  updated: "2026-11-07",
+  appReference: { commit: "1069786f2a55fdcf451b7d5b2327a73fe124fb83", channel: "development" },
   blocks: [
     { type: "callout", tone: "note", label: "Development checkout: Native window behavior", text: "Unreleased September 29 working-tree changes after app commit 52cbd7c use OS title bars for the main app and the implemented mixer, MIDI and built-in plugin editor windows. Startup refreshes no longer change outer window bounds; saved detached bounds stay on the relevant monitor when available. The graphical pitch editor also has a native detached window: Detach, Focus and Dock keep the existing clip session and committed history. Closing and reopening the same clip retains committed edits. WebView2 applies to Windows; macOS uses WKWebView and Linux uses WebKitGTK. Windows Debug geometry/lifecycle checks do not establish packaged Release or cross-platform results. First-launch readiness, physical drag/snap, DPI transitions and close/reopen still need qualification on each target platform." },
     {
@@ -217,8 +217,55 @@ const doc: DocContent = {
     {
       type: "callout",
       tone: "note",
-      label: "MP3, OGG, and placeholders",
-      text: "MP3 and OGG need FFmpeg, bundled on Windows only; on macOS and Linux put a system `ffmpeg` on your `PATH`. **Resample Quality** remains disabled. Selected-item sources require selected audio clips; the current dialog does not offer Metadata entry or Online render.",
+      label: "MP3, OGG, and render controls",
+      text: "MP3 encoding and final sample-rate conversion need FFmpeg, bundled on Windows or supplied as a system `ffmpeg` on macOS/Linux. The unpublished 0.1.09 candidate uses a built-in OGG Vorbis encoder and removes the inactive **Resample Quality** dropdown; older builds use FFmpeg for OGG too. Selected-item sources require selected audio clips; the current dialog does not offer Metadata entry or Online render.",
+    },
+
+    { type: "h2", id: "ai-and-pitch", text: "Stem separation and pitch windows" },
+    { type: "h3", text: "Separate Stems fails or runs out of memory" },
+    {
+      type: "ol",
+      items: [
+        "In the unpublished 0.1.09 candidate, read the error and **Processing details** in **Separate Stems**. Try **Processing device → CPU only** to isolate a GPU-specific failure. Automatic mode already uses CPU when this model cannot run on the available backend, including the unsupported DirectML path.",
+        "For long inputs, consider **Process in 30-second sections to reduce memory use**, which may change section boundaries, or the supported Windows/Linux **Use rolling output buffers** path, which needs temporary disk space. Automatic mode can select rolling buffers when RAM is limited.",
+        "For an outdated runtime, open **AI Tools Setup → Repair Stem Separation**. It preserves downloaded models and activates the replacement after validation. **Release idle AI memory** can retire an idle generation worker; it cannot interrupt an active job.",
+        `See [AI Tools setup](${SITE_PATHS.docs}/ai-runtime-setup#stem-memory) for supported configurations and precision tradeoffs. These controls may be absent in older releases. Ordinary failures appear in the dialog; full per-run logs and memory sampling require an explicitly launched qualification run.`,
+      ],
+    },
+    { type: "h3", text: "A reopened detached pitch editor stays blank" },
+    {
+      type: "p",
+      text: "The unpublished 0.1.09 candidate waits for the pitch canvas to render with usable geometry before acknowledging readiness, including after a hidden view becomes visible. If an older build gets stuck, save the project and check the candidate/release notes for this correction. When reporting a remaining failure, include whether the editor was detached, hidden or reopened and which app build you used.",
+    },
+
+    { type: "h2", id: "offline-support", text: "Create an offline support report" },
+    {
+      type: "p",
+      text: "The unpublished 0.1.09 candidate includes a separately launched **OpenStudio Support** companion. It can collect existing evidence or inspect a selected audio/MIDI export without a terminal or a separate Python installation. It starts only when opened explicitly, and nothing uploads automatically. Close OpenStudio before starting an operation, keep it closed until the operation finishes, then close Support before reopening the DAW.",
+    },
+    {
+      type: "kv",
+      rows: [
+        ["Windows", "Open **OpenStudio Support** from Start; portable folders include `OpenStudioSupport.exe`."],
+        ["macOS", "Copy both **OpenStudio.app** and **OpenStudio Support.app** from the candidate DMG into the same Applications folder. Open Support in Finder."],
+        ["Linux DEB / RPM", "Open **OpenStudio Support** from the desktop application menu."],
+        ["Linux AppImage", "Extract the candidate `with-support.tar.gz` download and open its separate **OpenStudioSupport-…AppImage** after closing the DAW AppImage."],
+      ],
+    },
+    {
+      type: "ol",
+      items: [
+        "Select **Collect existing evidence**, describe what happened, and choose **Run selected operation**. Alternatively choose **Inspect audio export** or **Inspect MIDI export** and select the existing file.",
+        "Choose **Open output folder** and read the results. Collection can include existing plugin scan failures, filtered audio/plugin settings and recording recovery fault metadata; missing evidence cannot establish that a session was fault-free.",
+        "After reviewing the files, choose **Create reviewed ZIP**, tick the review confirmation and run it. Attach the resulting ZIP to your support request yourself.",
+        "Close Support before opening OpenStudio again. Keep the app version and a short description of the problem with your report.",
+      ],
+    },
+    {
+      type: "callout",
+      tone: "warn",
+      label: "Review before sharing",
+      text: "Redaction is best effort. Original audio, MIDI and project files are not bundled by evidence collection, but free-form text can still contain private information. Crash dumps are excluded by default; explicitly included dumps contain unredacted process memory. The tool cannot reconstruct past CPU scheduling, diagnose every glitch or prove that an export sounds correct. See the [offline Support guide](https://github.com/sdevil7th/OpenStudio/blob/1069786f2a55fdcf451b7d5b2327a73fe124fb83/docs/offline-support.md) for scope and limits.",
     },
 
     { type: "h2", id: "keyboard-shortcuts", text: "Keyboard shortcuts" },

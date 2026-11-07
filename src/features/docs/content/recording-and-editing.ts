@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-11-04",
-  appReference: { commit: "d64ea6ae80273133bd17b7e9a30af9a464c714e5", channel: "development" },
+  updated: "2026-11-07",
+  appReference: { commit: "1069786f2a55fdcf451b7d5b2327a73fe124fb83", channel: "development" },
   blocks: [
     {"type": "callout", "tone": "note", "label": "Development checkout: gesture feedback and cancellation", "text": "November 4 development behavior: the blue range is a Time selection, with visible start/end/duration and Select clips inside, Set loop and Clear controls. In the OpenStudio Windows mouse profile, Ctrl+drag on empty space creates it, Ctrl+click toggles clip selection, Ctrl+drag on a clip copies, and Ctrl+Shift+drag slips content. Profile overrides still apply. Copy/Slip feedback appears during the gesture; a persistent MIDI Source offset label describes retained source content after the gesture. Cancel, closing the tempo dialog or changing its target also cancels obsolete native analysis; it no longer shares the interactive waveform queue. Project-rate copies recheck the target rate before publication, and every active copy has a named cancel control."},
     { type: "callout", tone: "note", label: "Development checkout: Live recording waveforms", text: "Unreleased November 4 working-tree change after app commit e8f9a65a: recording waveforms continue refreshing during scrolling, modifier zoom and held ruler gestures. Newly revealed areas may briefly use an earlier preview while current detail arrives. Holding the ruler keeps automatic following paused until the gesture ends. This display improvement does not establish glitch-free hardware recording or electrical alignment." },
@@ -37,6 +37,12 @@ const doc: DocContent = {
     },
 
     { type: "h2", id: "recording", text: "Recording, record modes, and loops" },
+    {
+      type: "callout",
+      tone: "note",
+      label: "Unpublished 0.1.09 candidate: preparing a take",
+      text: "Recording storage is prepared before capture begins. While preparation is pending, the Record button offers **Cancel recording preparation**; Record again or **Stop** cancels it, and Play is disabled until preparation ends. Reduced work at small buffers and updated live waveforms do not qualify every hardware setup: the strict loaded 48 kHz / 8-sample test still misses deadlines. Use a buffer that is reliable for your complete project.",
+    },
     {
       type: "ol",
       items: [
