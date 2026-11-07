@@ -92,14 +92,14 @@ const doc: DocContent = {
         ["AIFF", "Uncompressed, with bit-depth selection; development also offers 18/20/22-bit precision in a 24-bit file"],
         ["FLAC", "Lossless compressed: 16/24-bit integer; development also offers 18/20/22-bit precision in a 24-bit file"],
         ["MP3", "FFmpeg-encoded at the selected bitrate"],
-        ["OGG Vorbis", "Unpublished 0.1.09 candidate: built-in Vorbis encoder, quality 0–10. Older builds use FFmpeg."],
+        ["OGG Vorbis", "0.1.09 uses the built-in Vorbis encoder with quality settings 0–10. Older builds use FFmpeg."],
       ],
     },
     {
       type: "callout",
       tone: "note",
       label: "FFmpeg",
-      text: "MP3 encoding and final sample-rate conversion still use FFmpeg as a separate process. On Windows an audited runtime is bundled with the installer; macOS and Linux use a system `ffmpeg` on your `PATH`. The unpublished 0.1.09 candidate encodes OGG with its built-in Vorbis codec, so OGG encoding no longer requires FFmpeg's optional Vorbis encoder. This does not remove FFmpeg requirements from other stages or from older builds. Failed or cancelled OGG exports cannot replace an existing output file.",
+      text: "MP3 encoding and final sample-rate conversion still use FFmpeg as a separate process. On Windows an audited runtime is bundled with the installer; macOS and Linux use a system `ffmpeg` on your `PATH`. OpenStudio 0.1.09 encodes OGG with its built-in Vorbis codec, so OGG encoding no longer requires FFmpeg's optional Vorbis encoder. This does not remove FFmpeg requirements from other stages or from older builds. Failed or cancelled OGG exports cannot replace an existing output file.",
     },
     {
       type: "p",
@@ -124,7 +124,7 @@ const doc: DocContent = {
       type: "callout",
       tone: "warn",
       label: "Placeholders in the current build",
-      text: "The unpublished 0.1.09 candidate removes the inactive **Resample Quality** dropdown. Project-rate source copies and the render output sample rate are separate controls. Metadata entry and Online render are not offered by the current Render dialog.",
+      text: "OpenStudio 0.1.09 removes the inactive **Resample Quality** dropdown. Project-rate source copies and the render output sample rate are separate controls. Metadata entry and Online render are not offered by the current Render dialog.",
     },
     {
       type: "p",

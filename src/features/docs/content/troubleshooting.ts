@@ -218,7 +218,7 @@ const doc: DocContent = {
       type: "callout",
       tone: "note",
       label: "MP3, OGG, and render controls",
-      text: "MP3 encoding and final sample-rate conversion need FFmpeg, bundled on Windows or supplied as a system `ffmpeg` on macOS/Linux. The unpublished 0.1.09 candidate uses a built-in OGG Vorbis encoder and removes the inactive **Resample Quality** dropdown; older builds use FFmpeg for OGG too. Selected-item sources require selected audio clips; the current dialog does not offer Metadata entry or Online render.",
+      text: "MP3 encoding and final sample-rate conversion need FFmpeg, bundled on Windows or supplied as a system `ffmpeg` on macOS/Linux. OpenStudio 0.1.09 uses a built-in OGG Vorbis encoder and removes the inactive **Resample Quality** dropdown; older builds use FFmpeg for OGG too. Selected-item sources require selected audio clips; the current dialog does not offer Metadata entry or Online render.",
     },
 
     { type: "h2", id: "ai-and-pitch", text: "Stem separation and pitch windows" },
@@ -226,7 +226,7 @@ const doc: DocContent = {
     {
       type: "ol",
       items: [
-        "In the unpublished 0.1.09 candidate, read the error and **Processing details** in **Separate Stems**. Try **Processing device → CPU only** to isolate a GPU-specific failure. Automatic mode already uses CPU when this model cannot run on the available backend, including the unsupported DirectML path.",
+        "In OpenStudio 0.1.09, read the error and **Processing details** in **Separate Stems**. Try **Processing device → CPU only** to isolate a GPU-specific failure. Automatic mode already uses CPU when this model cannot run on the available backend, including the unsupported DirectML path.",
         "For long inputs, consider **Process in 30-second sections to reduce memory use**, which may change section boundaries, or the supported Windows/Linux **Use rolling output buffers** path, which needs temporary disk space. Automatic mode can select rolling buffers when RAM is limited.",
         "For an outdated runtime, use **AI Tools Setup → Repair Stem Separation**, save your work, close every OpenStudio session and reopen the app. Windows and Linux also offer this check after an update. **Open DAW** skips it for that version. Repair retains your downloaded models and waits until recording sessions close.",
         `See [AI Tools setup](${SITE_PATHS.docs}/ai-runtime-setup#stem-memory) for supported configurations and precision tradeoffs. These controls may be absent in older releases. Ordinary failures appear in the dialog; full per-run logs and memory sampling require an explicitly launched qualification run.`,
@@ -235,13 +235,13 @@ const doc: DocContent = {
     { type: "h3", text: "A reopened detached pitch editor stays blank" },
     {
       type: "p",
-      text: "The unpublished 0.1.09 candidate waits for the pitch canvas to render with usable geometry before acknowledging readiness, including after a hidden view becomes visible. If an older build gets stuck, save the project and check the candidate/release notes for this correction. When reporting a remaining failure, include whether the editor was detached, hidden or reopened and which app build you used.",
+      text: "OpenStudio 0.1.09 waits for the pitch canvas to render with usable geometry before acknowledging readiness, including after a hidden view becomes visible. If an older build gets stuck, save the project and check the candidate/release notes for this correction. When reporting a remaining failure, include whether the editor was detached, hidden or reopened and which app build you used.",
     },
 
     { type: "h2", id: "offline-support", text: "Create an offline support report" },
     {
       type: "p",
-      text: "The unpublished 0.1.09 candidate includes a separately launched **OpenStudio Support** companion. It can collect existing evidence or inspect a selected audio/MIDI export without a terminal or a separate Python installation. It starts only when opened explicitly, and nothing uploads automatically. Close OpenStudio before starting an operation, keep it closed until the operation finishes, then close Support before reopening the DAW.",
+      text: "OpenStudio 0.1.09 includes a separately launched **OpenStudio Support** companion. It can collect existing evidence or inspect a selected audio/MIDI export without a terminal or a separate Python installation. It starts only when opened explicitly, and nothing uploads automatically. Close OpenStudio before starting an operation, keep it closed until the operation finishes, then close Support before reopening the DAW.",
     },
     {
       type: "kv",

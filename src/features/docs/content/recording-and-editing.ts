@@ -40,7 +40,7 @@ const doc: DocContent = {
     {
       type: "callout",
       tone: "note",
-      label: "Unpublished 0.1.09 candidate: preparing a take",
+      label: "Preparing a take in 0.1.09",
       text: "Recording storage is prepared before capture begins. While preparation is pending, the Record button offers **Cancel recording preparation**; Record again or **Stop** cancels it, and Play is disabled until preparation ends. Reduced work at small buffers and updated live waveforms do not qualify every hardware setup: the strict loaded 48 kHz / 8-sample test still misses deadlines. Use a buffer that is reliable for your complete project.",
     },
     {

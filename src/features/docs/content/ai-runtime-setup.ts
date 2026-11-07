@@ -46,8 +46,8 @@ const doc: DocContent = {
     {
       type: "callout",
       tone: "note",
-      label: "Development candidate: repair stem separation",
-      text: "In the 0.1.09 candidate, the first Windows or Linux launch after an update offers to check installed stem tools. **Open DAW** skips the offer for that version. **Check and repair** runs after all DAW sessions close. If a recording starts while the offer is open, it continues and the repair request is saved. To request repair later, choose **AI Tools Setup → Repair Stem Separation**, save your projects, close OpenStudio and reopen it. Repair keeps the downloaded models and activates the replacement after validation. The BS-RoFormer model uses CPU on the unsupported Windows DirectML path.",
+      label: "Repair stem separation in 0.1.09",
+      text: "In OpenStudio 0.1.09, the first Windows or Linux launch after an update offers to check installed stem tools. **Open DAW** skips the offer for that version. **Check and repair** runs after all DAW sessions close. If a recording starts while the offer is open, it continues and the repair request is saved. To request repair later, choose **AI Tools Setup → Repair Stem Separation**, save your projects, close OpenStudio and reopen it. Repair keeps the downloaded models and activates the replacement after validation. The BS-RoFormer model uses CPU on the unsupported Windows DirectML path.",
     },
     {
       type: "ol",
@@ -112,7 +112,7 @@ const doc: DocContent = {
     { type: "h2", id: "generation-memory", text: "Generation memory and execution options" },
     {
       type: "p",
-      text: "In the unpublished 0.1.09 candidate, ACE-Step, Stable Audio and MiniMax adapt model placement to available memory. **Hardware check** is advisory; the live worker makes the final admission decision, including memory it can reuse. Offloading trades speed for memory and does not make every model practical on every machine. Longer MiniMax requests can require a new placement plan, and its maximum length is a cap rather than a guaranteed song duration.",
+      text: "In OpenStudio 0.1.09, ACE-Step, Stable Audio and MiniMax adapt model placement to available memory. **Hardware check** is advisory; the live worker makes the final admission decision, including memory it can reuse. Offloading trades speed for memory and does not make every model practical on every machine. Longer MiniMax requests can require a new placement plan, and its maximum length is a cap rather than a guaranteed song duration.",
     },
     {
       type: "p",
