@@ -163,7 +163,7 @@ const TrackControls = memo(function TrackControls({
             className={cn(CONTROL, "shrink-0")}
             shape="circle"
             size="icon-sm"
-            title="Record Arm (R)"
+            title="Record Arm"
             variant="danger"
           >
             R

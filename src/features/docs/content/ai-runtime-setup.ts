@@ -4,8 +4,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-10-08",
-  appReference: { commit: "5dc19acd1b7fecb24341baefd9c3aea1a4e5478f", channel: "development" },
+  updated: "2026-11-07",
+  appReference: { commit: "4d468a471ffda9838e6e8c984433bba7d7f886b8", channel: "development" },
   blocks: [
     {
       type: "p",
@@ -46,8 +46,8 @@ const doc: DocContent = {
     {
       type: "callout",
       tone: "note",
-      label: "Development checkout: Windows backend fallback",
-      text: "Unshipped working-tree changes reviewed on top of app commit `52cbd7c` prepare a separate DirectML runtime when CUDA setup falls back on Windows. The installer selects it only after the final stem-separation check, leaving the previous runtime selected if setup fails. **Reset** removes both the base and fallback runtimes. The reported Windows access-denied case still needs a real-machine retest.",
+      label: "Repair stem separation in 0.1.09",
+      text: "In OpenStudio 0.1.09, the first Windows or Linux launch after an update offers to check installed stem tools. **Open DAW** skips the offer for that version. **Check and repair** runs after all DAW sessions close. If a recording starts while the offer is open, it continues and the repair request is saved. To request repair later, choose **AI Tools Setup → Repair Stem Separation**, save your projects, close OpenStudio and reopen it. Repair keeps the downloaded models and activates the replacement after validation. The BS-RoFormer model uses CPU on the unsupported Windows DirectML path.",
     },
     {
       type: "ol",
@@ -107,6 +107,49 @@ const doc: DocContent = {
         "Full VAE decode is the quality path for generation. If your machine cannot carry a request, you get a clear failure rather than a silently degraded WAV.",
         "Setup and downloads run in the background and the main app thread stays responsive, but expect the machine to be busy while a generation or separation job is in flight.",
       ],
+    },
+
+    { type: "h2", id: "generation-memory", text: "Generation memory and execution options" },
+    {
+      type: "p",
+      text: "In OpenStudio 0.1.09, ACE-Step, Stable Audio and MiniMax adapt model placement to available memory. **Hardware check** is advisory; the live worker makes the final admission decision, including memory it can reuse. Offloading trades speed for memory and does not make every model practical on every machine. Longer MiniMax requests can require a new placement plan, and its maximum length is a cap rather than a guaranteed song duration.",
+    },
+    {
+      type: "p",
+      text: "**AI Tools Setup → Release idle AI memory** retires an idle generation worker. Busy requests cannot be released this way; cancel the active job first. Switching models retires the previous worker before loading the next, while repeated requests for the same model can reuse it. Automatic placement retains the selected model version and standard precision; it does not silently select INT8 or FP8.",
+    },
+    {
+      type: "kv",
+      rows: [
+        ["Automatic — standard precision", "Default memory-aware placement. Hardware, runtime and requested length still determine whether a job fits."],
+        ["ACE-Step: Lower memory — temporary disk", "Installed Original model on the qualified Windows RTX 4080 setup. Requires spare disk space and can be slower."],
+        ["ACE-Step: Faster startup — qualified AMD", "Installed Original model on the reviewed Linux Radeon 8060S / gfx1151 runtime. Retains precision; audition the result."],
+        ["Stable Audio: Lower GPU memory — FP8 storage", "Installed Original model on the qualified Windows RTX 4080 setup. Reduces selected weight-storage precision; output can differ."],
+        ["Stable Audio: Compile repeated blocks — optional setup", "Qualified Windows RTX 4080 setup and Original model. **Prepare optional compilation** installs a separate runtime, requires 20 GiB free disk and validates two test generations. First generation takes longer; repeats can be faster."],
+      ],
+    },
+    {
+      type: "p",
+      text: "These are local device preferences for the next generation, not portable project settings. Saved INT8 uses its own execution policy. Other configurations keep Automatic available; the additional options require their qualified runtime and model. See the [hardware qualification report](https://github.com/sdevil7th/OpenStudio/blob/1069786f2a55fdcf451b7d5b2327a73fe124fb83/docs/ai-optimization-qualification-2026-11-06.md) for measured scope rather than assuming universal speed or audio-quality improvements.",
+    },
+
+    { type: "h2", id: "stem-memory", text: "Stem separation devices and memory" },
+    {
+      type: "p",
+      text: "In **Separate Stems**, **Processing device → Automatic (use GPU when available)** selects a supported GPU or explains why CPU is used. **CPU only** explicitly avoids GPU model execution. A confirmed GPU out-of-memory error in Automatic mode retires that worker and retries once on CPU with bounded output memory; other errors do not start repeated retries.",
+    },
+    {
+      type: "ul",
+      items: [
+        "**Process in 30-second sections to reduce memory use** bounds host-memory use, but can change results at section boundaries.",
+        "**Use rolling output buffers** requests the temporary-disk path qualified on supported Windows/Linux runtimes. It preserves model window boundaries, and disk requirements grow with input length. Automatic mode can select it when RAM is limited; unsupported configurations use the sectioned path instead.",
+        "On Linux AMD, **AMD performance → Faster when qualified (FP16)** is opt-in and limited to the reviewed gfx1151/ROCm 7.2 recipe. Other configurations retain standard precision. Reduced precision can change audio.",
+        "**Processing details** explains device and memory choices. Cancelled, unreadable or incomplete output adds no stem tracks. A complete import keeps source trim, start and length and is one undoable edit.",
+      ],
+    },
+    {
+      type: "p",
+      text: "If separation fails, read the dialog's worker error, exit code or last phase; try **CPU only** to isolate a GPU-specific failure, then use **Repair Stem Separation** if the runtime is outdated. Full per-run logs and periodic memory samples require an explicitly launched qualification run. These controls describe the unpublished candidate, not every installed release.",
     },
 
     { type: "h2", id: "workflows", text: "The workflows" },

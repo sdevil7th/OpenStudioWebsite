@@ -117,7 +117,7 @@ const DownloadPage = () => {
         </div>
         <div className="sp-mono">
           {detected ? `Detected ${primary.label}. ` : "Pick your platform. "}
-          Every button downloads the release shown above from GitHub · SHA-256 checksums below · release metadata at{" "}
+          Direct downloads use the GitHub release shown above · SHA-256 checksums below · release metadata at{" "}
           <a href="/releases/latest.json">/releases/latest.json</a>
         </div>
       </div>
@@ -170,6 +170,14 @@ const DownloadPage = () => {
                 >
                   Download for {entry.label}
                 </Cta>
+                {entry.id === "windows" && (
+                  <div className="mt-[16px] text-[12px] text-[var(--sp-body)]">
+                    <a className="sp-text-link inline-flex min-h-[24px] items-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sp-accent)]" href="https://apps.microsoft.com/detail/9N3MQ442VXGW">
+                      Get OpenStudio from Microsoft Store
+                    </a>
+                    <p className="m-0">Store updates arrive after Microsoft certification.</p>
+                  </div>
+                )}
                 {isLinuxDeb && release.linuxAppImage?.directUrl ? (
                   <div className="mt-[16px] flex flex-col gap-[8px] [font:400_12px/1.55_'Space_Grotesk',_sans-serif] text-[var(--sp-body)]">
                     <a className="sp-text-link inline-flex min-h-[24px] self-start items-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sp-accent)]" href={release.linuxAppImage.directUrl} rel="noreferrer">

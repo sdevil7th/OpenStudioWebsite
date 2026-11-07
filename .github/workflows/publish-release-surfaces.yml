@@ -7,6 +7,9 @@ on:
 
 jobs:
   publish:
+    concurrency:
+      group: openstudio-production-release-surfaces
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -130,6 +133,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ env.GH_TOKEN }}
         run: npm run build
+
+      - name: Verify the built download page data and update feed match this dispatch
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq -e --arg tag "$RELEASE_TAG" '.tagName == $tag' dist/github/latest-release.json
+          jq -e --arg version "${RELEASE_TAG#v}" --arg url "https://github.com/$OPENSTUDIO_DESKTOP_REPO/releases/tag/$RELEASE_TAG" \
+            '.version == $version and .releasePageUrl == $url' dist/releases/stable/latest.json
+          latest=$(gh api --paginate --slurp "repos/$OPENSTUDIO_DESKTOP_REPO/releases?per_page=100" | \
+            jq -er 'add | map(select((.draft or .prerelease | not) and (.tag_name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$")))) | first.tag_name')
+          [[ "$latest" == "$RELEASE_TAG" ]] || { echo "Dispatch $RELEASE_TAG is stale; the published app is $latest."; exit 1; }
 
       - name: Deploy to Netlify
         shell: bash
