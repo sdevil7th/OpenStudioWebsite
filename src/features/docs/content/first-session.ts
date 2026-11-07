@@ -3,10 +3,10 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-10-24",
-  appReference: { commit: "1b5ba4b70df39665a4d61cdcd6d6dd6eb64b0861", channel: "development" },
+  updated: "2026-11-07",
+  appReference: { commit: "262e84e29778afa240804b130720aeb4e0d2af25", channel: "development" },
   blocks: [
-    { type: "callout", tone: "note", label: "Development checkout: session editing updates", text: "Unreleased development changes reviewed October 24, 2026 at app commit 1b5ba4b7 add single-key R for Record (Ctrl/Cmd+R and numpad * retained), 1/Home for absolute project start and +/=/− for time zoom. Plain horizontal ruler drags set the project/loop range; Shift-drag sets or extends the separate edit time selection. Plain vertical drags zoom out upward and in downward, with explicit profile/custom actions taking priority. Ctrl/Cmd+D duplicates clips as one arrangement with their spacing intact; Ctrl/Cmd-drag copies the entire clip selection with a 50% opaque preview, or complete selected track rows when started from a track header, including collapsed children when copying a folder. Piano Roll Ctrl/Cmd-drag holds pitch and Shift-drag holds time. NAM Rack's Octaver Fuzz adds independently switched fuzz and three voices. These are development changes, not a shipped-release claim; other profiles/custom bindings can differ." },
+    { type: "callout", tone: "note", label: "Session editing shortcuts", text: "With the OpenStudio keyboard profile, R starts recording, 1/Home returns to the project start, and +/=/− changes the time zoom. Ctrl/Cmd+R and numpad * also start recording. Plain horizontal ruler drags set the project/loop range; Shift-drag sets or extends the separate edit time selection. Plain vertical drags zoom out upward and in downward, with explicit profile/custom actions taking priority. Ctrl/Cmd+D duplicates clips as one arrangement with their spacing intact; Ctrl/Cmd-drag copies the entire clip selection with a 50% opaque preview, or complete selected track rows when started from a track header, including collapsed children when copying a folder. Piano Roll Ctrl/Cmd-drag holds pitch and Shift-drag holds time. NAM Rack's Octaver Fuzz adds independently switched fuzz and three voices. Other keyboard and mouse profiles can use different bindings." },
     {
       type: "p",
       text: `One continuous session: a guitar part through the NAM Rack, a MIDI drum part, two edits, a quick mix, and a rendered file. It assumes you have finished [Getting started](${SITE_PATHS.docs}/getting-started) and can hear playback. Shortcuts are the OpenStudio default keyboard profile; \`Ctrl\` means \`Cmd\` on macOS.`,
@@ -129,7 +129,7 @@ const doc: DocContent = {
       type: "callout",
       tone: "warn",
       label: "MP3 and OGG",
-      text: `Those formats go through FFmpeg, bundled on Windows only. On macOS and Linux you need a system \`ffmpeg\` on your \`PATH\`. Stems, regions, and DDP are in [Rendering & export](${SITE_PATHS.docs}/rendering-and-export).`,
+      text: `OpenStudio 0.1.09 encodes OGG Vorbis with its built-in encoder. MP3 encoding and final sample-rate conversion use FFmpeg. Windows bundles it. On macOS and Linux these operations need a system \`ffmpeg\` on your \`PATH\`. Stems, regions, and DDP are in [Rendering & export](${SITE_PATHS.docs}/rendering-and-export).`,
     },
 
     { type: "h2", id: "where-next", text: "Where next" },
