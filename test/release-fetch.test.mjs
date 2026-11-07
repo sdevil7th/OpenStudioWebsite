@@ -47,10 +47,12 @@ test("dispatch verifies the published tag, exact download links and sizes, inclu
   const htmlUrl = `https://github.com/${repo}/releases/tag/${tag}`;
   const assets = ["OpenStudio-Setup-x64.exe", "OpenStudio-0.1.09-linux-x86_64-with-support.tar.gz"]
     .map(name => ({ name, size: 123, downloadUrl: `https://github.com/${repo}/releases/download/${tag}/${name}` }));
+  const sha256 = "a".repeat(64);
   const release = { tag_name: tag, published_at: "2026-11-09T06:00:00Z", html_url: htmlUrl,
-    assets: assets.map(a => ({ name: a.name, size: a.size, browser_download_url: a.downloadUrl })) };
+    assets: assets.map(a => ({ name: a.name, size: a.size, browser_download_url: a.downloadUrl, digest: `sha256:${sha256}` })) };
   const snapshot = { tagName: tag, htmlUrl, assets };
-  const manifest = { version: "0.1.09", releasePageUrl: htmlUrl };
+  const windows = { fileName: assets[0].name, url: assets[0].downloadUrl, size: assets[0].size, sha256 };
+  const manifest = { version: "0.1.09", releasePageUrl: htmlUrl, platforms: { windows } };
   const old = { ...release, tag_name: "v0.1.08", published_at: "2026-10-25T06:00:00Z" };
   const verify = (built, feed = manifest) => verifyReleaseDispatch(tag, repo, [old, release], built, feed);
   verify(snapshot);
@@ -58,6 +60,9 @@ test("dispatch verifies the published tag, exact download links and sizes, inclu
   assert.throws(() => verify({ ...snapshot, assets: [assets[0], { ...assets[1], size: 456 }] }), /download links/);
   assert.throws(() => verify({ ...snapshot, assets: [assets[0], { ...assets[1], downloadUrl: assets[0].downloadUrl }] }), /download links/);
   assert.throws(() => verify(snapshot, { ...manifest, version: "0.1.08" }), /updater feed/);
+  for (const changed of [{ sha256: "b".repeat(64) }, { url: assets[1].downloadUrl }, { size: 321 }]) {
+    assert.throws(() => verify(snapshot, { ...manifest, platforms: { windows: { ...windows, ...changed } } }), /signed windows installer/);
+  }
   assert.throws(() => verifyReleaseDispatch(old.tag_name, repo, [old, release], snapshot, manifest), /stale/);
 });
 

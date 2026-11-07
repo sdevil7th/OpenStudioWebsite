@@ -19,6 +19,14 @@ export function verifyReleaseDispatch(tag, repo, releases, snapshot, manifest) {
     asset.name === built.name && asset.downloadUrl === built.downloadUrl && asset.size === built.size))) {
     throw new Error("Built download links or sizes differ from the published release assets.");
   }
+  for (const [platform, installer] of Object.entries(manifest.platforms)) {
+    if (installer == null) continue;
+    const asset = latest.assets.find(candidate => candidate.name === installer.fileName);
+    if (!asset || asset.browser_download_url !== installer.url || asset.size !== installer.size
+      || (asset.digest && asset.digest.toLowerCase() !== `sha256:${installer.sha256.toLowerCase()}`)) {
+      throw new Error(`The signed ${platform} installer does not match its published GitHub asset.`);
+    }
+  }
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
