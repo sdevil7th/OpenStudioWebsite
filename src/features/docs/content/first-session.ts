@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-11-07",
-  appReference: { commit: "262e84e29778afa240804b130720aeb4e0d2af25", channel: "development" },
+  updated: "2026-11-08",
+  appReference: { commit: "ecb2a1f70fb084f43ecb71ff70054ba2e5e0f8a2", channel: "release", version: "0.1.09" },
   blocks: [
     { type: "callout", tone: "note", label: "Session editing shortcuts", text: "With the OpenStudio keyboard profile, R starts recording, 1/Home returns to the project start, and +/=/− changes the time zoom. Ctrl/Cmd+R and numpad * also start recording. Plain horizontal ruler drags set the project/loop range; Shift-drag sets or extends the separate edit time selection. Plain vertical drags zoom out upward and in downward, with explicit profile/custom actions taking priority. Ctrl/Cmd+D duplicates clips as one arrangement with their spacing intact; Ctrl/Cmd-drag copies the entire clip selection with a 50% opaque preview, or complete selected track rows when started from a track header, including collapsed children when copying a folder. Piano Roll Ctrl/Cmd-drag holds pitch and Shift-drag holds time. NAM Rack's Octaver Fuzz adds independently switched fuzz and three voices. Other keyboard and mouse profiles can use different bindings." },
     {
@@ -17,7 +17,7 @@ const doc: DocContent = {
       type: "ol",
       items: [
         "Click the **BPM** field in the transport bar and type a tempo, or tap `T` in time with the song. Set the **Time Signature** beside it if the song is not in 4/4.",
-        "The metronome icon enables the click during playback/recording. The gear opens Metronome Settings for sounds, accents and volume. In the unreleased October 5 working tree after app commit 52cbd7c, **Play click only / Stop click only** also has `Ctrl+Shift+Space` (macOS: `Cmd+Shift+Space`) in all 19 built-in keyboard profiles, with the dialog open or closed. It changes standalone practice without changing transport or Enable. Expand **Click sounds** for four built-ins or a prepared custom sample; select **Electronic (original)** to restore the original tone. **Practice timer** offers Countdown or Stopwatch.",
+        "The metronome icon enables the click during playback/recording. The gear opens Metronome Settings for sounds, accents and volume. **Play click only / Stop click only** also has `Ctrl+Shift+Space` (macOS: `Cmd+Shift+Space`) in all 19 built-in keyboard profiles, with the dialog open or closed. It changes standalone practice without changing transport or Enable. Expand **Click sounds** for four built-ins or a prepared custom sample; select **Electronic (original)** to restore the original tone. **Practice timer** offers Countdown or Stopwatch.",
         "Press `Ctrl+S` and choose a folder. Recorded WAV files go into `OpenStudio/Audio` inside your Documents folder and are referenced by the project; saving does not copy them beside the `.osproj`. Keep those files with your backups.",
       ],
     },
@@ -41,7 +41,7 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: "If live monitoring crackles, check the actual driver buffer in Settings and increase it before judging the guitar tone. Two armed NAM Racks share the same audio-callback deadline. In the unreleased October 18 development changes, settings report a rejected request or a driver opening at a different sample rate or buffer size, then attempt to restore the previous configuration. The selected value alone does not prove what the driver accepted. Changing only rate or buffer preserves an explicitly disabled input or output. If the ASIO control panel cannot restart the device, Settings shows the actual closed state and an error; reselect the same driver and Apply to try recovery. The driver label also works for input-only operation. A larger buffer adds monitoring latency and still needs testing with your exact interface and Rack settings.",
+      text: "If live monitoring crackles, check the actual driver buffer in Settings and increase it before judging the guitar tone. Two armed NAM Racks share the same audio-callback deadline. Settings reports a rejected request or a driver opening at a different sample rate or buffer size, then attempt to restore the previous configuration. The selected value alone does not prove what the driver accepted. Changing only rate or buffer preserves an explicitly disabled input or output. If the ASIO control panel cannot restart the device, Settings shows the actual closed state and an error; reselect the same driver and Apply to try recovery. The driver label also works for input-only operation. A larger buffer adds monitoring latency and still needs testing with your exact interface and Rack settings.",
     },
     {
       type: "shot",

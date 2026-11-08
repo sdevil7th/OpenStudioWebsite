@@ -3,8 +3,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-11-07",
-  appReference: { commit: "262e84e29778afa240804b130720aeb4e0d2af25", channel: "development" },
+  updated: "2026-11-08",
+  appReference: { commit: "ecb2a1f70fb084f43ecb71ff70054ba2e5e0f8a2", channel: "release", version: "0.1.09" },
   blocks: [
     {"type": "callout", "tone": "note", "label": "Selected MIDI export", "text": "In OpenStudio 0.1.09, select MIDI clips and right-click one of them, then choose Export Selected MIDI Clips (N)..., or use the identically named Command Palette action. This writes one standard MIDI file with a separate track per source track, preserving visible trims/loops, relative gaps, channels and the selected tempo-map interval. The earliest selected clip begins at file time zero; muted clips/notes are omitted. The selection and tempo map are captured before the Save dialog. A blue time selection does not crop this export. Export This MIDI Clip... is the explicit single-clip alternative; joining is unnecessary."},
     { type: "callout", tone: "note", label: "Offline source reads and MIDI timing", text: "OpenStudio 0.1.09 renders audio using complete worker-thread source reads instead of concealing streaming-cache misses, including long sources that exceed the full-decode budget. Source failures stop export with an error. Clip gain envelopes, fade curves, active state and track playback offsets are preserved by the render snapshot. Nondefault track trim, phase, width or channel EQ use the full processing path. MIDI export writes project tempo changes and meter; clip exports rebase timing to the clip start. Listen to the export to check plugin output and the intended mix." },
@@ -17,7 +17,7 @@ const doc: DocContent = {
     { type: "h2", id: "render-dialog", text: "The Render dialog" },
     {
       type: "p",
-      text: "The October 6 development checkout gives hosted plugins an advancing offline playhead at the export sample rate, with tempo changes and integrated quarter-note position. Track Freeze uses the same project-time behavior, and neither moves the live playhead. Hosted state, prepare and reset callbacks are dispatched to the actual UI thread, as required by VST3, while audio rendering stays on its worker. Normal playback also integrates tempo changes for musical position. Live Preview/Punch and prepared AutoJoin holds are restored before export. These unshipped corrections do not establish every plugin's cold-start or sound-quality parity; the installed authorized AmpliTube first-export discrepancy remains under qualification.",
+      text: "OpenStudio gives hosted plugins an advancing offline playhead at the export sample rate, with tempo changes and integrated quarter-note position. Track Freeze uses the same project-time behavior, and neither moves the live playhead. Hosted state, prepare and reset callbacks are dispatched to the actual UI thread, as required by VST3, while audio rendering stays on its worker. Normal playback also integrates tempo changes for musical position. Live Preview/Punch and prepared AutoJoin holds are restored before export. The AmpliTube first-export discrepancy remains under investigation.",
     },
     {
       type: "p",
@@ -88,9 +88,9 @@ const doc: DocContent = {
       type: "table",
       head: ["Format", "Notes"],
       rows: [
-        ["WAV", "Uncompressed, with bit-depth selection; development also offers 18/20/22-bit precision in a 24-bit file"],
-        ["AIFF", "Uncompressed, with bit-depth selection; development also offers 18/20/22-bit precision in a 24-bit file"],
-        ["FLAC", "Lossless compressed: 16/24-bit integer; development also offers 18/20/22-bit precision in a 24-bit file"],
+        ["WAV", "Uncompressed, with bit-depth selection; also supports 18/20/22-bit precision in a 24-bit file"],
+        ["AIFF", "Uncompressed, with bit-depth selection; also supports 18/20/22-bit precision in a 24-bit file"],
+        ["FLAC", "Lossless compressed: 16/24-bit integer; also supports 18/20/22-bit precision in a 24-bit file"],
         ["MP3", "FFmpeg-encoded at the selected bitrate"],
         ["OGG Vorbis", "0.1.09 uses the built-in Vorbis encoder with quality settings 0–10. Older builds use FFmpeg."],
       ],
@@ -112,7 +112,7 @@ const doc: DocContent = {
       head: ["Option", "What it does"],
       rows: [
         ["Normalize", "Peak-normalizes the output to 0 dBFS"],
-        ["Dither", "Development checkout: flat TPDF, first/second-order shaped TPDF or lower-noise RPDF, applied once after mono conversion and final resampling. Shaping raises high-frequency noise; RPDF noise varies with the signal. Integer output only, including 18/20/22-bit effective precision in a 24-bit container; queue jobs retain the selected mode. These original quantizers are not proprietary IDR."],
+        ["Dither", "Flat TPDF, first/second-order shaped TPDF or lower-noise RPDF, applied once after mono conversion and final resampling. Shaping raises high-frequency noise; RPDF noise varies with the signal. Integer output only, including 18/20/22-bit effective precision in a 24-bit container; queue jobs retain the selected mode. These original quantizers are not proprietary IDR."],
         [
           "Secondary output",
           "Runs a second pass in another format after each primary file, with its own bit depth or codec quality",

@@ -4,10 +4,10 @@ import type { DocContent } from "../types";
 
 const doc: DocContent = {
   updated: "2026-11-08",
-  appReference: { commit: "ecb2a1f70fb084f43ecb71ff70054ba2e5e0f8a2", channel: "development" },
+  appReference: { commit: "ecb2a1f70fb084f43ecb71ff70054ba2e5e0f8a2", channel: "release", version: "0.1.09" },
   blocks: [
     { type: "callout", tone: "note", label: "Numeric levels and mixer size in 0.1.09", text: "Click a track or master dB readout to enter a numeric level; Enter or leaving the field commits, Escape cancels, and -inf sets silence. A committed change uses the same volume automation/group and Undo path as the fader. Drag the grip in the mixer header to resize it. The Mixer title, grip, pop-out and close buttons share one row, with separate hit areas. Pointer resizing releases focus and temporary shortcut ownership after drop, Escape, cancellation or blur; it preserves the previous Timeline or Piano Roll context. Tab intentionally focuses the grip for arrows/Home/End. The silence setting now uses exact zero gain in static, automation and offline paths. Its preferred height is retained and clamped so the timeline remains usable." },
-    { type: "callout", tone: "note", label: "Development checkout: Solo Safe", text: "Unreleased September 29 working-tree additions after app commit 52cbd7c: right-click a track Solo button, use its context menu, or run Toggle Solo Safe on Selected Tracks. A slashed Solo indicator marks a track that remains audible when other tracks are soloed. Solo Safe does not activate global solo and explicit Mute still wins. Enable it on required buses/returns as well; it does not make other source tracks audible. The setting supports Undo/Redo, project save/load, detached mixer synchronization and master rendering. Isolated stems retain their existing isolation policy." },
+    { type: "callout", tone: "note", label: "Solo Safe", text: "Right-click a track Solo button, use its context menu, or run Toggle Solo Safe on Selected Tracks. A slashed Solo indicator marks a track that remains audible when other tracks are soloed. Solo Safe does not activate global solo and explicit Mute still wins. Enable it on required buses/returns as well; it does not make other source tracks audible. The setting supports Undo/Redo, project save/load, detached mixer synchronization and master rendering. Isolated stems retain their existing isolation policy." },
     {
       type: "p",
       text: "Mixing happens in the track headers, the mixer panel docked below the arrangement, and automation lanes on the timeline. This page follows the signal from a channel strip through sends and buses to the master, then covers groups, snapshots, automation, and metering. Shortcuts are from the default OpenStudio keyboard profile; `Ctrl` is `Cmd` on macOS.",
@@ -109,7 +109,7 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: "The development checkout supports track volume, pan, width, mute and trim; instrument/bus pre-FX controls; MIDI velocity, pitch bend, pressure and CC; send level/pan/mute; master volume/pan/mute/trim; and eligible input, track, instrument, master and monitor FX parameters. Open the envelope panel to select targets. Monitor FX affect listening only and are excluded from export. These automation and FX-drag changes are unshipped working-tree changes reviewed October 6 on top of app commit `52cbd7c`; Windows Debug checks do not establish macOS/Linux or release qualification.",
+      text: "OpenStudio supports track volume, pan, width, mute and trim; instrument/bus pre-FX controls; MIDI velocity, pitch bend, pressure and CC; send level/pan/mute; master volume/pan/mute/trim; and eligible input, track, instrument, master and monitor FX parameters. Open the envelope panel to select targets. Monitor FX affect listening only and are excluded from export. Testing of these automation and FX-drag behaviors was performed on Windows Debug.",
     },
     {
       type: "shot",
@@ -156,7 +156,7 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: "Eligible native and detached plugin-editor controls update a Punched or AutoJoined parameter even when ordinary Write is off; other parameters remain in Read. Stop retains the final queued built-in editor value after Read resumes. If a master/monitor edit cannot capture its resulting state for Undo, OpenStudio restores the previous chain, envelopes and Safe protection. Failed restoration blocks Save. Native FX changes requested during offline export or Freeze wait for the transaction while the window continues processing input. These are October 6 development changes, not a released-build qualification.",
+      text: "Eligible native and detached plugin-editor controls update a Punched or AutoJoined parameter even when ordinary Write is off; other parameters remain in Read. Stop retains the final queued built-in editor value after Read resumes. If a master/monitor edit cannot capture its resulting state for Undo, OpenStudio restores the previous chain, envelopes and Safe protection. Failed restoration blocks Save. Native FX changes requested during offline export or Freeze wait for the transaction while the window continues processing input. Physical vendor-control testing remains incomplete.",
     },
     {
       type: "p",
@@ -165,7 +165,7 @@ const doc: DocContent = {
     { type: "h3", text: "Realtime Trim" },
     {
       type: "p",
-      text: "Expand **Realtime Trim** in the track or master envelope panel. Select volume or a track send with **Trim target**. Its −60 to +12 dB offset preserves the base curve; send Trim multiplies the linear send level and also works pre-fader. Stopped changes adjust the saved manual offset. **Arm Trim** records separate Trim lanes while other envelopes remain in Read. Stop restores manual offsets and completes one undoable pass. **Freeze Trim**, while stopped with both lanes in Read, combines the curves and clears Trim. It retains separate curves when the result exceeds the range or point limit. Send coalescing preserves the curved product within 0.00001 linear gain. Choose **Coalesce Trim** while stopped: **Manually**, **After each pass** (merge at Stop within the pass's one Undo), or **On leaving Trim** (merge when disarming while stopped). Policy and manual offsets survive save/reopen; old projects default to manual and 0 dB send Trim. These are October 6 development changes, not a released feature claim.",
+      text: "Expand **Realtime Trim** in the track or master envelope panel. Select volume or a track send with **Trim target**. Its −60 to +12 dB offset preserves the base curve; send Trim multiplies the linear send level and also works pre-fader. Stopped changes adjust the saved manual offset. **Arm Trim** records separate Trim lanes while other envelopes remain in Read. Stop restores manual offsets and completes one undoable pass. **Freeze Trim**, while stopped with both lanes in Read, combines the curves and clears Trim. It retains separate curves when the result exceeds the range or point limit. Send coalescing preserves the curved product within 0.00001 linear gain. Choose **Coalesce Trim** while stopped: **Manually**, **After each pass** (merge at Stop within the pass's one Undo), or **On leaving Trim** (merge when disarming while stopped). Policy and manual offsets survive save/reopen; old projects default to manual and 0 dB send Trim.",
     },
     { type: "h3", text: "Audible Preview and Capture" },
     {
@@ -174,7 +174,7 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: "Expand **Writing & AutoJoin** for **Write to start**, **Write to end** and **AutoJoin latched controls**. During transport, boundary commands fill only controls already writing, between the playhead and zero or the last project clip/envelope point. Enable AutoJoin while stopped: after a Latch/Touch-Latch or Punch pass, start before its actual stop point to read the curve until that point, then resume its held values at the native sample boundary. Touch does not rejoin. A touched pending control or changed curve/target/protection invalidates that entry. Playback and recording starts are supported; a loop must contain the join point. The enabled setting is saved, but remembered values are temporary. Up to 128 controls can rejoin. These workflows are implemented in the development checkout; cross-platform and physical vendor-control qualification remains pending.",
+      text: "Expand **Writing & AutoJoin** for **Write to start**, **Write to end** and **AutoJoin latched controls**. During transport, boundary commands fill only controls already writing, between the playhead and zero or the last project clip/envelope point. Enable AutoJoin while stopped: after a Latch/Touch-Latch or Punch pass, start before its actual stop point to read the curve until that point, then resume its held values at the native sample boundary. Touch does not rejoin. A touched pending control or changed curve/target/protection invalidates that entry. Playback and recording starts are supported; a loop must contain the join point. The enabled setting is saved, but remembered values are temporary. Up to 128 controls can rejoin. These workflows are implemented in this release. Cross-platform and physical vendor-control qualification remains pending.",
     },
     {
       type: "p",

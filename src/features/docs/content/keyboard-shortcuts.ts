@@ -4,15 +4,15 @@ import type { DocContent } from "../types";
 
 const doc: DocContent = {
   updated: "2026-11-08",
-  appReference: { commit: "ecb2a1f70fb084f43ecb71ff70054ba2e5e0f8a2", channel: "development" },
+  appReference: { commit: "ecb2a1f70fb084f43ecb71ff70054ba2e5e0f8a2", channel: "release", version: "0.1.09" },
   blocks: [
     {"type": "callout", "tone": "note", "label": "Selection and resize context in 0.1.09", "text": "Ctrl+click (Cmd+click on macOS) clips, then right-click a selected clip to find Join Selected MIDI Clips with its effective binding (Ctrl+J in the OpenStudio Windows timeline profile) and selection count. Invalid selections show why Join is unavailable. Export Selected MIDI Clips... is also exposed there and in the action catalog; assign a shortcut in Keyboard, Mouse & Trackpad if desired. Pointer resizing the mixer no longer keeps its grip focused or steals the previous Timeline/Piano Roll shortcut context after release, cancellation or blur. Tab still intentionally focuses the grip for arrow/Home/End resizing. The blue editing range now identifies itself as Time selection and offers clear/select-clips/loop actions."},
     { type: "p", text: "OpenStudio 0.1.09 includes **View → Zoom to Full Project**, which fits timeline clips and the current recording extent within the zoom limits; very long recordings can still require horizontal scrolling. Wide views thin bar labels and displayed grid lines without changing snap resolution. The menu command works after using track or mixer controls. Ctrl/Cmd+0 retains its timeline keyboard scope; profile overrides still apply." },
     { type: "callout", tone: "note", label: "Timeline clip commands in 0.1.09", text: "In the OpenStudio default keyboard profile and timeline scope, Ctrl/Cmd+J joins selected same-track MIDI clips; Shift+X crossfades selected overlapping audio clips without merging them. X remains the Mute Tool. Edit Selected Crossfade and Detect Tempo are discoverable in clip context menus and the action catalog. Vendor profiles do not inherit these new bindings automatically; custom mappings and active focus scope determine the effective shortcut." },
-    { type: "callout", tone: "note", label: "Development checkout: transport and drag defaults", text: "Unreleased development changes reviewed October 24, 2026 at app commit 1b5ba4b7: the OpenStudio defaults below add single-key Record, absolute-start navigation, bare-key time zoom and constrained MIDI drags. Timeline copying now carries the entire selection. These changes are not a shipped-release claim. Other DAW profiles and explicit custom bindings retain their mappings; check the effective bindings in Keyboard, Mouse & Trackpad." },
+    { type: "callout", tone: "note", label: "Transport and drag defaults", text: "The OpenStudio defaults below add single-key Record, absolute-start navigation, bare-key time zoom and constrained MIDI drags. Timeline copying now carries the entire selection. Other DAW profiles and explicit custom bindings retain their mappings; check the effective bindings in Keyboard, Mouse & Trackpad." },
     {
       type: "p",
-      text: "Cubase automation update: the unshipped working tree reviewed on top of app commit `7f59cff` maps `F6` to the envelope panel, `Alt/Option+R` to all-track Read and `Alt/Option+W` to all-track Write. These are Cubase-profile bindings; they do not override the OpenStudio tables below. Write also enables Read, and switching Write off leaves Read on. Master R/W is controlled separately.",
+      text: "The Cubase profile maps `F6` to the envelope panel, `Alt/Option+R` to all-track Read and `Alt/Option+W` to all-track Write. These are Cubase-profile bindings; they do not override the OpenStudio tables below. Write also enables Read, and switching Write off leaves Read on. Master R/W is controlled separately.",
     },
     {
       type: "p",
@@ -22,7 +22,7 @@ const doc: DocContent = {
     { type: "h2", id: "how-to-read-this-page", text: "How to read this page" },
     {
       type: "p",
-      text: "The keyboard tables show the **OpenStudio** profile active on a fresh install, with separate Windows/Linux and macOS columns checked against the development checkout on October 13. The app's portable keyboard `Ctrl` maps to Cmd on macOS, and its legacy keyboard `Alt` maps to physical Ctrl on macOS. Mouse gestures use `Primary` for Ctrl/Cmd and `Alt/Option` for physical Alt/Option.",
+      text: "The keyboard tables show the **OpenStudio** profile active on a fresh install, with separate Windows/Linux and macOS columns. The app's portable keyboard `Ctrl` maps to Cmd on macOS, and its legacy keyboard `Alt` maps to physical Ctrl on macOS. Mouse gestures use `Primary` for Ctrl/Cmd and `Alt/Option` for physical Alt/Option.",
     },
     {
       type: "p",
@@ -62,8 +62,8 @@ const doc: DocContent = {
     {
       type: "callout",
       tone: "note",
-      label: "Development checkout: click-only shortcut",
-      text: "Unreleased October 5 working-tree addition after app commit 52cbd7c: Ctrl+Shift+Space (Cmd+Shift+Space on macOS) mirrors Play click only / Stop click only in Metronome Settings, including with the dialog closed. It is assigned in all 19 built-in profiles and can be customized or disabled. It changes standalone practice only: transport, recording and Enable remain unchanged. If Enable is on during playback or recording, Stop click only can leave the transport-driven click sounding. Plain Space continues to start/stop transport, including an active recording; the Play/Pause button can pause separately.",
+      label: "Click-only shortcut",
+      text: "Ctrl+Shift+Space (Cmd+Shift+Space on macOS) mirrors Play click only / Stop click only in Metronome Settings, including with the dialog closed. It is assigned in all 19 built-in profiles and can be customized or disabled. It changes standalone practice only: transport, recording and Enable remain unchanged. If Enable is on during playback or recording, Stop click only can leave the transport-driven click sounding. Plain Space continues to start/stop transport, including an active recording; the Play/Pause button can pause separately.",
     },
 
     { type: "h3", text: "File" },
