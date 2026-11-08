@@ -4,7 +4,7 @@ import type { DocContent } from "../types";
 
 const doc: DocContent = {
   updated: "2026-11-08",
-  appReference: { commit: "ecb2a1f70fb084f43ecb71ff70054ba2e5e0f8a2", channel: "development" },
+  appReference: { commit: "ecb2a1f70fb084f43ecb71ff70054ba2e5e0f8a2", channel: "release", version: "0.1.09" },
   blocks: [
     { type: "callout", tone: "note", label: "Project-rate source copies in 0.1.09", text: "Imported audio keeps its source sample rate by default. File > Project Settings > Audio import sample rate can instead prepare cached band-limited project-rate float WAV copies within the import's Undo step. A clip's Create [project rate] kHz Project-Rate Copy command also offers progress, Cancel and source Undo/Redo. Originals and clip timing/gain/fades remain intact; cancelled or unavailable optional import conversion uses the original and reports that choice. Playback rate conversion uses cubic interpolation, while export uses its chosen output rate. These paths do not promise bit-identical samples or subjective audio acceptance." },
     {
@@ -14,7 +14,7 @@ const doc: DocContent = {
 
     {
       type: "p",
-      text: "In the September 29 development checkout (52cbd7c plus uncommitted changes), an audio-device interruption stops and finalizes the current take. Check the input device and channels before starting another take; recording does not silently continue through a replacement device. Sustained microphone and platform qualification remain separate from this safeguard.",
+      text: "An audio-device interruption stops and finalizes the current take. Check the input device and channels before starting another take; recording does not silently continue through a replacement device. Sustained microphone and platform qualification remain separate from this safeguard.",
     },
     { type: "h2", id: "interfaces-and-drivers", text: "Interfaces and drivers" },
     {
@@ -61,12 +61,12 @@ const doc: DocContent = {
     {
       type: "callout",
       tone: "note",
-      label: "Development checkout: dependent audio settings",
-      text: "Reviewed October 24, 2026 against app commit 1b5ba4b7. Audio Settings refreshes device options and selects a new device's reported defaults. Inactive ASIO drivers report rates, preferred buffer and supported sizes without starting an audio stream; 8/16-sample options appear when reported. Unavailable inspection shows an error. Apply verifies rate-dependent constraints and refreshes accepted values without closing; OK closes when the requested values are accepted; Cancel discards the draft. On the right of the File/Edit menu row, a compact rate/buffer display describes the running device. These changes are unreleased; hardware and platform qualification remains incomplete.",
+      label: "Dependent audio settings",
+      text: "Audio Settings refreshes device options and selects a new device's reported defaults. Inactive ASIO drivers report rates, preferred buffer and supported sizes without starting an audio stream; 8/16-sample options appear when reported. Unavailable inspection shows an error. Apply verifies rate-dependent constraints and refreshes accepted values without closing; OK closes when the requested values are accepted; Cancel discards the draft. On the right of the File/Edit menu row, a compact rate/buffer display describes the running device. Test the selected rate and buffer on your own interface.",
     },
     {
       type: "p",
-      text: "In the October 23 development checkout, **Active audio** shows the running rate and buffer while **Pending** shows your unapplied choices. For example, choosing 64 samples can leave Active audio at 44,100 Hz / 8 samples until you choose Apply or OK. A supported rate or buffer edit stays pending during discovery on the same device. Check the active values after applying, then test the complete project. If no device is open, the dialog reports that instead of showing zero-valued active settings. This does not qualify a particular buffer as crackle-free.",
+      text: "**Active audio** shows the running rate and buffer while **Pending** shows your unapplied choices. For example, choosing 64 samples can leave Active audio at 44,100 Hz / 8 samples until you choose Apply or OK. A supported rate or buffer edit stays pending during discovery on the same device. Check the active values after applying, then test the complete project. If no device is open, the dialog reports that instead of showing zero-valued active settings. This does not qualify a particular buffer as crackle-free.",
     },
     {
       type: "p",
@@ -85,7 +85,7 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: "The audio device sample rate controls recording and playback. Imported files keep their original rate by default; the development project-rate copy policy is described above. Playback converts source rates in real time. Offline rendering can target a different rate from the render dialog.",
+      text: "The audio device sample rate controls recording and playback. Imported files keep their original rate by default; the project-rate copy policy is described above. Playback converts source rates in real time. Offline rendering can target a different rate from the render dialog.",
     },
 
     { type: "h2", id: "buffer-size-and-latency", text: "Buffer size and latency" },

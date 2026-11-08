@@ -23,7 +23,7 @@ export const REPO = {
   inputProfilesDoc: `${REPO_URL}/blob/main/docs/input-profiles.md`,
   runtimeContractDoc: `${REPO_URL}/blob/main/docs/runtime-dependency-contract.md`,
   implementedFeatures: `${REPO_URL}/blob/main/docs/implemented_features.md`,
-  readme: `${REPO_URL}#readme`,
+  readme: `${REPO_URL}/blob/main/README.md`,
 } as const;
 
 export const CONTACT_EMAIL = projectEmails.contact;

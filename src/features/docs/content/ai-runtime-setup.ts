@@ -4,8 +4,8 @@ import { SITE_PATHS } from "@/constants/routes";
 import type { DocContent } from "../types";
 
 const doc: DocContent = {
-  updated: "2026-11-07",
-  appReference: { commit: "4d468a471ffda9838e6e8c984433bba7d7f886b8", channel: "development" },
+  updated: "2026-11-08",
+  appReference: { commit: "ecb2a1f70fb084f43ecb71ff70054ba2e5e0f8a2", channel: "release", version: "0.1.09" },
   blocks: [
     {
       type: "p",
@@ -15,7 +15,7 @@ const doc: DocContent = {
     { type: "h2", id: "model-versions", text: "Original and INT8 model versions" },
     {
       type: "p",
-      text: "In development builds containing app commit `681fec8`, choose a model, then **Original** or **INT8** in **Model version**. A suggestion above the selector explains when lower memory use may help. **AI Tools Setup** lists separate Original and INT8 installation status for ACE-Step, Stable Audio 3 Medium, and MiniMax Music 3. These controls may not be present in an older installed release.",
+      text: "Choose a model, then **Original** or **INT8** in **Model version**. A suggestion above the selector explains when lower memory use may help. **AI Tools Setup** lists separate Original and INT8 installation status for ACE-Step, Stable Audio 3 Medium, and MiniMax Music 3. These controls may not be present in an older installed release.",
     },
     {
       type: "p",
@@ -149,7 +149,7 @@ const doc: DocContent = {
     },
     {
       type: "p",
-      text: "If separation fails, read the dialog's worker error, exit code or last phase; try **CPU only** to isolate a GPU-specific failure, then use **Repair Stem Separation** if the runtime is outdated. Full per-run logs and periodic memory samples require an explicitly launched qualification run. These controls describe the unpublished candidate, not every installed release.",
+      text: "If separation fails, read the dialog's worker error, exit code or last phase; try **CPU only** to isolate a GPU-specific failure, then use **Repair Stem Separation** if the runtime is outdated. Full per-run logs and periodic memory samples require an explicitly launched qualification run.",
     },
 
     { type: "h2", id: "workflows", text: "The workflows" },
