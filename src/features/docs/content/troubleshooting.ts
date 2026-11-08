@@ -4,9 +4,9 @@ import type { DocContent } from "../types";
 
 const doc: DocContent = {
   updated: "2026-11-08",
-  appReference: { commit: "ecb2a1f70fb084f43ecb71ff70054ba2e5e0f8a2", channel: "development" },
+  appReference: { commit: "ecb2a1f70fb084f43ecb71ff70054ba2e5e0f8a2", channel: "release", version: "0.1.09" },
   blocks: [
-    { type: "callout", tone: "note", label: "Development checkout: Native window behavior", text: "Unreleased September 29 working-tree changes after app commit 52cbd7c use OS title bars for the main app and the implemented mixer, MIDI and built-in plugin editor windows. Startup refreshes no longer change outer window bounds; saved detached bounds stay on the relevant monitor when available. The graphical pitch editor also has a native detached window: Detach, Focus and Dock keep the existing clip session and committed history. Closing and reopening the same clip retains committed edits. WebView2 applies to Windows; macOS uses WKWebView and Linux uses WebKitGTK. Windows Debug geometry/lifecycle checks do not establish packaged Release or cross-platform results. First-launch readiness, physical drag/snap, DPI transitions and close/reopen still need qualification on each target platform." },
+    { type: "callout", tone: "note", label: "Native window behavior", text: "OpenStudio uses OS title bars for the main app and the implemented mixer, MIDI and built-in plugin editor windows. Startup refreshes no longer change outer window bounds; saved detached bounds stay on the relevant monitor when available. The graphical pitch editor also has a native detached window: Detach, Focus and Dock keep the existing clip session and committed history. Closing and reopening the same clip retains committed edits. WebView2 applies to Windows; macOS uses WKWebView and Linux uses WebKitGTK. Windows Debug geometry/lifecycle checks do not establish packaged Release or cross-platform results. First-launch readiness, physical drag/snap, DPI transitions and close/reopen still need qualification on each target platform." },
     {
       type: "p",
       text: `Find the symptom, work through the list in order. Shortcuts are the OpenStudio default keyboard profile (\`Ctrl\` is \`Cmd\` on macOS). Background for each group is in [Audio setup](${SITE_PATHS.docs}/audio-setup), [Plugins & scanning](${SITE_PATHS.docs}/plugins-and-scanning), and [Keyboard shortcuts](${SITE_PATHS.docs}/keyboard-shortcuts). If nothing fits, search the [issue tracker](${REPO.issues}) before opening a new one.`,
@@ -16,8 +16,8 @@ const doc: DocContent = {
     {
       type: "callout",
       tone: "note",
-      label: "Development checkout: startup recovery",
-      text: "Unshipped working-tree changes reviewed on top of app commit `52cbd7c` improve packaged AppImage asset lookup and require the Linux release check to launch the finished AppImage. On Windows, an unusable inherited `WEBVIEW2_BROWSER_EXECUTABLE_FOLDER` override can be ignored when the installed Evergreen runtime works. Startup diagnostics now record WebView2 loader and environment results; **Repair Dependencies** waits for the bundled installers, checks their exit codes, and checks browser availability again. These paths still need validation on the affected Linux and Windows 10 machines.",
+      label: "Startup recovery",
+      text: "The Linux release check launches the finished AppImage and verifies packaged asset lookup. On Windows, an unusable inherited `WEBVIEW2_BROWSER_EXECUTABLE_FOLDER` override can be ignored when the installed Evergreen runtime works. Startup diagnostics now record WebView2 loader and environment results; **Repair Dependencies** waits for the bundled installers, checks their exit codes, and checks browser availability again. These paths still need validation on the affected Linux and Windows 10 machines.",
     },
     { type: "h3", text: "The OS warns or blocks first launch" },
     {
@@ -235,7 +235,7 @@ const doc: DocContent = {
     { type: "h3", text: "A reopened detached pitch editor stays blank" },
     {
       type: "p",
-      text: "OpenStudio 0.1.09 waits for the pitch canvas to render with usable geometry before acknowledging readiness, including after a hidden view becomes visible. If an older build gets stuck, save the project and check the candidate/release notes for this correction. When reporting a remaining failure, include whether the editor was detached, hidden or reopened and which app build you used.",
+      text: "OpenStudio 0.1.09 waits for the pitch canvas to render with usable geometry before acknowledging readiness, including after a hidden view becomes visible. If an older build gets stuck, save the project and check the 0.1.09 release notes for this correction. When reporting a remaining failure, include whether the editor was detached, hidden or reopened and which app build you used.",
     },
 
     { type: "h2", id: "offline-support", text: "Create an offline support report" },
